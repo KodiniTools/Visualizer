@@ -7,6 +7,7 @@
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { SlideshowManager } from '../../lib/slideshowManager'
+import { fakeImage, stub } from '../helpers/canvasStubs'
 
 // TikTok-ähnlich: Canvas 1080×1920, Workspace mit 5 % Rand
 const CANVAS = { width: 1080, height: 1920 }
@@ -23,18 +24,22 @@ function createManager(callbacks = {}) {
   const multiImageManager = {
     canvas: { ...CANVAS },
     images: [],
-    addImageWithBounds: vi.fn((imageObject, bounds) => ({ id: nextId++, imageObject, ...bounds })),
+    addImageWithBounds: vi.fn((imageObject: unknown, bounds: object) => ({
+      id: nextId++,
+      imageObject,
+      ...bounds,
+    })),
     removeImage: vi.fn(),
   }
   const fotoManager = {
-    initializeImageSettings: (img) => {
+    initializeImageSettings: (img: { fotoSettings?: object }) => {
       img.fotoSettings ??= { audioReactive: null }
     },
   }
   vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.stubGlobal('requestAnimationFrame', () => 1)
   vi.stubGlobal('cancelAnimationFrame', () => {})
-  return new SlideshowManager(multiImageManager, fotoManager, {
+  return new SlideshowManager(stub(multiImageManager), stub(fotoManager), {
     getWorkspaceBounds: () => ({ ...WS }),
     ...callbacks,
   })
@@ -45,10 +50,11 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const imgA = { width: 200, height: 100 } // 2:1
-const imgB = { width: 100, height: 100 }
+const imgA = fakeImage({ width: 200, height: 100 }) // 2:1
+const imgB = fakeImage({ width: 100, height: 100 })
 const imgs = () => [{ imageObject: imgA }, { imageObject: imgB }]
-const aspectPx = (b) => (b.relWidth * CANVAS.width) / (b.relHeight * CANVAS.height)
+const aspectPx = (b: { relWidth: number; relHeight: number }) =>
+  (b.relWidth * CANVAS.width) / (b.relHeight * CANVAS.height)
 
 describe('Bildgröße – Modus „Aus“ mit Workspace-Format', () => {
   it('frei skalierbar relativ zur Canvas; Seitenverhältnis in Pixeln bleibt 2:1', () => {
@@ -58,19 +64,19 @@ describe('Bildgröße – Modus „Aus“ mit Workspace-Format', () => {
     expect(m.isFittedToWorkspace()).toBe(false)
     const a = m.activeImages[0]
     // Einpassung in den Slideshow-Bereich (nicht den Workspace), Pixel-Verhältnis 2:1
-    expect(aspectPx(m.getFittedImageBounds(imgA))).toBeCloseTo(2)
+    expect(aspectPx(m.getFittedImageBounds(imgA)!)).toBeCloseTo(2)
 
     const res = m.setImageSize(imgA, { width: 0.5 })
-    expect(res.relWidth).toBeCloseTo(0.5)
-    expect(aspectPx(res)).toBeCloseTo(2)
-    expect(a.relWidth).toBeCloseTo(0.5)
-    expect(a.slideshow.clipRect).toBeNull() // nicht auf den Workspace beschnitten
+    expect(res!.relWidth).toBeCloseTo(0.5)
+    expect(aspectPx(res!)).toBeCloseTo(2)
+    expect(a!.relWidth).toBeCloseTo(0.5)
+    expect(a!.slideshow!.clipRect).toBeNull() // nicht auf den Workspace beschnitten
     expect(onImageBoundsChange).toHaveBeenCalledTimes(1)
 
     // über den Workspace hinaus erlaubt (bis 200 % der Canvas)
     m.setImageSize(imgA, { width: 1.5 })
-    expect(a.relWidth).toBeCloseTo(1.5)
-    expect(a.relWidth).toBeGreaterThan(WS_REL.relWidth)
+    expect(a!.relWidth).toBeCloseTo(1.5)
+    expect(a!.relWidth).toBeGreaterThan(WS_REL.relWidth)
     m.stop()
   })
 
@@ -80,8 +86,8 @@ describe('Bildgröße – Modus „Aus“ mit Workspace-Format', () => {
     m.setImageSize(imgA, { height: 0.3, keepAspect: false })
     m.setImagePosition(imgA, { centerX: 0.5, centerY: 0.5 })
     const b = m.getImageBounds(imgA)
-    expect(b.relHeight).toBeCloseTo(0.3)
-    expect(b.relY).toBeCloseTo(0.35)
+    expect(b!.relHeight).toBeCloseTo(0.3)
+    expect(b!.relY).toBeCloseTo(0.35)
     m.stop()
   })
 })
@@ -93,18 +99,21 @@ describe('Bildgröße – Modus „Workspace“', () => {
     m.start(imgs(), { backgroundMode: 'workspace' })
     expect(m.isFittedToWorkspace()).toBe(true)
     const a = m.activeImages[0]
-    expect(a.slideshow.clipRect.relX).toBeCloseTo(WS_REL.relX)
-    expect(a.slideshow.clipRect.relWidth).toBeCloseTo(WS_REL.relWidth)
+    expect(a!.slideshow!.clipRect!.relX).toBeCloseTo(WS_REL.relX)
+    expect(a!.slideshow!.clipRect!.relWidth).toBeCloseTo(WS_REL.relWidth)
     // Cover: 2:1 im hohen Workspace → Höhe = Workspace-Höhe
-    expect(a.relHeight).toBeCloseTo(WS_REL.relHeight)
-    expect(a.relWidth).toBeGreaterThan(WS_REL.relWidth)
+    expect(a!.relHeight).toBeCloseTo(WS_REL.relHeight)
+    expect(a!.relWidth).toBeGreaterThan(WS_REL.relWidth)
 
-    const before = { relX: a.relX, relY: a.relY, relWidth: a.relWidth, relHeight: a.relHeight }
+    const before = { relX: a!.relX, relY: a!.relY, relWidth: a!.relWidth, relHeight: a!.relHeight }
     expect(m.setImageSize(imgA, { width: 0.2 })).toBeNull()
     expect(m.setImagePosition(imgA, { centerX: 0.1 })).toBeNull()
-    expect({ relX: a.relX, relY: a.relY, relWidth: a.relWidth, relHeight: a.relHeight }).toEqual(
-      before,
-    )
+    expect({
+      relX: a!.relX,
+      relY: a!.relY,
+      relWidth: a!.relWidth,
+      relHeight: a!.relHeight,
+    }).toEqual(before)
     expect(m.getImageBounds(imgA)).toBeNull()
     expect(onImageBoundsChange).not.toHaveBeenCalled()
     m.stop()
@@ -119,15 +128,15 @@ describe('Bildgröße – Modus „Workspace“', () => {
     const own = m.getImageBounds(imgA)
 
     m.setBackgroundMode('workspace')
-    expect(a.relHeight).toBeCloseTo(WS_REL.relHeight) // füllt den Workspace
-    expect(m.getEffectiveImageBounds(imgA).relHeight).toBeCloseTo(WS_REL.relHeight)
+    expect(a!.relHeight).toBeCloseTo(WS_REL.relHeight) // füllt den Workspace
+    expect(m.getEffectiveImageBounds(imgA)!.relHeight).toBeCloseTo(WS_REL.relHeight)
     expect(m.getImageBounds(imgA)).toEqual(own) // gemerkt, nur nicht angewendet
 
     m.setBackgroundMode('none')
-    expect(a.relWidth).toBeCloseTo(0.3)
-    expect(a.relX + a.relWidth / 2).toBeCloseTo(0.25)
-    expect(a.relY + a.relHeight / 2).toBeCloseTo(0.75)
-    expect(a.slideshow.clipRect).toBeNull()
+    expect(a!.relWidth).toBeCloseTo(0.3)
+    expect(a!.relX + a!.relWidth / 2).toBeCloseTo(0.25)
+    expect(a!.relY + a!.relHeight / 2).toBeCloseTo(0.75)
+    expect(a!.slideshow!.clipRect).toBeNull()
     m.stop()
   })
 
@@ -135,8 +144,8 @@ describe('Bildgröße – Modus „Workspace“', () => {
     const m = createManager({ getWorkspaceBounds: () => null })
     m.start(imgs(), { backgroundMode: 'workspace' })
     expect(m.isFittedToWorkspace()).toBe(false)
-    expect(m.setImageSize(imgA, { width: 0.4 }).relWidth).toBeCloseTo(0.4)
-    expect(m.activeImages[0].relWidth).toBeCloseTo(0.4)
+    expect(m.setImageSize(imgA, { width: 0.4 })!.relWidth).toBeCloseTo(0.4)
+    expect(m.activeImages[0]!.relWidth).toBeCloseTo(0.4)
     m.stop()
   })
 })

@@ -2,18 +2,35 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TextManager } from '../../lib/textManager'
 import { DeletionMethods } from '../../lib/canvasManager/methods/deletionMethods'
 import { createTextsSegment } from '../../lib/history/segments/canvasSegments'
+import { stub } from '../helpers/canvasStubs'
+import type { Mock } from 'vitest'
+
+/** Ausschnitt des CanvasManagers, den die Lösch-Methoden nutzen */
+type FakeCanvasManager = {
+  textManager: TextManager
+  activeObject: unknown
+  selectedObjects: unknown[]
+  setActiveObject(obj: unknown): void
+  clearMultiSelection(): void
+  redrawCallback: Mock
+  updateUICallback: Mock
+  onObjectDeleted: Mock
+  deleteActiveObject: OmitThisParameter<DeletionMethods['deleteActiveObject']>
+  deleteTexts: OmitThisParameter<DeletionMethods['deleteTexts']>
+}
+type HistoryManager = ReturnType<Parameters<typeof createTextsSegment>[0]>
 
 /**
  * Vom Canvas gelöschte Texte bleiben mit allen Einstellungen im
  * Text-Verzeichnis (offCanvas), bis sie dort endgültig gelöscht werden.
  */
 
-function fakeCanvasManager(tm) {
-  const cm = {
+function fakeCanvasManager(tm: TextManager) {
+  const base: Omit<FakeCanvasManager, 'deleteActiveObject' | 'deleteTexts'> = {
     textManager: tm,
     activeObject: null,
     selectedObjects: [],
-    setActiveObject(obj) {
+    setActiveObject(obj: unknown) {
       this.activeObject = obj
     },
     clearMultiSelection() {
@@ -23,13 +40,14 @@ function fakeCanvasManager(tm) {
     updateUICallback: vi.fn(),
     onObjectDeleted: vi.fn(),
   }
-  cm.deleteActiveObject = DeletionMethods.prototype.deleteActiveObject.bind(cm)
-  cm.deleteTexts = DeletionMethods.prototype.deleteTexts.bind(cm)
+  const cm = base as FakeCanvasManager
+  cm.deleteActiveObject = DeletionMethods.prototype.deleteActiveObject.bind(stub(cm))
+  cm.deleteTexts = DeletionMethods.prototype.deleteTexts.bind(stub(cm))
   return cm
 }
 
 describe('TextManager – vom Canvas entfernen', () => {
-  let tm
+  let tm: TextManager
   beforeEach(() => {
     tm = new TextManager({})
   })
@@ -59,14 +77,16 @@ describe('TextManager – vom Canvas entfernen', () => {
     const a = tm.add('A')
     const b = tm.add('B')
     tm.removeFromCanvas(a)
-    const drawn = []
-    tm.drawText = (_ctx, obj) => drawn.push(obj.content)
-    tm.draw({}, 100, 100)
+    const drawn: unknown[] = []
+    tm.drawText = (_ctx, obj) => {
+      drawn.push(obj.content)
+    }
+    tm.draw(stub({}), 100, 100)
     expect(drawn).toEqual(['B'])
 
     drawn.length = 0
     tm.markerRevealedIds.add(a.id)
-    tm.draw({}, 100, 100)
+    tm.draw(stub({}), 100, 100)
     expect(drawn).toEqual(['A', 'B'])
     expect(b.offCanvas).toBeFalsy()
   })
@@ -74,7 +94,7 @@ describe('TextManager – vom Canvas entfernen', () => {
   it('entfernte Texte sind nicht anklickbar', () => {
     const a = tm.add('A')
     tm.removeFromCanvas(a)
-    const canvas = { getContext: () => null }
+    const canvas = stub<HTMLCanvasElement>({ getContext: () => null })
     // findObjectAt überspringt den Text, bevor Bounds gemessen werden
     expect(tm.findObjectAt(0, 0, canvas)).toBeNull()
   })
@@ -90,8 +110,8 @@ describe('TextManager – vom Canvas entfernen', () => {
 })
 
 describe('CanvasManager – Text löschen', () => {
-  let tm
-  let cm
+  let tm: TextManager
+  let cm: FakeCanvasManager
   beforeEach(() => {
     tm = new TextManager({})
     cm = fakeCanvasManager(tm)
@@ -107,7 +127,7 @@ describe('CanvasManager – Text löschen', () => {
     expect(b.offCanvas).toBe(true)
     expect(cm.activeObject).toBeNull()
 
-    const { undo, redo } = cm.onObjectDeleted.mock.calls[0][0]
+    const { undo, redo } = cm.onObjectDeleted.mock.calls[0]![0]
     undo()
     expect(b.offCanvas).toBe(false)
     expect(tm.textObjects.map((t) => t.content)).toEqual(['A', 'B'])
@@ -123,7 +143,7 @@ describe('CanvasManager – Text löschen', () => {
     expect(tm.textObjects).toHaveLength(2)
     expect(a.offCanvas && b.offCanvas).toBe(true)
 
-    const { undo } = cm.onObjectDeleted.mock.calls[0][0]
+    const { undo } = cm.onObjectDeleted.mock.calls[0]![0]
     undo()
     expect(a.offCanvas || b.offCanvas).toBe(false)
   })
@@ -140,14 +160,14 @@ describe('Verlauf – Texte-Segment', () => {
   it('schreibt offCanvas immer fest, damit Undo das Flag zurücksetzt', () => {
     const tm = new TextManager({})
     const cm = { textManager: tm, activeObject: null }
-    const seg = createTextsSegment(() => cm)
+    const seg = createTextsSegment(() => stub<HistoryManager>(cm))
     const a = tm.add('A')
 
     const before = seg.capture()
-    expect(before[0].offCanvas).toBe(false)
+    expect(before![0]!.offCanvas).toBe(false)
 
     tm.removeFromCanvas(a)
-    expect(seg.capture()[0].offCanvas).toBe(true)
+    expect(seg.capture()![0]!.offCanvas).toBe(true)
 
     seg.apply(before)
     expect(a.offCanvas).toBe(false)
@@ -161,13 +181,13 @@ describe('Verlauf – Auswahl', () => {
     const a = tm.add('A')
     const cm = {
       textManager: tm,
-      activeObject: a,
-      selectedObjects: [],
-      setActiveObject(o) {
+      activeObject: a as unknown,
+      selectedObjects: [] as unknown[],
+      setActiveObject(o: unknown) {
         this.activeObject = o
       },
     }
-    const seg = createTextsSegment(() => cm)
+    const seg = createTextsSegment(() => stub<HistoryManager>(cm))
     tm.removeFromCanvas(a)
     const removed = seg.capture()
     tm.returnToCanvas(a)

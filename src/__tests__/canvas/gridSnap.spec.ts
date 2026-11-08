@@ -10,6 +10,12 @@ import { GridManager } from '../../lib/gridManager'
 import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler'
 import { useGridStore } from '../../stores/gridStore'
 import ControlsPanel from '../../components/ControlsPanel.vue'
+import type { CanvasObject } from '../../lib/canvasManager'
+import { stub } from '../helpers/canvasStubs'
+
+type DragManager = ConstructorParameters<typeof DragDropHandler>[0]
+/** Canvas-Objekt mit gesetzter Position/Größe */
+type Placed = CanvasObject & { relX: number; relY: number; relWidth: number; relHeight: number }
 
 // Canvas 1000×500 px, dargestellt in voller Größe (Toleranz = 10 px)
 function setup({ visible = true, snap = true } = {}) {
@@ -17,25 +23,26 @@ function setup({ visible = true, snap = true } = {}) {
   const grid = new GridManager(canvas) // Raster 50 px
   grid.setVisibility(visible)
   grid.setSnapToGrid(snap)
-  const manager = { canvas, gridManager: grid, selectedObjects: [] }
+  const manager = stub<DragManager>({ canvas, gridManager: grid, selectedObjects: [] })
   return { handler: new DragDropHandler(manager), grid, manager, canvas }
 }
 // Bild 200×100 px an Position (x, y) px
-const image = (x, y) => ({
-  type: 'image',
-  relX: x / 1000,
-  relY: y / 500,
-  relWidth: 0.2,
-  relHeight: 0.2,
-})
-const px = (obj) => ({
+const image = (x: number, y: number) =>
+  stub<Placed>({
+    type: 'image',
+    relX: x / 1000,
+    relY: y / 500,
+    relWidth: 0.2,
+    relHeight: 0.2,
+  })
+const px = (obj: Placed) => ({
   x: Math.round(obj.relX * 1000 * 100) / 100,
   y: Math.round(obj.relY * 500 * 100) / 100,
 })
 
 describe('GridManager – Einrasten', () => {
   it('snapAxis: Anfang, Mitte oder Ende auf die nächste Linie innerhalb der Toleranz', () => {
-    const g = new GridManager({ width: 1000, height: 500 })
+    const g = new GridManager(stub({ width: 1000, height: 500 }))
     expect(g.snapAxis(47, 0)).toBe(50) // Punkt
     expect(g.snapAxis(60, 0)).toBe(50) // genau an der Toleranzgrenze (10 px)
     expect(g.snapAxis(62, 0)).toBe(62) // außerhalb der Toleranz
@@ -46,7 +53,7 @@ describe('GridManager – Einrasten', () => {
   })
 
   it('isSnapActive nur bei sichtbarem Raster', () => {
-    const g = new GridManager({ width: 1, height: 1 })
+    const g = new GridManager(stub({ width: 1, height: 1 }))
     g.setSnapToGrid(true)
     expect(g.isSnapActive()).toBe(false)
     g.setVisibility(true)
@@ -67,7 +74,7 @@ describe('DragDropHandler – Einrasten beim Verschieben', () => {
   it('bleibt nicht kleben: kleine Schritte führen aus dem Einrastbereich heraus', () => {
     const { handler } = setup()
     const obj = image(150, 150) // liegt auf der Linie
-    const xs = []
+    const xs: unknown[] = []
     for (let i = 0; i < 8; i++) {
       handler.moveObject(obj, 3, 0)
       xs.push(px(obj).x)
@@ -87,8 +94,8 @@ describe('DragDropHandler – Einrasten beim Verschieben', () => {
 
   it('Text rastet mit dem Ankerpunkt ein; mitgewählte Texte folgen derselben Verschiebung', () => {
     const { handler, manager } = setup()
-    const text = { type: 'text', relX: 0.1, relY: 0.2 } // 100/100 px
-    const other = { type: 'text', relX: 0.5, relY: 0.5 }
+    const text = stub<Placed>({ type: 'text', relX: 0.1, relY: 0.2 }) // 100/100 px
+    const other = stub<Placed>({ type: 'text', relX: 0.5, relY: 0.5 })
     manager.selectedObjects = [text, other]
     handler.moveObject(text, 48, 3) // 148/103 → 150/100
     expect(px(text)).toEqual({ x: 150, y: 100 })

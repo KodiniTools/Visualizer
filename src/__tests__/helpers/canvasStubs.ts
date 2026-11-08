@@ -18,3 +18,9 @@ export type StubTarget = Record<string | symbol, unknown>
 
 /** Platzhalter für ein Bild (jsdom lädt keine Bilder; Tests vergleichen nur die Identität/Felder) */
 export const fakeImage = (value: object = {}) => value as unknown as HTMLImageElement
+
+/**
+ * Teil-Attrappe als vollständiger Typ: Specs füllen nur die Felder, die der
+ * getestete Code liest. Der Cast ist bewusst auf diese Stelle begrenzt.
+ */
+export const stub = <T>(value: object | null = {}): T => value as unknown as T

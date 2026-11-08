@@ -1,20 +1,23 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest'
 import { SceneRenderer } from '../../lib/canvasManager/rendering/SceneRenderer'
+import { stub, type Call } from '../helpers/canvasStubs'
 
 // Texte zeichnet die Render-Schleife (renderLoop/sceneRenderer) mit Canvas-
 // Maßen. drawScene() darf sie nicht zusätzlich zeichnen: Früher geschah das
 // ohne Maße (Positionen NaN, nichts sichtbar), die Audio-Hüllkurve lief aber
 // pro Frame doppelt.
 function setup() {
-  const calls = []
-  const ctx = {
+  const calls: Call[] = []
+  const ctx = stub<CanvasRenderingContext2D>({
     canvas: { width: 400, height: 200 },
-    clearRect: (...a) => calls.push(['clearRect', ...a]),
-  }
+    clearRect: (...a: unknown[]) => calls.push(['clearRect', ...a]),
+  })
   const manager = {
     ctx: {},
-    backgroundRenderer: { drawBackground: (c) => calls.push(['drawBackground', c === ctx]) },
+    backgroundRenderer: {
+      drawBackground: (c: unknown) => calls.push(['drawBackground', c === ctx]),
+    },
     uiRenderer: {
       drawInteractiveElements: () => {},
       drawTextSelectionRect: () => {},
@@ -23,7 +26,7 @@ function setup() {
     textManager: { textObjects: [], draw: vi.fn() },
     getWorkspaceBounds: () => null,
   }
-  return { renderer: new SceneRenderer(manager), manager, ctx, calls }
+  return { renderer: new SceneRenderer(stub(manager)), manager, ctx, calls }
 }
 
 describe('SceneRenderer.drawScene', () => {

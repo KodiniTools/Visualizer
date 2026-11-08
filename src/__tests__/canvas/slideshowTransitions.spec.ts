@@ -7,6 +7,7 @@ import {
 } from '../../lib/slideshowTransitions'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { MultiImageManager } from '../../lib/multiImageManager'
+import { stub, type Call, fakeImage } from '../helpers/canvasStubs'
 
 describe('slideshowTransitions', () => {
   it('Liste, Gültigkeit und Auflösung', () => {
@@ -60,18 +61,22 @@ function createManager() {
   let nextId = 1
   const multiImageManager = {
     canvas: { width: 1000, height: 1000 },
-    addImageWithBounds: vi.fn((imageObject, bounds) => ({ id: nextId++, imageObject, ...bounds })),
+    addImageWithBounds: vi.fn((imageObject: unknown, bounds: object) => ({
+      id: nextId++,
+      imageObject,
+      ...bounds,
+    })),
     removeImage: vi.fn(),
   }
   const fotoManager = {
-    initializeImageSettings: (img) => {
+    initializeImageSettings: (img: { fotoSettings?: object }) => {
       img.fotoSettings ??= { audioReactive: null }
     },
   }
   vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.stubGlobal('requestAnimationFrame', () => 1)
   vi.stubGlobal('cancelAnimationFrame', () => {})
-  return new SlideshowManager(multiImageManager, fotoManager)
+  return new SlideshowManager(stub(multiImageManager), stub(fotoManager))
 }
 
 afterEach(() => {
@@ -81,7 +86,7 @@ afterEach(() => {
 })
 
 describe('SlideshowManager – Übergänge', () => {
-  const img = { width: 100, height: 100 }
+  const img = fakeImage({ width: 100, height: 100 })
 
   it('globaler Übergang, pro Bild überschreibbar; Zustand wird berechnet', () => {
     vi.useFakeTimers()
@@ -93,17 +98,17 @@ describe('SlideshowManager – Übergänge', () => {
       fadeOutDuration: 1000,
     })
     const first = m.activeImages[0]
-    expect(first.slideshow.transition).toBe('zoomIn')
+    expect(first!.slideshow!.transition).toBe('zoomIn')
     vi.advanceTimersByTime(500)
     m._updateSlideshowState()
-    expect(first.slideshow.transitionState.scale).toBeGreaterThan(0.5)
-    expect(first.slideshow.transitionState.scale).toBeLessThan(1)
-    expect(first.slideshow.opacity).toBe(first.slideshow.transitionState.opacity)
+    expect(first!.slideshow!.transitionState!.scale).toBeGreaterThan(0.5)
+    expect(first!.slideshow!.transitionState!.scale).toBeLessThan(1)
+    expect(first!.slideshow!.opacity).toBe(first!.slideshow!.transitionState!.opacity)
 
     vi.advanceTimersByTime(1600) // Bild 1 blendet aus → Bild 2 kommt
     m._updateSlideshowState()
-    const second = m.activeImages.find((i) => i.slideshow.imageIndex === 1)
-    expect(second.slideshow.transition).toBe('slideLeft')
+    const second = m.activeImages.find((i) => i.slideshow!.imageIndex === 1)
+    expect(second!.slideshow!.transition).toBe('slideLeft')
     m.stop()
   })
 
@@ -118,7 +123,7 @@ describe('SlideshowManager – Übergänge', () => {
     // Ein einziger Frame nach langer Pause (z. B. Tab im Hintergrund)
     vi.advanceTimersByTime(250)
     m._updateSlideshowState()
-    expect(m.activeImages.some((i) => i.slideshow.imageIndex === 1)).toBe(true)
+    expect(m.activeImages.some((i) => i.slideshow!.imageIndex === 1)).toBe(true)
 
     m.stop()
   })
@@ -133,16 +138,16 @@ describe('SlideshowManager – Übergänge', () => {
     })
     vi.advanceTimersByTime(1000)
     m._updateSlideshowState()
-    expect(m.activeImages.map((i) => i.slideshow.imageIndex)).toEqual([1])
+    expect(m.activeImages.map((i) => i.slideshow!.imageIndex)).toEqual([1])
     m.stop()
   })
 
   it('applyLiveUpdate übernimmt Übergang für angezeigte und folgende Bilder', () => {
     const m = createManager()
-    const imgs = [{ imageObject: img }, { imageObject: { width: 100, height: 100 } }]
+    const imgs = [{ imageObject: img }, { imageObject: fakeImage({ width: 100, height: 100 }) }]
     m.start(imgs)
     m.applyLiveUpdate(imgs, { transition: 'wipe' })
-    expect(m.activeImages[0].slideshow.transition).toBe('wipe')
+    expect(m.activeImages[0]!.slideshow!.transition).toBe('wipe')
     expect(m.config.transition).toBe('wipe')
     m.stop()
   })
@@ -150,7 +155,7 @@ describe('SlideshowManager – Übergänge', () => {
 
 describe('MultiImageManager – Übergänge beim Zeichnen', () => {
   function makeCtx() {
-    const calls = []
+    const calls: Call[] = []
     const ctx = {
       canvas: { width: 1000, height: 1000 },
       globalAlpha: 1,
@@ -158,30 +163,32 @@ describe('MultiImageManager – Übergänge beim Zeichnen', () => {
       save: vi.fn(),
       restore: vi.fn(),
       beginPath: vi.fn(),
-      rect: vi.fn((...a) => calls.push(['rect', ...a])),
+      rect: vi.fn((...a: unknown[]) => calls.push(['rect', ...a])),
       clip: vi.fn(),
       translate: vi.fn(),
       rotate: vi.fn(),
-      scale: vi.fn((...a) => calls.push(['scale', ...a])),
-      drawImage: vi.fn((...a) => calls.push(['drawImage', ...a])),
+      scale: vi.fn((...a: unknown[]) => calls.push(['scale', ...a])),
+      drawImage: vi.fn((...a: unknown[]) => calls.push(['drawImage', ...a])),
       setTransform: vi.fn(),
       resetTransform: vi.fn(),
     }
-    return { ctx, calls }
+    return { ctx: stub<CanvasRenderingContext2D>(ctx), calls }
   }
 
-  function managerWith(transitionState) {
-    const mgr = new MultiImageManager({ width: 1000, height: 1000 })
-    mgr.images.push({
-      id: 1,
-      type: 'image',
-      imageObject: { width: 100, height: 100 },
-      relX: 0.1,
-      relY: 0.1,
-      relWidth: 0.2,
-      relHeight: 0.2,
-      slideshow: { active: true, opacity: transitionState.opacity ?? 1, transitionState },
-    })
+  function managerWith(transitionState: { opacity?: number } & Record<string, unknown>) {
+    const mgr = new MultiImageManager(stub({ width: 1000, height: 1000 }))
+    mgr.images.push(
+      stub({
+        id: 1,
+        type: 'image',
+        imageObject: fakeImage({ width: 100, height: 100 }),
+        relX: 0.1,
+        relY: 0.1,
+        relWidth: 0.2,
+        relHeight: 0.2,
+        slideshow: { active: true, opacity: transitionState.opacity ?? 1, transitionState },
+      }),
+    )
     return mgr
   }
 
@@ -200,14 +207,14 @@ describe('MultiImageManager – Übergänge beim Zeichnen', () => {
     const { ctx, calls } = makeCtx()
     managerWith({ ...neutral, translateX: 0.5 }).drawImages(ctx)
     const draw = calls.find((c) => c[0] === 'drawImage')
-    expect(draw[2]).toBeCloseTo(100 + 0.5 * 200) // x = 100 + halbe Bildbreite
+    expect(draw![2]).toBeCloseTo(100 + 0.5 * 200) // x = 100 + halbe Bildbreite
   })
 
   it('Wischen beschneidet auf den aufgedeckten Teil', () => {
     const { ctx, calls } = makeCtx()
     managerWith({ ...neutral, wipe: { start: 0, end: 0.25 } }).drawImages(ctx)
     const rect = calls.find((c) => c[0] === 'rect')
-    expect(rect.slice(1)).toEqual([100, 100, 50, 200])
+    expect(rect!.slice(1)).toEqual([100, 100, 50, 200])
   })
 
   it('Weichzeichnen und Kippen', () => {
@@ -220,43 +227,46 @@ describe('MultiImageManager – Übergänge beim Zeichnen', () => {
 
 describe('SlideshowManager – Live-Bearbeitung (pausiert)', () => {
   it('preserveLive: aktuelle Anpassungen bleiben, neue Anzeigedauer gilt sofort', () => {
-    const img = { width: 100, height: 100 }
+    const img = fakeImage({ width: 100, height: 100 })
     const m = createManager()
-    const imgs = [{ imageObject: img }, { imageObject: { width: 100, height: 100 } }]
+    const imgs = [{ imageObject: img }, { imageObject: fakeImage({ width: 100, height: 100 }) }]
     m.start(imgs, { displayDuration: 3000 })
     const shown = m.activeImages[0]
-    shown.fotoSettings.brightness = 160 // gerade eben geändert, noch nicht gemerkt
-    m.applyLiveUpdate([{ ...imgs[0], displayDuration: 8000, transition: 'wipe' }, imgs[1]], {
+    shown!.fotoSettings!.brightness = 160 // gerade eben geändert, noch nicht gemerkt
+    m.applyLiveUpdate([{ ...imgs[0]!, displayDuration: 8000, transition: 'wipe' }, imgs[1]!], {
       preserveLive: true,
     })
-    expect(shown.fotoSettings.brightness).toBe(160)
-    expect(shown.slideshow.displayDuration).toBe(8000)
-    expect(shown.slideshow.transition).toBe('wipe')
+    expect(shown!.fotoSettings!.brightness).toBe(160)
+    expect(shown!.slideshow!.displayDuration).toBe(8000)
+    expect(shown!.slideshow!.transition).toBe('wipe')
     m.stop()
   })
 })
 
 describe('SlideshowManager – Ein-/Ausblenddauer pro Bild', () => {
   it('eigene Dauer pro Bild, sonst Standard; Live-Bearbeitung übernimmt sie sofort', () => {
-    const img = { width: 100, height: 100 }
+    const img = fakeImage({ width: 100, height: 100 })
     const m = createManager()
     const imgs = [
       { imageObject: img, fadeInDuration: 300, fadeOutDuration: 2500 },
-      { imageObject: { width: 100, height: 100 } },
+      { imageObject: fakeImage({ width: 100, height: 100 }) },
     ]
     m.start(imgs, { fadeInDuration: 1000, fadeOutDuration: 1000 })
     const shown = m.activeImages[0]
-    expect(shown.slideshow.fadeInDuration).toBe(300)
-    expect(shown.slideshow.fadeOutDuration).toBe(2500)
+    expect(shown!.slideshow!.fadeInDuration).toBe(300)
+    expect(shown!.slideshow!.fadeOutDuration).toBe(2500)
     m.currentIndex = 1
     const second = m._addNextImage()
-    expect(second.slideshow.fadeInDuration).toBe(1000)
+    expect(second!.slideshow!.fadeInDuration).toBe(1000)
 
-    m.applyLiveUpdate([{ ...imgs[0], fadeInDuration: 4000, fadeOutDuration: undefined }, imgs[1]], {
-      preserveLive: true,
-    })
-    expect(shown.slideshow.fadeInDuration).toBe(4000)
-    expect(shown.slideshow.fadeOutDuration).toBe(1000) // eigener Wert entfernt → Standard
+    m.applyLiveUpdate(
+      [{ ...imgs[0]!, fadeInDuration: 4000, fadeOutDuration: undefined }, imgs[1]!],
+      {
+        preserveLive: true,
+      },
+    )
+    expect(shown!.slideshow!.fadeInDuration).toBe(4000)
+    expect(shown!.slideshow!.fadeOutDuration).toBe(1000) // eigener Wert entfernt → Standard
     m.stop()
   })
 })

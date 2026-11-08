@@ -7,6 +7,13 @@ import { getScaleValue, restartScale } from '../../lib/textManager/animation/sca
 import { getSlideOffset, restartSlide } from '../../lib/textManager/animation/slide'
 import { getTypewriterText, restartTypewriter } from '../../lib/textManager/animation/typewriter'
 import { easeIn as audioEaseIn, easeOut as audioEaseOut } from '../../lib/audio/EasingFunctions'
+import type { TextAnimation, TextObject, TimelineStateKey } from '../../lib/textManager/types'
+import { stub } from '../helpers/canvasStubs'
+
+/** Eigener Startzeit-Schlüssel nur für diese Tests (nicht Teil von TimelineStateKey) */
+const TEST_KEY = 'testStartTime' as TimelineStateKey
+/** Zustand inkl. test-eigener Schlüssel lesen */
+const stateOf = (animation: TextAnimation) => animation._state as unknown as Record<string, unknown>
 
 /**
  * Tests für die gemeinsamen Animations-Bausteine
@@ -58,7 +65,7 @@ describe('applyEasing', () => {
 
 describe('ensureAnimationState', () => {
   it('legt einen fehlenden Zustand an', () => {
-    const animation = {}
+    const animation: TextAnimation = {}
     const state = ensureAnimationState(animation)
     expect(state).toEqual({ startTime: null, isPlaying: false, currentIndex: 0 })
     expect(animation._state).toBe(state)
@@ -76,38 +83,41 @@ describe('resolveTimeline', () => {
   const T0 = 1_700_000_000_000
 
   /** Minimale Animations-Hülle mit einer Konfiguration unter `key`. */
-  function anim(cfg) {
-    return { _state: { startTime: null, isPlaying: false, currentIndex: 0 }, cfg }
+  function anim(cfg?: object) {
+    return stub<TextAnimation>({
+      _state: { startTime: null, isPlaying: false, currentIndex: 0 },
+      cfg,
+    })
   }
 
   /** Fortschritt zum Zeitpunkt T0 + ms. */
-  function p(animation, cfg, ms) {
-    return resolveTimeline(animation, cfg, 'testStartTime', T0 + ms)
+  function p(animation: TextAnimation, cfg: object, ms: number) {
+    return resolveTimeline(animation, stub(cfg), TEST_KEY, T0 + ms)
   }
 
   it('startet erst beim ERSTEN Aufruf, nicht beim Aktivieren', () => {
-    const animation = {}
+    const animation: TextAnimation = {}
     const cfg = { direction: 'in', duration: 1000, easing: 'linear' }
 
     // Quirk: wird die Animation erst nach 300ms zum ersten Mal abgefragt,
     // beginnt sie dort – nicht rueckwirkend.
-    expect(resolveTimeline(animation, cfg, 'testStartTime', T0 + 300)).toEqual({
+    expect(resolveTimeline(animation, cfg, TEST_KEY, T0 + 300)).toEqual({
       p: 0,
       isComplete: false,
     })
-    expect(animation._state.testStartTime).toBe(T0 + 300)
+    expect(stateOf(animation).testStartTime).toBe(T0 + 300)
   })
 
   it('legt den Zustand an und merkt sich den Startzeitpunkt', () => {
-    const animation = {}
+    const animation: TextAnimation = {}
     const cfg = { direction: 'in', duration: 1000, easing: 'linear' }
 
-    resolveTimeline(animation, cfg, 'testStartTime', T0)
-    expect(animation._state.testStartTime).toBe(T0)
+    resolveTimeline(animation, cfg, TEST_KEY, T0)
+    expect(stateOf(animation).testStartTime).toBe(T0)
 
     // Der Startzeitpunkt bleibt über Frames hinweg stehen
-    resolveTimeline(animation, cfg, 'testStartTime', T0 + 500)
-    expect(animation._state.testStartTime).toBe(T0)
+    resolveTimeline(animation, cfg, TEST_KEY, T0 + 500)
+    expect(stateOf(animation).testStartTime).toBe(T0)
   })
 
   it('hält während der Start-Verzögerung den Ausgangswert', () => {
@@ -179,7 +189,7 @@ describe('resolveTimeline', () => {
     expect(p(a, cfg, 1000)).toEqual({ p: 1, isComplete: true })
     expect(p(a, cfg, 1499)).toEqual({ p: 1, isComplete: true })
     expect(p(a, cfg, 1500)).toEqual({ p: 0, isComplete: false })
-    expect(a._state.testStartTime).toBe(T0 + 1500)
+    expect(stateOf(a).testStartTime).toBe(T0 + 1500)
     expect(p(a, cfg, 2000).p).toBeCloseTo(0.5, 10)
   })
 
@@ -192,7 +202,7 @@ describe('resolveTimeline', () => {
     p(a, cfg, 0)
     // Direkt am Ende des Durchlaufs beginnt der naechste
     expect(p(a, cfg, 1000)).toEqual({ p: 0, isComplete: false })
-    expect(a._state.testStartTime).toBe(T0 + 1000)
+    expect(stateOf(a).testStartTime).toBe(T0 + 1000)
     expect(p(a, cfg, 1500).p).toBeCloseTo(0.5, 10)
   })
 
@@ -218,15 +228,15 @@ describe('Abbildung des Fortschritts auf die Animationswerte', () => {
   const T0 = 1_700_000_000_000
 
   /** Text-Objekt mit derselben Konfiguration für alle drei Animationen. */
-  function textObj(cfg) {
-    return {
+  function textObj(cfg: object) {
+    return stub<TextObject>({
       animation: {
         _state: { startTime: null, isPlaying: false, currentIndex: 0 },
         fade: { enabled: true, ...cfg },
         scale: { enabled: true, startScale: 0, endScale: 2, ...cfg },
         slide: { enabled: true, from: 'left', distance: 100, ...cfg },
       },
-    }
+    })
   }
 
   // Der Vertrag aus docs/REFACTORING-textManager.md: Fade, Scale und Slide
@@ -239,7 +249,7 @@ describe('Abbildung des Fortschritts auf die Animationswerte', () => {
 
       // Referenz-Fortschritt auf einem eigenen Objekt, damit der Zustand
       // der drei Animationen unberührt bleibt
-      const { p } = resolveTimeline({}, cfg, 'refStartTime', now)
+      const { p } = resolveTimeline({}, cfg, 'refStartTime' as TimelineStateKey, now)
 
       expect(getFadeOpacity(textObj(cfg), now).opacity).toBeCloseTo(p, 10)
       expect(getScaleValue(textObj(cfg), now).scale).toBeCloseTo(0 + (2 - 0) * p, 10)
@@ -248,7 +258,7 @@ describe('Abbildung des Fortschritts auf die Animationswerte', () => {
   )
 
   it('liefert bei deaktivierter Animation neutrale Werte', () => {
-    const aus = { animation: { _state: {}, fade: {}, scale: {}, slide: {} } }
+    const aus = stub<TextObject>({ animation: { _state: {}, fade: {}, scale: {}, slide: {} } })
     expect(getFadeOpacity(aus)).toEqual({ opacity: 1, isComplete: true })
     expect(getScaleValue(aus)).toEqual({ scale: 1, isComplete: true })
     expect(getSlideOffset(aus, 800, 600)).toEqual({ offsetX: 0, offsetY: 0, isComplete: true })
@@ -256,7 +266,7 @@ describe('Abbildung des Fortschritts auf die Animationswerte', () => {
 
   it('verschiebt Slide je nach Kante und Distanz', () => {
     const now = T0
-    const kante = (from, distance = 100) =>
+    const kante = (from: string, distance = 100) =>
       getSlideOffset(textObj({ direction: 'in', from, distance }), 800, 600, now)
 
     expect(kante('left')).toMatchObject({ offsetX: -800, offsetY: 0 })
@@ -271,13 +281,13 @@ describe('Typewriter-Loop', () => {
   const T0 = 1_700_000_000_000
 
   function getippt(overrides = {}) {
-    return {
+    return stub<TextObject>({
       content: 'ABC',
       animation: {
         _state: { startTime: null, isPlaying: false, currentIndex: 0 },
         typewriter: { enabled: true, speed: 100, loop: true, ...overrides },
       },
-    }
+    })
   }
 
   it('wiederholt bei loopDelay 0 nahtlos', () => {
@@ -307,14 +317,14 @@ describe('Robustheit gegen fehlenden _state', () => {
    * so, wie es aus einer Quelle kommen kann, die `animation` selbst
    * zusammenbaut (Preset, Handoff, manuell gesetzte Konfiguration).
    */
-  function ohneState(name, cfg = {}) {
-    return {
+  function ohneState(name: string, cfg = {}) {
+    return stub<TextObject>({
       content: 'Hallo',
       animation: {
         type: name,
         [name]: { enabled: true, duration: 1000, easing: 'linear', ...cfg },
       },
-    }
+    })
   }
 
   it('legt den Zustand beim Typewriter an, statt zu werfen', () => {
@@ -322,7 +332,7 @@ describe('Robustheit gegen fehlenden _state', () => {
 
     expect(() => getTypewriterText(t, T0)).not.toThrow()
     expect(getTypewriterText(t, T0).text).toBe('H')
-    expect(t.animation._state).toMatchObject({ isPlaying: true, currentIndex: 0 })
+    expect(t.animation._state!).toMatchObject({ isPlaying: true, currentIndex: 0 })
   })
 
   it('legt den Zustand bei Fade, Scale und Slide an', () => {
@@ -345,18 +355,18 @@ describe('Robustheit gegen fehlenden _state', () => {
       ['fade', restartFade],
       ['scale', restartScale],
       ['slide', restartSlide],
-    ]) {
+    ] as [string, (t: TextObject) => void][]) {
       const t = ohneState(name)
-      expect(() => restart(t)).not.toThrow()
-      expect(t.animation._state).toBeDefined()
+      expect(() => restart!(t)).not.toThrow()
+      expect(t.animation._state!).toBeDefined()
     }
   })
 
   it('ignoriert weiterhin Objekte ganz ohne Animation', () => {
     for (const restart of [restartTypewriter, restartFade, restartScale, restartSlide]) {
       expect(() => restart(null)).not.toThrow()
-      expect(() => restart({})).not.toThrow()
-      expect(() => restart({ animation: null })).not.toThrow()
+      expect(() => restart(stub({}))).not.toThrow()
+      expect(() => restart(stub({ animation: null }))).not.toThrow()
     }
   })
 
@@ -364,12 +374,12 @@ describe('Robustheit gegen fehlenden _state', () => {
     // Die restart-Funktionen leeren nur ihre eigenen Felder, nicht den Rest
     const t = ohneState('fade', { direction: 'in' })
     getFadeOpacity(t, T0)
-    t.animation._state.scaleStartTime = 4711
-    t.animation._state.currentIndex = 7
+    t.animation._state!.scaleStartTime = 4711
+    t.animation._state!.currentIndex = 7
 
     restartFade(t)
-    expect(t.animation._state.fadeStartTime).toBeNull()
-    expect(t.animation._state.scaleStartTime).toBe(4711)
-    expect(t.animation._state.currentIndex).toBe(7)
+    expect(t.animation._state!.fadeStartTime).toBeNull()
+    expect(t.animation._state!.scaleStartTime).toBe(4711)
+    expect(t.animation._state!.currentIndex).toBe(7)
   })
 })

@@ -26,7 +26,7 @@ describe('historyStore – Undo über Token (Toast-Button)', () => {
     // Identitätsvergleich schlägt durch den reaktiven Proxy fehl ...
     expect(store.history[store.currentIndex] === command).toBe(false)
     // ... der Token wird dagegen unverändert durchgereicht.
-    expect(store.history[store.currentIndex].token).toBe(1)
+    expect(store.history[store.currentIndex]!.token).toBe(1)
   })
 
   it('undo() ruft die undo-Funktion des Commands auf und restauriert', async () => {

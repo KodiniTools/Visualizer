@@ -8,7 +8,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, type Call, fakeImage } from '../helpers/canvasStubs'
 
 const SILENT = {
   bass: 0,
@@ -31,7 +32,7 @@ const HIT = {
   trebleOnset: { onsetTreble: 1 },
   allOnset: { onsetAll: 1 },
 }
-const ALL_BUT = (source) =>
+const ALL_BUT = (source: string) =>
   Object.assign(
     {},
     ...Object.entries(HIT)
@@ -40,7 +41,7 @@ const ALL_BUT = (source) =>
   )
 
 // Bild 50×100 auf Canvas 200×100: eingepasst 50×100 bei x=75, gefüllt 200×400
-const IMG = { width: 50, height: 100 }
+const IMG = fakeImage({ width: 50, height: 100 })
 
 afterEach(() => {
   setSlideshowManager(null)
@@ -48,11 +49,11 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function canvasShow(fill) {
+function canvasShow(fill: object) {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  const m = new SlideshowManager({ canvas: { width: 200, height: 100 } }, null)
+  const m = new SlideshowManager(stub({ canvas: { width: 200, height: 100 } }), stub(null))
   m.isActive = true
-  m.activeImages = [{}]
+  m.activeImages = [stub()]
   m.setBackgroundMode('canvas')
   m.setBackgroundColor('#224466')
   m.setBaseImage('canvas', fill, IMG)
@@ -61,16 +62,16 @@ function canvasShow(fill) {
 }
 
 function renderCanvas() {
-  const calls = []
+  const calls: Call[] = []
   const manager = {
     background: '#ffffff', // reiner Farbhintergrund – wird ersetzt
     videoBackground: null,
     workspacePreset: null,
     backgroundTilesStore: null,
   }
-  const r = new BackgroundRenderer(manager)
-  r._drawColorBackground = () => calls.push(['canvas-color'])
-  r.drawBackgroundTiles = () => {}
+  const r = new BackgroundRenderer(stub(manager))
+  r._drawColorBackground = stub(() => calls.push(['canvas-color']))
+  r.drawBackgroundTiles = stub(() => {})
   const ctx = {
     canvas: { width: 200, height: 100 },
     filter: 'none',
@@ -78,19 +79,21 @@ function renderCanvas() {
     restore() {},
     beginPath() {},
     clip: () => calls.push(['clip']),
-    rect: (...a) => calls.push(['rect', ...a]),
+    rect: (...a: unknown[]) => calls.push(['rect', ...a]),
     fillStyle: '',
-    fillRect: (...a) => calls.push(['fill', ctx.fillStyle, ...a]),
-    drawImage: (img, ...a) => calls.push(['image', img, ctx.filter, ...a]),
+    fillRect: (...a: unknown[]) => calls.push(['fill', ctx.fillStyle, ...a]),
+    drawImage: (img: unknown, ...a: unknown[]) => calls.push(['image', img, ctx.filter, ...a]),
     createLinearGradient: () => ({ addColorStop() {} }),
     createRadialGradient: () => ({ addColorStop() {} }),
   }
-  r.drawBackground(ctx)
+  r.drawBackground(stub(ctx))
   return calls
 }
 
-const imageCall = (calls) => calls.find((c) => c[0] === 'image')
-const audio = (source, over = {}) => ({
+/** Aufgezeichneter drawImage-Aufruf: ['image', Bild, Filter, x, y, w, h] */
+type ImageCall = [name: string, img: unknown, filter: string, ...rect: number[]]
+const imageCall = (calls: Call[]) => calls.find((c) => c[0] === 'image') as ImageCall | undefined
+const audio = (source: string, over = {}) => ({
   enabled: true,
   source,
   brightness: 100,
@@ -113,39 +116,39 @@ describe('Canvas-Modus – Flächenbild', () => {
 
   it('Füllen: Bild deckt den ganzen Canvas ab (beschnitten)', () => {
     canvasShow({ enabled: true, fit: 'cover' })
-    expect(imageCall(renderCanvas()).slice(3)).toEqual([0, -150, 200, 400])
+    expect(imageCall(renderCanvas())!.slice(3)).toEqual([0, -150, 200, 400])
   })
 
   // Nicht gewählte Quelle zuerst: Hüllkurve noch leer → exakt neutral
   it('reagiert nicht auf andere Quellen (alles außer Höhen-Onset angeschlagen)', () => {
     canvasShow({ enabled: true, fit: 'contain', audio: audio('trebleOnset') })
     setAudioAnalysisData({ ...SILENT, ...ALL_BUT('trebleOnset') })
-    expect(imageCall(renderCanvas()).slice(2)).toEqual(['none', 75, 0, 50, 100])
+    expect(imageCall(renderCanvas())!.slice(2)).toEqual(['none', 75, 0, 50, 100])
   })
 
   // vor den Schleifen-Tests: Mitten-Onset hier noch unbenutzt (Hüllkurve leer)
   it('Quelle live ändern (wie aus dem Panel): gilt beim nächsten Frame, Bild bleibt', () => {
     const m = canvasShow({ enabled: true, fit: 'contain', audio: audio('midOnset') })
     setAudioAnalysisData({ ...SILENT, onsetBass: 1 })
-    expect(imageCall(renderCanvas())[2]).toBe('none') // Mitten-Onset still
+    expect(imageCall(renderCanvas())![2]).toBe('none') // Mitten-Onset still
     m.setBaseImage('canvas', { audio: audio('bassOnset') })
-    expect(m.getBaseImage('canvas').image).toBe(IMG) // Bild bleibt erhalten
-    expect(imageCall(renderCanvas())[2]).toMatch(/^brightness/)
+    expect(m.getBaseImage('canvas')!.image).toBe(IMG) // Bild bleibt erhalten
+    expect(imageCall(renderCanvas())![2]).toMatch(/^brightness/)
   })
 
   it.each(Object.keys(HIT))('reagiert im Canvas auf %s (Aufhellen, Farbton, Zoom)', (source) => {
     canvasShow({ enabled: true, fit: 'contain', audio: audio(source) })
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
-    const [, img, filter, x, y, w, h] = imageCall(renderCanvas())
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
+    const [, img, filter, x, y, w, h] = imageCall(renderCanvas())!
     expect(img).toBe(IMG)
     expect(filter).toMatch(/^brightness\((\d+\.\d)%\) hue-rotate\((\d+\.\d)deg\)$/)
-    const [, bright, hue] = filter.match(/brightness\(([\d.]+)%\) hue-rotate\(([\d.]+)deg\)/)
+    const [, bright, hue] = filter.match(/brightness\(([\d.]+)%\) hue-rotate\(([\d.]+)deg\)/)!
     expect(Number(bright)).toBeGreaterThan(100)
     expect(Number(hue)).toBeGreaterThan(0)
     // Puls-Zoom um die Mitte des Canvas
     expect(w).toBeGreaterThan(50)
-    expect(x + w / 2).toBeCloseTo(100)
-    expect(y + h / 2).toBeCloseTo(50)
+    expect(x! + w! / 2).toBeCloseTo(100)
+    expect(y! + h! / 2).toBeCloseTo(50)
   })
 
   it('einzelne Effekte: Stärke 0 schaltet ab', () => {
@@ -155,17 +158,21 @@ describe('Canvas-Modus – Flächenbild', () => {
       audio: audio('allOnset', { brightness: 0, hue: 0 }),
     })
     setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
-    const [, , filter, , , w] = imageCall(renderCanvas())
+    const [, , filter, , , w] = imageCall(renderCanvas())!
     expect(filter).toBe('none')
     expect(w).toBeGreaterThan(50) // nur Zoom
   })
 
   it('Workspace-Einstellungen wirken im Canvas-Modus nicht', () => {
     const m = canvasShow({ enabled: true, fit: 'contain' }) // Canvas: ohne Audio
-    m.setBaseImage('workspace', { enabled: true, audio: audio('bass') }, { width: 1, height: 1 })
+    m.setBaseImage(
+      'workspace',
+      { enabled: true, audio: audio('bass') },
+      fakeImage({ width: 1, height: 1 }),
+    )
     setAudioAnalysisData({ ...SILENT, bass: 255, onsetAll: 1 })
     const calls = renderCanvas()
     expect(calls.filter((c) => c[0] === 'image')).toHaveLength(1)
-    expect(imageCall(calls).slice(1)).toEqual([IMG, 'none', 75, 0, 50, 100])
+    expect(imageCall(calls)!.slice(1)).toEqual([IMG, 'none', 75, 0, 50, 100])
   })
 })

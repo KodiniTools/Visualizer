@@ -5,11 +5,16 @@ import {
   createSlideshowBaseFill,
 } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SelectionManager } from '../../lib/canvasManager/interaction/SelectionManager'
-import { MultiImageManager } from '../../lib/multiImageManager'
+import { MultiImageManager, type CanvasImage } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, fakeImage, type Call, type StubTarget } from '../helpers/canvasStubs'
+
+/** Aufgezeichneter Verlauf: Art und Argumente von create*Gradient */
+type RecordedGradient = { kind: string; a: number[] }
+const recorded = (fill: string | CanvasGradient) => fill as unknown as RecordedGradient
 
 afterEach(() => {
   setSlideshowManager(null)
@@ -20,9 +25,13 @@ afterEach(() => {
 
 /** Kontext, der globalAlpha zum Zeitpunkt jedes drawImage() festhält */
 function alphaCtx() {
-  const alphas = []
-  const target = { canvas: { width: 1000, height: 1000 }, globalAlpha: 1, filter: 'none' }
-  const ctx = new Proxy(target, {
+  const alphas: unknown[] = []
+  const target: StubTarget = {
+    canvas: { width: 1000, height: 1000 },
+    globalAlpha: 1,
+    filter: 'none',
+  }
+  const ctx = new Proxy<StubTarget>(target, {
     get(t, k) {
       if (k in t) return t[k]
       if (k === 'drawImage') return () => alphas.push(t.globalAlpha)
@@ -33,30 +42,30 @@ function alphaCtx() {
       return true
     },
   })
-  return { ctx, alphas }
+  return { ctx: stub<CanvasRenderingContext2D>(ctx), alphas }
 }
 
-function slideshowImage(fotoManager, opacity) {
-  const img = {
+function slideshowImage(fotoManager: FotoManager, opacity: number) {
+  const img = stub<CanvasImage>({
     id: 1,
     type: 'image',
-    imageObject: { width: 100, height: 100 },
+    imageObject: fakeImage({ width: 100, height: 100 }),
     relX: 0.1,
     relY: 0.1,
     relWidth: 0.2,
     relHeight: 0.2,
     slideshow: { active: true, opacity, transitionState: null },
-  }
+  })
   fotoManager.initializeImageSettings(img)
   return img
 }
 
 describe('Slideshow-Deckkraft beim Zeichnen', () => {
   it('Bild-Filter überschreiben die Übergangs-Deckkraft nicht mehr', () => {
-    const mgr = new MultiImageManager({ width: 1000, height: 1000 })
+    const mgr = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mgr.fotoManager = new FotoManager(() => {})
     const img = slideshowImage(mgr.fotoManager, 0.3)
-    img.fotoSettings.opacity = 50
+    img.fotoSettings!.opacity = 50
     mgr.images.push(img)
     const { ctx, alphas } = alphaCtx()
     mgr.drawImages(ctx)
@@ -65,7 +74,7 @@ describe('Slideshow-Deckkraft beim Zeichnen', () => {
   })
 
   it('Deckkraft 0 (Start des Einblendens) zeichnet unsichtbar', () => {
-    const mgr = new MultiImageManager({ width: 1000, height: 1000 })
+    const mgr = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mgr.fotoManager = new FotoManager(() => {})
     mgr.images.push(slideshowImage(mgr.fotoManager, 0))
     const { ctx, alphas } = alphaCtx()
@@ -79,8 +88,8 @@ describe('Neues Slideshow-Bild ohne Aufblitzen', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.stubGlobal('requestAnimationFrame', () => 1)
     vi.stubGlobal('cancelAnimationFrame', () => {})
-    const alphasAtAdd = []
-    const mim = new MultiImageManager({ width: 1000, height: 1000 })
+    const alphasAtAdd: unknown[] = []
+    const mim = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mim.fotoManager = new FotoManager(() => {})
     // Jeder Redraw während des Hinzufügens wird mitgezeichnet
     mim.redrawCallback = () => {
@@ -97,8 +106,8 @@ describe('Neues Slideshow-Bild ohne Aufblitzen', () => {
       const { m, alphasAtAdd } = realManager()
       m.start(
         [
-          { imageObject: { width: 100, height: 100 } },
-          { imageObject: { width: 100, height: 100 } },
+          { imageObject: fakeImage({ width: 100, height: 100 }) },
+          { imageObject: fakeImage({ width: 100, height: 100 }) },
         ],
         {
           transition,
@@ -112,9 +121,9 @@ describe('Neues Slideshow-Bild ohne Aufblitzen', () => {
 
   it('Schieben: Startzustand liegt vor dem ersten Frame fest (außerhalb)', () => {
     const { m } = realManager()
-    m.start([{ imageObject: { width: 100, height: 100 } }], { transition: 'slideLeft' })
-    const ss = m.activeImages[0].slideshow
-    expect(ss.transitionState.translateX).toBe(1)
+    m.start([{ imageObject: fakeImage({ width: 100, height: 100 }) }], { transition: 'slideLeft' })
+    const ss = m.activeImages[0]!.slideshow
+    expect(ss!.transitionState!.translateX).toBe(1)
     m.stop()
   })
 })
@@ -124,7 +133,7 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.stubGlobal('requestAnimationFrame', () => 1)
     vi.stubGlobal('cancelAnimationFrame', () => {})
-    const mim = new MultiImageManager({ width: 1000, height: 1000 })
+    const mim = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mim.fotoManager = new FotoManager(() => {})
     const m = new SlideshowManager(mim, mim.fotoManager)
     expect(m.getBackgroundColor()).toBe('#000000')
@@ -132,7 +141,7 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     expect(m.getBackgroundColor()).toBe('#abcdef')
     m.setBackgroundColor('url(javascript:x)')
     expect(m.getBackgroundColor()).toBe('#abcdef')
-    const imgs = [{ imageObject: { width: 10, height: 10 } }]
+    const imgs = [{ imageObject: fakeImage({ width: 10, height: 10 }) }]
     m.start(imgs, { backgroundColor: '#112233' })
     expect(m.getBackgroundColor()).toBe('#112233')
     m.applyLiveUpdate(imgs, { backgroundColor: '#445566' })
@@ -151,14 +160,14 @@ describe('SlideshowManager – Farbe der Fläche', () => {
     expect(m.getBaseGradient('workspace')).toMatchObject({ enabled: true, color2: '#abcdef' })
     expect(m.getBaseGradient('canvas').enabled).toBe(false)
     // Flächenbild: Objekt kommt mit Start/Live, Einstellung getrennt je Fläche
-    const bg = { width: 5, height: 5 }
+    const bg = fakeImage({ width: 5, height: 5 })
     m.applyLiveUpdate(imgs, {
       backgroundImageFill: { enabled: true, fit: 'contain' },
       backgroundImageObject: bg,
     })
     expect(m.getBaseImage('canvas')).toMatchObject({ image: bg, fill: { fit: 'contain' } })
     m.applyLiveUpdate(imgs, { backgroundImageFill: { fit: 'cover' } })
-    expect(m.getBaseImage('canvas').image).toBe(bg) // Objekt bleibt
+    expect(m.getBaseImage('canvas')!.image).toBe(bg) // Objekt bleibt
     expect(m.getBaseImage('workspace')).toBeNull()
     // Audio-reaktive Flächenfarbe: Start/Live, getrennt pro Fläche
     m.applyLiveUpdate(imgs, { backgroundFillAudio: { enabled: true, hue: 50 } })
@@ -173,8 +182,8 @@ describe('SlideshowManager – Farbe der Fläche', () => {
 
 describe('Slideshow ersetzt den Hintergrund', () => {
   function rendererSetup() {
-    const drawn = []
-    const manager = {
+    const drawn: unknown[] = []
+    const manager: Record<string, unknown> = {
       background: { type: 'background', imageObject: {} },
       videoBackground: { videoElement: {} },
       workspaceBackground: { type: 'workspaceBackground' },
@@ -182,24 +191,24 @@ describe('Slideshow ersetzt den Hintergrund', () => {
       workspacePreset: { id: 'x' },
       backgroundTilesStore: null,
     }
-    const r = new BackgroundRenderer(manager)
-    r._drawImageBackground = () => drawn.push('image')
-    r._drawVideoBackground = () => drawn.push('video')
-    r._drawWorkspaceImageBackground = () => drawn.push('workspaceImage')
-    r._drawWorkspaceVideoBackground = () => drawn.push('workspaceVideo')
-    r.drawBackgroundTiles = () => {}
-    const fills = []
+    const r = new BackgroundRenderer(stub(manager))
+    r._drawImageBackground = stub(() => drawn.push('image'))
+    r._drawVideoBackground = stub(() => drawn.push('video'))
+    r._drawWorkspaceImageBackground = stub(() => drawn.push('workspaceImage'))
+    r._drawWorkspaceVideoBackground = stub(() => drawn.push('workspaceVideo'))
+    r.drawBackgroundTiles = stub(() => {})
+    const fills: Call[] = []
     const ctx = {
       canvas: { width: 10, height: 10 },
       save() {},
       restore() {},
-      fillRect: (...a) => fills.push([ctx.fillStyle, ...a]),
+      fillRect: (...a: unknown[]) => fills.push([ctx.fillStyle, ...a]),
       fillStyle: '',
     }
-    return { r, ctx, drawn, fills, manager }
+    return { r, ctx: stub<CanvasRenderingContext2D>(ctx), drawn, fills, manager }
   }
 
-  function slideshowWith(mode, { active = true, images = 1 } = {}) {
+  function slideshowWith(mode: string, { active = true, images = 1 } = {}) {
     const m = Object.create(SlideshowManager.prototype)
     m.isActive = active
     m.activeImages = new Array(images).fill({})
@@ -305,40 +314,50 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   })
 
   it('Farbverlauf: linear/radial über den Bereich, getrennt pro Fläche', () => {
-    const stops = []
+    const stops: unknown[] = []
     const ctx = {
-      createLinearGradient: vi.fn((...a) => ({
+      createLinearGradient: vi.fn((...a: unknown[]) => ({
         kind: 'linear',
         a,
-        addColorStop: (...s) => stops.push(s),
+        addColorStop: (...s: unknown[]) => stops.push(s),
       })),
-      createRadialGradient: vi.fn((...a) => ({
+      createRadialGradient: vi.fn((...a: unknown[]) => ({
         kind: 'radial',
         a,
-        addColorStop: (...s) => stops.push(s),
+        addColorStop: (...s: unknown[]) => stops.push(s),
       })),
     }
     const area = { x: 0, y: 0, width: 6, height: 8 } // Diagonale 10 → halbe 5
-    expect(createSlideshowBaseFill(ctx, area, '#000000', null)).toBe('#000000')
-    const lin = createSlideshowBaseFill(ctx, area, '#000000', {
-      enabled: true,
-      color2: '#ffffff',
-      type: 'linear',
-      angle: 0,
-    })
-    expect(lin.kind).toBe('linear')
-    expect(lin.a).toEqual([-2, 4, 8, 4]) // links → rechts durch die Mitte
+    expect(createSlideshowBaseFill(stub(ctx), area, '#000000', null)).toBe('#000000')
+    const lin = createSlideshowBaseFill(
+      stub(ctx),
+      area,
+      '#000000',
+      stub({
+        enabled: true,
+        color2: '#ffffff',
+        type: 'linear',
+        angle: 0,
+      }),
+    )
+    expect(recorded(lin).kind).toBe('linear')
+    expect(recorded(lin).a).toEqual([-2, 4, 8, 4]) // links → rechts durch die Mitte
     expect(stops).toEqual([
       [0, '#000000'],
       [1, '#ffffff'],
     ])
-    const rad = createSlideshowBaseFill(ctx, area, '#000000', {
-      enabled: true,
-      color2: '#ffffff',
-      type: 'radial',
-      angle: 0,
-    })
-    expect(rad.a).toEqual([3, 4, 0, 3, 4, 5])
+    const rad = createSlideshowBaseFill(
+      stub(ctx),
+      area,
+      '#000000',
+      stub({
+        enabled: true,
+        color2: '#ffffff',
+        type: 'radial',
+        angle: 0,
+      }),
+    )
+    expect(recorded(rad).a).toEqual([3, 4, 0, 3, 4, 5])
 
     // Renderer nutzt den Verlauf der jeweiligen Fläche
     const show = slideshowWith('workspace')
@@ -348,20 +367,20 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     expect(show.getBaseGradient('canvas').color2).toBe('#999999')
     setSlideshowManager(show)
     const setup = rendererSetup()
-    const fills = []
-    setup.ctx.createLinearGradient = () => ({ addColorStop() {} })
-    setup.ctx.createRadialGradient = (...a) => ({
+    const fills: Call[] = []
+    setup.ctx.createLinearGradient = stub(() => ({ addColorStop() {} }))
+    setup.ctx.createRadialGradient = stub((...a: unknown[]) => ({
       a,
-      stops: [],
-      addColorStop(o, c) {
+      stops: [] as unknown[],
+      addColorStop(o: number, c: string) {
         this.stops.push([o, c])
       },
-    })
-    setup.ctx.fillRect = (...a) => fills.push([setup.ctx.fillStyle, ...a])
+    }))
+    setup.ctx.fillRect = (...a: unknown[]) => fills.push([setup.ctx.fillStyle, ...a])
     setup.manager.getWorkspaceBounds = () => ({ x: 0, y: 0, width: 6, height: 8 })
     setup.r.drawBackground(setup.ctx)
     expect(fills).toHaveLength(1)
-    expect(fills[0][0].stops).toEqual([
+    expect((fills[0]![0] as { stops: unknown }).stops).toEqual([
       [0, '#112233'],
       [1, '#445566'],
     ])
@@ -376,18 +395,18 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     setAudioAnalysisData({ bass: 0, mid: 0, treble: 0, volume: 0 })
     let setup = rendererSetup()
     setup.r.drawBackground(setup.ctx)
-    expect(setup.fills[0][0]).toBe('#000000')
+    expect(setup.fills[0]![0]).toBe('#000000')
 
     setAudioAnalysisData({ bass: 255, mid: 0, treble: 0, volume: 0 })
     setup = rendererSetup()
     setup.r.drawBackground(setup.ctx)
-    expect(setup.fills[0][0]).toMatch(/^hsl\(0, 0%, (?!0%)/)
+    expect(setup.fills[0]![0]).toMatch(/^hsl\(0, 0%, (?!0%)/)
     setAudioAnalysisData(null)
   })
 
   it('Eigenes Flächenbild wird über der Farbe gezeichnet (auf den Bereich beschnitten)', () => {
     const show = slideshowWith('workspace')
-    const img = { width: 10, height: 10 }
+    const img = fakeImage({ width: 10, height: 10 })
     // ohne Einschalten kein Bild
     show.setBaseImage('workspace', { fit: 'contain' }, img)
     expect(show.getBaseImage('workspace')).toBeNull()
@@ -397,15 +416,15 @@ describe('Slideshow ersetzt den Hintergrund', () => {
     setSlideshowManager(show)
 
     const setup = rendererSetup()
-    const order = []
+    const order: unknown[] = []
     Object.assign(setup.ctx, {
       beginPath() {},
       clip: () => order.push('clip'),
-      rect: (...a) => order.push(['rect', ...a]),
-      drawImage: (i, ...a) => order.push(['drawImage', i, ...a]),
+      rect: (...a: unknown[]) => order.push(['rect', ...a]),
+      drawImage: (i: unknown, ...a: unknown[]) => order.push(['drawImage', i, ...a]),
       filter: 'none',
     })
-    setup.ctx.fillRect = (...a) => order.push(['fillRect', ...a])
+    setup.ctx.fillRect = (...a: unknown[]) => order.push(['fillRect', ...a])
     setup.manager.getWorkspaceBounds = () => ({ x: 0, y: 0, width: 40, height: 20 })
     setup.r.drawBackground(setup.ctx)
     expect(order).toEqual([
@@ -422,20 +441,20 @@ describe('Slideshow ersetzt den Hintergrund', () => {
 
   it('Canvas-Modus: Flächenbild liegt über der Flächenfarbe (auch bei Farbhintergrund)', () => {
     const show = slideshowWith('canvas')
-    const img = { width: 10, height: 10 }
+    const img = fakeImage({ width: 10, height: 10 })
     show.setBaseImage('canvas', { enabled: true }, img)
     setSlideshowManager(show)
     const { r, ctx, manager } = rendererSetup()
     manager.background = '#123456'
     manager.videoBackground = null
     r._drawColorBackground = vi.fn()
-    const drawn = []
+    const drawn: unknown[] = []
     Object.assign(ctx, {
       beginPath() {},
       clip() {},
       rect() {},
       filter: 'none',
-      drawImage: (i) => drawn.push(i),
+      drawImage: (i: unknown) => drawn.push(i),
     })
     r.drawBackground(ctx)
     expect(r._drawColorBackground).not.toHaveBeenCalled()
@@ -469,12 +488,14 @@ describe('Slideshow ersetzt den Hintergrund', () => {
   it('ersetzter Hintergrund ist per Klick nicht auswählbar', () => {
     const background = { type: 'background' }
     const workspaceBackground = { type: 'workspaceBackground' }
-    const sel = new SelectionManager({
-      background,
-      workspaceBackground,
-      workspacePreset: { id: 'x' },
-      getWorkspaceBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
-    })
+    const sel = new SelectionManager(
+      stub({
+        background,
+        workspaceBackground,
+        workspacePreset: { id: 'x' },
+        getWorkspaceBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
+      }),
+    )
     expect(sel.getObjectAtPos(5, 5)).toBe(workspaceBackground)
     setSlideshowManager(slideshowWith('workspace'))
     expect(sel.getObjectAtPos(5, 5)).toBe(background)

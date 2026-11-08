@@ -12,7 +12,8 @@ import { MultiImageManager } from '../../lib/multiImageManager'
 import { FotoManager } from '../../lib/fotoManager'
 import { resolveSlideshowAudioReactive } from '../../lib/slideshowAudio'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, fakeImage, type Call } from '../helpers/canvasStubs'
 
 const WS = { x: 20, y: 10, width: 40, height: 80 }
 const SILENT = {
@@ -48,17 +49,17 @@ afterEach(() => {
 /** Slideshow im Workspace-Modus (ohne Bilder-Rendering) */
 function workspaceShow() {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  const m = new SlideshowManager({ canvas: { width: 100, height: 100 } }, null)
+  const m = new SlideshowManager(stub({ canvas: { width: 100, height: 100 } }), stub(null))
   m.isActive = true
-  m.activeImages = [{}]
+  m.activeImages = [stub()]
   m.setBackgroundMode('workspace')
   return m
 }
 
 /** Renderer mit Workspace-Format; zeichnet nur Flächen (fillRect/drawImage) mit */
 function renderWorkspace() {
-  const fills = []
-  const images = []
+  const fills: Call[] = []
+  const images: { filter: string; rect: unknown[] }[] = []
   const manager = {
     background: '#ffffff',
     workspacePreset: { width: 9, height: 16 },
@@ -66,9 +67,9 @@ function renderWorkspace() {
     getWorkspaceBounds: () => ({ ...WS }),
     backgroundTilesStore: null,
   }
-  const r = new BackgroundRenderer(manager)
-  r._drawColorBackground = () => fills.push(['canvas-color'])
-  r.drawBackgroundTiles = () => {}
+  const r = new BackgroundRenderer(stub(manager))
+  r._drawColorBackground = stub(() => fills.push(['canvas-color']))
+  r.drawBackgroundTiles = stub(() => {})
   const ctx = {
     canvas: { width: 100, height: 100 },
     filter: 'none',
@@ -78,12 +79,12 @@ function renderWorkspace() {
     clip() {},
     rect() {},
     fillStyle: '',
-    fillRect: (...a) => fills.push([ctx.fillStyle, ...a]),
-    drawImage: (img, ...a) => images.push({ filter: ctx.filter, rect: a }),
-    createLinearGradient: (...a) => ({ kind: 'linear', a, addColorStop() {} }),
-    createRadialGradient: (...a) => ({ kind: 'radial', a, addColorStop() {} }),
+    fillRect: (...a: unknown[]) => fills.push([ctx.fillStyle, ...a]),
+    drawImage: (img: unknown, ...a: unknown[]) => images.push({ filter: ctx.filter, rect: a }),
+    createLinearGradient: (...a: unknown[]) => ({ kind: 'linear', a, addColorStop() {} }),
+    createRadialGradient: (...a: unknown[]) => ({ kind: 'radial', a, addColorStop() {} }),
   }
-  r.drawBackground(ctx)
+  r.drawBackground(stub(ctx))
   return { fills, images }
 }
 
@@ -115,8 +116,8 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
       // Canvas-Fläche hat eine andere Quelle – darf den Workspace nicht beeinflussen
       show.setBaseFillAudio('canvas', { enabled: true, source: 'bass', brightness: 100 })
       setSlideshowManager(show)
-      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
-      const [color, ...rect] = renderWorkspace().fills[1]
+      setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
+      const [color, ...rect] = renderWorkspace().fills[1]!
       expect(rect).toEqual([20, 10, 40, 80])
       expect(color).toMatch(/^hsl\(0, 0%, /)
       expect(color).not.toBe('hsl(0, 0%, 0%)')
@@ -133,8 +134,8 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
         audio: { enabled: true, source, pulse: 100, rotation: 0 },
       })
       setSlideshowManager(show)
-      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
-      const fill = renderWorkspace().fills[1][0]
+      setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
+      const fill = renderWorkspace().fills[1]![0] as { kind: string; a: number[] }
       expect(fill.kind).toBe('radial')
       const half = Math.hypot(WS.width, WS.height) / 2
       expect(fill.a[5]).toBeLessThan(half) // Radius zieht sich zusammen
@@ -144,18 +145,18 @@ describe('Workspace-Modus – Quelle der Fläche', () => {
 
   it.each(['midOnset', 'allOnset'])('Flächenbild (Zoom) reagiert im Workspace auf %s', (source) => {
     const show = workspaceShow()
-    const img = { width: 10, height: 10 }
+    const img = fakeImage({ width: 10, height: 10 })
     show.setBaseImage(
       'workspace',
       { enabled: true, fit: 'contain', audio: { enabled: true, source, zoom: 100, brightness: 0 } },
       img,
     )
     setSlideshowManager(show)
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const { images } = renderWorkspace()
     expect(images).toHaveLength(1)
     // eingepasst wären es 40×40; mit Puls-Zoom größer
-    expect(images[0].rect[2]).toBeGreaterThan(40)
+    expect(images[0]!.rect[2]).toBeGreaterThan(40)
   })
 })
 
@@ -164,12 +165,12 @@ describe('Workspace-Modus – eigene Quelle pro Slideshow-Bild', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.stubGlobal('requestAnimationFrame', () => 1)
     vi.stubGlobal('cancelAnimationFrame', () => {})
-    const mim = new MultiImageManager({ width: 1000, height: 1000 })
+    const mim = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mim.fotoManager = new FotoManager(() => {})
     const m = new SlideshowManager(mim, mim.fotoManager, {
       getWorkspaceBounds: () => ({ x: 100, y: 0, width: 400, height: 1000 }),
     })
-    const imageObject = { width: 100, height: 100 }
+    const imageObject = fakeImage({ width: 100, height: 100 })
     const images = ['trebleOnset', null].map((audioSource) => ({
       imageObject,
       audioMode: 'pulse',
@@ -184,26 +185,26 @@ describe('Workspace-Modus – eigene Quelle pro Slideshow-Bild', () => {
 
     const first = m.activeImages[0]
     expect(m.isBackground()).toBe(true)
-    expect(first.slideshow.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
-    const ar = first.fotoSettings.audioReactive
+    expect(first!.slideshow!.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
+    const ar = first!.fotoSettings!.audioReactive
     expect(ar.source).toBe('trebleOnset')
     expect(Object.values(ar.effects).every((fx) => !fx.source)).toBe(true)
 
     // nur Bass-Onset → neutral; nur Höhen-Onset (eigene Quelle) → Bild pulsiert
     // (frische Kopien: jede Auswertung startet ohne Hüllkurven-Zustand)
-    const valuesFor = (data) => {
+    const valuesFor = (data: object) => {
       setAudioAnalysisData({ ...SILENT, ...data })
-      return mim.getAudioReactiveValues(JSON.parse(JSON.stringify(ar))).effects
+      return mim.getAudioReactiveValues(JSON.parse(JSON.stringify(ar)))!.effects
     }
     const bassHit = valuesFor({ onsetBass: 1 })
-    expect(bassHit.scale.scale).toBe(1)
-    expect(bassHit.glow.glowBlur).toBe(0)
+    expect(bassHit.scale!.scale).toBe(1)
+    expect(bassHit.glow!.glowBlur).toBe(0)
     const trebleHit = valuesFor({ onsetTreble: 1 })
-    expect(trebleHit.scale.scale).toBeGreaterThan(1)
-    expect(trebleHit.glow.glowBlur).toBeGreaterThan(0)
+    expect(trebleHit.scale!.scale).toBeGreaterThan(1)
+    expect(trebleHit.glow!.glowBlur).toBeGreaterThan(0)
 
     // Bild ohne eigene Quelle behält die Quelle des Presets
-    expect(images[1].audioReactiveSettings.source).not.toBe('trebleOnset')
+    expect(images[1]!.audioReactiveSettings!.source).not.toBe('trebleOnset')
     m.stop()
   })
 })
@@ -213,13 +214,13 @@ describe('Workspace-Modus – Quelle aus dem Bild-Editor (pausiert, live)', () =
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.stubGlobal('requestAnimationFrame', () => 1)
     vi.stubGlobal('cancelAnimationFrame', () => {})
-    const mim = new MultiImageManager({ width: 1000, height: 1000 })
+    const mim = new MultiImageManager(stub({ width: 1000, height: 1000 }))
     mim.fotoManager = new FotoManager(() => {})
     const m = new SlideshowManager(mim, mim.fotoManager, {
       getWorkspaceBounds: () => ({ x: 100, y: 0, width: 400, height: 1000 }),
     })
-    const imageObject = { width: 100, height: 100 }
-    const build = (sources) =>
+    const imageObject = fakeImage({ width: 100, height: 100 })
+    const build = (sources: (string | null)[]) =>
       sources.map((audioSource) => ({
         imageObject,
         audioMode: 'pulse',
@@ -238,7 +239,7 @@ describe('Workspace-Modus – Quelle aus dem Bild-Editor (pausiert, live)', () =
   it('neue Quelle gilt sofort für das angezeigte Bild; Workspace-Modus bleibt', () => {
     const { m, mim, build } = startedWorkspaceShow()
     const shown = m.activeImages[0]
-    const presetSource = shown.fotoSettings.audioReactive.source
+    const presetSource = shown!.fotoSettings!.audioReactive.source
     expect(presetSource).not.toBe('bassOnset')
 
     // wie SlideshowPanel.updateEditedImage → live-update (preserveLive)
@@ -251,23 +252,23 @@ describe('Workspace-Modus – Quelle aus dem Bild-Editor (pausiert, live)', () =
     expect(m.activeImages[0]).toBe(shown) // kein Neustart
     expect(m.isPaused).toBe(true)
     expect(m.config.backgroundMode).toBe('workspace')
-    expect(shown.slideshow.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
-    expect(shown.fotoSettings.audioReactive.source).toBe('bassOnset')
-    expect(m.config.images[1].audioSource).toBeNull()
+    expect(shown!.slideshow!.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
+    expect(shown!.fotoSettings!.audioReactive.source).toBe('bassOnset')
+    expect(m.config.images[1]!.audioSource).toBeNull()
 
     // reagiert jetzt auf Bass-Onset, nicht mehr auf andere Quellen
-    const scaleFor = (data) => {
+    const scaleFor = (data: object) => {
       setAudioAnalysisData({ ...SILENT, ...data })
       return mim.getAudioReactiveValues(
-        JSON.parse(JSON.stringify(shown.fotoSettings.audioReactive)),
-      ).effects.scale.scale
+        JSON.parse(JSON.stringify(shown!.fotoSettings!.audioReactive)),
+      )!.effects.scale!.scale
     }
     expect(scaleFor({ onsetBass: 1 })).toBeGreaterThan(1)
     expect(scaleFor({ onsetTreble: 1, onsetAll: 1 })).toBe(1)
 
     // „Wie Einstellung“: zurück zur Quelle des Presets
     m.applyLiveUpdate(build([null, null]), { preserveLive: true, backgroundMode: 'workspace' })
-    expect(shown.fotoSettings.audioReactive.source).toBe(presetSource)
+    expect(shown!.fotoSettings!.audioReactive.source).toBe(presetSource)
     m.stop()
   })
 
@@ -280,8 +281,8 @@ describe('Workspace-Modus – Quelle aus dem Bild-Editor (pausiert, live)', () =
     m.resume()
     // Bild 2 wird neu hinzugefügt → erhält seine eigene Quelle
     const second = m._addNextImage()
-    expect(second.fotoSettings.audioReactive.source).toBe('midOnset')
-    expect(second.slideshow.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
+    expect(second!.fotoSettings!.audioReactive.source).toBe('midOnset')
+    expect(second!.slideshow!.clipRect).toEqual({ relX: 0.1, relY: 0, relWidth: 0.4, relHeight: 1 })
     m.stop()
   })
 })

@@ -9,7 +9,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, type Call } from '../helpers/canvasStubs'
 
 const SILENT = {
   bass: 0,
@@ -32,7 +33,7 @@ const HIT = {
   trebleOnset: { onsetTreble: 1 },
   allOnset: { onsetAll: 1 },
 }
-const ALL_BUT = (source) =>
+const ALL_BUT = (source: string) =>
   Object.assign(
     {},
     ...Object.entries(HIT)
@@ -46,11 +47,11 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function canvasShow(color, fillAudio) {
+function canvasShow(color: string, fillAudio?: object) {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  const m = new SlideshowManager({ canvas: { width: 200, height: 100 } }, null)
+  const m = new SlideshowManager(stub({ canvas: { width: 200, height: 100 } }), stub(null))
   m.isActive = true
-  m.activeImages = [{}]
+  m.activeImages = [stub()]
   m.setBackgroundMode('canvas')
   m.setBackgroundColor(color)
   if (fillAudio) m.setBaseFillAudio('canvas', fillAudio)
@@ -59,36 +60,42 @@ function canvasShow(color, fillAudio) {
 }
 
 function renderCanvas() {
-  const calls = []
+  const calls: Call[] = []
   const manager = {
     background: '#ffffff',
     videoBackground: null,
     workspacePreset: null,
     backgroundTilesStore: null,
   }
-  const r = new BackgroundRenderer(manager)
-  r._drawColorBackground = () => calls.push(['canvas-color'])
-  r.drawBackgroundTiles = () => {}
+  const r = new BackgroundRenderer(stub(manager))
+  r._drawColorBackground = stub(() => calls.push(['canvas-color']))
+  r.drawBackgroundTiles = stub(() => {})
   const ctx = {
     canvas: { width: 200, height: 100 },
     save() {},
     restore() {},
     fillStyle: '',
-    fillRect: (...a) => calls.push(['fill', ctx.fillStyle, ...a]),
+    fillRect: (...a: unknown[]) => calls.push(['fill', ctx.fillStyle, ...a]),
     createLinearGradient: () => ({ addColorStop() {} }),
     createRadialGradient: () => ({ addColorStop() {} }),
   }
-  r.drawBackground(ctx)
+  r.drawBackground(stub(ctx))
   return calls
 }
-const colorOf = (calls) => calls.find((c) => c[0] === 'fill')[1]
+const colorOf = (calls: Call[]) => calls.find((c) => c[0] === 'fill')![1] as string
 /** hsl(h, s%, l%) → [h, s, l] */
-const hsl = (str) =>
+const hsl = (str: string) =>
   str
-    .match(/^hsl\(([\d.]+), ([\d.]+)%, ([\d.]+)%\)$/)
+    .match(/^hsl\(([\d.]+), ([\d.]+)%, ([\d.]+)%\)$/)!
     .slice(1)
     .map(Number)
-const fx = (source, over = {}) => ({ enabled: true, source, brightness: 100, hue: 100, ...over })
+const fx = (source: string, over = {}) => ({
+  enabled: true,
+  source,
+  brightness: 100,
+  hue: 100,
+  ...over,
+})
 
 describe('Canvas-Modus – Farbe audio-reaktiv', () => {
   it('ohne Audio: einfarbige Fläche über den ganzen Canvas, Farbhintergrund ersetzt', () => {
@@ -122,11 +129,11 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
 
   it.each(Object.keys(HIT))('Aufhellen reagiert im Canvas auf %s (Schwarz → Grau)', (source) => {
     canvasShow('#000000', fx(source, { hue: 0 }))
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const calls = renderCanvas()
     expect(calls).toHaveLength(1)
-    expect(calls[0].slice(2)).toEqual([0, 0, 200, 100])
-    const [h, s, l] = hsl(calls[0][1])
+    expect(calls[0]!.slice(2)).toEqual([0, 0, 200, 100])
+    const [h, s, l] = hsl(calls[0]![1] as string)
     expect([h, s]).toEqual([0, 0])
     expect(l).toBeGreaterThan(0)
     expect(l).toBeLessThanOrEqual(50) // höchstens +50 % Richtung Weiß
@@ -134,7 +141,7 @@ describe('Canvas-Modus – Farbe audio-reaktiv', () => {
 
   it.each(Object.keys(HIT))('Farbton reagiert im Canvas auf %s (Rot verschiebt sich)', (source) => {
     canvasShow('#ff0000', fx(source, { brightness: 0 }))
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const [h, s, l] = hsl(colorOf(renderCanvas()))
     expect(h).toBeGreaterThan(0)
     expect(h).toBeLessThanOrEqual(180)

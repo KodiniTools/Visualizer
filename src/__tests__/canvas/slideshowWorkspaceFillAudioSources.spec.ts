@@ -8,7 +8,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, type Call } from '../helpers/canvasStubs'
 
 const SILENT = {
   bass: 0,
@@ -31,7 +32,7 @@ const HIT = {
   trebleOnset: { onsetTreble: 1 },
   allOnset: { onsetAll: 1 },
 }
-const ALL_BUT = (source) =>
+const ALL_BUT = (source: string) =>
   Object.assign(
     {},
     ...Object.entries(HIT)
@@ -47,11 +48,11 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function workspaceShow(color, fillAudio) {
+function workspaceShow(color: string, fillAudio?: object) {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  const m = new SlideshowManager({ canvas: { width: 200, height: 100 } }, null)
+  const m = new SlideshowManager(stub({ canvas: { width: 200, height: 100 } }), stub(null))
   m.isActive = true
-  m.activeImages = [{}]
+  m.activeImages = [stub()]
   m.setBackgroundMode('workspace')
   m.setWorkspaceColor(color)
   if (fillAudio) m.setBaseFillAudio('workspace', fillAudio)
@@ -59,8 +60,10 @@ function workspaceShow(color, fillAudio) {
   return m
 }
 
-function renderWorkspace({ preset = { width: 9, height: 16 } } = {}) {
-  const calls = []
+type Preset = { width: number; height: number } | null
+
+function renderWorkspace({ preset = { width: 9, height: 16 } }: { preset?: Preset } = {}) {
+  const calls: Call[] = []
   const manager = {
     background: '#ffffff',
     videoBackground: null,
@@ -69,29 +72,35 @@ function renderWorkspace({ preset = { width: 9, height: 16 } } = {}) {
     getWorkspaceBounds: () => ({ ...WS }),
     backgroundTilesStore: null,
   }
-  const r = new BackgroundRenderer(manager)
-  r._drawColorBackground = () => calls.push(['canvas-color'])
-  r.drawBackgroundTiles = () => {}
+  const r = new BackgroundRenderer(stub(manager))
+  r._drawColorBackground = stub(() => calls.push(['canvas-color']))
+  r.drawBackgroundTiles = stub(() => {})
   const ctx = {
     canvas: { width: 200, height: 100 },
     save() {},
     restore() {},
     fillStyle: '',
-    fillRect: (...a) => calls.push(['fill', ctx.fillStyle, ...a]),
+    fillRect: (...a: unknown[]) => calls.push(['fill', ctx.fillStyle, ...a]),
     createLinearGradient: () => ({ addColorStop() {} }),
     createRadialGradient: () => ({ addColorStop() {} }),
   }
-  r.drawBackground(ctx)
+  r.drawBackground(stub(ctx))
   return calls
 }
-const wsFill = (calls) => calls.find((c) => c[0] === 'fill')
-const colorOf = (calls) => wsFill(calls)[1]
-const hsl = (str) =>
+const wsFill = (calls: Call[]) => calls.find((c) => c[0] === 'fill')
+const colorOf = (calls: Call[]) => wsFill(calls)![1] as string
+const hsl = (str: string) =>
   str
-    .match(/^hsl\(([\d.]+), ([\d.]+)%, ([\d.]+)%\)$/)
+    .match(/^hsl\(([\d.]+), ([\d.]+)%, ([\d.]+)%\)$/)!
     .slice(1)
     .map(Number)
-const fx = (source, over = {}) => ({ enabled: true, source, brightness: 100, hue: 100, ...over })
+const fx = (source: string, over = {}) => ({
+  enabled: true,
+  source,
+  brightness: 100,
+  hue: 100,
+  ...over,
+})
 
 describe('Workspace-Modus – Farbe audio-reaktiv', () => {
   it('ohne Audio: Canvas-Farbe bleibt, Workspace-Fläche nur im Workspace', () => {
@@ -130,10 +139,10 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
 
   it.each(Object.keys(HIT))('Aufhellen reagiert im Workspace auf %s (Schwarz → Grau)', (source) => {
     workspaceShow('#000000', fx(source, { hue: 0 }))
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const calls = renderWorkspace()
     expect(calls[0]).toEqual(['canvas-color'])
-    expect(wsFill(calls).slice(2)).toEqual([20, 10, 40, 80])
+    expect(wsFill(calls)!.slice(2)).toEqual([20, 10, 40, 80])
     const [h, s, l] = hsl(colorOf(calls))
     expect([h, s]).toEqual([0, 0])
     expect(l).toBeGreaterThan(0)
@@ -144,7 +153,7 @@ describe('Workspace-Modus – Farbe audio-reaktiv', () => {
     'Farbton reagiert im Workspace auf %s (Rot verschiebt sich)',
     (source) => {
       workspaceShow('#ff0000', fx(source, { brightness: 0 }))
-      setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+      setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
       const [h, s, l] = hsl(colorOf(renderWorkspace()))
       expect(h).toBeGreaterThan(0)
       expect(h).toBeLessThanOrEqual(180)

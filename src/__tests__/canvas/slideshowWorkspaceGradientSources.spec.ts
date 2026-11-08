@@ -9,7 +9,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { BackgroundRenderer } from '../../lib/canvasManager/rendering/BackgroundRenderer'
 import { SlideshowManager } from '../../lib/slideshowManager'
 import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub, type Call } from '../helpers/canvasStubs'
 
 const SILENT = {
   bass: 0,
@@ -32,7 +33,7 @@ const HIT = {
   trebleOnset: { onsetTreble: 1 },
   allOnset: { onsetAll: 1 },
 }
-const ALL_BUT = (source) =>
+const ALL_BUT = (source: string) =>
   Object.assign(
     {},
     ...Object.entries(HIT)
@@ -55,11 +56,11 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function workspaceShow(gradient) {
+function workspaceShow(gradient: object) {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  const m = new SlideshowManager({ canvas: { width: 200, height: 100 } }, null)
+  const m = new SlideshowManager(stub({ canvas: { width: 200, height: 100 } }), stub(null))
   m.isActive = true
-  m.activeImages = [{}]
+  m.activeImages = [stub()]
   m.setBackgroundMode('workspace')
   m.setWorkspaceColor('#112233')
   m.setBaseGradient('workspace', { enabled: true, color2: '#ddeeff', ...gradient })
@@ -67,8 +68,14 @@ function workspaceShow(gradient) {
   return m
 }
 
-function renderWorkspace({ preset = { width: 9, height: 16 } } = {}) {
-  const calls = []
+/** Aufgezeichneter Verlauf: Art, Argumente von create*Gradient, Farbstopps */
+type RecordedGradient = { kind: string; a: number[]; stops: [number, string][] }
+type FillCall = [name: string, fill: RecordedGradient, ...rect: number[]]
+
+type Preset = { width: number; height: number } | null
+
+function renderWorkspace({ preset = { width: 9, height: 16 } }: { preset?: Preset } = {}) {
+  const calls: Call[] = []
   const manager = {
     background: '#ffffff',
     videoBackground: null,
@@ -77,16 +84,16 @@ function renderWorkspace({ preset = { width: 9, height: 16 } } = {}) {
     getWorkspaceBounds: () => ({ ...WS }),
     backgroundTilesStore: null,
   }
-  const r = new BackgroundRenderer(manager)
-  r._drawColorBackground = () => calls.push(['canvas-color'])
-  r.drawBackgroundTiles = () => {}
+  const r = new BackgroundRenderer(stub(manager))
+  r._drawColorBackground = stub(() => calls.push(['canvas-color']))
+  r.drawBackgroundTiles = stub(() => {})
   const gradient =
-    (kind) =>
-    (...a) => ({
+    (kind: string) =>
+    (...a: unknown[]) => ({
       kind,
       a,
-      stops: [],
-      addColorStop(o, c) {
+      stops: [] as [number, string][],
+      addColorStop(o: number, c: string) {
         this.stops.push([o, c])
       },
     })
@@ -95,23 +102,29 @@ function renderWorkspace({ preset = { width: 9, height: 16 } } = {}) {
     save() {},
     restore() {},
     fillStyle: '',
-    fillRect: (...a) => calls.push(['fill', ctx.fillStyle, ...a]),
+    fillRect: (...a: unknown[]) => calls.push(['fill', ctx.fillStyle, ...a]),
     createLinearGradient: gradient('linear'),
     createRadialGradient: gradient('radial'),
   }
-  r.drawBackground(ctx)
+  r.drawBackground(stub(ctx))
   return calls
 }
-const wsFill = (calls) => calls.find((c) => c[0] === 'fill')
-const fillOf = (calls) => wsFill(calls)[1]
-const audio = (source, over = {}) => ({ enabled: true, source, pulse: 100, rotation: 100, ...over })
+const wsFill = (calls: Call[]) => calls.find((c) => c[0] === 'fill')
+const fillOf = (calls: Call[]) => wsFill(calls)![1] as RecordedGradient
+const audio = (source: string, over = {}) => ({
+  enabled: true,
+  source,
+  pulse: 100,
+  rotation: 100,
+  ...over,
+})
 
 describe('Workspace-Modus – Farbverlauf', () => {
   it('ohne Audio: Canvas-Farbe bleibt, radialer Verlauf nur im Workspace', () => {
     workspaceShow({ type: 'radial' })
     const calls = renderWorkspace()
     expect(calls[0]).toEqual(['canvas-color'])
-    const [, fill, ...rect] = wsFill(calls)
+    const [, fill, ...rect] = wsFill(calls) as FillCall
     expect(rect).toEqual([20, 10, 40, 80])
     expect(fill.a).toEqual([CX, CY, 0, CX, CY, HALF])
     expect(fill.stops).toEqual([
@@ -153,9 +166,9 @@ describe('Workspace-Modus – Farbverlauf', () => {
 
   it.each(Object.keys(HIT))('Puls reagiert im Workspace auf %s', (source) => {
     workspaceShow({ type: 'radial', audio: audio(source, { rotation: 0 }) })
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const calls = renderWorkspace()
-    expect(wsFill(calls).slice(2)).toEqual([20, 10, 40, 80])
+    expect(wsFill(calls)!.slice(2)).toEqual([20, 10, 40, 80])
     const fill = fillOf(calls)
     expect(fill.a.slice(0, 2)).toEqual([CX, CY])
     expect(fill.a[5]).toBeLessThan(HALF)
@@ -165,14 +178,14 @@ describe('Workspace-Modus – Farbverlauf', () => {
   it.each(Object.keys(HIT))('Rotation (linear) reagiert im Workspace auf %s', (source) => {
     vi.useFakeTimers({ now: HALF_SWING_TIME })
     workspaceShow({ type: 'linear', angle: 0, audio: audio(source, { pulse: 0 }) })
-    setAudioAnalysisData({ ...SILENT, ...HIT[source] })
+    setAudioAnalysisData({ ...SILENT, ...HIT[source as keyof typeof HIT] })
     const [x0, y0, x1, y1] = fillOf(renderWorkspace()).a
-    const deg = (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI
+    const deg = (Math.atan2(y1! - y0!, x1! - x0!) * 180) / Math.PI
     expect(deg).toBeGreaterThan(0.5)
     expect(deg).toBeLessThanOrEqual(90 + 1e-9)
-    expect((x0 + x1) / 2).toBeCloseTo(CX)
-    expect((y0 + y1) / 2).toBeCloseTo(CY)
-    expect(Math.hypot(x1 - x0, y1 - y0)).toBeCloseTo(2 * HALF)
+    expect((x0! + x1!) / 2).toBeCloseTo(CX)
+    expect((y0! + y1!) / 2).toBeCloseTo(CY)
+    expect(Math.hypot(x1! - x0!, y1! - y0!)).toBeCloseTo(2 * HALF)
   })
 
   it('Kreisen (radial): Mitte wandert um höchstens 25 % der halben Workspace-Diagonale', () => {
@@ -180,7 +193,7 @@ describe('Workspace-Modus – Farbverlauf', () => {
     workspaceShow({ type: 'radial', audio: audio('trebleOnset', { pulse: 0 }) })
     setAudioAnalysisData({ ...SILENT, onsetTreble: 1 })
     const [cx, cy, , , , radius] = fillOf(renderWorkspace()).a
-    const shift = Math.hypot(cx - CX, cy - CY)
+    const shift = Math.hypot(cx! - CX, cy! - CY)
     expect(shift).toBeGreaterThan(0)
     expect(shift).toBeLessThanOrEqual(HALF * 0.25 + 1e-9)
     expect(radius).toBe(HALF)
@@ -191,8 +204,8 @@ describe('Workspace-Modus – Farbverlauf', () => {
     m.setBaseFillAudio('workspace', { enabled: true, source: 'allOnset', brightness: 100 })
     setAudioAnalysisData({ ...SILENT, onsetAll: 1 })
     const stops = fillOf(renderWorkspace()).stops
-    expect(stops[0][1]).toMatch(/^hsl\(/)
-    expect(stops[1][1]).toMatch(/^hsl\(/)
+    expect(stops[0]![1]).toMatch(/^hsl\(/)
+    expect(stops[1]![1]).toMatch(/^hsl\(/)
   })
 
   it('Canvas-Verlauf und dessen Quelle wirken im Workspace-Modus nicht', () => {

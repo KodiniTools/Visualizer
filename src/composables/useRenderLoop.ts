@@ -442,21 +442,11 @@ export function useRenderLoop({
       const canvas = canvasRef.value
       if (!canvas) return null
 
-      // Zielgröße: Workspace-Format, sonst Canvas-Größe
-      let targetWidth = canvas.width
-      let targetHeight = canvas.height
-      if (canvasManagerInst.value?.workspacePreset) {
-        // Nebenbefund: workspacePreset ist das Preset-Objekt, kein Schlüssel – der
-        // Nachschlag liefert daher nie ein Preset (Verhalten aus der JS-Version).
-        const preset =
-          canvasManagerInst.value.socialMediaPresets?.[
-            canvasManagerInst.value.workspacePreset as unknown as string
-          ]
-        if (preset) {
-          targetWidth = preset.width
-          targetHeight = preset.height
-        }
-      }
+      // Zielgröße: Workspace-Format (wie die Aufnahme), sonst Canvas-Größe.
+      // workspacePreset ist das Preset-Objekt selbst ({ width, height, name }).
+      const preset = canvasManagerInst.value?.workspacePreset
+      const targetWidth = preset?.width || canvas.width
+      const targetHeight = preset?.height || canvas.height
 
       const { canvas: screenshotCanvas, ctx } = ensureSizedCanvas(null, targetWidth, targetHeight)
       ctx.imageSmoothingEnabled = true

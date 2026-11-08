@@ -3,7 +3,7 @@ import {
   createPendulumClock,
   glPendulumWave,
   PENDULUM_CYCLE,
-} from '../../../lib/visualizers/gl/presets/glPendulumWave.js'
+} from '../../../lib/visualizers/gl/presets/glPendulumWave'
 
 const LOUD = [0.5, 0.5, 0.5, 0.5]
 const SILENT = [0, 0, 0, 0]

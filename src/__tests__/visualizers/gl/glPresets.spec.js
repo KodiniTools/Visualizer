@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { glPresetSpecs, glVisualizers } from '../../../lib/visualizers/gl/index.js'
+import { glPresetSpecs, glVisualizers } from '../../../lib/visualizers/gl/index'
 import { Visualizers } from '../../../lib/visualizers/index'
-import { buildFragmentSource, FRAG_HEADER } from '../../../lib/visualizers/gl/glsl.js'
+import { buildFragmentSource, FRAG_HEADER } from '../../../lib/visualizers/gl/glsl'
 
 describe('gl presets', () => {
   it('every spec is complete and consistent with its registry key', () => {

@@ -11,13 +11,13 @@ import {
   formatClock,
   formatCountdown,
   ledDisplayText,
-} from '../../../lib/visualizers/gl/ledTextSettings.js'
-import { ledTextLayout, glyphPresetFor } from '../../../lib/visualizers/gl/ledText.js'
+} from '../../../lib/visualizers/gl/ledTextSettings'
+import { ledTextLayout, glyphPresetFor } from '../../../lib/visualizers/gl/ledText'
 import {
   COLON_BITMAP,
   makeLedColonPreset,
   rowToBits,
-} from '../../../lib/visualizers/gl/presets/glLedDigits.js'
+} from '../../../lib/visualizers/gl/presets/glLedDigits'
 import { Visualizers, glVisualizers } from '../../../lib/visualizers/index'
 import { visualizerState } from '../../../lib/visualizers/core/state'
 

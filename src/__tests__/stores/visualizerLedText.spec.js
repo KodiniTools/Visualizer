@@ -4,7 +4,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { usePresetStore } from '../../stores/presetStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
-import { DEFAULT_LED_CONFIG } from '../../lib/visualizers/gl/ledTextSettings.js'
+import { DEFAULT_LED_CONFIG } from '../../lib/visualizers/gl/ledTextSettings'
 
 describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {
   beforeEach(() => {

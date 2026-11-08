@@ -19,7 +19,7 @@ import {
   DEFAULT_LED_CONFIG,
   normalizeLedField,
   normalizeLedConfig,
-} from '../../lib/visualizers/gl/ledTextSettings.js'
+} from '../../lib/visualizers/gl/ledTextSettings'
 import {
   DEFAULT_VISUALIZER_SHAPE,
   normalizeVisualizerShape,

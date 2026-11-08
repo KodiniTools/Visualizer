@@ -103,7 +103,7 @@ import {
   LED_TIME_ZONES,
   normalizeLedConfig,
   ledDisplayText,
-} from '../../lib/visualizers/gl/ledTextSettings.js'
+} from '../../lib/visualizers/gl/ledTextSettings'
 
 const props = defineProps({
   /** glLedText oder glLedNumber */

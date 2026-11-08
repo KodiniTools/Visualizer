@@ -8,7 +8,7 @@ import {
   computeBands,
   updateAudioFeatures,
   updateAudioFeaturesFromTime,
-} from '../../../lib/visualizers/gl/audioFeatures.js'
+} from '../../../lib/visualizers/gl/audioFeatures'
 import { visualizerState } from '../../../lib/visualizers/core/state'
 
 function spectrum(bufferLength, fn) {

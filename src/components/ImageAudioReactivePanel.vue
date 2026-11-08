@@ -24,7 +24,7 @@
 <script setup>
 import { ref, inject, watch, onMounted, nextTick } from 'vue'
 import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
-import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
+import { useImageAudioReactive } from '../composables/useImageAudioReactive'
 import { historyApplyRevision } from '../lib/history/historyRecorder'
 
 const fotoManagerRef = inject('fotoManager')

@@ -1,14 +1,52 @@
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
+import { getAudioAnalysisData, type AudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 import { historyApplyRevision } from '../../lib/history/historyRecorder'
 import {
   applyAudioReactivePreset,
   assignAudioReactiveConfig,
   cloneAudioReactiveConfig,
+  type AudioReactiveConfig,
 } from '../../lib/audio/audioReactiveConfig'
 
+/** Vom AudioReactivePanel per defineExpose bereitgestellte API */
+export interface AudioReactivePanelApi {
+  audioLevelBarRef?: HTMLElement | null
+  loadSettings(config: unknown): void
+}
+
+/** Optionen von useAudioReactiveTarget */
+export interface AudioReactiveTargetOptions {
+  /** Ref auf das AudioReactivePanel */
+  panelRef: Ref<AudioReactivePanelApi | null | undefined>
+  /** localStorage-Schlüssel für „Speichern/Anwenden“ */
+  storageKey: string
+  /** Konsolenmeldung, wenn Speichern scheitert */
+  saveWarning: string
+  /** Konfiguration (legt sie bei Bedarf an) */
+  getConfig: () => AudioReactiveConfig | null | undefined
+  /** Konfiguration ohne Anlegen */
+  peekConfig?: () => AudioReactiveConfig | null | undefined
+  /** Wert für panel.loadSettings() */
+  panelConfig?: () => unknown
+  /** Ziel für Preset/Backup (ID oder Objekt, null = keins) */
+  targetKey: () => unknown
+  /** Ein/Aus-Zustand (Standard: peekConfig().enabled) */
+  isEnabled?: () => boolean
+  /** Schalter setzen; false = kein Ziel */
+  setEnabled: (enabled: boolean) => void | false
+  /** weitere Auslöser für den Panel-Abgleich */
+  syncSources?: Array<() => unknown>
+  onPresetApplied?: (config: AudioReactiveConfig) => void
+  /** nach Wiederherstellen des Backups */
+  onPresetRestored?: (config: AudioReactiveConfig) => void
+  onSettingsApplied?: (config: AudioReactiveConfig, saved: object) => void
+}
+
 /** Geglätteter Pegel (0–255) der gewählten Quelle; unbekannt → Bass. */
-export function levelForSource(audioData, source) {
+export function levelForSource(
+  audioData: Partial<AudioAnalysisData>,
+  source: string | null | undefined,
+): number {
   switch (source) {
     case 'mid':
       return audioData.smoothMid ?? 0
@@ -23,7 +61,7 @@ export function levelForSource(audioData, source) {
 }
 
 /** Farbverlauf der Pegelanzeige je nach Aussteuerung. */
-export function levelBarBackground(percent) {
+export function levelBarBackground(percent: number): string {
   if (percent > 70) return 'linear-gradient(90deg, #4ade80, #fbbf24, #ef4444)'
   if (percent > 40) return 'linear-gradient(90deg, #4ade80, #fbbf24)'
   return '#4ade80'
@@ -31,25 +69,27 @@ export function levelBarBackground(percent) {
 
 /**
  * Setter für Master-Regler und Effekte einer Audio-Reaktiv-Konfiguration.
- * @param {() => object|null} getConfig liefert (und legt ggf. an) die Konfiguration
+ * @param getConfig liefert (und legt ggf. an) die Konfiguration
  */
-export function createAudioReactiveSetters(getConfig) {
+export function createAudioReactiveSetters(
+  getConfig: () => AudioReactiveConfig | null | undefined,
+) {
   return {
-    setProperty(property, value) {
+    setProperty(property: string, value: unknown) {
       const c = getConfig()
       if (!c || property === 'effects' || !(property in c)) return
-      c[property] = value
+      ;(c as unknown as Record<string, unknown>)[property] = value
     },
-    setEffectEnabled(name, enabled) {
+    setEffectEnabled(name: string, enabled: unknown) {
       const fx = getConfig()?.effects?.[name]
       if (fx) fx.enabled = Boolean(enabled)
     },
-    setEffectIntensity(name, value) {
+    setEffectIntensity(name: string, value: string | number) {
       const fx = getConfig()?.effects?.[name]
-      const n = parseInt(value)
+      const n = parseInt(String(value))
       if (fx && Number.isFinite(n)) fx.intensity = Math.max(0, Math.min(100, n))
     },
-    setEffectSource(name, source) {
+    setEffectSource(name: string, source: string | null | undefined) {
       const fx = getConfig()?.effects?.[name]
       if (fx) fx.source = source ? source : null
     },
@@ -57,13 +97,16 @@ export function createAudioReactiveSetters(getConfig) {
 }
 
 /** Pro Ziel (Objekt oder ID) gemerkte Werte; Objekte schwach referenziert. */
-function createKeyedStore() {
-  const byObject = new WeakMap()
-  const byValue = new Map()
-  const pick = (key) => (key !== null && typeof key === 'object' ? byObject : byValue)
+function createKeyedStore<V>() {
+  const byObject = new WeakMap<object, V>()
+  const byValue = new Map<unknown, V>()
+  // Die WeakMap erhält nur Objekt-Schlüssel (siehe Prüfung)
+  const pick = (key: unknown) =>
+    key !== null && typeof key === 'object' ? (byObject as unknown as Map<unknown, V>) : byValue
   return {
-    get: (key) => (key === null || key === undefined ? undefined : pick(key).get(key)),
-    set: (key, value) => {
+    get: (key: unknown): V | undefined =>
+      key === null || key === undefined ? undefined : pick(key).get(key),
+    set: (key: unknown, value: V) => {
       if (key !== null && key !== undefined) pick(key).set(key, value)
     },
   }
@@ -75,22 +118,9 @@ function createKeyedStore() {
  * (je Ziel), Speichern/Anwenden über localStorage, Panel-Abgleich nach
  * externen Änderungen (Undo/Redo, Ziel gewechselt) und die Pegelanzeige.
  *
- * @param {object} o
- * @param {import('vue').Ref} o.panelRef Ref auf das AudioReactivePanel
- * @param {string} o.storageKey localStorage-Schlüssel für „Speichern/Anwenden“
- * @param {string} o.saveWarning Konsolenmeldung, wenn Speichern scheitert
- * @param {() => object|null} o.getConfig Konfiguration (legt sie bei Bedarf an)
- * @param {() => object|null} [o.peekConfig] Konfiguration ohne Anlegen
- * @param {() => object|null} [o.panelConfig] Wert für panel.loadSettings()
- * @param {() => unknown} o.targetKey Ziel für Preset/Backup (ID oder Objekt, null = keins)
- * @param {() => boolean} [o.isEnabled] Ein/Aus-Zustand (Standard: peekConfig().enabled)
- * @param {(enabled: boolean) => (void|false)} o.setEnabled Schalter setzen; false = kein Ziel
- * @param {Array<() => unknown>} [o.syncSources] weitere Auslöser für den Panel-Abgleich
- * @param {(config: object) => void} [o.onPresetApplied]
- * @param {(config: object) => void} [o.onPresetRestored] nach Wiederherstellen des Backups
- * @param {(config: object, saved: object) => void} [o.onSettingsApplied]
+ * @param o - siehe AudioReactiveTargetOptions
  */
-export function useAudioReactiveTarget(o) {
+export function useAudioReactiveTarget(o: AudioReactiveTargetOptions) {
   const peekConfig = o.peekConfig ?? o.getConfig
   const panelConfig = o.panelConfig ?? peekConfig
   const isEnabled = o.isEnabled ?? (() => !!peekConfig()?.enabled)
@@ -100,21 +130,21 @@ export function useAudioReactiveTarget(o) {
   watch(historyApplyRevision, () => revision.value++)
 
   // ── Presets (aktiv + Backup der eigenen Effekte je Ziel) ──
-  const activePresets = createKeyedStore()
-  const userBackups = createKeyedStore()
+  const activePresets = createKeyedStore<string | null>()
+  const userBackups = createKeyedStore<AudioReactiveConfig>()
   const presetTick = ref(0)
   const activePreset = computed(() => {
     void presetTick.value
     return activePresets.get(o.targetKey()) ?? null
   })
-  function setActivePreset(name) {
+  function setActivePreset(name: string | null) {
     const key = o.targetKey()
     if (key === null || key === undefined) return
     activePresets.set(key, name)
     presetTick.value++
   }
 
-  function togglePreset(name) {
+  function togglePreset(name: string) {
     const c = o.getConfig()
     if (!c) return
     if (activePreset.value === name) {
@@ -141,7 +171,7 @@ export function useAudioReactiveTarget(o) {
   }
 
   // ── Speichern / Anwenden ──
-  function loadSaved() {
+  function loadSaved(): object | null {
     try {
       const raw = typeof localStorage !== 'undefined' && localStorage.getItem(o.storageKey)
       return raw ? JSON.parse(raw) : null
@@ -174,7 +204,7 @@ export function useAudioReactiveTarget(o) {
   }
 
   // ── Pegelanzeige ──
-  let levelAnimationId = null
+  let levelAnimationId: number | null = null
   function updateLevel() {
     levelAnimationId = null
     const bar = o.panelRef.value?.audioLevelBarRef
@@ -199,7 +229,7 @@ export function useAudioReactiveTarget(o) {
     else stopLevelIndicator()
   }
 
-  function setEnabled(enabled) {
+  function setEnabled(enabled: unknown) {
     if (o.setEnabled(Boolean(enabled)) === false) return
     if (!enabled) setActivePreset(null)
     // Nicht-reaktive Ziele (Video-Objekte): Pegelanzeige explizit steuern
@@ -231,14 +261,15 @@ export function useAudioReactiveTarget(o) {
   const setters = createAudioReactiveSetters(o.getConfig)
 
   /** Listener für <AudioReactivePanel v-on="panelListeners" />. */
+  const input = (e: Event) => e.target as HTMLInputElement
   const panelListeners = {
-    'audio-reactive-toggle': (e) => setEnabled(e.target.checked),
-    'source-change': (e) => setters.setProperty('source', e.target.value),
-    'smoothing-change': (e) => setters.setProperty('smoothing', parseInt(e.target.value)),
-    'easing-change': (e) => setters.setProperty('easing', e.target.value),
-    'beat-boost-change': (e) => setters.setProperty('beatBoost', parseFloat(e.target.value)),
-    'phase-change': (e) => setters.setProperty('phase', parseInt(e.target.value)),
-    'gain-change': (e) => setters.setProperty('gain', parseFloat(e.target.value)),
+    'audio-reactive-toggle': (e: Event) => setEnabled(input(e).checked),
+    'source-change': (e: Event) => setters.setProperty('source', input(e).value),
+    'smoothing-change': (e: Event) => setters.setProperty('smoothing', parseInt(input(e).value)),
+    'easing-change': (e: Event) => setters.setProperty('easing', input(e).value),
+    'beat-boost-change': (e: Event) => setters.setProperty('beatBoost', parseFloat(input(e).value)),
+    'phase-change': (e: Event) => setters.setProperty('phase', parseInt(input(e).value)),
+    'gain-change': (e: Event) => setters.setProperty('gain', parseFloat(input(e).value)),
     'toggle-preset': togglePreset,
     'clear-preset': clearPreset,
     'effect-toggle': setters.setEffectEnabled,

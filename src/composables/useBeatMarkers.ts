@@ -1,18 +1,22 @@
 import { ref, watch, onMounted, onUnmounted, inject, toRaw } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { usePlayerStore } from '../stores/playerStore'
-import { useBeatMarkerStore } from '../stores/beatMarkerStore'
+import { useBeatMarkerStore, type BeatMarkerAction } from '../stores/beatMarkerStore'
 import { useVisualizerStore } from '../stores/visualizerStore'
-import { useBackgroundBridgeStore } from '../stores/backgroundBridgeStore'
+import { useBackgroundBridgeStore, type BackgroundSnapshot } from '../stores/backgroundBridgeStore'
 import { useMarkerTransitionStore } from '../stores/markerTransitionStore'
-import { useLayerPresetStore, parseLayerPresetRef } from '../stores/layerPresetStore'
+import {
+  useLayerPresetStore,
+  parseLayerPresetRef,
+  type LayerPreset,
+} from '../stores/layerPresetStore'
 import { formatTimePrecise, parseTimeInput, roundToHundredths } from '../utils/formatTime'
 import { resolveBackgroundPreset } from '../utils/backgroundPresets'
 import { useHistoryStore } from '../stores/historyStore'
 import { getHistoryRecorder } from '../lib/history/historyRecorder'
-import { useShapeStore } from '../stores/shapeStore'
+import { useShapeStore, type Shape } from '../stores/shapeStore'
 import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes'
-import { useImageGallery } from './useImageGallery.js'
+import { useImageGallery } from './useImageGallery'
 import {
   captureBackgroundImageDefaults,
   captureBaseBackground,
@@ -20,21 +24,46 @@ import {
   resolveBackgroundImageDefaults,
   restoreBaseBackground,
   setBackgroundImageWithDefaults,
+  type BackgroundImageDefaults,
+  type BaseBackground,
 } from '../lib/background/markerBackgroundImage'
+import type { TextObject } from '../lib/textManager/types'
+import type { CanvasManagerRef } from './types'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
 // dieser Zeit erneut übernehmen, damit sie nicht im nächsten Nutzer-Schritt landen.
 const MARKER_MEDIA_SETTLE_MS = 3000
+
+/** Verweis eines Markers auf ein Galerie-Bild (kein Bildinhalt) */
+export interface MarkerBackgroundImageRef {
+  galleryId?: unknown
+  name?: string
+  defaults?: BackgroundImageDefaults | null
+}
+
+/** Felder der Marker-Aktion, die dieses Composable liest und schreibt */
+export type MarkerAction = BeatMarkerAction & {
+  visualizerVisible?: boolean
+  /** Altes Feld (rückwärtskompatibel) */
+  hideVisualizer?: boolean
+  layerPreset?: Pick<LayerPreset, 'id' | 'name' | 'layers'> | null
+  background?: BackgroundSnapshot | null
+  backgroundKey?: string | null
+  backgroundLabel?: string | null
+  shapeId?: string | null
+  shapeLabel?: string | null
+  backgroundImage?: MarkerBackgroundImageRef | null
+}
 
 /**
  * Beat-marker management for the sticky player bar: the add/edit form state,
  * marker CRUD, progress-bar positioning, and the watchers that trigger
  * visualizer/color changes as playback crosses markers.
  *
- * @param {() => void} openMarkersPopover - opens the markers popover, so adding
+ * @param openMarkersPopover - opens the markers popover, so adding
  *   a marker (incl. via the "M" shortcut) reveals the form.
  */
-export function useBeatMarkers(openMarkersPopover) {
+export function useBeatMarkers(openMarkersPopover: () => void) {
   const { t } = useI18n()
   const playerStore = usePlayerStore()
   const beatMarkerStore = useBeatMarkerStore()
@@ -51,10 +80,10 @@ export function useBeatMarkers(openMarkersPopover) {
   // Canvas-Manager (bereitgestellt von VisualizerApp). Wird für die
   // Text-Steuerung der Marker benötigt: Texte werden zum Marker-Zeitpunkt
   // eingeblendet. Kann null sein, solange der Canvas noch nicht bereit ist.
-  const canvasManager = inject('canvasManager', ref(null))
+  const canvasManager = inject('canvasManager', ref(null)) as CanvasManagerRef
 
   const showMarkerPanel = ref(false)
-  const editingMarkerId = ref(null)
+  const editingMarkerId = ref<number | null>(null)
   const pendingMarkerTime = ref(0)
   const pendingMarkerTimeInput = ref('0:00.00')
   // Schrittweite des Zeit-Spinners in Sekunden (0.01 = langsam/fein, 1 = schnell/grob)
@@ -71,14 +100,15 @@ export function useBeatMarkers(openMarkersPopover) {
   const newMarkerBackgroundKey = ref('')
   // Ausgewählter Text pro Marker (Text-ID aus dem Text-Verzeichnis; '' = kein
   // Text). Der zugewiesene Text erscheint zum Marker-Zeitpunkt auf dem Canvas.
-  const newMarkerTextId = ref('')
+  const newMarkerTextId = ref<TextObject['id'] | ''>('')
   // Ausgewählte Form pro Marker (Form-ID aus „Formen & Symbole“; '' = keine).
   // Die Form erscheint zum Marker-Zeitpunkt auf dem Canvas.
-  const newMarkerShapeId = ref('')
+  const newMarkerShapeId = ref<string | null>('')
   // Hintergrund-Bild pro Marker (Galerie-Bild-ID; '' = kein Wechsel). Übernimmt
   // beim Auslösen Audio-Reaktiv und Format (Workspace/Normal) vom vorherigen
   // Hintergrund-Bild.
-  const newMarkerBgImageId = ref('')
+  // (Select liefert die numerische Galerie-ID)
+  const newMarkerBgImageId = ref<number | string | null>('')
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -86,7 +116,7 @@ export function useBeatMarkers(openMarkersPopover) {
   // der Wiedergabe werden zugewiesene Texte ausgeblendet und erscheinen erst
   // zum jeweiligen Marker-Zeitpunkt; beim Zurücksetzen wird die ursprüngliche
   // Deckkraft wiederhergestellt.
-  const markerTextOriginalOpacity = new Map()
+  const markerTextOriginalOpacity = new Map<TextObject['id'], number>()
 
   /** Alle Text-Objekte des Canvas (stabil nach Erstellungsreihenfolge sortiert). */
   const orderedTextObjects = () => {
@@ -111,11 +141,11 @@ export function useBeatMarkers(openMarkersPopover) {
     }))
   }
 
-  const findText = (id) => orderedTextObjects().find((o) => o.id === id) || null
+  const findText = (id: TextObject['id']) => orderedTextObjects().find((o) => o.id === id) || null
 
   /** IDs aller Texte, die aktuell irgendeinem Marker zugewiesen sind. */
   const referencedTextIds = () => {
-    const ids = new Set()
+    const ids = new Set<TextObject['id']>()
     for (const m of beatMarkerStore.markers) {
       const tid = m.action?.textId
       if (tid !== undefined && tid !== null && tid !== '') ids.add(tid)
@@ -128,7 +158,7 @@ export function useBeatMarkers(openMarkersPopover) {
    * Animationen (Typewriter, Fade, Scale, Slide) ab dem Marker-Zeitpunkt neu
    * abgespielt werden.
    */
-  const restartTextAnimation = (obj) => {
+  const restartTextAnimation = (obj: TextObject) => {
     if (!obj?.animation) return
     obj.animation._state = {
       startTime: null,
@@ -200,7 +230,7 @@ export function useBeatMarkers(openMarkersPopover) {
     for (const id of [...markerTextOriginalOpacity.keys()]) {
       if (ids.has(id)) continue
       const o = objs.find((x) => x.id === id)
-      if (o) o.opacity = markerTextOriginalOpacity.get(id)
+      if (o) o.opacity = markerTextOriginalOpacity.get(id) as number
       markerTextOriginalOpacity.delete(id)
       changed = true
     }
@@ -213,7 +243,7 @@ export function useBeatMarkers(openMarkersPopover) {
    * neu starten), alle anderen von Markern gesteuerten Texte werden
    * ausgeblendet.
    */
-  const applyTextAction = (action) => {
+  const applyTextAction = (action: MarkerAction) => {
     const tid = action?.textId
     if (tid === undefined || tid === null || tid === '') return
     const target = findText(tid)
@@ -237,7 +267,7 @@ export function useBeatMarkers(openMarkersPopover) {
     // die aktuelle (falls > 0) bzw. voll sichtbar.
     let visible = 100
     if (markerTextOriginalOpacity.has(tid)) {
-      visible = markerTextOriginalOpacity.get(tid)
+      visible = markerTextOriginalOpacity.get(tid) as number
     } else if (target.opacity && target.opacity > 0) {
       visible = target.opacity
     }
@@ -253,7 +283,7 @@ export function useBeatMarkers(openMarkersPopover) {
   // und gehört nicht zum Undo/Redo-Verlauf.
 
   /** Anzeigename einer Form (Galerie-Eintrag, sonst Formtyp) */
-  const shapeDisplayName = (shape) =>
+  const shapeDisplayName = (shape: Shape) =>
     SHAPE_GALLERY.some((g) => g.id === shape.galleryId)
       ? t(`shapes.items.${shape.galleryId}`)
       : shape.type
@@ -281,7 +311,6 @@ export function useBeatMarkers(openMarkersPopover) {
 
   /**
    * Galerie „Formen & Symbole“ für das Marker-Dropdown, nach Kategorien.
-   * @returns {{ category: string, label: string, items: { value: string, name: string }[] }[]}
    */
   const getMarkerShapeGallery = () =>
     SHAPE_CATEGORIES.filter((c) => c !== 'draw')
@@ -309,9 +338,9 @@ export function useBeatMarkers(openMarkersPopover) {
   /**
    * Löst die Dropdown-Auswahl zu einer Form-ID auf. Ein Galerie-Eintrag legt
    * eine neue Form an (mittig, Standard-Stil; danach im Formen-Panel
-   * bearbeitbar). @returns {string|null}
+   * bearbeitbar).
    */
-  const resolveMarkerShapeSelection = (value) => {
+  const resolveMarkerShapeSelection = (value: string | null | undefined): string | null => {
     if (value === '' || value === null || value === undefined) return null
     if (typeof value === 'string' && value.startsWith(GALLERY_PREFIX)) {
       const { width, height } = shapeCanvasSize()
@@ -325,9 +354,9 @@ export function useBeatMarkers(openMarkersPopover) {
 
   /** IDs aller Formen, die aktuell irgendeinem Marker zugewiesen sind. */
   const referencedShapeIds = () => {
-    const ids = new Set()
+    const ids = new Set<string>()
     for (const m of beatMarkerStore.markers) {
-      const sid = m.action?.shapeId
+      const sid = (m.action as MarkerAction | undefined)?.shapeId
       if (sid !== undefined && sid !== null && sid !== '') ids.add(sid)
     }
     return ids
@@ -357,7 +386,7 @@ export function useBeatMarkers(openMarkersPopover) {
    * Marker ohne Form („Keine Form“) blendet alle Marker-Formen aus; Formen
    * ohne Marker-Zuweisung bleiben unberührt.
    */
-  const applyShapeAction = (action) => {
+  const applyShapeAction = (action: MarkerAction) => {
     const raw = action?.shapeId
     const sid =
       raw !== undefined && raw !== null && raw !== '' && shapeStore.shapes.some((s) => s.id === raw)
@@ -378,16 +407,19 @@ export function useBeatMarkers(openMarkersPopover) {
    * Setzt das Galerie-Bild eines Markers als Hintergrund. Format und
    * Audio-Reaktiv stammen vom vorherigen (beim Auslösen sichtbaren)
    * Hintergrund-Bild, ersatzweise aus den beim Speichern gemerkten Vorgaben.
-   * @param {object} action
-   * @param {object|null} previous - vor allen Marker-Änderungen erfasste Vorgaben
+   * @param previous - vor allen Marker-Änderungen erfasste Vorgaben
    */
   // Hintergrund vor dem ersten Hintergrund-Bild-Marker eines Durchlaufs. Ein
   // späterer Marker ohne Hintergrund-Bild (und ohne Hintergrund-Preset) stellt
   // ihn wieder her, statt das Marker-Bild stehen zu lassen. Reiner
   // Laufzeit-Zustand, nicht im Verlauf.
-  let bgImageBase = null
+  let bgImageBase: BaseBackground | null = null
 
-  const applyBackgroundImageAction = (action, previous, presetApplied = false) => {
+  const applyBackgroundImageAction = (
+    action: MarkerAction,
+    previous: BackgroundImageDefaults | null,
+    presetApplied = false,
+  ) => {
     const ref = action?.backgroundImage
     if (!ref) {
       if (presetApplied) {
@@ -423,14 +455,14 @@ export function useBeatMarkers(openMarkersPopover) {
   /**
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
-  const applyMarkerBackground = (action) => {
+  const applyMarkerBackground = (action: MarkerAction | null | undefined) => {
     if (!action) return false
     // Preset bevorzugt frisch anhand des Keys auflösen (spiegelt aktuelle
     // Presets wider); sonst den im Marker gespeicherten Snapshot verwenden.
     let snapshot = action.background
     if (action.backgroundKey) {
       const resolved = resolveBackgroundPreset(action.backgroundKey)
-      if (resolved?.snapshot) snapshot = resolved.snapshot
+      if (resolved?.snapshot) snapshot = resolved.snapshot as unknown as BackgroundSnapshot
     }
     // Mit Hintergrund-Bild aus der Galerie liefert das Preset nur Farbe,
     // Gradient, Audio-Reaktiv und Elemente – sein (asynchron geladenes) Bild
@@ -449,12 +481,12 @@ export function useBeatMarkers(openMarkersPopover) {
   /**
    * Wendet alle Änderungen eines Markers an (Visualizer, Farbe, Hintergrund).
    */
-  const applyMarkerAction = (action) =>
+  const applyMarkerAction = (action: MarkerAction) =>
     historyRecorder.absorb(() => applyMarkerActionNow(action), {
       settleMs: MARKER_MEDIA_SETTLE_MS,
     })
 
-  const applyMarkerActionNow = (action) => {
+  const applyMarkerActionNow = (action: MarkerAction | null | undefined) => {
     if (!action) return
     // Vorgaben des vorherigen Hintergrund-Bildes erfassen, bevor ein
     // Hintergrund-Preset dieses Markers den Hintergrund ändert.
@@ -475,7 +507,7 @@ export function useBeatMarkers(openMarkersPopover) {
           // gespeicherte Snapshot (Preset könnte inzwischen gelöscht sein).
           const preset = layerPresetStore.findLayerPreset(presetId) || action.layerPreset
           if (layerPresetStore.applyLayerPreset(preset)) {
-            console.log('🎛️ Layer-Preset via Beat-Marker angewendet:', preset.name)
+            console.log('🎛️ Layer-Preset via Beat-Marker angewendet:', (preset as LayerPreset).name)
           } else {
             console.warn('⚠️ Layer-Preset des Markers nicht gefunden:', action.visualizer)
           }
@@ -506,11 +538,14 @@ export function useBeatMarkers(openMarkersPopover) {
    * Führt einen ausgelösten Marker aus. Ist der Crossfade aktiviert, wird der
    * aktuelle (alte) Frame kurz eingefroren, dann die Änderung angewendet und der
    * alte Frame über der neuen Szene ausgeblendet. Sonst wird sofort gewechselt.
-   * @param {object} action
-   * @param {boolean} allowTransition - false z.B. für den Start-Marker (0:00)
+   * @param allowTransition - false z.B. für den Start-Marker (0:00)
    */
-  const runMarkerTrigger = (action, allowTransition = true) => {
-    if (!action) return
+  const runMarkerTrigger = (
+    rawAction: BeatMarkerAction | null | undefined,
+    allowTransition = true,
+  ) => {
+    if (!rawAction) return
+    const action = rawAction as MarkerAction
     if (allowTransition && markerTransition.enabled) {
       // 1) Capture-Fenster öffnen: Renderer friert den alten Frame ein
       markerTransition.beginCapture()
@@ -528,7 +563,7 @@ export function useBeatMarkers(openMarkersPopover) {
    * Setzt die Marker-Zeit auf Hundertstel gerundet und auf [0, Trackdauer]
    * begrenzt; hält das Textfeld synchron.
    */
-  const setPendingMarkerTime = (seconds) => {
+  const setPendingMarkerTime = (seconds: number) => {
     const maxTime = playerStore.duration || 0
     const clamped = Math.max(0, Math.min(roundToHundredths(seconds), maxTime))
     pendingMarkerTime.value = roundToHundredths(clamped)
@@ -541,14 +576,14 @@ export function useBeatMarkers(openMarkersPopover) {
 
   /**
    * Verschiebt die Marker-Zeit um die aktuelle Schrittweite.
-   * @param {number} direction - +1 (vor) oder -1 (zurück)
+   * @param direction - +1 (vor) oder -1 (zurück)
    */
-  const stepMarkerTime = (direction) => {
+  const stepMarkerTime = (direction: number) => {
     const sign = direction < 0 ? -1 : 1
     setPendingMarkerTime(pendingMarkerTime.value + sign * markerTimeStep.value)
   }
 
-  const getMarkerPosition = (time) => {
+  const getMarkerPosition = (time: number) => {
     if (playerStore.duration === 0) return 0
     return (time / playerStore.duration) * 100
   }
@@ -568,7 +603,12 @@ export function useBeatMarkers(openMarkersPopover) {
     openMarkersPopover()
   }
 
-  const startEditMarker = (marker) => {
+  const startEditMarker = (marker: {
+    id: number
+    time: number
+    label?: string
+    action?: MarkerAction
+  }) => {
     editingMarkerId.value = marker.id
     setPendingMarkerTime(marker.time)
     newMarkerLabel.value = marker.label || ''
@@ -583,7 +623,9 @@ export function useBeatMarkers(openMarkersPopover) {
     newMarkerTextId.value = marker.action?.textId ?? ''
     newMarkerShapeId.value = marker.action?.shapeId ?? ''
     newMarkerBgImageId.value = marker.action?.backgroundImage
-      ? (findGalleryImage(imageGallery.value, marker.action.backgroundImage)?.id ?? '')
+      ? ((findGalleryImage(imageGallery.value, marker.action.backgroundImage)?.id as
+          | number
+          | undefined) ?? '')
       : ''
     showMarkerPanel.value = true
   }
@@ -606,7 +648,7 @@ export function useBeatMarkers(openMarkersPopover) {
 
     // Zugewiesenen Text (aus dem Text-Verzeichnis) als eigenständige Aktion
     // speichern. Der Text erscheint zum Marker-Zeitpunkt auf dem Canvas.
-    let textId = null
+    let textId: TextObject['id'] | null = null
     let textLabel = null
     if (newMarkerTextId.value !== '' && newMarkerTextId.value !== null) {
       textId = newMarkerTextId.value
@@ -615,7 +657,7 @@ export function useBeatMarkers(openMarkersPopover) {
     }
 
     // Zugewiesene Form (Formen & Symbole) – erscheint zum Marker-Zeitpunkt.
-    let shapeId = null
+    let shapeId: string | null = null
     let shapeLabel = null
     if (newMarkerShapeId.value !== '' && newMarkerShapeId.value !== null) {
       shapeId = resolveMarkerShapeSelection(newMarkerShapeId.value)
@@ -697,12 +739,12 @@ export function useBeatMarkers(openMarkersPopover) {
     showMarkerPanel.value = false
   }
 
-  const seekToMarker = (time) => {
+  const seekToMarker = (time: number) => {
     playerStore.seekTo(time)
     beatMarkerStore.resetTriggers()
   }
 
-  const removeMarker = (id) => {
+  const removeMarker = (id: number) => {
     beatMarkerStore.removeMarker(id)
     // Text bzw. Form des gelöschten Markers ggf. wieder einblenden.
     reconcileTextMarkers()
@@ -718,14 +760,14 @@ export function useBeatMarkers(openMarkersPopover) {
     }
   }
 
-  const getVisualizerName = (id) => {
+  const getVisualizerName = (id: string) => {
     const presetId = parseLayerPresetRef(id)
     if (presetId) {
       const preset = layerPresetStore.findLayerPreset(presetId)
       if (preset) return preset.name
       // Gelöschtes Preset: Name aus dem Marker-Snapshot verwenden
       const marker = beatMarkerStore.markers.find((m) => m.action?.visualizer === id)
-      return marker?.action?.layerPreset?.name || id
+      return (marker?.action as MarkerAction | undefined)?.layerPreset?.name || id
     }
     const allViz = visualizerStore.availableVisualizers
     const found = allViz.find((v) => v.id === id)
@@ -741,10 +783,10 @@ export function useBeatMarkers(openMarkersPopover) {
   // Solange in diesem Zeitfenster ein Frame kam, gilt die Schleife als aktiv
   // und der timeupdate-Fallback bleibt stumm.
   const FRAME_ALIVE_MS = 500
-  let lastFrameTime = null
+  let lastFrameTime: number | null = null
   let lastFrameAt = -Infinity
 
-  const handleFrame = (time) => {
+  const handleFrame = (time: number) => {
     lastFrameAt = performance.now()
     if (lastFrameTime === null) {
       lastFrameTime = time
@@ -836,9 +878,13 @@ export function useBeatMarkers(openMarkersPopover) {
 
   // Taste M (ohne Zusatztasten) setzt einen Marker. Umschalt+M = Stummschalten
   // (keyboardShortcuts), Strg/Cmd/Alt+M bleiben dem Browser/System überlassen.
-  const handleKeydown = (e) => {
+  const handleKeydown = (e: KeyboardEvent) => {
     if (e.key?.toLowerCase() === 'm' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      if (!e.target?.matches?.('input, textarea, select, [contenteditable="true"]')) {
+      if (
+        !(e.target as Element | null)?.matches?.(
+          'input, textarea, select, [contenteditable="true"]',
+        )
+      ) {
         e.preventDefault()
         if (playerStore.hasTracks) {
           addMarkerAtCurrentTime()
@@ -847,7 +893,7 @@ export function useBeatMarkers(openMarkersPopover) {
     }
   }
 
-  let unsubscribeFrame = null
+  let unsubscribeFrame: (() => void) | null = null
 
   onMounted(() => {
     window.addEventListener('keydown', handleKeydown)

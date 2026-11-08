@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useImageAudioReactive } from '../../composables/useImageAudioReactive.js'
+import { useImageAudioReactive } from '../../composables/useImageAudioReactive'
 
 /**
  * "Kein Preset": nach dem Aktivieren eines Bild-Presets muss der Nutzer seine

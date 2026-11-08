@@ -2,7 +2,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StockGallerySection from '../../components/foto-panel/StockGallerySection.vue'
-import { useStockGallery } from '../../composables/useStockGallery.js'
+import { useStockGallery } from '../../composables/useStockGallery'
 
 const images = [
   { id: 's1', name: 'Wald', thumbnail: 'data:,1' },

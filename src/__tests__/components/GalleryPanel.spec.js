@@ -11,7 +11,7 @@ import de from '../../lib/i18n/de'
 
 const stock = vi.hoisted(() => ({}))
 
-vi.mock('../../composables/useStockGallery.js', () => ({ useStockGallery: () => stock }))
+vi.mock('../../composables/useStockGallery', () => ({ useStockGallery: () => stock }))
 vi.mock('../../composables/useGalleryCanvasDrop', () => ({
   useGalleryCanvasDrop: () => ({ startDrag: vi.fn(), endDrag: vi.fn(), teardown: vi.fn() }),
 }))

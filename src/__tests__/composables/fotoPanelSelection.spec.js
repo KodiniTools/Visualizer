@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ref, toRaw } from 'vue'
 import { useCanvasSetup } from '../../composables/useCanvasSetup'
-import { useCanvasImages } from '../../composables/useCanvasImages.js'
+import { useCanvasImages } from '../../composables/useCanvasImages'
 import { registerFotoPanel } from '../../lib/fotoPanelBridge'
 
 /**

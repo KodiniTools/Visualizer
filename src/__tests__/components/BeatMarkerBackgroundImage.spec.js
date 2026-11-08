@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
+import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
-import { useImageGallery } from '../../composables/useImageGallery.js'
+import { useImageGallery } from '../../composables/useImageGallery'
 
 const AR = { enabled: true, source: 'mid', effects: { hue: { enabled: true, intensity: 70 } } }
 

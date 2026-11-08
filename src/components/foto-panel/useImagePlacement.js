@@ -9,7 +9,7 @@ import { loadPlacementSettings, savePlacementSettings } from '../../lib/imagePla
  * @param {object} deps
  * @param {import('vue').Ref} deps.multiImageManagerRef
  * @param {import('vue').Ref} deps.canvasManagerRef
- * @param {ReturnType<typeof import('../../composables/useImageGallery.js').useImageGallery>} deps.gallery
+ * @param {ReturnType<typeof import('../../composables/useImageGallery').useImageGallery>} deps.gallery
  * @param {object} deps.toastStore
  * @param {(key: string) => string} deps.t
  */

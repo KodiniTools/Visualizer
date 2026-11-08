@@ -28,7 +28,7 @@ vi.mock('../../stores/historyStore', () => ({ useHistoryStore: () => ({}) }))
 vi.mock('../../lib/history/historyRecorder', () => ({
   getHistoryRecorder: () => ({ absorb: (fn) => fn() }),
 }))
-vi.mock('../../composables/renderLoop/canvasCache.js', () => ({
+vi.mock('../../composables/renderLoop/canvasCache', () => ({
   ensureSizedCanvas: (entry, width, height) => {
     if (entry && entry.canvas.width === width && entry.canvas.height === height) return entry
     const ctx = new Proxy({}, { get: (t, p) => (p in t ? t[p] : () => {}), set: () => true })
@@ -37,11 +37,9 @@ vi.mock('../../composables/renderLoop/canvasCache.js', () => ({
 }))
 
 const { createSingleVisualizerRenderer } = await import(
-  '../../composables/renderLoop/singleVisualizerRenderer.js'
+  '../../composables/renderLoop/singleVisualizerRenderer'
 )
-const { createMultiLayerRenderer } = await import(
-  '../../composables/renderLoop/multiLayerRenderer.js'
-)
+const { createMultiLayerRenderer } = await import('../../composables/renderLoop/multiLayerRenderer')
 
 const analyser = { frequencyBinCount: 4 }
 const audio = new Uint8Array(4)

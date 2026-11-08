@@ -276,7 +276,7 @@ describe('Ziel-spezifisches Verhalten', () => {
 describe('Pegel-Hilfsfunktionen', () => {
   it('levelForSource wählt den Pegel, unbekannte Quelle → Bass', async () => {
     const { levelForSource } = await import(
-      '../../composables/audioReactive/useAudioReactiveTarget.js'
+      '../../composables/audioReactive/useAudioReactiveTarget'
     )
     const d = { smoothBass: 1, smoothMid: 2, smoothTreble: 3, smoothVolume: 4 }
     expect(['bass', 'mid', 'treble', 'volume', 'x'].map((s) => levelForSource(d, s))).toEqual([
@@ -287,7 +287,7 @@ describe('Pegel-Hilfsfunktionen', () => {
 
   it('levelBarBackground staffelt nach Aussteuerung', async () => {
     const { levelBarBackground } = await import(
-      '../../composables/audioReactive/useAudioReactiveTarget.js'
+      '../../composables/audioReactive/useAudioReactiveTarget'
     )
     expect(levelBarBackground(10)).toBe('#4ade80')
     expect(levelBarBackground(50)).toContain('#fbbf24')

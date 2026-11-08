@@ -1,8 +1,10 @@
-import { ref, computed } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import {
   applyAudioReactivePreset,
   assignAudioReactiveConfig,
+  type AudioReactiveConfig,
 } from '../lib/audio/audioReactiveConfig'
+import type { FotoImageObject, FotoManager, FotoSettings } from '../lib/fotoManager'
 
 /**
  * Shared (singleton) state + logic for the per-image audio-reactive controls.
@@ -17,15 +19,15 @@ import {
  */
 
 // One active image + audio-reactive state across all consumers.
-const currentActiveImage = ref(null)
-const activeAudioPreset = ref(null)
+const currentActiveImage = ref<FotoImageObject | null>(null)
+const activeAudioPreset = ref<string | null>(null)
 
 // Snapshot of the user's own (non-preset) audio-reactive config per image id.
 // Taken right before the first preset is applied, so "Kein Preset" can restore
 // the user's custom effects instead of leaving the preset (or nothing) behind.
-const userEffectsBackups = new Map()
+const userEffectsBackups = new Map<unknown, AudioReactiveConfig>()
 
-function loadSavedPresetFromStorage() {
+function loadSavedPresetFromStorage(): AudioReactiveConfig | null {
   try {
     const savedPreset = localStorage.getItem('visualizer_audioReactivePreset')
     if (savedPreset) return JSON.parse(savedPreset)
@@ -41,44 +43,49 @@ const savedAudioReactiveSettings = ref(loadSavedPresetFromStorage())
 
 const hasSavedAudioSettings = computed(() => savedAudioReactiveSettings.value !== null)
 
+/** Foto-Einstellungen nach fotoManager.initializeImageSettings() (dann immer gesetzt) */
+const settingsOf = (img: FotoImageObject) => img.fotoSettings as FotoSettings
+
 /**
- * @param {import('vue').Ref} [fotoManagerRef] - injected fotoManager ref;
+ * @param fotoManagerRef - injected fotoManager ref;
  *   required for the mutating handlers, optional for state-only consumers.
  */
-export function useImageAudioReactive(fotoManagerRef) {
-  function updateAudioReactiveSetting(property, value) {
+export function useImageAudioReactive(fotoManagerRef?: Ref<FotoManager | null | undefined>) {
+  function updateAudioReactiveSetting(property: string, value: unknown) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    currentActiveImage.value.fotoSettings.audioReactive[property] = value
+    ;(settingsOf(currentActiveImage.value).audioReactive as unknown as Record<string, unknown>)[
+      property
+    ] = value
   }
 
-  function onAudioReactiveToggle(event) {
-    const enabled = event.target.checked
+  function onAudioReactiveToggle(event: Event) {
+    const enabled = (event.target as HTMLInputElement).checked
     updateAudioReactiveSetting('enabled', enabled)
     if (!enabled) activeAudioPreset.value = null
   }
-  function onAudioReactiveSourceChange(event) {
-    updateAudioReactiveSetting('source', event.target.value)
+  function onAudioReactiveSourceChange(event: Event) {
+    updateAudioReactiveSetting('source', (event.target as HTMLInputElement).value)
   }
-  function onAudioReactiveSmoothingChange(event) {
-    updateAudioReactiveSetting('smoothing', parseInt(event.target.value))
+  function onAudioReactiveSmoothingChange(event: Event) {
+    updateAudioReactiveSetting('smoothing', parseInt((event.target as HTMLInputElement).value))
   }
-  function onAudioReactiveEasingChange(event) {
-    updateAudioReactiveSetting('easing', event.target.value)
+  function onAudioReactiveEasingChange(event: Event) {
+    updateAudioReactiveSetting('easing', (event.target as HTMLInputElement).value)
   }
-  function onAudioReactiveBeatBoostChange(event) {
-    updateAudioReactiveSetting('beatBoost', parseFloat(event.target.value))
+  function onAudioReactiveBeatBoostChange(event: Event) {
+    updateAudioReactiveSetting('beatBoost', parseFloat((event.target as HTMLInputElement).value))
   }
-  function onAudioReactivePhaseChange(event) {
-    updateAudioReactiveSetting('phase', parseInt(event.target.value))
+  function onAudioReactivePhaseChange(event: Event) {
+    updateAudioReactiveSetting('phase', parseInt((event.target as HTMLInputElement).value))
   }
-  function onAudioReactiveGainChange(event) {
-    updateAudioReactiveSetting('gain', parseFloat(event.target.value))
+  function onAudioReactiveGainChange(event: Event) {
+    updateAudioReactiveSetting('gain', parseFloat((event.target as HTMLInputElement).value))
   }
 
-  function toggleAudioPreset(presetName) {
+  function toggleAudioPreset(presetName: string) {
     if (activeAudioPreset.value === presetName) {
       deactivateAudioPreset()
     } else {
@@ -91,9 +98,9 @@ export function useImageAudioReactive(fotoManagerRef) {
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
     for (const effectName of Object.keys(ar.effects)) {
-      ar.effects[effectName].enabled = false
+      ;(ar.effects[effectName] as AudioReactiveConfig['effects'][string]).enabled = false
     }
     ar.enabled = false
     activeAudioPreset.value = null
@@ -102,12 +109,12 @@ export function useImageAudioReactive(fotoManagerRef) {
   // Gemeinsame Implementierung (Bilder + Hintergrund) in audioReactiveConfig.js
   const assignArConfig = assignAudioReactiveConfig
 
-  function applyAudioPreset(presetName) {
+  function applyAudioPreset(presetName: string) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
 
     // Vor dem ersten Preset die eigenen (benutzerdefinierten) Effekte sichern,
     // damit "Kein Preset" sie später exakt wiederherstellen kann. Nur sichern,
@@ -129,7 +136,7 @@ export function useImageAudioReactive(fotoManagerRef) {
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
     const backup = userEffectsBackups.get(currentActiveImage.value.id)
     if (backup) {
       assignArConfig(ar, backup)
@@ -137,34 +144,34 @@ export function useImageAudioReactive(fotoManagerRef) {
     activeAudioPreset.value = null
   }
 
-  function onEffectToggle(effectName, enabled) {
+  function onEffectToggle(effectName: string, enabled: boolean) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
     if (ar.effects && ar.effects[effectName]) {
       ar.effects[effectName].enabled = enabled
     }
   }
 
-  function onEffectIntensityChange(effectName, value) {
+  function onEffectIntensityChange(effectName: string, value: string | number) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
     if (ar.effects && ar.effects[effectName]) {
-      ar.effects[effectName].intensity = parseInt(value)
+      ar.effects[effectName].intensity = parseInt(String(value))
     }
   }
 
-  function onEffectSourceChange(effectName, value) {
+  function onEffectSourceChange(effectName: string, value: string) {
     if (!currentActiveImage.value) return
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
     if (ar.effects && ar.effects[effectName]) {
       ar.effects[effectName].source = value === '' ? null : value
     }
@@ -175,7 +182,7 @@ export function useImageAudioReactive(fotoManagerRef) {
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    const ar = currentActiveImage.value.fotoSettings.audioReactive
+    const ar = settingsOf(currentActiveImage.value).audioReactive
     savedAudioReactiveSettings.value = JSON.parse(JSON.stringify(ar))
     try {
       localStorage.setItem('visualizer_audioReactivePreset', JSON.stringify(ar))
@@ -190,7 +197,7 @@ export function useImageAudioReactive(fotoManagerRef) {
     const fotoManager = fotoManagerRef?.value
     if (!fotoManager) return
     fotoManager.initializeImageSettings(currentActiveImage.value)
-    currentActiveImage.value.fotoSettings.audioReactive = JSON.parse(
+    settingsOf(currentActiveImage.value).audioReactive = JSON.parse(
       JSON.stringify(savedAudioReactiveSettings.value),
     )
     console.log('📋 Audio-Reaktiv Einstellungen angewendet')

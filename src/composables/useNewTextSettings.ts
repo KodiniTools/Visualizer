@@ -1,4 +1,4 @@
-import { ref, watch, onBeforeUnmount, getCurrentInstance } from 'vue'
+import { ref, watch, onBeforeUnmount, getCurrentInstance, type Ref } from 'vue'
 import {
   defaultTextSettings,
   loadTextDefaults,
@@ -6,13 +6,19 @@ import {
   clearTextDefaults,
   hasTextDefaults,
   TEXT_DEFAULTS_EVENT,
+  type TextDefaults,
 } from '../lib/textDefaults'
+import type { SelectionAreaBounds } from '../lib/canvasManager/interaction/SelectionManager'
+import type { CanvasManagerRef, SelectedTextRef } from './types'
 
 const FORM_SOURCE = 'new-text-form'
 const AUTOSAVE_DELAY_MS = 400
 
-export function useNewTextSettings(canvasManager) {
-  const newTextStyle = ref({
+/** Schnellposition ('top-left', 'center', …) */
+type QuickPositionMap = Record<string, { x: number; y: number }>
+
+export function useNewTextSettings(canvasManager: CanvasManagerRef) {
+  const newTextStyle = ref<TextDefaults['style']>({
     fontSize: 48,
     fontFamily: 'Arial',
     color: '#ff0000',
@@ -27,10 +33,15 @@ export function useNewTextSettings(canvasManager) {
     autoFitPadding: 10,
   })
 
-  const newTextShadow = ref({ color: '#000000', blur: 0, offsetX: 0, offsetY: 0 })
-  const newTextStroke = ref({ enabled: false, color: '#000000', width: 2 })
+  const newTextShadow = ref<TextDefaults['shadow']>({
+    color: '#000000',
+    blur: 0,
+    offsetX: 0,
+    offsetY: 0,
+  })
+  const newTextStroke = ref<TextDefaults['stroke']>({ enabled: false, color: '#000000', width: 2 })
 
-  const newTextTypewriter = ref({
+  const newTextTypewriter = ref<TextDefaults['typewriter']>({
     enabled: false,
     speed: 50,
     startDelay: 0,
@@ -42,7 +53,7 @@ export function useNewTextSettings(canvasManager) {
     cursorChar: '|',
   })
 
-  const newTextFade = ref({
+  const newTextFade = ref<TextDefaults['fade']>({
     enabled: false,
     duration: 1000,
     startDelay: 0,
@@ -54,7 +65,7 @@ export function useNewTextSettings(canvasManager) {
     easing: 'ease',
   })
 
-  const newTextScale = ref({
+  const newTextScale = ref<TextDefaults['scale']>({
     enabled: false,
     duration: 1000,
     startDelay: 0,
@@ -68,7 +79,7 @@ export function useNewTextSettings(canvasManager) {
     easing: 'ease',
   })
 
-  const newTextSlide = ref({
+  const newTextSlide = ref<TextDefaults['slide']>({
     enabled: false,
     duration: 1000,
     startDelay: 0,
@@ -90,11 +101,11 @@ export function useNewTextSettings(canvasManager) {
   })
 
   // Zuletzt geladener/gespeicherter Formularstand (für das automatische Speichern)
-  let lastSynced = null
-  let autosaveTimer = null
+  let lastSynced: string | null = null
+  let autosaveTimer: ReturnType<typeof setTimeout> | null = null
 
   const isSelectingOnCanvas = ref(false)
-  const textSelectionBounds = ref(null)
+  const textSelectionBounds = ref<SelectionAreaBounds | null>(null)
   const canvasWidth = ref(1920)
   const canvasHeight = ref(1080)
 
@@ -277,7 +288,7 @@ export function useNewTextSettings(canvasManager) {
     autosaveTimer = null
     const snap = formSnapshot()
     if (snap === lastSynced) return // nur echte Änderungen speichern
-    const stored = loadTextDefaults() || {}
+    const stored: Partial<TextDefaults> = loadTextDefaults() || {}
     const ok = saveTextDefaults(
       {
         ...stored,
@@ -303,9 +314,9 @@ export function useNewTextSettings(canvasManager) {
 
   // Vorlage von außen geändert („Als Standard speichern“/„Zurücksetzen“ beim
   // markierten Text) → Formular übernimmt sie, statt sie zu überschreiben
-  function onDefaultsChanged(event) {
-    if (event?.detail?.source === FORM_SOURCE) return
-    clearTimeout(autosaveTimer)
+  function onDefaultsChanged(event: Event) {
+    if ((event as CustomEvent<{ source?: string }> | null)?.detail?.source === FORM_SOURCE) return
+    clearTimeout(autosaveTimer ?? undefined)
     autosaveTimer = null
     if (!loadSavedSettings()) {
       resetNewTextSettings()
@@ -328,7 +339,13 @@ export function useNewTextSettings(canvasManager) {
     }
   }
 
-  function calculateAutoFitFontSize(text, fontFamily, fontWeight, fontStyle, paddingPercent = 10) {
+  function calculateAutoFitFontSize(
+    text: string,
+    fontFamily: string,
+    fontWeight: string,
+    fontStyle: string,
+    paddingPercent = 10,
+  ) {
     if (!canvasManager.value || !text) return 48
 
     const canvas = canvasManager.value.canvas
@@ -342,7 +359,7 @@ export function useNewTextSettings(canvasManager) {
     const availableHeight = cHeight * (1 - padding * 2)
 
     const tempCanvas = document.createElement('canvas')
-    const ctx = tempCanvas.getContext('2d')
+    const ctx = tempCanvas.getContext('2d') as CanvasRenderingContext2D
 
     const lines = text.split('\n')
     const lineCount = lines.length
@@ -374,7 +391,7 @@ export function useNewTextSettings(canvasManager) {
     return Math.max(fontSize, minFontSize)
   }
 
-  function normalizeLineBreaks(text) {
+  function normalizeLineBreaks(text: string): string {
     if (!text) return text
     const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
     return normalized
@@ -401,7 +418,7 @@ export function useNewTextSettings(canvasManager) {
     isSelectingOnCanvas.value = false
   }
 
-  function updatePositionFromPixel(axis) {
+  function updatePositionFromPixel(axis: string) {
     if (axis === 'x') {
       newTextPosition.value.x = newTextPosition.value.xPixel / canvasWidth.value
     } else {
@@ -410,8 +427,8 @@ export function useNewTextSettings(canvasManager) {
     updatePositionPreview()
   }
 
-  function setQuickPosition(position) {
-    const positions = {
+  function setQuickPosition(position: string) {
+    const positions: QuickPositionMap = {
       'top-left': { x: 0.1, y: 0.1 },
       'top-center': { x: 0.5, y: 0.1 },
       'top-right': { x: 0.9, y: 0.1 },
@@ -481,16 +498,16 @@ export function useNewTextSettings(canvasManager) {
   }
 
   function updateSelectedTextPixelPosition(
-    axis,
-    event,
-    selectedText,
-    canvasW,
-    canvasH,
-    updateText,
+    axis: string,
+    event: Event,
+    selectedText: SelectedTextRef,
+    canvasW: Ref<number>,
+    canvasH: Ref<number>,
+    updateText: () => void,
   ) {
     if (!selectedText.value) return
 
-    const value = parseFloat(event.target.value)
+    const value = parseFloat((event.target as HTMLInputElement).value)
     if (isNaN(value)) return
 
     if (axis === 'x') {
@@ -501,10 +518,14 @@ export function useNewTextSettings(canvasManager) {
     updateText()
   }
 
-  function setSelectedTextQuickPosition(position, selectedText, updateText) {
+  function setSelectedTextQuickPosition(
+    position: string,
+    selectedText: SelectedTextRef,
+    updateText: () => void,
+  ) {
     if (!selectedText.value) return
 
-    const positions = {
+    const positions: QuickPositionMap = {
       'top-left': { x: 0.1, y: 0.1 },
       'top-center': { x: 0.5, y: 0.1 },
       'top-right': { x: 0.9, y: 0.1 },

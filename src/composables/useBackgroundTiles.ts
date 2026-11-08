@@ -1,6 +1,15 @@
 import { computed, inject, reactive, ref, watch } from 'vue'
-import { useBackgroundTilesStore } from '../stores/backgroundTilesStore'
+import {
+  useBackgroundTilesStore,
+  type BackgroundTile,
+  type TileImageSettings,
+  type TileVideoSettings,
+} from '../stores/backgroundTilesStore'
 import { historyApplyRevision } from '../lib/history/historyRecorder'
+import type { CanvasManagerRef } from './types'
+
+/** Wert aus einem Eingabefeld (Text oder bereits als Zahl) */
+type InputNumber = string | number
 
 /**
  * Kapselt den Zugriff auf den Background-Tiles-Store sowie alle
@@ -12,7 +21,7 @@ import { historyApplyRevision } from '../lib/history/historyRecorder'
  */
 export function useBackgroundTiles() {
   const tilesStore = useBackgroundTilesStore()
-  const canvasManager = inject('canvasManager')
+  const canvasManager = inject('canvasManager') as CanvasManagerRef | undefined
 
   // Canvas neu zeichnen (falls verfügbar)
   function redraw() {
@@ -33,8 +42,8 @@ export function useBackgroundTiles() {
   })
 
   // Style für einzelne Kachel in der Vorschau
-  function getTileStyle(tile) {
-    const style = {
+  function getTileStyle(tile: BackgroundTile) {
+    const style: Record<string, string | number> = {
       backgroundColor: tile.backgroundColor,
       opacity: tile.backgroundOpacity,
     }
@@ -49,26 +58,25 @@ export function useBackgroundTiles() {
   }
 
   // Kachel-Modus aktivieren/deaktivieren
-  /** @param {boolean} enabled */
-  function setTilesEnabled(enabled) {
+  function setTilesEnabled(enabled: boolean) {
     tilesStore.setTilesEnabled(enabled)
     redraw()
   }
 
   // Kachelanzahl ändern
-  function setTileCount(count) {
+  function setTileCount(count: number) {
     tilesStore.setTileCount(count)
     redraw()
   }
 
   // Lücke zwischen Kacheln setzen
-  function setTileGap(value) {
-    tilesStore.setTileGap(parseInt(value))
+  function setTileGap(value: InputNumber) {
+    tilesStore.setTileGap(parseInt(String(value)))
     redraw()
   }
 
   // Kachel auswählen
-  function selectTile(index) {
+  function selectTile(index: number) {
     tilesStore.selectTile(index)
     redraw()
   }
@@ -80,7 +88,7 @@ export function useBackgroundTiles() {
   }
 
   // Kachel-Farbe setzen
-  function setTileColor(color) {
+  function setTileColor(color: string) {
     if (tilesStore.selectedTileIndex !== null) {
       tilesStore.setTileBackgroundColor(tilesStore.selectedTileIndex, color)
       redraw()
@@ -88,39 +96,41 @@ export function useBackgroundTiles() {
   }
 
   // Kachel-Deckkraft setzen
-  function setTileOpacity(value) {
+  function setTileOpacity(value: InputNumber) {
     if (tilesStore.selectedTileIndex !== null) {
-      tilesStore.setTileBackgroundOpacity(tilesStore.selectedTileIndex, parseFloat(value))
+      tilesStore.setTileBackgroundOpacity(tilesStore.selectedTileIndex, parseFloat(String(value)))
       redraw()
     }
   }
 
   // Bild hochladen
-  function handleImageUpload(event) {
-    const file = event.target.files[0]
+  function handleImageUpload(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
     reader.onload = (e) => {
+      const result = (e.target as FileReader).result as string
       const img = new Image()
       img.onload = () => {
         if (tilesStore.selectedTileIndex !== null) {
-          tilesStore.setTileImage(tilesStore.selectedTileIndex, img, e.target.result)
+          tilesStore.setTileImage(tilesStore.selectedTileIndex, img, result)
           redraw()
         }
       }
-      img.src = e.target.result
+      img.src = result
     }
     reader.readAsDataURL(file)
 
     // Input zurücksetzen für erneutes Hochladen
-    event.target.value = ''
+    input.value = ''
   }
 
   // Bild-Einstellung aktualisieren
-  function updateImageSetting(setting, value) {
+  function updateImageSetting(setting: keyof TileImageSettings, value: InputNumber) {
     if (tilesStore.selectedTileIndex !== null) {
-      const numValue = setting === 'scale' ? parseFloat(value) : parseInt(value)
+      const numValue = setting === 'scale' ? parseFloat(String(value)) : parseInt(String(value))
       tilesStore.updateTileImageSetting(tilesStore.selectedTileIndex, setting, numValue)
       redraw()
     }
@@ -139,8 +149,9 @@ export function useBackgroundTiles() {
   // ═══════════════════════════════════════════════════════════════
 
   // Video hochladen
-  function handleVideoUpload(event) {
-    const file = event.target.files[0]
+  function handleVideoUpload(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
     if (!file) return
 
     // Video-Element erstellen
@@ -169,11 +180,14 @@ export function useBackgroundTiles() {
     video.load()
 
     // Input zurücksetzen für erneutes Hochladen
-    event.target.value = ''
+    input.value = ''
   }
 
   // Video-Einstellung aktualisieren
-  function updateVideoSetting(setting, value) {
+  function updateVideoSetting<K extends keyof TileVideoSettings>(
+    setting: K,
+    value: TileVideoSettings[K],
+  ) {
     if (tilesStore.selectedTileIndex !== null) {
       tilesStore.updateTileVideoSetting(tilesStore.selectedTileIndex, setting, value)
       redraw()
@@ -203,62 +217,62 @@ export function useBackgroundTiles() {
   }
 
   // ✨ Audio-Reaktiv Funktionen
-  function toggleAudioReactive(enabled) {
+  function toggleAudioReactive(enabled: boolean) {
     if (tilesStore.selectedTileIndex !== null) {
       tilesStore.setTileAudioReactiveEnabled(tilesStore.selectedTileIndex, enabled)
       redraw()
     }
   }
 
-  function setAudioSource(source) {
+  function setAudioSource(source: string) {
     if (tilesStore.selectedTileIndex !== null) {
       tilesStore.setTileAudioSource(tilesStore.selectedTileIndex, source)
       redraw()
     }
   }
 
-  function setAudioSmoothing(value) {
+  function setAudioSmoothing(value: InputNumber) {
     if (tilesStore.selectedTileIndex !== null) {
-      tilesStore.setTileAudioSmoothing(tilesStore.selectedTileIndex, parseInt(value))
+      tilesStore.setTileAudioSmoothing(tilesStore.selectedTileIndex, parseInt(String(value)))
       redraw()
     }
   }
 
-  function toggleEffect(effectName, enabled) {
+  function toggleEffect(effectName: string, enabled: boolean) {
     if (tilesStore.selectedTileIndex !== null) {
       tilesStore.setTileAudioEffect(tilesStore.selectedTileIndex, effectName, enabled)
       redraw()
     }
   }
 
-  function setEffectIntensity(effectName, value) {
+  function setEffectIntensity(effectName: string, value: InputNumber) {
     if (tilesStore.selectedTileIndex !== null) {
       tilesStore.setTileAudioEffectIntensity(
         tilesStore.selectedTileIndex,
         effectName,
-        parseInt(value),
+        parseInt(String(value)),
       )
       redraw()
     }
   }
 
   // ── Erweiterte Audio-Reaktiv-Steuerung (Parität mit Bild-Panel) ──────────
-  /** @param {'easing'|'beatBoost'|'phase'|'gain'|'source'|'smoothing'} property */
-  function setAudioProperty(property, value) {
+  /** @param property - 'easing'|'beatBoost'|'phase'|'gain'|'source'|'smoothing' */
+  function setAudioProperty(property: string, value: unknown) {
     if (tilesStore.selectedTileIndex === null) return
     tilesStore.setTileAudioProperty(tilesStore.selectedTileIndex, property, value)
     redraw()
   }
 
-  function setEffectSource(effectName, source) {
+  function setEffectSource(effectName: string, source: string | null | undefined) {
     if (tilesStore.selectedTileIndex === null) return
     tilesStore.setTileAudioEffectSource(tilesStore.selectedTileIndex, effectName, source)
     redraw()
   }
 
   // Aktives Preset und Backup der Nutzer-Effekte pro Kachel-Index
-  const activeTileAudioPresets = reactive({})
-  const tileUserEffectsBackups = new Map()
+  const activeTileAudioPresets = reactive<Record<number, string | null>>({})
+  const tileUserEffectsBackups = new Map<number, object>()
   // Zähler für externe Änderungen (Preset/Anwenden), damit das Panel neu einliest
   const tileAudioRevision = ref(0)
   // Undo/Redo gilt als externe Änderung → Panel neu einlesen
@@ -267,7 +281,7 @@ export function useBackgroundTiles() {
   const savedTileAudioSettings = ref(loadSavedTileAudioSettings())
   const hasSavedTileAudioSettings = computed(() => savedTileAudioSettings.value !== null)
 
-  function loadSavedTileAudioSettings() {
+  function loadSavedTileAudioSettings(): object | null {
     try {
       const raw =
         typeof localStorage !== 'undefined' && localStorage.getItem(TILE_AUDIO_STORAGE_KEY)
@@ -282,7 +296,7 @@ export function useBackgroundTiles() {
     return i === null ? null : (activeTileAudioPresets[i] ?? null)
   })
 
-  function toggleTileAudioPreset(presetName) {
+  function toggleTileAudioPreset(presetName: string) {
     const i = tilesStore.selectedTileIndex
     if (i === null) return
     if (activeTileAudioPresets[i] === presetName) {
@@ -290,7 +304,10 @@ export function useBackgroundTiles() {
       return
     }
     if (!activeTileAudioPresets[i]) {
-      tileUserEffectsBackups.set(i, JSON.parse(JSON.stringify(tilesStore.tiles[i].audioReactive)))
+      tileUserEffectsBackups.set(
+        i,
+        JSON.parse(JSON.stringify((tilesStore.tiles[i] as BackgroundTile).audioReactive)),
+      )
     }
     if (!tilesStore.applyTileAudioPreset(i, presetName)) return
     activeTileAudioPresets[i] = presetName

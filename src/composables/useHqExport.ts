@@ -7,7 +7,7 @@ import {
   cancelFrameExport,
 } from '../lib/frameExportApi'
 import { waitForJob, getFileUrl, cleanupFile } from '../lib/videoApi'
-import { useFrameCapture } from './useFrameCapture.js'
+import { useFrameCapture } from './useFrameCapture'
 
 /** Restliche Frames nach dem Stopp (Event 'hq:captureRemaining') */
 export interface HqCaptureRemaining {

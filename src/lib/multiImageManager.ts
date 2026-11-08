@@ -65,6 +65,8 @@ export interface ImageAnimation extends EntranceAnimationState {
 /** Slideshow-Zustand eines Bildes (vom SlideshowManager gesetzt) */
 export interface ImageSlideshowState {
   active?: boolean
+  /** Index in der Slideshow (vom SlideshowManager gesetzt) */
+  imageIndex?: number
   opacity?: number
   transitionState?: Partial<TransitionState> | null
   clipRect?: RelBounds | null

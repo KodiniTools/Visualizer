@@ -4,8 +4,30 @@
  */
 import { ref, computed, toRaw } from 'vue'
 
+/** Kategorie der Stock-Galerie (gallery.json) */
+export interface StockCategory {
+  id: string
+  name: string
+  name_en?: string
+  icon?: string
+  description?: string
+  /** Bildliste der Kategorie (Struktur v2.0) */
+  jsonFile?: string
+}
+
+/** Bild der Stock-Galerie */
+export interface StockImage {
+  id: string
+  name: string
+  file: string
+  thumbnail?: string
+}
+
+/** Zusatztasten für die Mehrfachauswahl */
+export type SelectModifiers = Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'>
+
 // Fallback-Kategorien falls JSON nicht lädt
-const FALLBACK_CATEGORIES = [
+const FALLBACK_CATEGORIES: StockCategory[] = [
   {
     id: 'backgrounds',
     name: 'Hintergründe',
@@ -39,25 +61,25 @@ const FALLBACK_CATEGORIES = [
 // ── Geteilter State (Singleton) ────────────────────────────────────────────────
 // Liegt auf Modulebene, damit Galerie-Popover und Foto-Panel (Slideshow)
 // dieselbe Stock-Auswahl sehen.
-const stockCategories = ref([])
-const stockImages = ref([])
+const stockCategories = ref<StockCategory[]>([])
+const stockImages = ref<StockImage[]>([])
 const selectedStockCategory = ref('backgrounds')
-const loadedCategoryData = ref(new Map())
-const selectedStockImage = ref(null)
-const selectedStockImages = ref(new Set())
-const lastSelectedStockId = ref(null)
+const loadedCategoryData = ref(new Map<string, StockImage[]>())
+const selectedStockImage = ref<StockImage | null>(null)
+const selectedStockImages = ref(new Set<string>())
+const lastSelectedStockId = ref<string | null>(null)
 const stockImagesLoading = ref(true)
 const categoryLoading = ref(false)
-const loadedStockImages = ref(new Map())
+const loadedStockImages = ref(new Map<string, HTMLImageElement>())
 
 // Alle bisher geladenen Stock-Bilder (id → Eintrag), kategorieübergreifend –
 // damit ausgewählte Bilder auch nach einem Kategoriewechsel auffindbar bleiben
-const stockImageIndex = new Map()
+const stockImageIndex = new Map<string, StockImage>()
 // Laufende Ladevorgänge (id → Promise<HTMLImageElement>)
-const pendingStockLoads = new Map()
+const pendingStockLoads = new Map<string, Promise<HTMLImageElement>>()
 
-function setStockImages(list) {
-  stockImages.value = list
+function setStockImages(list: StockImage[] | null | undefined) {
+  stockImages.value = list as StockImage[]
   for (const img of list || []) {
     if (img?.id) stockImageIndex.set(img.id, img)
   }
@@ -77,16 +99,16 @@ export function useStockGallery() {
   const selectedStockImagesAll = computed(() =>
     Array.from(selectedStockImages.value)
       .map((id) => stockImageIndex.get(id))
-      .filter(Boolean),
+      .filter((img): img is StockImage => Boolean(img)),
   )
 
   /** Bereits geladenes Image-Objekt eines Stock-Bildes (nicht reaktiv) oder null. */
-  function getLoadedStockImage(id) {
+  function getLoadedStockImage(id: string): HTMLImageElement | null {
     return toRaw(loadedStockImages.value).get(id) ?? null
   }
 
   // Prüfen ob ein Stock-Bild ausgewählt ist
-  const isStockImageSelected = (imgId) => {
+  const isStockImageSelected = (imgId: string) => {
     return selectedStockImages.value.has(imgId)
   }
 
@@ -95,15 +117,15 @@ export function useStockGallery() {
     stockImagesLoading.value = true
     try {
       const paths = ['gallery/gallery.json', './gallery/gallery.json']
-      let response = null
-      let lastError = null
+      let response: Response | null = null
+      let lastError: Error | null = null
 
       for (const path of paths) {
         try {
           response = await fetch(path)
           if (response.ok) break
         } catch (e) {
-          lastError = e
+          lastError = e as Error
         }
       }
 
@@ -117,7 +139,7 @@ export function useStockGallery() {
         stockCategories.value = data.categories || FALLBACK_CATEGORIES
 
         if (stockCategories.value.length > 0) {
-          const firstCategory = stockCategories.value[0].id
+          const firstCategory = (stockCategories.value[0] as StockCategory).id
           selectedStockCategory.value = firstCategory
           await loadCategoryImages(firstCategory)
         }
@@ -128,7 +150,7 @@ export function useStockGallery() {
         setStockImages(data.images || [])
 
         if (stockCategories.value.length > 0) {
-          selectedStockCategory.value = stockCategories.value[0].id
+          selectedStockCategory.value = (stockCategories.value[0] as StockCategory).id
         }
 
         console.log('✅ Stock-Galerie geladen (v1.0):', stockImages.value.length, 'Bilder')
@@ -143,7 +165,7 @@ export function useStockGallery() {
   }
 
   // Lädt die Bilder einer Kategorie (aus category.json)
-  async function loadCategoryImages(categoryId) {
+  async function loadCategoryImages(categoryId: string) {
     if (loadedCategoryData.value.has(categoryId)) {
       setStockImages(loadedCategoryData.value.get(categoryId))
       console.log(
@@ -184,7 +206,7 @@ export function useStockGallery() {
   }
 
   // Kategorie auswählen und laden
-  async function selectStockCategory(categoryId) {
+  async function selectStockCategory(categoryId: string) {
     selectedStockCategory.value = categoryId
     selectedStockImage.value = null
     selectedStockImages.value = new Set()
@@ -195,7 +217,7 @@ export function useStockGallery() {
   }
 
   // Stock-Bild auswählen (mit Mehrfachauswahl-Unterstützung)
-  function selectStockImage(img, event = null) {
+  function selectStockImage(img: StockImage, event: SelectModifiers | null = null) {
     const shiftKey = event?.shiftKey || false
     const ctrlKey = event?.ctrlKey || event?.metaKey || false
 
@@ -213,7 +235,7 @@ export function useStockGallery() {
         }
 
         for (let i = start; i <= end; i++) {
-          selectedStockImages.value.add(currentImages[i].id)
+          selectedStockImages.value.add((currentImages[i] as StockImage).id)
         }
         selectedStockImages.value = new Set(selectedStockImages.value)
         console.log(`📌 ${end - start + 1} Stock-Bilder ausgewählt (Range)`)
@@ -241,8 +263,8 @@ export function useStockGallery() {
     const allIds = stockImages.value.map((img) => img.id)
     selectedStockImages.value = new Set(allIds)
     if (stockImages.value.length > 0) {
-      selectedStockImage.value = stockImages.value[0]
-      lastSelectedStockId.value = stockImages.value[0].id
+      selectedStockImage.value = stockImages.value[0] as StockImage
+      lastSelectedStockId.value = (stockImages.value[0] as StockImage).id
     }
     console.log(`📌 Alle ${allIds.length} Stock-Bilder ausgewählt`)
   }
@@ -256,15 +278,16 @@ export function useStockGallery() {
   }
 
   // Stock-Bild als Image-Objekt laden (mit Caching)
-  async function loadStockImageObject(stockImg) {
+  async function loadStockImageObject(stockImg: StockImage): Promise<HTMLImageElement> {
     if (loadedStockImages.value.has(stockImg.id)) {
-      return toRaw(loadedStockImages.value).get(stockImg.id)
+      return toRaw(loadedStockImages.value).get(stockImg.id) as HTMLImageElement
     }
     // Laufenden Ladevorgang wiederverwenden – sonst entstünden zwei
     // Image-Objekte für dasselbe Stock-Bild
-    if (pendingStockLoads.has(stockImg.id)) return pendingStockLoads.get(stockImg.id)
+    if (pendingStockLoads.has(stockImg.id))
+      return pendingStockLoads.get(stockImg.id) as Promise<HTMLImageElement>
 
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
         loadedStockImages.value.set(stockImg.id, img)

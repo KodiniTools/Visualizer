@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glWarp
  */
 
-import { cosmicNebula } from '../../particle/cosmicNebula.js'
+import { cosmicNebula } from '../../particle/cosmicNebula'
 
 const frag = /* glsl */ `
 uniform float uDensity;

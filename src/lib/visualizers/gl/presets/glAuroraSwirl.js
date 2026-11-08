@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glAuroraSwirl
  */
 
-import { spiralGalaxy } from '../../organic/spiralGalaxy.js'
+import { spiralGalaxy } from '../../organic/spiralGalaxy'
 import { AURORA_GLSL } from '../aurora.js'
 
 const frag = /* glsl */ `

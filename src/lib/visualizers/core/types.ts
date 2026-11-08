@@ -27,7 +27,7 @@ export interface VisualizerDefinition {
   name_de: string
   name_en: string
   draw: VisualizerDrawFn
-  init?(width?: number, height?: number): void
+  init?(width: number, height: number): void
   cleanup?(): void
   /** draw() erhält Zeit- statt Frequenzdaten */
   needsTimeData?: boolean

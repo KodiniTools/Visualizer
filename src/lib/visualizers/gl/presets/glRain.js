@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glRain
  */
 
-import { matrixRain } from '../../tech/matrixRain.js'
+import { matrixRain } from '../../tech/matrixRain'
 
 const frag = /* glsl */ `
 uniform float uColumns;

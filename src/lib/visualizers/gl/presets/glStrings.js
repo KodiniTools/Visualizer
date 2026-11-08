@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glStrings
  */
 
-import { vibratingStrings } from '../../spectrum/vibratingStrings.js'
+import { vibratingStrings } from '../../spectrum/vibratingStrings'
 
 const frag = /* glsl */ `
 uniform float uStrings;   // number of strings (max 12)

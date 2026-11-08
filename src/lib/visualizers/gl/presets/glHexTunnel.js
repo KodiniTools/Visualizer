@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glHexTunnel
  */
 
-import { hexagonGrid } from '../../geometric/hexagonGrid.js'
+import { hexagonGrid } from '../../geometric/hexagonGrid'
 
 const frag = /* glsl */ `
 uniform float uColumns;   // hex cells around the tunnel (even number keeps the seam clean)

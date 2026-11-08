@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLaserStar
  */
 
-import { neonGrid } from '../../geometric/neonGrid.js'
+import { neonGrid } from '../../geometric/neonGrid'
 import { CURVE_GLSL } from '../laserFigures.js'
 
 const frag = /* glsl */ `

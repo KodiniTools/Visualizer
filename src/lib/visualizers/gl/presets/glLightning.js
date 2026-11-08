@@ -8,7 +8,7 @@
  * @module visualizers/gl/presets/glLightning
  */
 
-import { electricWeb } from '../../tech/electricWeb.js'
+import { electricWeb } from '../../tech/electricWeb'
 
 const MAX_BOLTS = 4
 

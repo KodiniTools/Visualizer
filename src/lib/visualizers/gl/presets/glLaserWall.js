@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glLaserWall
  */
 
-import { waveformHorizon } from '../../spectrum/waveformHorizon.js'
+import { waveformHorizon } from '../../spectrum/waveformHorizon'
 
 const frag = /* glsl */ `
 uniform float uSheets;

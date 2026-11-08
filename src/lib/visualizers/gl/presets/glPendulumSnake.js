@@ -11,7 +11,7 @@
  * @module visualizers/gl/presets/glPendulumSnake
  */
 
-import { soundWaves } from '../../spectrum/soundWaves.js'
+import { soundWaves } from '../../spectrum/soundWaves'
 import { createPendulumClock } from './glPendulumWave.js'
 
 const frag = /* glsl */ `

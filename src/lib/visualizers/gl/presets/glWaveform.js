@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glWaveform
  */
 
-import { waveform } from '../../spectrum/waveform.js'
+import { waveform } from '../../spectrum/waveform'
 
 const frag = /* glsl */ `
 uniform float uAmplitude;

@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLaserRose
  */
 
-import { bloomingMandala } from '../../organic/bloomingMandala.js'
+import { bloomingMandala } from '../../organic/bloomingMandala'
 import { CURVE_GLSL } from '../laserFigures.js'
 
 const frag = /* glsl */ `

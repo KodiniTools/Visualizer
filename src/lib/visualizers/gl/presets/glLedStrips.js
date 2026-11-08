@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLedStrips
  */
 
-import { mirroredBars } from '../../spectrum/mirroredBars.js'
+import { mirroredBars } from '../../spectrum/mirroredBars'
 
 const frag = /* glsl */ `
 uniform float uStrips;

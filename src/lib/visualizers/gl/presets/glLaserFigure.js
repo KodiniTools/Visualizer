@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glLaserFigure
  */
 
-import { retroOscilloscope } from '../../retro/retroOscilloscope.js'
+import { retroOscilloscope } from '../../retro/retroOscilloscope'
 
 const frag = /* glsl */ `
 uniform float uSegments;

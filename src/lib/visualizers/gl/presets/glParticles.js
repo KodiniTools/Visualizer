@@ -9,7 +9,7 @@
  * @module visualizers/gl/presets/glParticles
  */
 
-import { particleStorm } from '../../particle/particleStorm.js'
+import { particleStorm } from '../../particle/particleStorm'
 
 const frag = /* glsl */ `
 uniform float uLayers;   // depth layers (max 4)

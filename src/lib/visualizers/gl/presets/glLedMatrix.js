@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLedMatrix
  */
 
-import { pixelSpectrum } from '../../retro/pixelSpectrum.js'
+import { pixelSpectrum } from '../../retro/pixelSpectrum'
 
 const frag = /* glsl */ `
 uniform float uCols;

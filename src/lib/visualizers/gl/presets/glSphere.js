@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glSphere
  */
 
-import { rainbowCube } from '../../geometric/rainbowCube.js'
+import { rainbowCube } from '../../geometric/rainbowCube'
 
 const frag = /* glsl */ `
 uniform float uRadius;

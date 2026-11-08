@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLaserSpirograph
  */
 
-import { geometricKaleidoscope } from '../../geometric/geometricKaleidoscope.js'
+import { geometricKaleidoscope } from '../../geometric/geometricKaleidoscope'
 import { CURVE_GLSL } from '../laserFigures.js'
 
 const frag = /* glsl */ `

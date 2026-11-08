@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glRings
  */
 
-import { rippleEffect } from '../../particle/rippleEffect.js'
+import { rippleEffect } from '../../particle/rippleEffect'
 
 const frag = /* glsl */ `
 uniform float uRingCount;

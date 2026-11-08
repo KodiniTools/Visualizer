@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glAuroraCorona
  */
 
-import { lightBeams } from '../../effects/lightBeams.js'
+import { lightBeams } from '../../effects/lightBeams'
 import { AURORA_GLSL } from '../aurora.js'
 
 const frag = /* glsl */ `

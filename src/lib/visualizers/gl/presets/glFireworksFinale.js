@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glFireworksFinale
  */
 
-import { pixelFireworks } from '../../particle/pixelFireworks.js'
+import { pixelFireworks } from '../../particle/pixelFireworks'
 import { createShellTracker, FIREWORKS_GLSL } from '../fireworks.js'
 
 const frag = /* glsl */ `

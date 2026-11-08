@@ -24,13 +24,13 @@ export {
 } from './core/index'
 
 // Import all visualizer categories
-import { spectrumVisualizers } from './spectrum/index.js'
-import { geometricVisualizers } from './geometric/index.js'
-import { organicVisualizers } from './organic/index.js'
-import { particleVisualizers } from './particle/index.js'
-import { techVisualizers } from './tech/index.js'
-import { retroVisualizers } from './retro/index.js'
-import { effectsVisualizers } from './effects/index.js'
+import { spectrumVisualizers } from './spectrum/index'
+import { geometricVisualizers } from './geometric/index'
+import { organicVisualizers } from './organic/index'
+import { particleVisualizers } from './particle/index'
+import { techVisualizers } from './tech/index'
+import { retroVisualizers } from './retro/index'
+import { effectsVisualizers } from './effects/index'
 import { glVisualizers } from './gl/index.js'
 import type { VisualizerRegistry } from './core/types'
 

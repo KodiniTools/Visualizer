@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glFractal
  */
 
-import { geometricKaleidoscope } from '../../geometric/geometricKaleidoscope.js'
+import { geometricKaleidoscope } from '../../geometric/geometricKaleidoscope'
 
 const frag = /* glsl */ `
 uniform float uIterations;

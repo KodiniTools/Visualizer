@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLedCluster
  */
 
-import { orbitingLight } from '../../effects/orbitingLight.js'
+import { orbitingLight } from '../../effects/orbitingLight'
 
 const frag = /* glsl */ `
 uniform float uLensSize;

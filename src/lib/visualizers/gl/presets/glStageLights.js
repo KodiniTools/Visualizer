@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glStageLights
  */
 
-import { lightBeams } from '../../effects/lightBeams.js'
+import { lightBeams } from '../../effects/lightBeams'
 
 const frag = /* glsl */ `
 uniform float uLamps;

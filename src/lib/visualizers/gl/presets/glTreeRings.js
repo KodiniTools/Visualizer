@@ -7,7 +7,7 @@
  * @module visualizers/gl/presets/glTreeRings
  */
 
-import { circles } from '../../geometric/circles.js'
+import { circles } from '../../geometric/circles'
 
 const frag = /* glsl */ `
 uniform float uRings;   // visible ring boundaries across the radius

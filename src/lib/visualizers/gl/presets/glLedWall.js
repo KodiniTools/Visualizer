@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glLedWall
  */
 
-import { arcadeBlocks } from '../../retro/arcadeBlocks.js'
+import { arcadeBlocks } from '../../retro/arcadeBlocks'
 
 const frag = /* glsl */ `
 uniform float uLensSize;   // lens radius as a fraction of the cell

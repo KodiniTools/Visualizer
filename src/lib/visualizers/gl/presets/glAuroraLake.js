@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glAuroraLake
  */
 
-import { fluidWaves } from '../../organic/fluidWaves.js'
+import { fluidWaves } from '../../organic/fluidWaves'
 import { AURORA_GLSL } from '../aurora.js'
 
 const frag = /* glsl */ `

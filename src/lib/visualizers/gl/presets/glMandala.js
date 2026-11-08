@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glMandala
  */
 
-import { bloomingMandala } from '../../organic/bloomingMandala.js'
+import { bloomingMandala } from '../../organic/bloomingMandala'
 
 const frag = /* glsl */ `
 uniform float uSegments;  // kaleidoscope symmetry

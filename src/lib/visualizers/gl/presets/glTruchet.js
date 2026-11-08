@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glTruchet
  */
 
-import { neonGrid } from '../../geometric/neonGrid.js'
+import { neonGrid } from '../../geometric/neonGrid'
 
 const frag = /* glsl */ `
 uniform float uTiles;

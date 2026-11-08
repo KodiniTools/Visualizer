@@ -12,7 +12,7 @@
  * @module visualizers/gl/presets/glPendulumField
  */
 
-import { bars } from '../../spectrum/bars.js'
+import { bars } from '../../spectrum/bars'
 import { createPendulumClock } from './glPendulumWave.js'
 
 const frag = /* glsl */ `

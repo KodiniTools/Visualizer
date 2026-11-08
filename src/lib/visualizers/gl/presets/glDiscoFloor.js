@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glDiscoFloor
  */
 
-import { arcadeBlocks } from '../../retro/arcadeBlocks.js'
+import { arcadeBlocks } from '../../retro/arcadeBlocks'
 
 const frag = /* glsl */ `
 uniform float uTiles;

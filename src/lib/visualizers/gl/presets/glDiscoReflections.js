@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glDiscoReflections
  */
 
-import { pixelFireworks } from '../../particle/pixelFireworks.js'
+import { pixelFireworks } from '../../particle/pixelFireworks'
 
 const frag = /* glsl */ `
 uniform float uDensity;

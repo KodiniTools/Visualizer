@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glGalaxy
  */
 
-import { spiralGalaxy } from '../../organic/spiralGalaxy.js'
+import { spiralGalaxy } from '../../organic/spiralGalaxy'
 
 const frag = /* glsl */ `
 uniform float uArms;

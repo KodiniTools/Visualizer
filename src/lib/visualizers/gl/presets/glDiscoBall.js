@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glDiscoBall
  */
 
-import { circles } from '../../geometric/circles.js'
+import { circles } from '../../geometric/circles'
 
 const frag = /* glsl */ `
 uniform float uFacets;

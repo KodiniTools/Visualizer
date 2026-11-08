@@ -33,9 +33,7 @@ export interface OnsetData {
  */
 export interface VisualizerStateMap {
   particles: Particle[]
-  ripples: unknown[]
   blossoms: unknown[]
-  shardTriangles: unknown[]
   // Smoothed values arrays
   smoothedBars: number[]
   smoothedMirroredBars: number[]
@@ -44,18 +42,11 @@ export interface VisualizerStateMap {
   smoothedCircles: number[]
   smoothedFluidWaves: number[]
   smoothedSpiralGalaxy: number[]
-  // Visualizer-specific state (Aufbau beim jeweiligen Visualizer)
-  matrixRain: unknown
-  networkPlexus: unknown
-  particleStorm: unknown
-  digitalRain: unknown
-  shardMosaic: unknown
+  // Visualizer-specific state: ripples, shardTriangles, matrixRain, networkPlexus,
+  // particleStorm, digitalRain, shardMosaic, cosmicNebula, liquidCrystals,
+  // electricWeb und orbitingLight werden im jeweiligen Visualizer-Modul typisiert.
   singleBlossom: unknown
   blossom: unknown
-  cosmicNebula: unknown
-  liquidCrystals: unknown
-  electricWeb: unknown
-  orbitingLight: unknown
 
   // Vom Render-Loop/Worker pro Frame gesetzt
   /** tatsächliche Zeit seit dem letzten Frame in ms */

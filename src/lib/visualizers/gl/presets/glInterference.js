@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glInterference
  */
 
-import { soundWaves } from '../../spectrum/soundWaves.js'
+import { soundWaves } from '../../spectrum/soundWaves'
 
 const frag = /* glsl */ `
 uniform float uSources;

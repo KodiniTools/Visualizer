@@ -130,7 +130,7 @@ function makeShortcuts(canvasOverrides = {}) {
     redrawCallback: rec('cm.redraw'),
     ...canvasOverrides,
   }
-  const multiImageManager = { addImage: rec('mim.addImage') }
+  const multiImageManager = { duplicateImage: rec('mim.duplicateImage') }
   const ks = new KeyboardShortcuts(stores, { canvasManager, multiImageManager })
   return { ks, calls, stores, canvasManager, multiImageManager }
 }
@@ -291,6 +291,32 @@ describe('KeyboardShortcuts – Aktionen', () => {
     ks.copiedObject = null
     ks.pasteObject()
     expect(calls).toMatchSnapshot()
+  })
+
+  it('Bild: Duplizieren und Einfügen geben das Bild-Element weiter (nicht per JSON verloren)', () => {
+    const el = { width: 200, height: 100, src: 'a.png' }
+    const image = {
+      type: 'image',
+      id: 5,
+      relX: 0.3,
+      relY: 0.4,
+      relWidth: 0.2,
+      relHeight: 0.1,
+      imageObject: el,
+    }
+    const { ks, canvasManager, multiImageManager } = makeShortcuts({ activeObject: image })
+    multiImageManager.duplicateImage = vi.fn()
+    ks.duplicateSelectedObject()
+    expect(multiImageManager.duplicateImage).toHaveBeenLastCalledWith(image, 0.05)
+    ks.copySelectedObject()
+    image.relX = 0.9 // Kopie ist unabhängig vom Original
+    canvasManager.activeObject = null
+    ks.pasteObject()
+    const [pasted, offset] = multiImageManager.duplicateImage.mock.calls.at(-1)
+    expect(offset).toBe(0.05)
+    expect(pasted).not.toBe(image)
+    expect(pasted.relX).toBe(0.3)
+    expect(pasted.imageObject).toBe(el)
   })
 
   it('Verschieben (5/20 px) – nicht für Hintergründe', () => {

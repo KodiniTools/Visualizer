@@ -442,6 +442,50 @@ export class MultiImageManager {
   }
 
   /**
+   * Dupliziert ein Canvas-Bild (Strg+D, Kopieren/Einfügen): Daten werden
+   * tief kopiert, das Bild-Element wird geteilt (es wird nur gezeichnet).
+   * addImage() erwartet dagegen ein HTMLImageElement und ist dafür ungeeignet.
+   *
+   * @param source - Bild-Objekt (auch eine JSON-Kopie mit übernommenem imageObject)
+   * @param offset - relativer Versatz der Kopie
+   * @returns das neue Bild oder null, wenn kein Bild-Element vorhanden ist
+   */
+  duplicateImage(
+    source: Partial<CanvasImage> | null | undefined,
+    offset = 0.05,
+  ): CanvasImage | null {
+    const imageObject = source?.imageObject
+    if (
+      !source ||
+      !imageObject ||
+      typeof imageObject.width !== 'number' ||
+      !Number.isFinite(source.relWidth) ||
+      !Number.isFinite(source.relHeight)
+    ) {
+      console.error('❌ Bild kann nicht dupliziert werden: kein Bild-Element')
+      return null
+    }
+    const { imageObject: _el, ...data } = source
+    const copy = JSON.parse(JSON.stringify(data)) as Omit<CanvasImage, 'imageObject'>
+    const newImage = {
+      ...copy,
+      id: Date.now() + Math.random(),
+      type: 'image',
+      imageObject,
+      relX: (source.relX ?? 0) + offset,
+      relY: (source.relY ?? 0) + offset,
+    } as CanvasImage
+    // Eintritts-Animation des Originals nicht fortsetzen
+    if (newImage.animation) newImage.animation.active = false
+
+    this.images.push(newImage)
+    this.setSelectedImage(newImage)
+    this.redrawCallback()
+    this.onImageChanged()
+    return newImage
+  }
+
+  /**
    * Entfernt ein Bild vom Canvas
    */
   removeImage(imageId: CanvasImage['id']): boolean {

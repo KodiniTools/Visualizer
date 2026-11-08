@@ -101,6 +101,15 @@ describe('AnimationEditSection', () => {
     expect(w.emitted('restart')).toHaveLength(1)
   })
 
+  it('restartable=false blendet „Neu starten“ aus', () => {
+    const w = mount(AnimationEditSection, {
+      props: { label: 'Fade:', effect: fadeEffect({ enabled: true }), restartable: false },
+      slots: { default: '<div class="slot-body" />' },
+    })
+    expect(w.findAll('button')).toHaveLength(1)
+    expect(w.find('.slot-body').exists()).toBe(true)
+  })
+
   it('ohne Effekt-Objekt (alter Text) bleibt die Sektion zu', () => {
     const w = mount(AnimationEditSection, {
       props: { label: 'Fade:', effect: null },

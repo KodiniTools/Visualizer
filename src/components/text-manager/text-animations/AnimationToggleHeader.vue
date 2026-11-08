@@ -12,7 +12,7 @@
         {{ enabled ? t('textManager.activated') : t('textManager.deactivated') }}
       </UiButton>
       <UiButton
-        v-if="enabled"
+        v-if="enabled && restartable"
         size="sm"
         block
         :title="t('textManager.restartAnimation')"
@@ -32,6 +32,8 @@ import { useI18n } from '../../../lib/i18n'
 defineProps({
   label: { type: String, required: true },
   enabled: { type: Boolean, default: false },
+  /** false blendet „Neu starten“ aus (z. B. Vorgaben für neue Bilder) */
+  restartable: { type: Boolean, default: true },
 })
 const emit = defineEmits(['toggle', 'restart'])
 const { t } = useI18n()

@@ -3,6 +3,7 @@
     <AnimationToggleHeader
       :label="label"
       :enabled="Boolean(effect?.enabled)"
+      :restartable="restartable"
       @toggle="emit('toggle')"
       @restart="emit('restart')"
     />
@@ -23,6 +24,8 @@ defineProps({
   label: { type: String, required: true },
   /** Effekt-Objekt des markierten Textes (z. B. text.animation.fade); fehlt bei sehr alten Texten */
   effect: { type: Object, default: null },
+  /** false blendet „Neu starten“ aus */
+  restartable: { type: Boolean, default: true },
 })
 const emit = defineEmits(['toggle', 'restart'])
 </script>

@@ -142,7 +142,11 @@ describe('Player-Leiste – Popover-Knöpfe', () => {
       expect(popover.isOpen(id), key).toBe(true)
       expect(isActive(byTitle(P[key])), key).toBe(true)
     }
+    // Erneuter Einfachklick lässt das Fenster offen, Doppelklick deaktiviert.
     byTitle(P.openRecorder).click()
+    await nextTick()
+    expect(popover.isOpen('recorder')).toBe(true)
+    byTitle(P.openRecorder).dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
     await nextTick()
     expect(popover.isOpen('recorder')).toBe(false)
     expect(isActive(byTitle(P.openRecorder))).toBe(false)

@@ -20,7 +20,9 @@
  *
  * Usage: add `v-popover-drag` to the `.spb-popover` root element. An optional
  * binding value `{ x, y }` sets the initial offset (used to cascade several
- * simultaneously open popovers).
+ * simultaneously open popovers). With `center: true` the popover opens in the
+ * middle of the area above the sticky bar (plus that offset); a popover kept
+ * mounted with `v-show` is centered again every time it becomes visible.
  */
 // Monotonic stacking counter shared by every popover. All popovers live in the
 // same stacking context (the sticky player bar), so raising an element's
@@ -39,6 +41,8 @@ type ResizeHandleElement = HTMLDivElement & { __onDown?: (e: PointerEvent) => vo
 export interface PopoverDragOffset {
   x?: number
   y?: number
+  /** Beim Öffnen mittig über der Leiste platzieren */
+  center?: boolean
 }
 
 interface ResizeHandleSpec {
@@ -179,6 +183,7 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
     const onDown = (e: PointerEvent) => {
       // Don't start a drag from interactive controls in the header.
       if ((e.target as Element | null)?.closest('button, input, select, textarea, a, label')) return
+      userPlaced = true
       baseX = dx
       baseY = dy
       startX = e.clientX
@@ -197,8 +202,15 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
     // content that expands *after* opening (e.g. the audio-reactive panel loads
     // the active image's settings on the next tick) would otherwise push the
     // header above the viewport.
+    // Ausgeblendetes Popover (v-show → display: none) hat keine Box; ein
+    // Klemmen auf Basis von Nullmaßen würde den Versatz verfälschen.
+    const isHidden = () => {
+      const rect = el.getBoundingClientRect()
+      return rect.width === 0 && rect.height === 0
+    }
+
     const reclamp = () => {
-      if (dragging) return
+      if (dragging || isHidden()) return
       const next = clamp(dx, dy)
       if (next.dx !== dx || next.dy !== dy) {
         dx = next.dx
@@ -220,6 +232,27 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
     dx = start.dx
     dy = start.dy
     apply()
+
+    // Mittig platzieren: horizontal im Viewport, vertikal im Bereich über der
+    // Leiste (Oberkante des Positionierungs-Elternelements), jeweils plus
+    // Kaskaden-Versatz. Erst möglich, wenn das Layout steht (Maße > 0). Bis der
+    // Nutzer das Fenster verschiebt oder skaliert, bleibt es auch dann mittig,
+    // wenn sein Inhalt nachträglich wächst (z.B. nachgeladene Galerie).
+    const wantCenter = binding.value?.center === true
+    let userPlaced = false
+    const center = () => {
+      if (!wantCenter || userPlaced || isHidden()) return
+      const rect = el.getBoundingClientRect()
+      const parentTop = (el.offsetParent as HTMLElement | null)?.getBoundingClientRect().top
+      const areaBottom =
+        parentTop && parentTop > 0 ? Math.min(parentTop, window.innerHeight) : window.innerHeight
+      const left = (window.innerWidth - rect.width) / 2 + initDx
+      const top = (areaBottom - rect.height) / 2 + initDy
+      const next = clamp(dx + (left - rect.left), dy + (top - rect.top))
+      dx = next.dx
+      dy = next.dy
+      apply()
+    }
 
     // ══════════════════ Resize (edges + bottom corners) ══════════════════
     const name = popoverName(el)
@@ -309,6 +342,7 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
 
     const startResize = (spec: ResizeHandleSpec, e: PointerEvent) => {
       if (e.button !== undefined && e.button !== 0) return
+      userPlaced = true
       resizing = spec
       rStartX = e.clientX
       rStartY = e.clientY
@@ -381,11 +415,15 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
         if (!resizeReady) initResize()
+        // v-show: beim Ausblenden merken, beim nächsten Einblenden neu zentrieren.
+        if (isHidden()) userPlaced = false
+        center()
         reclamp()
       })
       resizeObserver.observe(el)
     } else {
       initResize()
+      center()
     }
     window.addEventListener('resize', reclamp)
 

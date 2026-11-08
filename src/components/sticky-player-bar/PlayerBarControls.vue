@@ -4,10 +4,11 @@
     <div class="spb-track">
       <UiIconButton
         class="spb-icon-btn spb-source-btn"
-        :class="{ active: isOpen('audio'), listening: audioSourceStore.isMicrophoneActive }"
+        :class="{ active: isActive('audio'), listening: audioSourceStore.isMicrophoneActive }"
         v-bind="toggleProps('audio')"
         :label="t('player.openAudioSource')"
-        @click="togglePopover('audio')"
+        @click="onBarClick('audio', $event)"
+        @dblclick="onBarDblClick('audio')"
       >
         <PlayerIcon :icon="audioSourceStore.isMicrophoneSource ? ICONS.microphone : ICONS.note" />
       </UiIconButton>
@@ -109,11 +110,12 @@
 
       <UiIconButton
         class="spb-icon-btn spb-slideshow-btn"
-        :class="{ active: isOpen('slideshow') }"
+        :class="{ active: isActive('slideshow') }"
         v-bind="toggleProps('slideshow')"
         :label="t('player.openSlideshow')"
         data-testid="open-slideshow"
-        @click="togglePopover('slideshow')"
+        @click="onBarClick('slideshow', $event)"
+        @dblclick="onBarDblClick('slideshow')"
       >
         <PlayerIcon :icon="ICONS.slideshow" />
         <span v-if="slideshow.imageCount >= 2" class="spb-badge">{{ slideshow.imageCount }}</span>
@@ -121,10 +123,11 @@
 
       <UiIconButton
         class="spb-icon-btn"
-        :class="{ active: isOpen('markers') }"
+        :class="{ active: isActive('markers') }"
         v-bind="toggleProps('markers')"
         :label="t('player.openMarkers')"
-        @click="togglePopover('markers')"
+        @click="onBarClick('markers', $event)"
+        @dblclick="onBarDblClick('markers')"
       >
         <PlayerIcon :icon="ICONS.markers" />
         <span v-if="beatMarkerStore.markerCount > 0" class="spb-badge">{{
@@ -134,14 +137,15 @@
 
       <UiIconButton
         class="spb-icon-btn spb-volume-btn"
-        :class="{ active: isOpen('volume'), muted: playerStore.isMuted }"
+        :class="{ active: isActive('volume'), muted: playerStore.isMuted }"
         v-bind="toggleProps('volume')"
         :label="
           playerStore.isMuted
             ? `${t('player.openVolume')} (${t('player.muted')})`
             : t('player.openVolume')
         "
-        @click="togglePopover('volume')"
+        @click="onBarClick('volume', $event)"
+        @dblclick="onBarDblClick('volume')"
       >
         <PlayerIcon :icon="playerStore.isMuted ? ICONS.volumeMuted : ICONS.volume" />
       </UiIconButton>
@@ -150,11 +154,12 @@
         v-for="item in popoverButtons"
         :key="item.id"
         class="spb-icon-btn"
-        :class="{ active: isOpen(item.id) }"
+        :class="{ active: isActive(item.id) }"
         v-bind="toggleProps(item.id)"
         :label="t(item.label)"
         :data-popover="item.id"
-        @click="togglePopover(item.id)"
+        @click="onBarClick(item.id, $event)"
+        @dblclick="onBarDblClick(item.id)"
       >
         <PlayerIcon :icon="ICONS[item.id]" />
         <span v-if="item.badge" class="spb-badge">{{ item.badge }}</span>
@@ -162,10 +167,11 @@
 
       <UiIconButton
         class="spb-icon-btn spb-record-btn"
-        :class="{ active: isOpen('recorder'), recording: recorderStore.isRecording }"
+        :class="{ active: isActive('recorder'), recording: recorderStore.isRecording }"
         v-bind="toggleProps('recorder')"
         :label="t('player.openRecorder')"
-        @click="togglePopover('recorder')"
+        @click="onBarClick('recorder', $event)"
+        @dblclick="onBarDblClick('recorder')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <circle cx="12" cy="12" r="8" />
@@ -220,14 +226,17 @@ const redoTitle = computed(() => {
 })
 
 const { popover, playMode, markers } = inject('playerBar')
-const { isOpen, togglePopover } = popover
+const { isActive, onBarClick, onBarDblClick } = popover
 const { cyclePlayMode, playModeLabel } = playMode
 const { getMarkerPosition, seekToMarker } = markers
 
-/** Popover-Umschalter: offen = Primärfläche mit aria-pressed. */
+/**
+ * Funktions-Umschalter: aktiv = Primärfläche mit aria-pressed – auch wenn das
+ * Fenster per Klick daneben ausgeblendet ist (siehe usePlayerPopover).
+ */
 const toggleProps = (id) => ({
-  variant: isOpen(id) ? 'primary' : 'secondary',
-  pressed: isOpen(id),
+  variant: isActive(id) ? 'primary' : 'secondary',
+  pressed: isActive(id),
 })
 
 const transport = computed(() => [

@@ -335,6 +335,8 @@ export function useBeatMarkers(openMarkersPopover) {
 
   /** Wiedergabe-Start: zugewiesene Formen bis zu ihrem Marker ausblenden. */
   const activateShapeMarkers = () => {
+    // Einmalige Form-Animationen (Einblenden …) laufen ab Wiedergabe-Start neu
+    shapeStore.restartAnimations()
     for (const id of referencedShapeIds()) shapeStore.setMarkerHidden(id, true)
   }
 

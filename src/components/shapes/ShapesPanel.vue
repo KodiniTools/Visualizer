@@ -425,6 +425,12 @@
         />
       </div>
 
+      <!-- Animation (Pulsieren, Ein-/Ausblenden …) -->
+      <div v-if="!isEffect" class="control-block shape-anim">
+        <span class="section-title">{{ t('shapes.edit.animation') }}</span>
+        <ShapeAnimation :shape="selectedShape" @commit="commit" />
+      </div>
+
       <!-- Audio-Reaktiv (wie bei Bildern) -->
       <div v-if="!isEffect" class="control-block shape-audio">
         <span class="section-title">{{ t('shapes.edit.audioReactive') }}</span>
@@ -486,6 +492,7 @@ import SliderControl from '../ui/SliderControl.vue'
 import ShapeIcon from './ShapeIcon.vue'
 import ShapeColorField from './ShapeColorField.vue'
 import ShapeAudioReactive from './ShapeAudioReactive.vue'
+import ShapeAnimation from './ShapeAnimation.vue'
 import {
   CENSOR_EFFECTS,
   CENSOR_REGIONS,

@@ -13,6 +13,8 @@ import { ensureShapeAudioReactive, supportsShapeAudio } from '../lib/shapes/shap
 /** Eine Form auf dem Canvas (Felder je nach Typ, siehe lib/shapes/shapes.ts). */
 export interface Shape extends BaseShape {
   audioReactive?: object | null
+  /** Animation (siehe lib/shapes/shapeAnimation.ts), null/fehlend = keine */
+  animation?: object | null
   [key: string]: unknown
 }
 
@@ -51,6 +53,8 @@ const isDrawTool = (tool: unknown): tool is DrawTool =>
  * lib/shapes/shapeAudio.js), wird beim ersten Öffnen des Panels angelegt.
  * Beat-Marker: `markerHiddenIds` blendet zugewiesene Formen bis zu ihrem
  * Marker-Zeitpunkt aus. Reiner Laufzeit-Zustand, nicht Teil des Verlaufs.
+ * Animationen: `shape.animation` (lib/shapes/shapeAnimation.ts); ihr
+ * Startzeitpunkt ist ebenfalls Laufzeit-Zustand (getAnimationElapsed).
  */
 export const useShapeStore = defineStore('shapes', () => {
   const shapes = ref<Shape[]>([])
@@ -67,6 +71,12 @@ export const useShapeStore = defineStore('shapes', () => {
 
   /** Von Beat-Markern bis zu ihrem Zeitpunkt ausgeblendete Formen (Laufzeit) */
   const markerHiddenIds = ref(new Set<string>())
+
+  /**
+   * Startzeitpunkte der Form-Animationen (performance.now()-Millisekunden).
+   * Laufzeit-Zustand ohne Reaktivität – wird jedes Frame gelesen.
+   */
+  const animationStarts = new Map<string, number>()
 
   const selectedShape = computed(
     () => shapes.value.find((s) => s.id === selectedShapeId.value) || null,
@@ -116,6 +126,7 @@ export const useShapeStore = defineStore('shapes', () => {
     const index = shapes.value.findIndex((s) => s.id === shapeId)
     if (index === -1) return false
     shapes.value.splice(index, 1)
+    animationStarts.delete(shapeId)
     if (selectedShapeId.value === shapeId) selectedShapeId.value = null
     return true
   }
@@ -161,6 +172,7 @@ export const useShapeStore = defineStore('shapes', () => {
     selectedShapeId.value = null
     drawTool.value = null
     clearMarkerHidden()
+    animationStarts.clear()
   }
 
   /** Zeichenwerkzeug ein-/ausschalten; beim Einschalten wird die Auswahl aufgehoben */
@@ -215,12 +227,35 @@ export const useShapeStore = defineStore('shapes', () => {
   function setMarkerHidden(shapeId: string, hidden: boolean) {
     const next = new Set(markerHiddenIds.value)
     if (hidden) next.add(shapeId)
-    else next.delete(shapeId)
+    else if (next.delete(shapeId)) restartAnimation(shapeId) // Einblenden startet die Animation neu
     if (next.size !== markerHiddenIds.value.size) markerHiddenIds.value = next
   }
 
   function clearMarkerHidden() {
     if (markerHiddenIds.value.size > 0) markerHiddenIds.value = new Set()
+  }
+
+  /**
+   * Millisekunden seit dem Start der Animation einer Form. Der erste Aufruf
+   * (bzw. der erste nach restartAnimation) legt den Start auf `now`.
+   */
+  function getAnimationElapsed(shapeId: string, now: number = performance.now()): number {
+    const start = animationStarts.get(shapeId)
+    if (start === undefined || start > now) {
+      animationStarts.set(shapeId, now)
+      return 0
+    }
+    return now - start
+  }
+
+  /** Animation einer Form beim nächsten Frame von vorn beginnen lassen */
+  function restartAnimation(shapeId: string) {
+    animationStarts.delete(shapeId)
+  }
+
+  /** Alle Form-Animationen neu starten (z. B. Wiedergabe ab Anfang) */
+  function restartAnimations() {
+    animationStarts.clear()
   }
 
   /** Snapshot für den Verlauf (JSON-fähig) */
@@ -266,6 +301,9 @@ export const useShapeStore = defineStore('shapes', () => {
     isMarkerHidden,
     setMarkerHidden,
     clearMarkerHidden,
+    getAnimationElapsed,
+    restartAnimation,
+    restartAnimations,
     captureSnapshot,
     applySnapshot,
   }

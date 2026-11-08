@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import de from '../../lib/i18n/de.js'
 import VisualizerLedTextSection from '../../components/visualizer-panel/VisualizerLedTextSection.vue'
 import VisualizerControlsPanel from '../../components/VisualizerControlsPanel.vue'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 let wrapper
 

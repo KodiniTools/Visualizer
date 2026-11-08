@@ -5,8 +5,8 @@ import {
   toLayerPresetRef,
   parseLayerPresetRef,
   LAYER_PRESET_PREFIX,
-} from '../../stores/layerPresetStore.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+} from '../../stores/layerPresetStore'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 let store
 let viz

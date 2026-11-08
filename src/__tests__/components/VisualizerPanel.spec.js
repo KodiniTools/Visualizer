@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerPanel from '../../components/VisualizerPanel.vue'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { useLayerPresetStore } from '../../stores/layerPresetStore'
 
 // Schwere Nachbar-Panels und das Bild-Picker-Widget werden gestubbt; getestet
 // wird das Zusammenspiel von VisualizerPanel mit seinen Sektionen.

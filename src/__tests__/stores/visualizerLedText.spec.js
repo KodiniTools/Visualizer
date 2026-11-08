@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { usePresetStore } from '../../stores/presetStore.js'
-import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { usePresetStore } from '../../stores/presetStore'
+import { useLayerPresetStore } from '../../stores/layerPresetStore'
 import { DEFAULT_LED_CONFIG } from '../../lib/visualizers/gl/ledTextSettings.js'
 
 describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {

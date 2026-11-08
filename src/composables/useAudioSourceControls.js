@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { useAudioSourceStore } from '../stores/audioSourceStore.js'
+import { useAudioSourceStore } from '../stores/audioSourceStore'
 import { getAudioEngine } from '../lib/audioEngineBridge.js'
 
 /**

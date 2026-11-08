@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerControlsPopover from '../../components/sticky-player-bar/VisualizerControlsPopover.vue'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 const stubs = { VisualizerImagePicker: true }
 

@@ -101,8 +101,8 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { useLayerPresetStore } from '../../stores/layerPresetStore'
 
 const props = defineProps({
   /** Aktueller Suchbegriff; nicht-leer schaltet von Kategorien auf Trefferliste um. */

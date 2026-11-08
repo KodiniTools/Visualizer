@@ -34,7 +34,7 @@ import SliderField from '../ui/SliderField.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import VisualizerReactShapeControls from './VisualizerReactShapeControls.vue'
 import { useI18n } from '../../lib/i18n.js'
-import { useVisualizerStore, REACT_SOURCES } from '../../stores/visualizerStore.js'
+import { useVisualizerStore, REACT_SOURCES } from '../../stores/visualizerStore'
 
 const { t } = useI18n()
 const store = useVisualizerStore()

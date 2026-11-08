@@ -2,8 +2,8 @@
 // Eigene Presets im presetStore: speichern, aus localStorage laden, löschen.
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { usePresetStore } from '../../stores/presetStore.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { usePresetStore } from '../../stores/presetStore'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 const KEY = 'visualizer-user-presets'
 let presets

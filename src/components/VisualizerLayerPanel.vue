@@ -395,8 +395,8 @@ import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape.
 import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../lib/i18n.js'
 import { localizedName } from '../lib/localizedName.js'
-import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
-import { useLayerPresetStore } from '../stores/layerPresetStore.js'
+import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore'
+import { useLayerPresetStore } from '../stores/layerPresetStore'
 import { useToastStore } from '../stores/toastStore'
 import { Visualizers } from '../lib/visualizers/index.js'
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useShapeStore } from '../../stores/shapeStore.js'
-import { useHistoryStore } from '../../stores/historyStore.js'
+import { useHistoryStore } from '../../stores/historyStore'
 import { createHistoryRecorder } from '../../lib/history/historyRecorder.js'
 import { createShapesSegment } from '../../lib/history/segments/shapesSegment.js'
 

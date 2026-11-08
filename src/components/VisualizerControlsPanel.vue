@@ -40,7 +40,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../lib/i18n.js'
-import { useVisualizerStore } from '../stores/visualizerStore.js'
+import { useVisualizerStore } from '../stores/visualizerStore'
 import { Visualizers } from '../lib/visualizers/index.js'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.vue'

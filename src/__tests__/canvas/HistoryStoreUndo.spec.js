@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useHistoryStore } from '../../stores/historyStore.js'
+import { useHistoryStore } from '../../stores/historyStore'
 
 /**
  * Regressionstest für den Undo-Toast-Button.

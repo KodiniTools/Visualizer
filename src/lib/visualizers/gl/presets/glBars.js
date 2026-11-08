@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glBars
  */
 
-import { bars } from '../../spectrum/bars.js'
+import { bars } from '../../spectrum/bars'
 
 const frag = /* glsl */ `
 uniform float uBarCount;  // number of bars across the width

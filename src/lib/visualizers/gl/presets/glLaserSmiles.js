@@ -19,7 +19,7 @@
  * @module visualizers/gl/presets/glLaserSmiles
  */
 
-import { retroOscilloscope } from '../../retro/retroOscilloscope.js'
+import { retroOscilloscope } from '../../retro/retroOscilloscope'
 
 /**
  * Varianten: id-Suffix, Namen und der GLSL-Rumpf von `face()`.

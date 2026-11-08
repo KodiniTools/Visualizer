@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLedHexPanel
  */
 
-import { hexagonGrid } from '../../geometric/hexagonGrid.js'
+import { hexagonGrid } from '../../geometric/hexagonGrid'
 
 const frag = /* glsl */ `
 uniform float uTileSize;

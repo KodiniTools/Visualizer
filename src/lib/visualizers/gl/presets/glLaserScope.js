@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glLaserScope
  */
 
-import { retroOscilloscope } from '../../retro/retroOscilloscope.js'
+import { retroOscilloscope } from '../../retro/retroOscilloscope'
 import { CURVE_GLSL } from '../laserFigures.js'
 
 const frag = /* glsl */ `

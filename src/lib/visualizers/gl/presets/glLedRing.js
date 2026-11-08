@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLedRing
  */
 
-import { radialBars } from '../../spectrum/radialBars.js'
+import { radialBars } from '../../spectrum/radialBars'
 
 const frag = /* glsl */ `
 uniform float uOuterLeds;

@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glVuMeter
  */
 
-import { bars } from '../../spectrum/bars.js'
+import { bars } from '../../spectrum/bars'
 
 const frag = /* glsl */ `
 uniform float uChains;

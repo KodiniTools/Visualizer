@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glPlasma
  */
 
-import { fluidWaves } from '../../organic/fluidWaves.js'
+import { fluidWaves } from '../../organic/fluidWaves'
 
 const frag = /* glsl */ `
 uniform float uScale;

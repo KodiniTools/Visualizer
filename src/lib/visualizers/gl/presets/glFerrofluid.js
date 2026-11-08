@@ -8,7 +8,7 @@
  * @module visualizers/gl/presets/glFerrofluid
  */
 
-import { radialBars } from '../../spectrum/radialBars.js'
+import { radialBars } from '../../spectrum/radialBars'
 
 const frag = /* glsl */ `
 uniform float uSpikes;   // spikes around the rim

@@ -14,7 +14,7 @@
  * @module visualizers/gl/presets/glPendulumWave
  */
 
-import { vibratingStrings } from '../../spectrum/vibratingStrings.js'
+import { vibratingStrings } from '../../spectrum/vibratingStrings'
 
 /** Seconds after which all pendulums are in step again. */
 export const PENDULUM_CYCLE = 48

@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glSearchlights
  */
 
-import { lightBeams } from '../../effects/lightBeams.js'
+import { lightBeams } from '../../effects/lightBeams'
 
 const frag = /* glsl */ `
 uniform float uHeads;

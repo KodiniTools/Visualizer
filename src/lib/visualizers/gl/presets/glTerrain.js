@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glTerrain
  */
 
-import { bars3D } from '../../spectrum/bars3D.js'
+import { bars3D } from '../../spectrum/bars3D'
 
 const frag = /* glsl */ `
 uniform float uRidges;    // number of ridges drawn (max 64)

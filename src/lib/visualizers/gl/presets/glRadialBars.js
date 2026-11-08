@@ -4,7 +4,7 @@
  * @module visualizers/gl/presets/glRadialBars
  */
 
-import { radialBars } from '../../spectrum/radialBars.js'
+import { radialBars } from '../../spectrum/radialBars'
 
 const frag = /* glsl */ `
 uniform float uBarCount;

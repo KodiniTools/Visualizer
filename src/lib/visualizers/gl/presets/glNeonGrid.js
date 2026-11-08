@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glNeonGrid
  */
 
-import { synthWave } from '../../retro/synthWave.js'
+import { synthWave } from '../../retro/synthWave'
 
 const frag = /* glsl */ `
 uniform float uHorizon;    // horizon height (0..1)

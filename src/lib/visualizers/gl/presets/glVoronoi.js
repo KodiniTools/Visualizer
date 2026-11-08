@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glVoronoi
  */
 
-import { liquidCrystals } from '../../effects/liquidCrystals.js'
+import { liquidCrystals } from '../../effects/liquidCrystals'
 
 const frag = /* glsl */ `
 uniform float uCells;

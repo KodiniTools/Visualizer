@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLedBlinder
  */
 
-import { pulsingOrbs } from '../../effects/pulsingOrbs.js'
+import { pulsingOrbs } from '../../effects/pulsingOrbs'
 
 const frag = /* glsl */ `
 uniform float uLensSize;

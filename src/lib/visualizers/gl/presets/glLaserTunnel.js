@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glLaserTunnel
  */
 
-import { vortexPortal } from '../../effects/vortexPortal.js'
+import { vortexPortal } from '../../effects/vortexPortal'
 
 const frag = /* glsl */ `
 uniform float uSpokes;

@@ -5,7 +5,7 @@
  * @module visualizers/gl/presets/glMetaballs
  */
 
-import { pulsingOrbs } from '../../effects/pulsingOrbs.js'
+import { pulsingOrbs } from '../../effects/pulsingOrbs'
 
 const frag = /* glsl */ `
 uniform float uBlobs;

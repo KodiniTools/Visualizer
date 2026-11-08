@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glFireworksFountain
  */
 
-import { audioFire } from '../../particle/audioFire.js'
+import { audioFire } from '../../particle/audioFire'
 
 const frag = /* glsl */ `
 uniform float uFountains;

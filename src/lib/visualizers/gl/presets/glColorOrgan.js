@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glColorOrgan
  */
 
-import { pulsingOrbs } from '../../effects/pulsingOrbs.js'
+import { pulsingOrbs } from '../../effects/pulsingOrbs'
 
 const frag = /* glsl */ `
 uniform float uPanels;

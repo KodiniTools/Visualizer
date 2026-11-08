@@ -10,7 +10,7 @@
  * @module visualizers/gl/presets/glPendulumCircle
  */
 
-import { radialBars } from '../../spectrum/radialBars.js'
+import { radialBars } from '../../spectrum/radialBars'
 import { createPendulumClock } from './glPendulumWave.js'
 
 const frag = /* glsl */ `

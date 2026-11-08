@@ -7,7 +7,7 @@
  * @module visualizers/gl/presets/glShockwaves
  */
 
-import { rippleEffect } from '../../particle/rippleEffect.js'
+import { rippleEffect } from '../../particle/rippleEffect'
 
 const frag = /* glsl */ `
 uniform float uRingCount;   // rings visible between centre and edge

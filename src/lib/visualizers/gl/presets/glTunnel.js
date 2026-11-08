@@ -6,7 +6,7 @@
  * @module visualizers/gl/presets/glTunnel
  */
 
-import { vortexPortal } from '../../effects/vortexPortal.js'
+import { vortexPortal } from '../../effects/vortexPortal'
 
 const frag = /* glsl */ `
 uniform float uTwist;   // angular twist along the depth

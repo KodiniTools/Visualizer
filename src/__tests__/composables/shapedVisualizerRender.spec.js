@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const calls = []
 
-vi.mock('../../lib/visualizers/index.js', () => ({
+vi.mock('../../lib/visualizers/index', () => ({
   Visualizers: {
     beams: {
       init: (w, h) => calls.push(['init', w, h]),
@@ -23,7 +23,7 @@ vi.mock('../../lib/workerManager', () => ({
     resizeVisualizerCanvas: () => {},
   },
 }))
-vi.mock('../../lib/visualizers/imageRegistry.js', () => ({ getVisualizerImageSource: () => null }))
+vi.mock('../../lib/visualizers/imageRegistry', () => ({ getVisualizerImageSource: () => null }))
 vi.mock('../../stores/historyStore', () => ({ useHistoryStore: () => ({}) }))
 vi.mock('../../lib/history/historyRecorder', () => ({
   getHistoryRecorder: () => ({ absorb: (fn) => fn() }),

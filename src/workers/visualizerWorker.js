@@ -4,8 +4,8 @@
  * Supports single-visualizer mode only; multi-layer falls back to main thread.
  */
 
-import { Visualizers } from '../lib/visualizers/index.js'
-import { visualizerState } from '../lib/visualizers/core/state.js'
+import { Visualizers } from '../lib/visualizers/index'
+import { visualizerState } from '../lib/visualizers/core/state'
 import { createPostProcessor, shouldRunPostFx } from '../lib/postfx/index'
 
 let offscreenCanvas = null

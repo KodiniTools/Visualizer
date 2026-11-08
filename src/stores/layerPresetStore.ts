@@ -2,8 +2,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore'
-import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
-import { normalizeReactShape } from '../lib/visualizers/core/reactSource.js'
+import { resolveVisualizerId } from '../lib/visualizers/aliases'
+import { normalizeReactShape } from '../lib/visualizers/core/reactSource'
 import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
 import type { VisualizerLayer } from './visualizer/useVisualizerLayers'
 

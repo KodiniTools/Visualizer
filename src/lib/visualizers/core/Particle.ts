@@ -3,12 +3,19 @@
  * @module visualizers/core/Particle
  */
 
-import { CONSTANTS } from './constants.js'
+import { CONSTANTS } from './constants'
 
 /**
  * Particle class for particle-based effects
  */
 export class Particle {
+  x: number
+  y: number
+  radius: number
+  color: string
+  velocity: { x: number; y: number }
+  alpha: number
+
   /**
    * @param {number} x - X position
    * @param {number} y - Y position
@@ -16,7 +23,13 @@ export class Particle {
    * @param {string} color - Color in CSS format
    * @param {Object} velocity - Velocity object with x and y properties
    */
-  constructor(x, y, radius, color, velocity) {
+  constructor(
+    x: number,
+    y: number,
+    radius: number,
+    color: string,
+    velocity: { x: number; y: number },
+  ) {
     this.x = x
     this.y = y
     this.radius = radius
@@ -29,7 +42,7 @@ export class Particle {
    * Draw the particle on canvas
    * @param {CanvasRenderingContext2D} ctx - Canvas context
    */
-  draw(ctx) {
+  draw(ctx: CanvasRenderingContext2D): void {
     ctx.save()
     ctx.globalAlpha = this.alpha
     ctx.beginPath()
@@ -42,7 +55,7 @@ export class Particle {
   /**
    * Update particle position and fade
    */
-  update() {
+  update(): void {
     this.x += this.velocity.x
     this.y += this.velocity.y
     this.alpha *= CONSTANTS.PARTICLE_FADE

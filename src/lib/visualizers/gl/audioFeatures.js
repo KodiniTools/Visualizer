@@ -15,14 +15,14 @@
  * @module visualizers/gl/audioFeatures
  */
 
-import { CONSTANTS } from '../core/constants.js'
+import { CONSTANTS } from '../core/constants'
 import {
   rangeForBar,
   averageRange,
   calculateDynamicGain,
   getFrequencyBasedSmoothing,
   applySmoothValue,
-} from '../core/helpers.js'
+} from '../core/helpers'
 
 /** Width of the audio texture (texels per row). */
 export const AUDIO_TEX_WIDTH = 512

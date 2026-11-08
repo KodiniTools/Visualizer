@@ -3,7 +3,7 @@
  * @module visualizers/effects/weatherStorm
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange } from '../core/index'
 
 /**
  * Precipitation particle class for snow/rain

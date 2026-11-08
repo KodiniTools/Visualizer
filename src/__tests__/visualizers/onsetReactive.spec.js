@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  onsetForSource,
-  advancePunch,
-  punchScale,
-} from '../../lib/visualizers/core/onsetReactive.js'
+import { onsetForSource, advancePunch, punchScale } from '../../lib/visualizers/core/onsetReactive'
 
 describe('onsetForSource', () => {
   const data = { onsetBass: 0.8, onsetMid: 0.4, onsetTreble: 0.2, onsetAll: 0.6 }

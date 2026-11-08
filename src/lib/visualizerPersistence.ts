@@ -19,8 +19,8 @@ import {
   type PlainObject,
 } from './storePersistence'
 import type { useVisualizerStore } from '../stores/visualizerStore'
-import { resolveVisualizerId } from './visualizers/aliases.js'
-import { normalizeVisualizerShape } from './visualizers/core/visualizerShape.js'
+import { resolveVisualizerId } from './visualizers/aliases'
+import { normalizeVisualizerShape } from './visualizers/core/visualizerShape'
 
 export const VISUALIZER_STORAGE_KEY = 'visualizer-visualizer-settings'
 const SAVE_DELAY_MS = 400

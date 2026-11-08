@@ -1,13 +1,13 @@
-import { drawScaledVisualizer } from '../../lib/visualizers/core/edgeFade.js'
-import { Visualizers } from '../../lib/visualizers/index.js'
-import { visualizerState } from '../../lib/visualizers/core/state.js'
-import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry.js'
+import { drawScaledVisualizer } from '../../lib/visualizers/core/edgeFade'
+import { Visualizers } from '../../lib/visualizers/index'
+import { visualizerState } from '../../lib/visualizers/core/state'
+import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry'
 import { ensureSizedCanvas } from './canvasCache.js'
 import { gateAudioData } from './reactGate.js'
 import { createLayerPunch } from './beatPunch.js'
 import { ensurePostProcessor, applyPostFx } from './postFx.js'
 import { normalizeLedConfig } from '../../lib/visualizers/gl/ledTextSettings.js'
-import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape.js'
+import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape'
 
 /**
  * Multi-Layer-Modus: jeder sichtbare Layer wird in ein eigenes Cache-Canvas

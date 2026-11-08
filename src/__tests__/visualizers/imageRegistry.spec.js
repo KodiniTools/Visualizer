@@ -9,7 +9,7 @@ import {
   registerCanvasImage,
   registerGalleryImage,
   resolveEffectiveImageId,
-} from '../../lib/visualizers/imageRegistry.js'
+} from '../../lib/visualizers/imageRegistry'
 
 describe('imageRegistry', () => {
   beforeEach(() => clearVisualizerImages())

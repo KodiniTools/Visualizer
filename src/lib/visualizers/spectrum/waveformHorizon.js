@@ -3,7 +3,7 @@
  * @module visualizers/spectrum/waveformHorizon
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const waveformHorizon = {
   name_de: 'Wellenform-Horizont',

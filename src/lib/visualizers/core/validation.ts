@@ -12,6 +12,14 @@
  * @property {*} sanitized - Sanitized/default value if applicable
  */
 
+import type { VisualizerContext, VisualizerDrawFn } from './types'
+
+export interface ValidationResult<T> {
+  valid: boolean
+  error: string | null
+  sanitized: T
+}
+
 /**
  * Validates that a value is a finite number
  * @param {*} value - Value to check
@@ -19,7 +27,11 @@
  * @param {number} [defaultValue] - Default value if invalid
  * @returns {ValidationResult}
  */
-export function validateNumber(value, name, defaultValue = 0) {
+export function validateNumber(
+  value: unknown,
+  name: string,
+  defaultValue = 0,
+): ValidationResult<number> {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return {
       valid: false,
@@ -37,18 +49,23 @@ export function validateNumber(value, name, defaultValue = 0) {
  * @param {number} [defaultValue] - Default value if invalid
  * @returns {ValidationResult}
  */
-export function validatePositiveNumber(value, name, defaultValue = 1) {
+export function validatePositiveNumber(
+  value: unknown,
+  name: string,
+  defaultValue = 1,
+): ValidationResult<number> {
   const numResult = validateNumber(value, name, defaultValue)
   if (!numResult.valid) return numResult
+  const num = numResult.sanitized // gültig: sanitized === value
 
-  if (value <= 0) {
+  if (num <= 0) {
     return {
       valid: false,
-      error: `${name} must be positive, got ${value}`,
+      error: `${name} must be positive, got ${num}`,
       sanitized: defaultValue,
     }
   }
-  return { valid: true, error: null, sanitized: value }
+  return { valid: true, error: null, sanitized: num }
 }
 
 /**
@@ -60,18 +77,25 @@ export function validatePositiveNumber(value, name, defaultValue = 1) {
  * @param {number} [defaultValue] - Default value if invalid
  * @returns {ValidationResult}
  */
-export function validateRange(value, name, min, max, defaultValue = min) {
+export function validateRange(
+  value: unknown,
+  name: string,
+  min: number,
+  max: number,
+  defaultValue = min,
+): ValidationResult<number> {
   const numResult = validateNumber(value, name, defaultValue)
   if (!numResult.valid) return numResult
+  const num = numResult.sanitized // gültig: sanitized === value
 
-  if (value < min || value > max) {
+  if (num < min || num > max) {
     return {
       valid: false,
-      error: `${name} must be between ${min} and ${max}, got ${value}`,
-      sanitized: Math.max(min, Math.min(max, value)),
+      error: `${name} must be between ${min} and ${max}, got ${num}`,
+      sanitized: Math.max(min, Math.min(max, num)),
     }
   }
-  return { valid: true, error: null, sanitized: value }
+  return { valid: true, error: null, sanitized: num }
 }
 
 /**
@@ -80,7 +104,11 @@ export function validateRange(value, name, min, max, defaultValue = min) {
  * @param {number} [minLength=1] - Minimum required length
  * @returns {ValidationResult}
  */
-export function validateDataArray(dataArray, minLength = 1) {
+export function validateDataArray(
+  input: unknown,
+  minLength = 1,
+): ValidationResult<ArrayLike<number>> {
+  const dataArray = input as ArrayLike<number> | null | undefined
   // Check if it's an array-like object
   if (!dataArray || typeof dataArray.length !== 'number') {
     return {
@@ -129,9 +157,13 @@ export function validateDataArray(dataArray, minLength = 1) {
  * @param {*} dataArray - The data array for comparison
  * @returns {ValidationResult}
  */
-export function validateBufferLength(bufferLength, dataArray) {
-  const numResult = validatePositiveNumber(bufferLength, 'bufferLength', 256)
+export function validateBufferLength(
+  input: unknown,
+  dataArray: ArrayLike<number> | null | undefined,
+): ValidationResult<number> {
+  const numResult = validatePositiveNumber(input, 'bufferLength', 256)
   if (!numResult.valid) return numResult
+  const bufferLength = numResult.sanitized // gültig: sanitized === input
 
   // bufferLength should not exceed dataArray length
   if (dataArray && bufferLength > dataArray.length) {
@@ -151,9 +183,12 @@ export function validateBufferLength(bufferLength, dataArray) {
  * @param {*} height - Canvas height
  * @returns {ValidationResult}
  */
-export function validateDimensions(width, height) {
-  const widthResult = validatePositiveNumber(width, 'width', 800)
-  const heightResult = validatePositiveNumber(height, 'height', 600)
+export function validateDimensions(
+  widthInput: unknown,
+  heightInput: unknown,
+): ValidationResult<{ width: number; height: number }> {
+  const widthResult = validatePositiveNumber(widthInput, 'width', 800)
+  const heightResult = validatePositiveNumber(heightInput, 'height', 600)
 
   if (!widthResult.valid || !heightResult.valid) {
     return {
@@ -162,6 +197,10 @@ export function validateDimensions(width, height) {
       sanitized: { width: widthResult.sanitized, height: heightResult.sanitized },
     }
   }
+
+  // gültig: sanitized === Eingabe
+  const width = widthResult.sanitized
+  const height = heightResult.sanitized
 
   // Check for reasonable maximum dimensions (prevent memory issues)
   const maxDimension = 16384 // WebGL max texture size
@@ -188,7 +227,7 @@ export function validateDimensions(width, height) {
  * @param {*} ctx - The canvas context to validate
  * @returns {ValidationResult}
  */
-export function validateCanvasContext(ctx) {
+export function validateCanvasContext(ctx: unknown): ValidationResult<VisualizerContext | null> {
   if (!ctx) {
     return {
       valid: false,
@@ -200,7 +239,7 @@ export function validateCanvasContext(ctx) {
   // Check for essential 2D context methods
   const requiredMethods = ['beginPath', 'fill', 'stroke', 'arc', 'moveTo', 'lineTo']
   for (const method of requiredMethods) {
-    if (typeof ctx[method] !== 'function') {
+    if (typeof (ctx as Record<string, unknown>)[method] !== 'function') {
       return {
         valid: false,
         error: `Canvas context missing required method: ${method}`,
@@ -209,7 +248,7 @@ export function validateCanvasContext(ctx) {
     }
   }
 
-  return { valid: true, error: null, sanitized: ctx }
+  return { valid: true, error: null, sanitized: ctx as VisualizerContext }
 }
 
 /**
@@ -218,7 +257,10 @@ export function validateCanvasContext(ctx) {
  * @param {string} [defaultColor='#ffffff'] - Default color if invalid
  * @returns {ValidationResult}
  */
-export function validateHexColor(color, defaultColor = '#ffffff') {
+export function validateHexColor(
+  color: unknown,
+  defaultColor = '#ffffff',
+): ValidationResult<string> {
   if (typeof color !== 'string') {
     return {
       valid: false,
@@ -246,7 +288,10 @@ export function validateHexColor(color, defaultColor = '#ffffff') {
  * @param {number} [defaultValue=1.0] - Default intensity
  * @returns {ValidationResult}
  */
-export function validateIntensity(intensity, defaultValue = 1.0) {
+export function validateIntensity(
+  intensity: unknown,
+  defaultValue = 1.0,
+): ValidationResult<number> {
   if (intensity === undefined || intensity === null) {
     return { valid: true, error: null, sanitized: defaultValue }
   }
@@ -274,8 +319,11 @@ export function validateDrawParams({
   height,
   color,
   intensity,
-}) {
-  const results = {
+}: Record<
+  'ctx' | 'dataArray' | 'bufferLength' | 'width' | 'height' | 'color' | 'intensity',
+  unknown
+>): DrawParamsValidation {
+  const results: DrawParamsValidation = {
     valid: true,
     errors: [],
     params: {},
@@ -329,6 +377,20 @@ export function validateDrawParams({
   return results
 }
 
+export interface DrawParamsValidation {
+  valid: boolean
+  errors: Array<string | null>
+  params: {
+    ctx?: VisualizerContext | null
+    dataArray?: ArrayLike<number>
+    bufferLength?: number
+    width?: number
+    height?: number
+    color?: string
+    intensity?: number
+  }
+}
+
 /**
  * Creates a safe wrapper for visualizer draw functions
  * Validates inputs and catches rendering errors
@@ -336,15 +398,19 @@ export function validateDrawParams({
  * @param {string} visualizerName - Name for error logging
  * @returns {Function} Wrapped draw function
  */
-export function createSafeDrawWrapper(drawFn, visualizerName = 'unknown') {
+export function createSafeDrawWrapper(
+  drawFn: VisualizerDrawFn,
+  visualizerName = 'unknown',
+): (this: unknown, ...args: Parameters<VisualizerDrawFn>) => void {
   return function safeDrawWrapper(
-    ctx,
-    dataArray,
-    bufferLength,
-    width,
-    height,
-    color,
-    intensity = 1.0,
+    this: unknown,
+    ctx: VisualizerContext,
+    dataArray: Uint8Array,
+    bufferLength: number,
+    width: number,
+    height: number,
+    color: string,
+    intensity: number = 1.0,
   ) {
     // Quick validation of critical params
     if (!ctx || !dataArray) {
@@ -375,7 +441,7 @@ export function createSafeDrawWrapper(drawFn, visualizerName = 'unknown') {
         safeIntensity,
       )
     } catch (error) {
-      console.error(`[${visualizerName}] Rendering error:`, error.message)
+      console.error(`[${visualizerName}] Rendering error:`, (error as Error).message)
     }
   }
 }
@@ -387,11 +453,15 @@ export function createSafeDrawWrapper(drawFn, visualizerName = 'unknown') {
  * @param {string} [name='index'] - Parameter name for errors
  * @returns {ValidationResult}
  */
-export function validateArrayIndex(index, length, name = 'index') {
+export function validateArrayIndex(
+  index: unknown,
+  length: number,
+  name = 'index',
+): ValidationResult<number> {
   const numResult = validateNumber(index, name, 0)
   if (!numResult.valid) return numResult
 
-  const intIndex = Math.floor(index)
+  const intIndex = Math.floor(numResult.sanitized) // gültig: sanitized === index
   if (intIndex < 0 || intIndex >= length) {
     return {
       valid: false,
@@ -410,7 +480,11 @@ export function validateArrayIndex(index, length, name = 'index') {
  * @param {number} [maxFreqRatio=0.21] - Maximum frequency ratio to use
  * @returns {number} Clamped frequency index
  */
-export function clampFrequencyIndex(freqIndex, bufferLength, maxFreqRatio = 0.21) {
+export function clampFrequencyIndex(
+  freqIndex: number,
+  bufferLength: number,
+  maxFreqRatio = 0.21,
+): number {
   const maxIndex = Math.floor(bufferLength * maxFreqRatio)
   return Math.max(0, Math.min(maxIndex, Math.floor(freqIndex)))
 }
@@ -422,7 +496,11 @@ export function clampFrequencyIndex(freqIndex, bufferLength, maxFreqRatio = 0.21
  * @param {number} [defaultValue=0] - Default if out of bounds
  * @returns {number} Value at index or default
  */
-export function safeGetAudioValue(dataArray, index, defaultValue = 0) {
+export function safeGetAudioValue(
+  dataArray: ArrayLike<number> | null | undefined,
+  index: number,
+  defaultValue = 0,
+): number {
   if (!dataArray || index < 0 || index >= dataArray.length) {
     return defaultValue
   }
@@ -436,12 +514,12 @@ export function safeGetAudioValue(dataArray, index, defaultValue = 0) {
  * @param {number} [defaultValue=0] - Default angle
  * @returns {ValidationResult}
  */
-export function validateAngle(angle, defaultValue = 0) {
+export function validateAngle(angle: unknown, defaultValue = 0): ValidationResult<number> {
   const numResult = validateNumber(angle, 'angle', defaultValue)
   if (!numResult.valid) return numResult
 
-  // Normalize to [0, 2π) range
-  let normalized = angle % (Math.PI * 2)
+  // Normalize to [0, 2π) range (gültig: sanitized === angle)
+  let normalized = numResult.sanitized % (Math.PI * 2)
   if (normalized < 0) normalized += Math.PI * 2
 
   return { valid: true, error: null, sanitized: normalized }

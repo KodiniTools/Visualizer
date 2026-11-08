@@ -3,7 +3,7 @@
  * @module visualizers/geometric/hexagonGrid
  */
 
-import { hexToHsl, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, withSafeCanvasState } from '../core/index'
 
 export const hexagonGrid = {
   name_de: 'Sechseck-Gitter',

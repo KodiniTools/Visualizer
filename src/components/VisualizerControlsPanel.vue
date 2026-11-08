@@ -41,7 +41,7 @@
 import { computed } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useVisualizerStore } from '../stores/visualizerStore'
-import { Visualizers } from '../lib/visualizers/index.js'
+import { Visualizers } from '../lib/visualizers/index'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.vue'
 import VisualizerReactSourceSection from './visualizer-panel/VisualizerReactSourceSection.vue'

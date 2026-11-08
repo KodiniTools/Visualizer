@@ -101,7 +101,7 @@ import {
   REACT_GAIN_MAX,
   REACT_BEAT_BOOST_MAX,
   normalizeReactShape,
-} from '../../lib/visualizers/core/reactSource.js'
+} from '../../lib/visualizers/core/reactSource'
 
 const props = defineProps({
   /** Objekt mit reactSmoothing/reactGain/reactEasing/reactBeatBoost/reactPhase (Store oder Layer). */

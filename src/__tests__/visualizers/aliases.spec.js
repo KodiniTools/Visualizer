@@ -4,8 +4,8 @@ import {
   LEGACY_VISUALIZER_IDS,
   isLegacyVisualizer,
   resolveVisualizerId,
-} from '../../lib/visualizers/aliases.js'
-import { Visualizers, glVisualizers } from '../../lib/visualizers/index.js'
+} from '../../lib/visualizers/aliases'
+import { Visualizers, glVisualizers } from '../../lib/visualizers/index'
 
 describe('visualizer aliases', () => {
   it('covers every classic visualizer exactly once', () => {

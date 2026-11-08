@@ -19,7 +19,7 @@ import {
   normalizeReactBeatBoost,
   normalizeReactPhase,
   normalizeReactEasing,
-} from '../../lib/visualizers/core/reactSource.js'
+} from '../../lib/visualizers/core/reactSource'
 import { easingNames } from '../../lib/audio/EasingFunctions'
 
 describe('reactSource', () => {

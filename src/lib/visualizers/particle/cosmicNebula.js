@@ -3,7 +3,7 @@
  * @module visualizers/particle/cosmicNebula
  */
 
-import { visualizerState, hexToHsl, averageRange, energyRamp } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, energyRamp } from '../core/index'
 
 export const cosmicNebula = {
   name_de: 'Kosmischer Nebel',

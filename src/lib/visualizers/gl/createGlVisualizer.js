@@ -18,7 +18,7 @@
 
 import { GLVisualizerEngine } from './GLVisualizerEngine.js'
 import { createAudioFeatureState, resetAudioFeatureState } from './audioFeatures.js'
-import { visualizerState } from '../core/state.js'
+import { visualizerState } from '../core/state'
 
 let sharedEngine = null
 let engineFailed = false

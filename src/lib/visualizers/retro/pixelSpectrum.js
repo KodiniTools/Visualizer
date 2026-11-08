@@ -9,7 +9,7 @@ import {
   averageRange,
   calculateDynamicGain,
   applySmoothValue,
-} from '../core/index.js'
+} from '../core/index'
 
 export const pixelSpectrum = {
   name_de: 'Pixel-Spektrum (8-Bit)',

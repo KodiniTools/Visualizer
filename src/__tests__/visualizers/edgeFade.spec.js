@@ -6,7 +6,7 @@ import {
   edgeFadeStrength,
   scaledDestRect,
   setEdgeFadeCanvasFactory,
-} from '../../lib/visualizers/core/edgeFade.js'
+} from '../../lib/visualizers/core/edgeFade'
 
 /** Context-Stub, der alle Aufrufe protokolliert (jsdom hat keinen 2D-Context). */
 function recordingCtx(calls = []) {

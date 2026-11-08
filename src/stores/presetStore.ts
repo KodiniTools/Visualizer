@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useVisualizerStore } from './visualizerStore'
-import { resolveVisualizerId } from '../lib/visualizers/aliases.js'
-import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource.js'
+import { resolveVisualizerId } from '../lib/visualizers/aliases'
+import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource'
 import { normalizeLedConfig } from '../lib/visualizers/gl/ledTextSettings.js'
-import { normalizeVisualizerShape } from '../lib/visualizers/core/visualizerShape.js'
+import { normalizeVisualizerShape } from '../lib/visualizers/core/visualizerShape'
 import { BUILT_IN_PRESETS } from '../data/builtInPresets'
 import type { VisualizerLayer } from './visualizer/useVisualizerLayers'
 

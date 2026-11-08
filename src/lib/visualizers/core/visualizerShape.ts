@@ -11,12 +11,14 @@
  */
 
 /** Zulässige Formen, in der Reihenfolge der Auswahl. */
-export const VISUALIZER_SHAPES = Object.freeze(['free', '1:1', '16:9', '2:3', 'circle'])
+export const VISUALIZER_SHAPES = Object.freeze(['free', '1:1', '16:9', '2:3', 'circle'] as const)
 
-export const DEFAULT_VISUALIZER_SHAPE = 'free'
+export type VisualizerShape = (typeof VISUALIZER_SHAPES)[number]
+
+export const DEFAULT_VISUALIZER_SHAPE: VisualizerShape = 'free'
 
 /** Seitenverhältnis (Breite / Höhe) je Form; 'free' hat keins. */
-const SHAPE_RATIOS = Object.freeze({
+const SHAPE_RATIOS: Readonly<Record<string, number>> = Object.freeze({
   '1:1': 1,
   '16:9': 16 / 9,
   '2:3': 2 / 3,
@@ -27,8 +29,8 @@ const SHAPE_RATIOS = Object.freeze({
  * @param {unknown} value
  * @returns {boolean}
  */
-export function isVisualizerShape(value) {
-  return VISUALIZER_SHAPES.includes(value)
+export function isVisualizerShape(value: unknown): value is VisualizerShape {
+  return (VISUALIZER_SHAPES as readonly unknown[]).includes(value)
 }
 
 /**
@@ -36,7 +38,7 @@ export function isVisualizerShape(value) {
  * @param {unknown} value
  * @returns {string}
  */
-export function normalizeVisualizerShape(value) {
+export function normalizeVisualizerShape(value: unknown): VisualizerShape {
   return isVisualizerShape(value) ? value : DEFAULT_VISUALIZER_SHAPE
 }
 
@@ -49,7 +51,11 @@ export function normalizeVisualizerShape(value) {
  * @param {string} shape
  * @returns {{x: number, y: number, w: number, h: number} | null}
  */
-export function shapeCropRect(srcW, srcH, shape) {
+export function shapeCropRect(
+  srcW: number,
+  srcH: number,
+  shape: string,
+): { x: number; y: number; w: number; h: number } | null {
   const ratio = SHAPE_RATIOS[shape]
   if (!ratio || srcW <= 0 || srcH <= 0) return null
   let w = srcW
@@ -71,7 +77,11 @@ export function shapeCropRect(srcW, srcH, shape) {
  * @param {string} shape
  * @returns {{width: number, height: number}}
  */
-export function shapeRenderSize(width, height, shape) {
+export function shapeRenderSize(
+  width: number,
+  height: number,
+  shape: string,
+): { width: number; height: number } {
   const rect = shapeCropRect(width, height, shape)
   if (!rect) return { width, height }
   return {
@@ -85,8 +95,10 @@ export function shapeRenderSize(width, height, shape) {
  * @param {(key: string) => string} t - i18n-Übersetzer
  * @returns {Array<{value: string, label: string}>}
  */
-export function visualizerShapeOptions(t) {
+export function visualizerShapeOptions(
+  t: (key: string) => string,
+): Array<{ value: VisualizerShape; label: string }> {
   // i18n-Schlüssel: '16:9' → 'r16x9'
-  const key = (value) => (value.includes(':') ? `r${value.replace(':', 'x')}` : value)
+  const key = (value: string) => (value.includes(':') ? `r${value.replace(':', 'x')}` : value)
   return VISUALIZER_SHAPES.map((value) => ({ value, label: t(`visualizer.shape.${key(value)}`) }))
 }

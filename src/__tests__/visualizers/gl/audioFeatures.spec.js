@@ -9,7 +9,7 @@ import {
   updateAudioFeatures,
   updateAudioFeaturesFromTime,
 } from '../../../lib/visualizers/gl/audioFeatures.js'
-import { visualizerState } from '../../../lib/visualizers/core/state.js'
+import { visualizerState } from '../../../lib/visualizers/core/state'
 
 function spectrum(bufferLength, fn) {
   const arr = new Uint8Array(bufferLength)

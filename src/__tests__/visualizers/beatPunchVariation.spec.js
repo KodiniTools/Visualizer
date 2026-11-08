@@ -9,8 +9,8 @@ import {
   punchScalesUniform,
   setPunchCanvasFactory,
   updatePunchVariation,
-} from '../../lib/visualizers/core/beatPunchVariation.js'
-import { advancePunch, punchScale } from '../../lib/visualizers/core/onsetReactive.js'
+} from '../../lib/visualizers/core/beatPunchVariation'
+import { advancePunch, punchScale } from '../../lib/visualizers/core/onsetReactive'
 
 /** Deterministische Zufallsfolge. */
 function seq(values) {

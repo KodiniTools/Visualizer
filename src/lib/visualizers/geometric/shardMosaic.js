@@ -10,7 +10,7 @@ import {
   rangeForBar,
   averageRange,
   applySmoothValue,
-} from '../core/index.js'
+} from '../core/index'
 
 export const shardMosaic = {
   name_de: 'Scherben-Mosaik',

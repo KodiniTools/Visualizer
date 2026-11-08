@@ -3,7 +3,7 @@
  * @module visualizers/effects/lightBeams
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const lightBeams = {
   name_de: 'Lichtstrahlen',

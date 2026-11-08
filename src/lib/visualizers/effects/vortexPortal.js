@@ -3,7 +3,7 @@
  * @module visualizers/effects/vortexPortal
  */
 
-import { hexToHsl, rangeForBar, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, rangeForBar, averageRange, withSafeCanvasState } from '../core/index'
 
 export const vortexPortal = {
   name_de: 'Vortex-Portal',

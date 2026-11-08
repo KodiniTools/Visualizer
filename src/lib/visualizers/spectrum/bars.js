@@ -14,7 +14,7 @@ import {
   applyDecay,
   drawRoundedBar,
   detectBeat,
-} from '../core/index.js'
+} from '../core/index'
 
 export const bars = {
   name_de: 'Balken (Ultra-Dynamisch)',

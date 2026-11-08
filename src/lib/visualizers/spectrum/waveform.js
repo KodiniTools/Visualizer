@@ -3,7 +3,7 @@
  * @module visualizers/spectrum/waveform
  */
 
-import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index.js'
+import { hexToHsl, averageRange, withSafeCanvasState } from '../core/index'
 
 export const waveform = {
   name_de: 'Wellenform (Frequenz-Enhanced)',

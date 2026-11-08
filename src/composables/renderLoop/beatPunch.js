@@ -3,12 +3,8 @@ import {
   drawPunchedBands,
   punchScalesUniform,
   updatePunchVariation,
-} from '../../lib/visualizers/core/beatPunchVariation.js'
-import {
-  onsetForSource,
-  advancePunch,
-  punchScale,
-} from '../../lib/visualizers/core/onsetReactive.js'
+} from '../../lib/visualizers/core/beatPunchVariation'
+import { onsetForSource, advancePunch, punchScale } from '../../lib/visualizers/core/onsetReactive'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**

@@ -67,9 +67,9 @@ function makeCanvas(label, width = 0, height = 0) {
 
 // ─── Modul-Attrappen ────────────────────────────────────────────────────────
 
-vi.mock('../../lib/visualizers/index.js', async () => {
+vi.mock('../../lib/visualizers/index', async () => {
   // Globaler Zustand, den Visualizer beim Zeichnen lesen (Bild, Onset-Effekte)
-  const { visualizerState } = await import('../../lib/visualizers/core/state.js')
+  const { visualizerState } = await import('../../lib/visualizers/core/state')
   const mk = (id, extra = {}) => ({
     init: (w, h) => L(`viz.${id}.init`, w, h),
     cleanup: () => L(`viz.${id}.cleanup`),
@@ -149,7 +149,7 @@ vi.mock('../../lib/postfx/index', () => ({
   },
 }))
 
-vi.mock('../../lib/visualizers/imageRegistry.js', () => ({
+vi.mock('../../lib/visualizers/imageRegistry', () => ({
   getVisualizerImageSource: (id) => (id ? { tag: `src:${id}` } : null),
   resolveEffectiveImageId: (id) => id ?? 'auto-img',
 }))

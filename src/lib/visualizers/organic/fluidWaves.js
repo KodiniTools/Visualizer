@@ -3,7 +3,7 @@
  * @module visualizers/organic/fluidWaves
  */
 
-import { visualizerState, hexToHsl, averageRange } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange } from '../core/index'
 
 export const fluidWaves = {
   name_de: 'Fluid-Wellen',

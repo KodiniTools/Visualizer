@@ -3,11 +3,11 @@
  * @module visualizers/core
  */
 
-export { CONSTANTS } from './constants.js'
-export { visualizerState } from './state.js'
-export { hexToHsl } from './colorUtils.js'
-export { Particle } from './Particle.js'
-export { onsetFlourish } from './onsetFlourish.js'
+export { CONSTANTS } from './constants'
+export { visualizerState } from './state'
+export { hexToHsl } from './colorUtils'
+export { Particle } from './Particle'
+export { onsetFlourish } from './onsetFlourish'
 export {
   expo01,
   rangeForBar,
@@ -34,7 +34,7 @@ export {
   // 🎨 Linear gradient cache
   getCachedLinearGradient,
   clearAllGradientCaches,
-} from './helpers.js'
+} from './helpers'
 
 // ✨ Input validation utilities
 export {
@@ -53,4 +53,4 @@ export {
   clampFrequencyIndex,
   safeGetAudioValue,
   validateAngle,
-} from './validation.js'
+} from './validation'

@@ -10,7 +10,7 @@ import {
   visualizerState,
   withSafeCanvasState,
   calculateDynamicGain,
-} from '../core/index.js'
+} from '../core/index'
 
 export const bars3D = {
   name_de: '3D-Balken (Perspektivisch)',

@@ -3,7 +3,7 @@
  * @module visualizers/particle/particleStorm
  */
 
-import { visualizerState, hexToHsl, averageRange, onsetFlourish } from '../core/index.js'
+import { visualizerState, hexToHsl, averageRange, onsetFlourish } from '../core/index'
 
 export const particleStorm = {
   name_de: 'Partikel-Sturm',

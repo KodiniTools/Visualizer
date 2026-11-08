@@ -10,7 +10,7 @@
  * @module visualizers/aliases
  */
 
-import { Visualizers } from './index.js'
+import { Visualizers } from './index'
 
 /** @type {Readonly<Record<string, string>>} classic id → GPU preset id */
 export const LEGACY_ALIASES = Object.freeze({
@@ -77,7 +77,7 @@ export const LEGACY_VISUALIZER_IDS = Object.freeze(Object.keys(LEGACY_ALIASES))
  * @param {string} id
  * @returns {boolean} true when `id` is a classic Canvas2D visualizer
  */
-export function isLegacyVisualizer(id) {
+export function isLegacyVisualizer(id: string): boolean {
   return Object.prototype.hasOwnProperty.call(LEGACY_ALIASES, id)
 }
 
@@ -90,10 +90,13 @@ export function isLegacyVisualizer(id) {
  * @param {Record<string, unknown>} [registry] defaults to the live registry
  * @returns {string|null}
  */
-export function resolveVisualizerId(id, registry = Visualizers) {
+export function resolveVisualizerId(
+  id: unknown,
+  registry: Record<string, unknown> = Visualizers,
+): string | null {
   if (typeof id !== 'string' || !id) return null
   if (registry[id]) return id
-  const alias = LEGACY_ALIASES[id]
+  const alias = (LEGACY_ALIASES as Readonly<Record<string, string>>)[id]
   if (alias && registry[alias]) return alias
   return null
 }

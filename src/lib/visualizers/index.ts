@@ -21,7 +21,7 @@ export {
   applySmoothValue,
   withSafeCanvasState,
   drawRoundedBar,
-} from './core/index.js'
+} from './core/index'
 
 // Import all visualizer categories
 import { spectrumVisualizers } from './spectrum/index.js'
@@ -32,14 +32,20 @@ import { techVisualizers } from './tech/index.js'
 import { retroVisualizers } from './retro/index.js'
 import { effectsVisualizers } from './effects/index.js'
 import { glVisualizers } from './gl/index.js'
+import type { VisualizerRegistry } from './core/types'
+
+export type {
+  VisualizerContext,
+  VisualizerDefinition,
+  VisualizerDrawFn,
+  VisualizerRegistry,
+} from './core/types'
 
 /**
  * All visualizers combined into a single object.
  * This maintains full backward compatibility with the original API.
- *
- * @type {Object.<string, {name_de: string, name_en: string, draw: Function, init?: Function, cleanup?: Function, needsTimeData?: boolean, kind?: 'gl'}>}
  */
-export const Visualizers = {
+export const Visualizers: VisualizerRegistry = {
   // Spectrum visualizers (bars, waveforms)
   ...spectrumVisualizers,
 

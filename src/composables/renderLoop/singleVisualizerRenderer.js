@@ -1,14 +1,14 @@
-import { drawScaledVisualizer } from '../../lib/visualizers/core/edgeFade.js'
-import { Visualizers } from '../../lib/visualizers/index.js'
+import { drawScaledVisualizer } from '../../lib/visualizers/core/edgeFade'
+import { Visualizers } from '../../lib/visualizers/index'
 import { workerManager } from '../../lib/workerManager'
-import { visualizerState } from '../../lib/visualizers/core/state.js'
-import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry.js'
+import { visualizerState } from '../../lib/visualizers/core/state'
+import { getVisualizerImageSource } from '../../lib/visualizers/imageRegistry'
 import { useHistoryStore } from '../../stores/historyStore'
 import { getHistoryRecorder } from '../../lib/history/historyRecorder'
 import { ensureSizedCanvas } from './canvasCache.js'
 import { gateAudioData } from './reactGate.js'
 import { applyPostFx } from './postFx.js'
-import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape.js'
+import { shapeRenderSize } from '../../lib/visualizers/core/visualizerShape'
 
 /**
  * Einzel-Visualizer: rendert bevorzugt in einem OffscreenCanvas-Worker (das

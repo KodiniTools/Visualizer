@@ -1,5 +1,5 @@
 import { nextTick, onMounted, onUnmounted } from 'vue'
-import { loadTextDefaults, settingsToAddTextOptions } from '../../lib/textDefaults.js'
+import { loadTextDefaults, settingsToAddTextOptions } from '../../lib/textDefaults'
 
 /** Stil für neue Texte, solange keine Standard-Stile gespeichert sind. */
 export const FALLBACK_TEXT_OPTIONS = Object.freeze({

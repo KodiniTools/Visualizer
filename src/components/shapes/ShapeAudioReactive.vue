@@ -25,7 +25,7 @@
  * erzeugt. Undo/Redo läuft über das History-Segment `shapes`.
  */
 import { ref } from 'vue'
-import { SHAPE_EFFECT_NAMES } from '../../lib/shapes/shapeAudio.js'
+import { SHAPE_EFFECT_NAMES } from '../../lib/shapes/shapeAudio'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'

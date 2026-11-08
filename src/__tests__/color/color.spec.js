@@ -13,7 +13,7 @@ import {
   setHslChannel,
   hslTrackGradients,
   HSL_RANGES,
-} from '../../lib/color.js'
+} from '../../lib/color'
 
 describe('color.js – clamp / normalizeHue', () => {
   it('clamps numbers and falls back to min for garbage', () => {

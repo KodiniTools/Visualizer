@@ -65,7 +65,7 @@ import {
   serializeTextToDefaults,
   saveTextDefaults,
   clearTextDefaults,
-} from '../../lib/textDefaults.js'
+} from '../../lib/textDefaults'
 import TextAnimationsPanel from './TextAnimationsPanel.vue'
 import { UiButton, UiIconButton } from '../ui/index.js'
 import TextContentSection from './text-edit/TextContentSection.vue'

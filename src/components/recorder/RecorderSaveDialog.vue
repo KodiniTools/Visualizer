@@ -36,7 +36,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { normalizeFilename } from '../../lib/saveFile.js'
+import { normalizeFilename } from '../../lib/saveFile'
 import UiButton from '../ui/UiButton.vue'
 import UiCallout from '../ui/UiCallout.vue'
 import UiDialog from '../ui/UiDialog.vue'

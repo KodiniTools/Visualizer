@@ -6,11 +6,11 @@ import {
   computeOpacity,
   computePosition,
   computeTextTransform,
-} from '../../lib/textManager/render/transform/index.js'
-import { buildFilterString } from '../../lib/textManager/render/filters.js'
-import { drawTextLines, drawTypewriterCursor } from '../../lib/textManager/render/textLines.js'
-import { drawText } from '../../lib/textManager/render/drawText.js'
-import { createTextObject } from '../../lib/textManager/createTextObject.js'
+} from '../../lib/textManager/render/transform/index'
+import { buildFilterString } from '../../lib/textManager/render/filters'
+import { drawTextLines, drawTypewriterCursor } from '../../lib/textManager/render/textLines'
+import { drawText } from '../../lib/textManager/render/drawText'
+import { createTextObject } from '../../lib/textManager/createTextObject'
 import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
 
 /**

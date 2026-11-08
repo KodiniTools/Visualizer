@@ -3,7 +3,7 @@ import { ref, nextTick, toRaw } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TextManagerPanel from '../../components/TextManagerPanel.vue'
-import { TextManager } from '../../lib/textManager.js'
+import { TextManager } from '../../lib/textManager'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 
 // Canvas-Manager-Attrappe mit echtem TextManager; unbekannte Methoden → vi.fn().

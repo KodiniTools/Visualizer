@@ -6,7 +6,7 @@ import {
   ensureSlideshowImagesLoaded,
   restorePresetImages,
   stockEntryFromRef,
-} from '../../lib/slideshowSources.js'
+} from '../../lib/slideshowSources'
 
 const up = (id, name) => ({ id, name, img: { src: `data:${id}` } })
 const st = (id, file, name = id) => ({ id, name, file, thumbnail: `${file}.thumb` })

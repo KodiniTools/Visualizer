@@ -11,7 +11,7 @@ import { resolveBackgroundPreset } from '../utils/backgroundPresets'
 import { useHistoryStore } from '../stores/historyStore'
 import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import { useShapeStore } from '../stores/shapeStore'
-import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes.js'
+import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes'
 import { useImageGallery } from './useImageGallery.js'
 import {
   captureBackgroundImageDefaults,

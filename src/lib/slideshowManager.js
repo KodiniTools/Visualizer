@@ -4,14 +4,14 @@ import {
   computeTransitionState,
   isValidTransition,
   resolveTransition,
-} from './slideshowTransitions.js'
+} from './slideshowTransitions'
 import {
   SLIDESHOW_BASE_COLOR_DEFAULT,
   normalizeSlideshowBaseColor,
   normalizeSlideshowGradient,
 } from './slideshowBaseColor'
 import { normalizeSlideshowFillAudio } from './slideshowFillAudio'
-import { normalizeSlideshowImageFill } from './slideshowImageFill.js'
+import { normalizeSlideshowImageFill } from './slideshowImageFill'
 import { applySlideshowAudioSource } from './slideshowAudio'
 import { positionBounds, resizeBounds } from './imageBoundsControls'
 

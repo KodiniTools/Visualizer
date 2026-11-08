@@ -6,7 +6,7 @@ import { useBeatMarkers } from '../../composables/useBeatMarkers.js'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import { TextManager } from '../../lib/textManager.js'
+import { TextManager } from '../../lib/textManager'
 
 const Host = defineComponent({
   setup() {

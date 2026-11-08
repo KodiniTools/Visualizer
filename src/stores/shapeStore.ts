@@ -6,18 +6,12 @@ import {
   DRAW_TOOLS,
   nextMarkerNumber,
   scaleShapesToCanvas,
-} from '../lib/shapes/shapes.js'
-import { ensureShapeAudioReactive, supportsShapeAudio } from '../lib/shapes/shapeAudio.js'
+  type Shape as BaseShape,
+} from '../lib/shapes/shapes'
+import { ensureShapeAudioReactive, supportsShapeAudio } from '../lib/shapes/shapeAudio'
 
-/** Eine Form auf dem Canvas (Felder je nach Typ, siehe lib/shapes/shapes.js). */
-export interface Shape {
-  id: string
-  type: string
-  x: number
-  y: number
-  width: number
-  height: number
-  number?: number
+/** Eine Form auf dem Canvas (Felder je nach Typ, siehe lib/shapes/shapes.ts). */
+export interface Shape extends BaseShape {
   audioReactive?: object | null
   [key: string]: unknown
 }

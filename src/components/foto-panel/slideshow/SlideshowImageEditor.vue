@@ -152,7 +152,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings'
 import { useI18n } from '../../../lib/i18n'
-import { isValidTransition } from '../../../lib/slideshowTransitions.js'
+import { isValidTransition } from '../../../lib/slideshowTransitions'
 import { isValidSlideshowAudioMode } from '../../../lib/slideshowAudio'
 import { audioModeOptions, transitionOptions } from './slideshowSelectOptions.js'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'

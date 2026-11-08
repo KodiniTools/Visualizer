@@ -6,7 +6,7 @@ import {
   isValidSlideshowAudioSource,
 } from '../lib/slideshowAudio'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig'
-import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions.js'
+import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions'
 import {
   SLIDESHOW_BASE_COLOR_DEFAULT,
   SLIDESHOW_GRADIENT_DEFAULT,
@@ -18,7 +18,7 @@ import {
   SLIDESHOW_IMAGE_FILL_DEFAULT,
   collectStoredImageFillKeys,
   normalizeSlideshowImageFill,
-} from '../lib/slideshowImageFill.js'
+} from '../lib/slideshowImageFill'
 import {
   SLIDESHOW_FILL_AUDIO_DEFAULT,
   normalizeSlideshowFillAudio,

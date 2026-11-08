@@ -470,11 +470,11 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { CUSTOM_FONTS } from '../../lib/fonts.js'
+import { CUSTOM_FONTS } from '../../lib/fonts'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useHistoryStore } from '../../stores/historyStore'
 import { getHistoryRecorder } from '../../lib/history/historyRecorder'
-import { SHAPES_FOCUS_TEXT_EVENT } from '../../lib/shapes/shapeInteraction.js'
+import { SHAPES_FOCUS_TEXT_EVENT } from '../../lib/shapes/shapeInteraction'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
@@ -507,7 +507,7 @@ import {
   isDrawToolItem,
   isHeightless,
   supportsShapeText,
-} from '../../lib/shapes/shapes.js'
+} from '../../lib/shapes/shapes'
 
 const props = defineProps({
   /** Canvas-Größe in px (Startgröße/-position neuer Formen, Reglerbereiche); 0 = Live-Canvas */

@@ -1,10 +1,10 @@
 import { onUnmounted, watch } from 'vue'
-import { drawShapeWithAudio, getShapeAudioFx } from '../lib/shapes/shapeAudio.js'
+import { drawShapeWithAudio, getShapeAudioFx } from '../lib/shapes/shapeAudio'
 import {
   createShapeInteraction,
   drawShapeSelection,
   getCanvasDisplayScale,
-} from '../lib/shapes/shapeInteraction.js'
+} from '../lib/shapes/shapeInteraction'
 import { getHistoryRecorder } from '../lib/history/historyRecorder'
 import { getAudioAnalysisData } from '../lib/audio/audioAnalysisData'
 

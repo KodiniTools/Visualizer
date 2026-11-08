@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { GridManager } from '../../lib/gridManager.js'
+import { GridManager } from '../../lib/gridManager'
 import { DragDropHandler } from '../../lib/canvasManager/interaction/DragDropHandler.js'
 import { useGridStore } from '../../stores/gridStore'
 import ControlsPanel from '../../components/ControlsPanel.vue'

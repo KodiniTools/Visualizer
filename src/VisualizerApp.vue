@@ -148,8 +148,8 @@ import ImageThumbnailBar from './components/canvas-bar/ImageThumbnailBar.vue'
 import ImagePreviewModal from './components/canvas-bar/ImagePreviewModal.vue'
 import ReplaceGalleryModal from './components/canvas-bar/ReplaceGalleryModal.vue'
 
-import { CUSTOM_FONTS } from './lib/fonts.js'
-import { FontManager } from './lib/fontManager.js'
+import { CUSTOM_FONTS } from './lib/fonts'
+import { FontManager } from './lib/fontManager'
 import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts.js'
 import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents.js'
 import {

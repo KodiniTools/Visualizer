@@ -72,7 +72,7 @@ import UiCallout from '../../ui/UiCallout.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import { useI18n } from '../../../lib/i18n'
-import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions.js'
+import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions'
 
 defineProps({
   hasSavedSettings: { type: Boolean, default: false },

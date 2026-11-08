@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { FONT_BASE_URL, fontUrl } from '../../lib/fontUrl'
-import { FontManager } from '../../lib/fontManager.js'
+import { FontManager } from '../../lib/fontManager'
 
 describe('fontUrl', () => {
   it('verweist auf den gemeinsamen Font-Ordner der Domain', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { TextManager } from '../../lib/textManager.js'
+import { TextManager } from '../../lib/textManager'
 import { MultiImageManager } from '../../lib/multiImageManager.js'
 import { VideoManager } from '../../lib/videoManager.js'
 

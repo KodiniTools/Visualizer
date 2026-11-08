@@ -150,7 +150,7 @@ import { useI18n } from '../../../lib/i18n'
 import SlideshowAudioSourceSelect from './SlideshowAudioSourceSelect.vue'
 import SliderControl from '../../ui/SliderControl.vue'
 import { UiButton, UiSelect, UiSwitch } from '../../ui/index.js'
-import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../../lib/slideshowImageFill.js'
+import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../../lib/slideshowImageFill'
 
 const props = defineProps({
   fill: { type: Object, required: true },

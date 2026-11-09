@@ -56,7 +56,7 @@ describe('Platzierungs-Einstellungen', () => {
       animationDuration: 2500,
       imageScale: 3,
       imageOffsetX: -40,
-      imageOffsetY: '25' as unknown as number, // aus Eingabefeld als Text
+      imageOffsetY: 25,
     })
     await nextTick()
     expect(JSON.parse(localStorage.getItem(PLACEMENT_KEYS.uploads)!)).toEqual({
@@ -95,6 +95,11 @@ describe('Platzierungs-Einstellungen', () => {
       false,
       false,
     ])
+  })
+
+  it('Zahlen als Text (alte Eingabefelder) werden beim Speichern umgewandelt', () => {
+    savePlacementSettings('uploads', { ...PLACEMENT_DEFAULTS, imageOffsetY: '25' })
+    expect(loadPlacementSettings('uploads').imageOffsetY).toBe(25)
   })
 
   it('eigene Bilder und Stock-Galerie sind getrennt', () => {

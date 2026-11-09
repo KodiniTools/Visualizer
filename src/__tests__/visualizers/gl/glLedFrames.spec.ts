@@ -10,8 +10,17 @@ import {
   glLedFrameRainbow,
 } from '../../../lib/visualizers/gl/presets/glLedFrames'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
-import type { GlPresetSpec, GlUniformMap } from '../../../lib/visualizers/gl/types'
+import type { GlPresetSpec, GlUniformContext } from '../../../lib/visualizers/gl/types'
 import { stub } from '../../helpers/canvasStubs'
+
+/** Uniform-Kontext wie im Render-Loop (diese Presets lesen ihn nicht) */
+const uniformCtx = (): GlUniformContext => ({
+  bands: new Float32Array(4),
+  onset: {},
+  time: 0,
+  dt: 0.016,
+  intensity: 1,
+})
 
 const PRESETS = [
   glLedFrameChase,
@@ -33,7 +42,7 @@ describe('gl/presets/glLedFrames', () => {
       expect(p.frag).toContain('ledLamp(')
       expect(p.frag).toContain('roundedBox(')
       expect(typeof p.fallback!.draw).toBe('function')
-      expect((p.uniforms as () => GlUniformMap)()).toEqual({ uLamps: FRAME_LAMPS, uLensSize: 0.38 })
+      expect(p.uniforms!(uniformCtx())).toEqual({ uLamps: FRAME_LAMPS, uLensSize: 0.38 })
     }
     // Jede Regel setzt Helligkeit und Farbton der Lampe.
     for (const v of Object.values(FRAME_VARIANTS)) {

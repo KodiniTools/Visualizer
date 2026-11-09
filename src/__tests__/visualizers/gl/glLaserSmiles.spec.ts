@@ -9,7 +9,16 @@ import {
   glLaserSmileSurprised,
 } from '../../../lib/visualizers/gl/presets/glLaserSmiles'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
-import type { GlPresetSpec, GlUniformMap } from '../../../lib/visualizers/gl/types'
+import type { GlPresetSpec, GlUniformContext } from '../../../lib/visualizers/gl/types'
+
+/** Uniform-Kontext wie im Render-Loop (diese Presets lesen ihn nicht) */
+const uniformCtx = (): GlUniformContext => ({
+  bands: new Float32Array(4),
+  onset: {},
+  time: 0,
+  dt: 0.016,
+  intensity: 1,
+})
 
 const PRESETS = [
   glLaserSmileHappy,
@@ -30,7 +39,7 @@ describe('gl/presets/glLaserSmiles', () => {
       expect(p.frag).toContain('float face(')
       expect(p.frag).toContain('laserGlow(')
       expect(typeof p.fallback!.draw).toBe('function')
-      expect((p.uniforms as () => GlUniformMap)()).toEqual({ uGhost: 0.5 })
+      expect(p.uniforms!(uniformCtx())).toEqual({ uGhost: 0.5 })
     }
     // Jedes Gesicht hat Kopf (Kreisring), Augen (Teil 1) und Mund (Teil 2).
     for (const v of Object.values(SMILE_VARIANTS)) {

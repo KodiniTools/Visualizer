@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import LandingPage from '../../components/LandingPage.vue'
@@ -11,7 +11,7 @@ import { setLocale } from '../../lib/i18n'
 // (der Store fängt das ab und nutzt die i18n-Standardtexte).
 const stubs = { AdminPanel: true, LoginModal: true }
 
-let wrapper
+let wrapper: VueWrapper
 let router
 
 async function mountLanding() {
@@ -61,7 +61,7 @@ describe('LandingPage – Blog-Abschnitt', () => {
 
   it('zeigt den neuesten Beitrag zuerst und öffnet Beiträge in neuem Tab', () => {
     const cards = wrapper.findAll('.blog-card')
-    expect(cards[0].attributes('href')).toBe('https://kodinitools.com/blog/visualizer-effekte/')
+    expect(cards[0]!.attributes('href')).toBe('https://kodinitools.com/blog/visualizer-effekte/')
     for (const card of cards) {
       expect(card.attributes('target')).toBe('_blank')
       expect(card.attributes('rel')).toContain('noopener')
@@ -71,7 +71,7 @@ describe('LandingPage – Blog-Abschnitt', () => {
 
   it('zeigt deutsche Texte und Datumsformat', () => {
     const first = wrapper.find('.blog-card')
-    expect(first.find('.blog-card-title').text()).toBe(blogArticles[0].title.de)
+    expect(first.find('.blog-card-title').text()).toBe(blogArticles[0]!.title.de)
     expect(first.find('.blog-card-meta').text()).toBe('21. September 2026 · 7 Min.')
     expect(first.find('.blog-card-link').text()).toBe('Artikel lesen')
   })
@@ -81,7 +81,7 @@ describe('LandingPage – Blog-Abschnitt', () => {
     await flushPromises()
     const first = wrapper.find('.blog-card')
     expect(first.attributes('href')).toBe('https://kodinitools.com/en/blog/visualizer-effects/')
-    expect(first.find('.blog-card-title').text()).toBe(blogArticles[0].title.en)
+    expect(first.find('.blog-card-title').text()).toBe(blogArticles[0]!.title.en)
     expect(first.find('.blog-card-meta').text()).toBe('September 21, 2026 · 7 min')
     expect(first.find('.blog-card-link').text()).toBe('Read article')
   })

@@ -16,7 +16,7 @@ import { dirname, join, relative } from 'node:path'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '../..')
 
-function walk(dir, out = []) {
+function walk(dir: string, out: string[] = []) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
     if (statSync(p).isDirectory()) {
@@ -29,17 +29,17 @@ function walk(dir, out = []) {
 }
 
 /** Alle CSS-Regelblöcke `selector { body }` eines Stylesheets, verschachtelt (@media) inklusive. */
-function rules(css) {
-  const out = []
-  const stack = []
+function rules(css: string) {
+  const out: { sel: string; body: string }[] = []
+  const stack: { sel: string; start: number }[] = []
   for (let i = 0; i < css.length; i++) {
     const c = css[i]
     if (c === '{') {
       let j = i - 1
-      while (j >= 0 && !';{}'.includes(css[j])) j--
+      while (j >= 0 && !';{}'.includes(css[j]!)) j--
       stack.push({ sel: css.slice(j + 1, i).trim(), start: i })
     } else if (c === '}' && stack.length) {
-      const { sel, start } = stack.pop()
+      const { sel, start } = stack.pop()!
       out.push({ sel, body: css.slice(start + 1, i) })
     }
   }

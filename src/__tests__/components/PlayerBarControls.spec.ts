@@ -3,8 +3,8 @@
 // Vorwärts, Wiedergabemodus), Undo/Redo, Popover-Knöpfe mit aktivem Zustand,
 // Stumm- und Aufnahme-Zustand. Zugriff über Titel und Rollen, damit die Tests
 // den Wechsel auf die Ui-Bausteine überstehen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import PlayerBarControls from '../../components/sticky-player-bar/PlayerBarControls.vue'
@@ -15,26 +15,27 @@ import { useRecorderStore } from '../../stores/recorderStore'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
 
 const P = de.player
-let wrapper
-let player
-let popover
-let cyclePlayMode
+let wrapper: VueWrapper | null
+let player: ReturnType<typeof usePlayerStore>
+let popover: ReturnType<typeof usePlayerPopover>
+let cyclePlayMode: Mock
 
 beforeEach(() => {
   setActivePinia(createPinia())
   localStorage.clear()
   player = usePlayerStore()
   popover = usePlayerPopover()
-  popover.closePopover?.()
+  ;(popover.closePopover as (name?: string) => void)?.()
   cyclePlayMode = vi.fn()
 })
 
 afterEach(() => {
   wrapper?.unmount()
   wrapper = null
-  popover.closePopover?.()
+  ;(popover.closePopover as (name?: string) => void)?.()
   document.body.innerHTML = ''
 })
 
@@ -55,18 +56,19 @@ async function mountBar() {
   return wrapper
 }
 
-const root = () => wrapper.element
-const byTitle = (title) => [...root().querySelectorAll('button')].find((b) => b.title === title)
-const byTitleStart = (start) =>
+const root = () => wrapper!.element
+const byTitle = (title: string) =>
+  [...root().querySelectorAll('button')].find((b) => b.title === title)
+const byTitleStart = (start: string) =>
   [...root().querySelectorAll('button')].find((b) => b.title.startsWith(start))
 /** Popover-Knopf gilt als offen: Klasse „active“ oder aria-pressed. */
-const isActive = (btn) =>
+const isActive = (btn: Element) =>
   btn.classList.contains('active') || btn.getAttribute('aria-pressed') === 'true'
 
 describe('Player-Leiste – Transport', () => {
   it('ohne Titel deaktiviert, mit Titel aktiv und an den Store gebunden', async () => {
     await mountBar()
-    for (const key of ['prev', 'play', 'stop', 'next']) {
+    for (const key of ['prev', 'play', 'stop', 'next'] as const) {
       expect(byTitle(P[key]).disabled, key).toBe(true)
     }
     expect(root().textContent).toContain(P.noTrackLoaded)
@@ -80,7 +82,7 @@ describe('Player-Leiste – Transport', () => {
       stop: vi.spyOn(player, 'stopPlayer').mockImplementation(() => {}),
       next: vi.spyOn(player, 'nextTrack').mockImplementation(() => {}),
     }
-    for (const key of Object.keys(spies)) {
+    for (const key of Object.keys(spies) as (keyof typeof spies)[]) {
       byTitle(P[key]).click()
       expect(spies[key], key).toHaveBeenCalledTimes(1)
     }
@@ -115,7 +117,7 @@ describe('Player-Leiste – Verlauf', () => {
     expect(undo.title).toContain(de.history.undoShortcut)
     expect(redo.getAttribute('aria-label')).toContain(de.history.redo)
 
-    const spy = vi.spyOn(history, 'undo').mockImplementation(() => {})
+    const spy = vi.spyOn(history, 'undo').mockImplementation(stub(() => {}))
     history.$patch({ history: [{ type: 'test', undo() {}, redo() {} }], currentIndex: 0 })
     await nextTick()
     expect(undo.disabled).toBe(false)
@@ -133,7 +135,7 @@ describe('Player-Leiste – Popover-Knöpfe', () => {
       ['openPlaylist', 'playlist'],
       ['openVisualizer', 'visualizer'],
       ['openRecorder', 'recorder'],
-    ]
+    ] as const
     for (const [key, id] of cases) {
       const btn = byTitle(P[key])
       expect(btn, key).toBeTruthy()

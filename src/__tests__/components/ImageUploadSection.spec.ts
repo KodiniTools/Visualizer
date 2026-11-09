@@ -3,24 +3,33 @@
 // Auswahl, Aktionen). Zugriff über Texte, Namen und Rollen statt CSS-Klassen,
 // damit die Tests den Wechsel auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import ImageUploadSection from '../../components/foto-panel/ImageUploadSection.vue'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
+import type { GalleryImage } from '../../composables/useImageGallery'
 
 const F = de.foto
 const gallery = [
   { id: '1', name: 'eins.webp', dimensions: '10×10', img: { src: 'data:,1' } },
   { id: '2', name: 'zwei.webp', dimensions: '20×20', img: { src: 'data:,2' } },
 ]
-let wrapper
+let wrapper: VueWrapper | null
 
-function mountSection({ images = gallery, selected = [] } = {}) {
+function mountSection({
+  images = gallery,
+  selected = [],
+}: { images?: typeof gallery; selected?: number[] } = {}) {
   const set = new Set(selected)
   wrapper = mount(ImageUploadSection, {
     attachTo: document.body,
-    props: { imageGallery: images, selectedImageIndices: set, selectedImageCount: set.size },
+    props: {
+      imageGallery: stub<GalleryImage[]>(images),
+      selectedImageIndices: set,
+      selectedImageCount: set.size,
+    },
     global: { stubs: { PlacementSettings: { template: '<div data-placement />' } } },
   })
   return wrapper
@@ -32,13 +41,13 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 const buttons = () => [...root().querySelectorAll('button')]
-const button = (name) =>
+const button = (name: string) =>
   buttons().find((b) => b.textContent.trim() === name || b.getAttribute('aria-label') === name)
 /** Galerie-Kachel über das Bild. */
-const tile = (i) =>
+const tile = (i: number) =>
   root()
     .querySelector(`img[src="data:,${i + 1}"]`)
     .closest('[draggable="true"]')
@@ -60,16 +69,18 @@ describe('Bild-Upload – Upload-Fläche', () => {
     root().querySelector('.upload-area').click()
     expect(click).toHaveBeenCalled()
     input.dispatchEvent(new Event('change'))
-    expect(wrapper.emitted('upload')).toHaveLength(1)
+    expect(wrapper!.emitted('upload')).toHaveLength(1)
   })
 
   it('Einfügen eines Bildes per Strg+V meldet upload mit der Datei', () => {
     mountSection({ images: [] })
     const file = new File(['x'], 'a.png', { type: 'image/png' })
-    const ev = new Event('paste')
+    const ev = new Event('paste') as Event & { clipboardData?: unknown }
     ev.clipboardData = { items: [{ kind: 'file', type: 'image/png', getAsFile: () => file }] }
     document.dispatchEvent(ev)
-    expect(wrapper.emitted('upload')[0][0].target.files).toEqual([file])
+    expect(
+      wrapper!.emitted<[{ target: { files: unknown } }]>('upload')![0]![0].target.files,
+    ).toEqual([file])
   })
 })
 
@@ -85,19 +96,19 @@ describe('Bild-Upload – Galerie', () => {
   it('Klick wählt, Doppelklick öffnet die Vorschau, Löschen nur dieses Bild', () => {
     mountSection()
     tile(1).click()
-    expect(wrapper.emitted('select-image')[0][0]).toBe(1)
+    expect(wrapper!.emitted('select-image')![0]![0]).toBe(1)
     tile(0).dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
-    expect(wrapper.emitted('open-preview')[0][0]).toEqual(gallery[0])
+    expect(wrapper!.emitted('open-preview')![0]![0]).toEqual(gallery[0])
     const del = [...tile(1).querySelectorAll('button')].pop()
     del.click()
-    expect(wrapper.emitted('delete-image')[0]).toEqual([1])
-    expect(wrapper.emitted('select-image')).toHaveLength(1)
+    expect(wrapper!.emitted('delete-image')![0]).toEqual([1])
+    expect(wrapper!.emitted('select-image')).toHaveLength(1)
   })
 
   it('Checkbox wählt additiv (ctrlKey)', () => {
     mountSection()
     tile(0).querySelector('[role="checkbox"]').click()
-    expect(wrapper.emitted('select-image')[0]).toEqual([0, { ctrlKey: true }])
+    expect(wrapper!.emitted('select-image')![0]).toEqual([0, { ctrlKey: true }])
   })
 
   it('Alle auswählen / Auswahl aufheben / Alle löschen', () => {
@@ -105,9 +116,9 @@ describe('Bild-Upload – Galerie', () => {
     button(F.selectAll).click()
     button(F.deselectAll).click()
     button(F.deleteAll).click()
-    expect(wrapper.emitted('select-all')).toHaveLength(1)
-    expect(wrapper.emitted('deselect-all')).toHaveLength(1)
-    expect(wrapper.emitted('clear-all')).toHaveLength(1)
+    expect(wrapper!.emitted('select-all')).toHaveLength(1)
+    expect(wrapper!.emitted('deselect-all')).toHaveLength(1)
+    expect(wrapper!.emitted('clear-all')).toHaveLength(1)
     expect(text()).toContain(`1 ${F.selected}`)
   })
 
@@ -115,8 +126,10 @@ describe('Bild-Upload – Galerie', () => {
     mountSection()
     tile(0).dispatchEvent(new Event('dragstart', { bubbles: true }))
     tile(0).dispatchEvent(new Event('dragend', { bubbles: true }))
-    expect(wrapper.emitted('image-dragstart')[0][0].imgData).toEqual(gallery[0])
-    expect(wrapper.emitted('image-dragend')).toHaveLength(1)
+    expect(wrapper!.emitted<[{ imgData: unknown }]>('image-dragstart')![0]![0].imgData).toEqual(
+      gallery[0],
+    )
+    expect(wrapper!.emitted('image-dragend')).toHaveLength(1)
   })
 })
 
@@ -126,9 +139,9 @@ describe('Bild-Upload – Aktionen', () => {
     button(F.placeOnCanvas).click()
     button(F.asBackground).click()
     button(F.asWorkspaceBackground).click()
-    expect(wrapper.emitted('add-to-canvas')).toHaveLength(1)
-    expect(wrapper.emitted('set-as-background')).toHaveLength(1)
-    expect(wrapper.emitted('set-as-workspace-background')).toHaveLength(1)
+    expect(wrapper!.emitted('add-to-canvas')).toHaveLength(1)
+    expect(wrapper!.emitted('set-as-background')).toHaveLength(1)
+    expect(wrapper!.emitted('set-as-workspace-background')).toHaveLength(1)
     expect(root().querySelector('[data-placement]')).toBeTruthy()
   })
 
@@ -182,7 +195,7 @@ describe('Bild-Upload – Ui-Bausteine', () => {
     expect(t0.getAttribute('aria-label')).toBe('eins.webp')
     expect(tile(1).getAttribute('aria-pressed')).toBe('true')
     t0.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
-    expect(wrapper.emitted('select-image')[0][0]).toBe(0)
+    expect(wrapper!.emitted('select-image')![0]![0]).toBe(0)
     const del = button(F.deleteImage)
     expect(del.classList.contains('ui-icon-button')).toBe(true)
     expect(text()).not.toMatch(/[✕✓]/u)
@@ -193,6 +206,6 @@ describe('Bild-Upload – Ui-Bausteine', () => {
     const cb = tile(1).querySelector('[role="checkbox"]')
     expect(cb.getAttribute('tabindex')).toBe('0')
     cb.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
-    expect(wrapper.emitted('select-image')[0]).toEqual([1, { ctrlKey: true }])
+    expect(wrapper!.emitted('select-image')![0]).toEqual([1, { ctrlKey: true }])
   })
 })

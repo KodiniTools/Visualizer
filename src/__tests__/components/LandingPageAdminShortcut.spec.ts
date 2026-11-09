@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import LandingPage from '../../components/LandingPage.vue'
@@ -8,7 +8,7 @@ import { setLocale } from '../../lib/i18n'
 // Admin-Zugang der Landing-Page: kein sichtbarer Button, nur Ctrl+Alt+Shift+V.
 const stubs = { AdminPanel: true, LoginModal: true }
 
-let wrapper
+let wrapper: VueWrapper | null
 
 async function mountLanding() {
   const router = createRouter({
@@ -25,7 +25,7 @@ async function mountLanding() {
   await flushPromises()
 }
 
-function press(init) {
+function press(init: KeyboardEventInit) {
   window.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init }))
   return flushPromises()
 }
@@ -50,15 +50,15 @@ afterEach(() => {
 describe('LandingPage – Admin-Tastenkürzel', () => {
   it('zeigt keinen Admin-Button mehr', async () => {
     await mountLanding()
-    expect(wrapper.find('.admin-fab').exists()).toBe(false)
-    expect(wrapper.text()).not.toContain('Admin')
+    expect(wrapper!.find('.admin-fab').exists()).toBe(false)
+    expect(wrapper!.text()).not.toContain('Admin')
   })
 
   it('öffnet den Login mit Ctrl+Alt+Shift+V', async () => {
     await mountLanding()
-    expect(wrapper.findComponent({ name: 'LoginModal' }).exists()).toBe(false)
+    expect(wrapper!.findComponent({ name: 'LoginModal' }).exists()).toBe(false)
     await press(SHORTCUT)
-    expect(wrapper.findComponent({ name: 'LoginModal' }).exists()).toBe(true)
+    expect(wrapper!.findComponent({ name: 'LoginModal' }).exists()).toBe(true)
   })
 
   it('reagiert nicht auf unvollständige Kombinationen oder Wiederholungen', async () => {
@@ -69,33 +69,33 @@ describe('LandingPage – Admin-Tastenkürzel', () => {
     await press({ ...SHORTCUT, code: 'KeyB' })
     await press({ ...SHORTCUT, metaKey: true })
     await press({ ...SHORTCUT, repeat: true })
-    expect(wrapper.findComponent({ name: 'LoginModal' }).exists()).toBe(false)
+    expect(wrapper!.findComponent({ name: 'LoginModal' }).exists()).toBe(false)
   })
 
   it('schaltet eingeloggt den Bearbeitungs-Drawer um und schließt ihn per ✕', async () => {
     localStorage.setItem('visualizer_auth_token', 'test-token')
     await mountLanding()
-    expect(wrapper.find('.admin-drawer').exists()).toBe(false)
+    expect(wrapper!.find('.admin-drawer').exists()).toBe(false)
 
     await press(SHORTCUT)
-    expect(wrapper.find('.admin-drawer').exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'LoginModal' }).exists()).toBe(false)
+    expect(wrapper!.find('.admin-drawer').exists()).toBe(true)
+    expect(wrapper!.findComponent({ name: 'LoginModal' }).exists()).toBe(false)
 
     await press(SHORTCUT)
-    expect(wrapper.find('.admin-drawer').exists()).toBe(false)
+    expect(wrapper!.find('.admin-drawer').exists()).toBe(false)
 
     await press(SHORTCUT)
-    await wrapper.find('.admin-drawer-bar button').trigger('click')
-    expect(wrapper.find('.admin-drawer').exists()).toBe(false)
+    await wrapper!.find('.admin-drawer-bar button').trigger('click')
+    expect(wrapper!.find('.admin-drawer').exists()).toBe(false)
   })
 
   it('entfernt den Listener beim Unmount', async () => {
     await mountLanding()
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = null
     const spy = vi.spyOn(window, 'removeEventListener')
     await mountLanding()
-    wrapper.unmount()
+    wrapper!.unmount()
     expect(spy).toHaveBeenCalledWith('keydown', expect.any(Function))
     spy.mockRestore()
     wrapper = null

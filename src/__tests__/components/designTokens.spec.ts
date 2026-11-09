@@ -16,7 +16,7 @@ const SRC = join(dirname(fileURLToPath(import.meta.url)), '../..')
 // lib/style.css ist ein nicht eingebundenes Alt-Stylesheet; design-system/ hält die Literale.
 const SKIP = ['design-system', '__tests__', join('lib', 'style.css')]
 
-function collect(dir, out = []) {
+function collect(dir: string, out: string[] = []) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
     if (SKIP.some((s) => full.includes(s))) continue
@@ -34,15 +34,15 @@ const sheets = collect(SRC).flatMap((file) => {
     : [src]
   return blocks.map((css) => [
     relative(SRC, file),
-    css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@font-face\s*\{[^}]*\}/g, ''),
+    css!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@font-face\s*\{[^}]*\}/g, ''),
   ])
 })
 
 /** Treffer `datei: fund` für ein Muster (mit g-Flag) in allen Style-Blöcken. */
-function find(pattern, filter = () => true) {
-  const hits = []
+function find(pattern: RegExp, filter: (m: RegExpMatchArray) => boolean = () => true) {
+  const hits: string[] = []
   for (const [file, css] of sheets) {
-    for (const m of css.matchAll(pattern)) {
+    for (const m of css!.matchAll(pattern)) {
       if (filter(m)) hits.push(`${file}: ${m[0].trim().replace(/\s+/g, ' ').slice(0, 80)}`)
     }
   }
@@ -51,10 +51,10 @@ function find(pattern, filter = () => true) {
 
 /** Regeln `selektor { body }` (flach; @media-Blöcke liefern ihre inneren Regeln). */
 function rules() {
-  const out = []
+  const out: { file: string; sel: string; body: string }[] = []
   for (const [file, css] of sheets) {
-    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      out.push({ file, sel: m[1].trim(), body: m[2] })
+    for (const m of css!.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      out.push({ file: file!, sel: m[1]!.trim(), body: m[2]! })
     }
   }
   return out
@@ -79,20 +79,20 @@ describe('Design-Tokens in Komponenten-Styles', () => {
 
   it('Schriftfamilie nur über Tokens', () => {
     const allowed = /^(var\(--ds-font-(sans|mono)\)|var\(--font-sans\)|inherit)$/
-    expect(find(/font-family:\s*([^;]+)/g, (m) => !allowed.test(m[1].trim()))).toEqual([])
+    expect(find(/font-family:\s*([^;]+)/g, (m) => !allowed.test(m[1]!.trim()))).toEqual([])
   })
 
   it('nur die drei Radien (sm, md, lg) und full', () => {
     const hits = find(
       /border(-[a-z]+)*-radius:\s*([^;]+)/g,
-      (m) => !/^calc\(/.test(m[2].trim()) && /\b[1-9][0-9]*(px|%|rem)/.test(m[2]),
+      (m) => !/^calc\(/.test(m[2]!.trim()) && /\b[1-9][0-9]*(px|%|rem)/.test(m[2]!),
     )
     expect(hits).toEqual([])
   })
 
   it('Schatten nur als Fokus-Ring, Overlay oder 1-px-Innenrahmen; kein Blur, kein Text-Schatten', () => {
     const shadows = find(/box-shadow:\s*([^;]+)/g, (m) => {
-      const v = m[1].trim()
+      const v = m[1]!.trim()
       if (['none', 'var(--ds-focus-ring)', 'var(--ds-shadow-overlay)'].includes(v)) return false
       return !/^inset 0 0 0 1px .+$/.test(v)
     })
@@ -121,7 +121,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
 
   it('Dauern nur aus den Tokens (Ausnahme: lineare Fortschritts-Übergänge ≤ 0,1 s)', () => {
     const hits = find(/transition:\s*([^;]+)/g, (m) =>
-      [...m[1].matchAll(/([0-9.]+)(ms|s)\b/g)].some(
+      [...m[1]!.matchAll(/([0-9.]+)(ms|s)\b/g)].some(
         ([, n, unit]) => Number(n) * (unit === 'ms' ? 0.001 : 1) >= 0.12,
       ),
     )

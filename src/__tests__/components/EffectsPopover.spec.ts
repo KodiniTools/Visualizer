@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import EffectsPopover from '../../components/sticky-player-bar/EffectsPopover.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 
-let wrapper
-let closePopover
+let wrapper: VueWrapper
+let closePopover: Mock
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -49,7 +49,7 @@ describe('EffectsPopover', () => {
     const before = store.bloomEnabled
 
     const bloom = wrapper.findAll('.fx-toggle [role="switch"]')[0]
-    await bloom.trigger('click')
+    await bloom!.trigger('click')
     expect(store.bloomEnabled).toBe(!before)
   })
 })

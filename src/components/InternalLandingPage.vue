@@ -187,7 +187,7 @@ const CustomizeIcon = () =>
 
 // Feature cards with translations
 const featureCards = computed(() => {
-  const _ = locale.value // Reactivity dependency
+  void locale.value // Reactivity dependency
   // Listen-Schlüssel: t() liefert hier das Array aus den Übersetzungen
   const cards = t('internalLanding.features.cards') as unknown as FeatureCard[]
   const icons = [VisualizerIcon, VideoIcon, CustomizeIcon]

@@ -72,7 +72,9 @@ function resizeCanvas(w: number, h: number) {
   if (postProcessor) {
     try {
       postProcessor.resize(width, height)
-    } catch {}
+    } catch {
+      // Fehler bewusst ignorieren, damit der Worker weiterläuft
+    }
   }
 }
 
@@ -111,7 +113,9 @@ function renderFrame({
     if (lastVisualizerId && Visualizers[lastVisualizerId]) {
       try {
         Visualizers[lastVisualizerId]?.cleanup?.()
-      } catch {}
+      } catch {
+        // Fehler bewusst ignorieren, damit der Worker weiterläuft
+      }
     }
     visualizer.init?.(width, height)
     lastVisualizerId = visualizerId
@@ -119,7 +123,9 @@ function renderFrame({
     if (postProcessor) {
       try {
         postProcessor.clearHistory()
-      } catch {}
+      } catch {
+        // Fehler bewusst ignorieren, damit der Worker weiterläuft
+      }
     }
   }
 
@@ -128,7 +134,9 @@ function renderFrame({
   ctx.globalAlpha = colorOpacity ?? 1
   try {
     visualizer.draw(ctx, audioData, bufferLength, width, height, color, opacity)
-  } catch {}
+  } catch {
+    // Fehler bewusst ignorieren, damit der Worker weiterläuft
+  }
   ctx.restore()
 
   // Zentraler Post-Processing-Pass (Bloom / Trails) — verstärkt alle Visualizer
@@ -138,7 +146,9 @@ function renderFrame({
     if (proc) {
       try {
         proc.apply(offscreenCanvas, postFx as PostFxConfig, quality ?? 1) // shouldRunPostFx: nicht null
-      } catch {}
+      } catch {
+        // Fehler bewusst ignorieren, damit der Worker weiterläuft
+      }
     }
   }
 
@@ -183,7 +193,9 @@ scope.onmessage = function (e) {
       if (lastVisualizerId && Visualizers[lastVisualizerId]) {
         try {
           Visualizers[lastVisualizerId]?.cleanup?.()
-        } catch {}
+        } catch {
+          // Fehler bewusst ignorieren, damit der Worker weiterläuft
+        }
       }
       lastVisualizerId = null
       break

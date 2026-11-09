@@ -3,14 +3,16 @@
 // Zugriff über sichtbare Texte statt CSS-Klassen, damit die Tests den Wechsel
 // auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import ImagePreviewModal from '../../components/canvas-bar/ImagePreviewModal.vue'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
+import type { CanvasImage } from '../../lib/multiImageManager'
 
 const A = de.app
-let wrapper
+let wrapper: VueWrapper | null
 
 const imageData = {
   id: 'img-1',
@@ -38,7 +40,7 @@ function mountModal(props = {}) {
     attachTo: document.body,
     props: {
       showImagePreview: true,
-      previewImageData: imageData,
+      previewImageData: stub<CanvasImage>(imageData),
       previewImageIndex: 1,
       canvasImagesCount: 3,
       pendingReplaceImageSrc: null,
@@ -58,9 +60,9 @@ afterEach(() => {
 })
 
 const body = () => document.body
-const text = () => body().textContent.replace(/\s+/g, ' ')
+const text = () => body().textContent!.replace(/\s+/g, ' ')
 const buttons = () => [...body().querySelectorAll('button')]
-const button = (label) => buttons().find((b) => b.textContent.includes(label))
+const button = (label: string) => buttons().find((b) => b.textContent!.includes(label))
 /** Die abgedunkelte Ebene hinter dem Dialog. */
 const overlay = () =>
   body().querySelector('[role="dialog"]')?.parentElement ??
@@ -111,22 +113,22 @@ describe('Bildvorschau – Anzeige', () => {
 describe('Bildvorschau – Schließen', () => {
   it('Klick auf den Hintergrund schließt', () => {
     const fns = mountModal()
-    overlay().dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    overlay()!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(fns.closeImagePreview).toHaveBeenCalledTimes(1)
   })
 
   it('Klick in die Vorschau schließt nicht', () => {
     const fns = mountModal()
-    body().querySelector(`img[src="${imageData.imageObject.src}"]`).click()
+    body().querySelector<HTMLElement>(`img[src="${imageData.imageObject.src}"]`)!.click()
     expect(fns.closeImagePreview).not.toHaveBeenCalled()
   })
 
   it('Schließen-Knopf schließt', () => {
     const fns = mountModal()
     const close = buttons().find(
-      (b) => b.getAttribute('aria-label') === de.common.close || b.textContent.trim() === '×',
+      (b) => b.getAttribute('aria-label') === de.common.close || b.textContent!.trim() === '×',
     )
-    close.click()
+    close!.click()
     expect(fns.closeImagePreview).toHaveBeenCalledTimes(1)
   })
 })
@@ -135,17 +137,17 @@ describe('Bildvorschau – Ersetzen', () => {
   it('„Bild hochladen“ öffnet die Dateiauswahl, Auswahl geht an den Handler', () => {
     const clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {})
     const fns = mountModal()
-    button(A.uploadImage).click()
+    button(A.uploadImage)!.click()
     expect(clickSpy).toHaveBeenCalledTimes(1)
     const input = body().querySelector('input[type="file"]')
-    expect(input.getAttribute('accept')).toBe('image/*')
-    input.dispatchEvent(new Event('change'))
+    expect(input!.getAttribute('accept')).toBe('image/*')
+    input!.dispatchEvent(new Event('change'))
     expect(fns.handleReplaceCanvasImage).toHaveBeenCalledTimes(1)
   })
 
   it('„Aus Galerie“ öffnet die Ersatz-Galerie', () => {
     const fns = mountModal()
-    button(A.fromGallery).click()
+    button(A.fromGallery)!.click()
     expect(fns.openReplaceGallery).toHaveBeenCalledTimes(1)
   })
 
@@ -159,9 +161,9 @@ describe('Bildvorschau – Ersetzen', () => {
     const fns = mountModal({ pendingReplaceImageSrc: 'data:image/png;base64,NEW' })
     expect(text()).toContain(A.newImagePreview)
     expect(body().querySelector('img[src="data:image/png;base64,NEW"]')).toBeTruthy()
-    button(de.common.cancel).click()
+    button(de.common.cancel)!.click()
     expect(fns.cancelPendingReplace).toHaveBeenCalledTimes(1)
-    button(A.confirmReplace).click()
+    button(A.confirmReplace)!.click()
     expect(fns.confirmPendingReplace).toHaveBeenCalledTimes(1)
   })
 })
@@ -171,15 +173,15 @@ describe('Bildvorschau – Ui-Bausteine', () => {
     const fns = mountModal()
     const dialog = body().querySelector('[role="dialog"]')
     expect(dialog).toBeTruthy()
-    const titleId = dialog.getAttribute('aria-labelledby')
-    expect(document.getElementById(titleId).textContent).toBe(A.imagePreview)
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    const titleId = dialog!.getAttribute('aria-labelledby')
+    expect(document.getElementById(titleId!)!.textContent).toBe(A.imagePreview)
+    dialog!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     expect(fns.closeImagePreview).toHaveBeenCalledTimes(1)
   })
 
   it('Bildinformationen als Begriffsliste, Bilder mit Alternativtext', () => {
     mountModal({ pendingReplaceImageSrc: 'data:image/png;base64,NEW' })
-    const terms = [...body().querySelectorAll('dt')].map((el) => el.textContent.trim())
+    const terms = [...body().querySelectorAll('dt')].map((el) => el.textContent!.trim())
     expect(terms).toEqual([A.layer, A.dimensions, A.position, de.common.size])
     for (const img of body().querySelectorAll('img')) expect(img.getAttribute('alt')).toBeTruthy()
   })
@@ -187,16 +189,16 @@ describe('Bildvorschau – Ui-Bausteine', () => {
   it('offene Ersatz-Galerie: Escape und Hintergrund schließen die Vorschau nicht', () => {
     const fns = mountModal({ replaceGalleryOpen: true })
     const dialog = body().querySelector('[role="dialog"]')
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
-    overlay().dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    dialog!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    overlay()!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(fns.closeImagePreview).not.toHaveBeenCalled()
   })
 
   it('Knöpfe sind Ui-Buttons, Bestätigen ist primär', () => {
     mountModal({ pendingReplaceImageSrc: 'data:image/png;base64,NEW' })
     for (const label of [A.uploadImage, A.fromGallery, de.common.cancel]) {
-      expect(button(label).classList.contains('ui-button--secondary')).toBe(true)
+      expect(button(label)!.classList.contains('ui-button--secondary')).toBe(true)
     }
-    expect(button(A.confirmReplace).classList.contains('ui-button--primary')).toBe(true)
+    expect(button(A.confirmReplace)!.classList.contains('ui-button--primary')).toBe(true)
   })
 })

@@ -2,8 +2,8 @@
 // Charakterisierung von Filter-Preset und Rückgängig/Wiederholen/Zurücksetzen
 // (Foto-Panel, Bildbearbeitung). Läuft mit dem echten useImageFilterControls,
 // Zugriff über Beschriftungen statt CSS-Klassen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { computed, defineComponent, h, nextTick, provide, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import PresetAndHistory from '../../components/foto-panel/image-filters/PresetAndHistory.vue'
@@ -12,15 +12,16 @@ import { useHistoryStore } from '../../stores/historyStore'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
 
 const F = de.foto
 const PRESETS = [
   { id: 'warm', name: 'Warm', name_de: 'Warm DE', name_en: 'Warm EN' },
   { id: 'bw', name: 'Schwarzweiß' },
 ]
-let wrapper
-let controls
-let emit
+let wrapper: VueWrapper | null
+let controls: ReturnType<typeof useImageFilterControls>
+let emit: Mock
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -50,10 +51,10 @@ function mountSection() {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const select = () => root().querySelector('select')
 /** Knopf über seinen sichtbaren Text. */
-const button = (name) =>
+const button = (name: string) =>
   [...root().querySelectorAll('button')].find((b) => b.textContent.trim() === name)
 
 describe('Filter-Preset', () => {
@@ -110,11 +111,11 @@ describe('Verlauf', () => {
     const history = useHistoryStore()
     expect(button(F.undo).disabled).toBe(true)
     expect(button(F.redo).disabled).toBe(true)
-    const undo = vi.spyOn(history, 'undo').mockImplementation(() => true)
-    const redo = vi.spyOn(history, 'redo').mockImplementation(() => true)
+    const undo = vi.spyOn(history, 'undo').mockImplementation(stub(() => true))
+    const redo = vi.spyOn(history, 'redo').mockImplementation(stub(() => true))
     vi.spyOn(history, 'canUndo', 'get').mockReturnValue(true)
     vi.spyOn(history, 'canRedo', 'get').mockReturnValue(true)
-    wrapper.unmount()
+    wrapper!.unmount()
     mountSection()
     expect(button(F.undo).disabled).toBe(false)
     button(F.undo).click()
@@ -141,7 +142,7 @@ describe('Preset & Verlauf – Ui-Bausteine', () => {
 
   it('Composable hält die Preset-Auswahl als Zustand statt DOM-Ref', () => {
     mountSection()
-    expect(controls.presetSelectRef).toBeUndefined()
+    expect((controls as unknown as Record<string, unknown>).presetSelectRef).toBeUndefined()
     controls.loadImageSettings({ preset: 'bw' })
     expect(controls.selectedPreset.value).toBe('bw')
   })

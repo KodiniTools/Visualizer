@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { defineComponent, ref, nextTick, type Ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import CanvasControlPopover from '../../components/sticky-player-bar/CanvasControlPopover.vue'
 import { useBgSettings } from '../../composables/useBgSettings'
 import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
+import type { StubTarget } from '../helpers/canvasStubs'
 
 // Canvas-Manager-Attrappe. Das Hintergrund-Composable ruft viele Methoden auf;
 // unbekannte Zugriffe liefern daher automatisch eine leere Mock-Funktion.
@@ -15,7 +16,7 @@ function canvasManagerStub() {
     backgroundImage: null,
     redrawCallback: vi.fn(),
   }
-  return new Proxy(base, {
+  return new Proxy<StubTarget>(base, {
     get(target, prop) {
       if (prop in target) return target[prop]
       if (typeof prop === 'symbol') return undefined
@@ -47,8 +48,8 @@ const BarStub = defineComponent({
   template: '<div><CanvasControlPopover v-if="open" /></div>',
 })
 
-let wrapper
-let canvasManager
+let wrapper: VueWrapper<InstanceType<typeof BarStub>>
+let canvasManager: Ref<StubTarget>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -90,8 +91,9 @@ describe('CanvasControlPopover', () => {
   })
 
   it('behält den Hintergrund-Zustand über Schließen und erneutes Öffnen', async () => {
-    wrapper.vm.bg.backgroundColor = '#123456'
-    wrapper.vm.bg.gradientEnabled = true
+    const bg = wrapper.vm.bg as unknown as Record<string, unknown>
+    bg.backgroundColor = '#123456'
+    bg.gradientEnabled = true
     await nextTick()
 
     await wrapper.setProps({ open: false })
@@ -99,8 +101,8 @@ describe('CanvasControlPopover', () => {
     await wrapper.setProps({ open: true })
     await nextTick()
 
-    expect(wrapper.vm.bg.backgroundColor).toBe('#123456')
-    expect(wrapper.vm.bg.gradientEnabled).toBe(true)
+    expect(bg.backgroundColor).toBe('#123456')
+    expect(bg.gradientEnabled).toBe(true)
     expect(wrapper.find('.spb-popover-canvascontrol .panel').exists()).toBe(true)
   })
 })

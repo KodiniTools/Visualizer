@@ -3,24 +3,28 @@
 // Zugriff über Bilder, Texte und Labels statt CSS-Klassen, damit die Tests
 // den Wechsel auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import ImageThumbnailBar from '../../components/canvas-bar/ImageThumbnailBar.vue'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
+import type { CanvasImage } from '../../lib/multiImageManager'
 
 const A = de.app
-let wrapper
+let wrapper: VueWrapper | null
 
 beforeAll(() => {
   // jsdom kennt keinen ResizeObserver
-  globalThis.ResizeObserver ??= class {
-    observe() {}
-    disconnect() {}
-  }
+  globalThis.ResizeObserver ??= stub(
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
 })
 
-const makeImages = (n) =>
+const makeImages = (n: number) =>
   Array.from({ length: n }, (_, i) => ({
     id: `img-${i}`,
     imageObject: { src: `data:image/png;base64,${i}` },
@@ -42,7 +46,7 @@ function mountBar(props = {}) {
   wrapper = mount(ImageThumbnailBar, {
     attachTo: document.body,
     props: {
-      canvasImages: makeImages(3),
+      canvasImages: stub<CanvasImage[]>(makeImages(3)),
       selectedCanvasImageId: null,
       draggedImageIndex: null,
       dragOverIndex: null,
@@ -60,11 +64,12 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 const imgs = () => [...root().querySelectorAll('img')]
-const thumbImg = (i) => root().querySelector(`img[src="data:image/png;base64,${i}"]`)
-const fire = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true, cancelable: true }))
+const thumbImg = (i: number) => root().querySelector(`img[src="data:image/png;base64,${i}"]`)
+const fire = (el: EventTarget, type: string) =>
+  el.dispatchEvent(new Event(type, { bubbles: true, cancelable: true }))
 const deleteButtons = () =>
   [...root().querySelectorAll('button')].filter(
     (b) => (b.getAttribute('aria-label') || b.getAttribute('title')) === A.deleteImage,
@@ -150,7 +155,7 @@ describe('Bildleiste – Ui-Bausteine und Zugänglichkeit', () => {
   it('Vorschaubilder sind Knöpfe mit Ebene als Name und aria-pressed', () => {
     mountBar({ selectedCanvasImageId: 'img-1' })
     const group = root().querySelector('[role="group"]')
-    expect(document.getElementById(group.getAttribute('aria-labelledby')).textContent).toBe(
+    expect(document.getElementById(group.getAttribute('aria-labelledby'))!.textContent).toBe(
       A.imagesOnCanvas,
     )
     const thumbs = [...group.querySelectorAll('button[aria-pressed]')]

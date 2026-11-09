@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import ImageUploadSection from '../../components/foto-panel/ImageUploadSection.vue'
 import { useImageGallery } from '../../composables/useImageGallery'
+import { stub } from '../helpers/canvasStubs'
+import type { GalleryImage } from '../../composables/useImageGallery'
 
 const gallery = [
   { id: '1', name: 'eins.webp', dimensions: '10×10', img: { src: 'data:,1' } },
@@ -10,13 +12,13 @@ const gallery = [
   { id: '3', name: 'drei.webp', dimensions: '10×10', img: { src: 'data:,3' } },
 ]
 
-let wrapper
+let wrapper: VueWrapper
 afterEach(() => wrapper?.unmount())
 
-function mountSection(selected = new Set()) {
+function mountSection(selected = new Set<number>()) {
   wrapper = mount(ImageUploadSection, {
     props: {
-      imageGallery: gallery,
+      imageGallery: stub<GalleryImage[]>(gallery),
       selectedImageIndices: selected,
       selectedImageCount: selected.size,
     },
@@ -27,17 +29,17 @@ function mountSection(selected = new Set()) {
 describe('Galerie – Mehrfachauswahl per Checkbox', () => {
   it('Checkbox-Klick emittiert additive Auswahl (ctrlKey), ohne Bild-Klick auszulösen', async () => {
     const w = mountSection()
-    await w.findAll('.selection-checkbox')[1].trigger('click')
+    await w.findAll('.selection-checkbox')[1]!.trigger('click')
     const events = w.emitted('select-image')
     expect(events).toHaveLength(1)
-    expect(events[0][0]).toBe(1)
-    expect(events[0][1]).toEqual({ ctrlKey: true })
+    expect(events![0]![0]).toBe(1)
+    expect(events![0]![1]).toEqual({ ctrlKey: true })
   })
 
   it('Klick aufs Bild bleibt Einzelauswahl (normales Event)', async () => {
     const w = mountSection()
-    await w.findAll('.thumbnail-item')[2].trigger('click')
-    const [index, event] = w.emitted('select-image')[0]
+    await w.findAll('.thumbnail-item')[2]!.trigger('click')
+    const [index, event] = w.emitted<[number, MouseEvent]>('select-image')![0]!
     expect(index).toBe(2)
     expect(event.ctrlKey).toBe(false)
   })
@@ -61,7 +63,7 @@ describe('useImageGallery – Checkbox-Auswahl', () => {
   it('zwei Checkbox-Klicks ergeben zwei ausgewählte Bilder (Slideshow ab 2)', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     const g = useImageGallery()
-    g.imageGallery.value = gallery.map((x) => ({ ...x }))
+    g.imageGallery.value = stub(gallery.map((x) => ({ ...x })))
     g.deselectAllImages()
     g.selectImage(0, { ctrlKey: true })
     g.selectImage(2, { ctrlKey: true })

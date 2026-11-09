@@ -2,14 +2,24 @@
 // Stock-Galerie (GalleryPanel): verbindet die Auswahl aus StockGallerySection
 // mit Canvas und Bild-Manager. Composable und Kind-Komponenten sind ersetzt,
 // geprüft werden die Aufrufe an Canvas/Manager und die Rückmeldungen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
-import { ref, computed, h } from 'vue'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
+import { ref, computed, h, type Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { useToastStore } from '../../stores/toastStore'
 import de from '../../lib/i18n/de'
 
-const stock = vi.hoisted(() => ({}))
+type StockImage = { id: string; name: string }
+/** Ersatz für useStockGallery (nur die Felder, die die Specs lesen) */
+interface FakeStock {
+  stockCategories: Ref<unknown[]>
+  selectedStockImagesList: Ref<StockImage[]>
+  loadStockGallery: Mock
+  deselectAllStockImages: Mock
+  loadStockImageObject: Mock
+}
+
+const stock = vi.hoisted(() => ({}) as FakeStock)
 
 vi.mock('../../composables/useStockGallery', () => ({ useStockGallery: () => stock }))
 vi.mock('../../composables/useGalleryCanvasDrop', () => ({
@@ -26,14 +36,19 @@ const Overlay = {
   render: () => h('div'),
 }
 
-let wrapper
-let canvas
-let images
-let toasts
+let wrapper: VueWrapper
+let canvas: {
+  canvas: { width: number; height: number }
+  setBackground: Mock
+  setWorkspaceBackground: Mock
+  startImageSelectionMode: Mock
+}
+let images: { addImage: Mock; addImageWithBounds: Mock }
+let toasts: ReturnType<typeof useToastStore>
 const img1 = { id: 's1', name: 'Berg' }
 const img2 = { id: 's2', name: 'See' }
 
-function resetStock(selected = []) {
+function resetStock(selected: StockImage[] = []) {
   const list = ref(selected)
   Object.assign(stock, {
     stockCategories: ref([]),
@@ -49,7 +64,7 @@ function resetStock(selected = []) {
     selectStockImage: vi.fn(),
     selectAllStockImages: vi.fn(),
     deselectAllStockImages: vi.fn(() => (list.value = [])),
-    loadStockImageObject: vi.fn(async (s) => ({ src: `blob:${s.id}`, stock: s.id })),
+    loadStockImageObject: vi.fn(async (s: StockImage) => ({ src: `blob:${s.id}`, stock: s.id })),
   })
 }
 
@@ -76,7 +91,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function mountPanel(selected = []) {
+function mountPanel(selected: StockImage[] = []) {
   resetStock(selected)
   wrapper = mount(GalleryPanel, {
     global: {
@@ -88,7 +103,7 @@ function mountPanel(selected = []) {
 }
 
 const section = () => wrapper.findComponent(Section)
-async function emit(name, ...args) {
+async function emit(name: string, ...args: unknown[]) {
   section().vm.$emit(name, ...args)
   await flushPromises()
 }
@@ -115,7 +130,9 @@ describe('GalleryPanel – auf den Canvas', () => {
     mountPanel([img1, img2])
     await emit('add-to-canvas')
     expect(images.addImage).toHaveBeenCalledTimes(2)
-    expect(toasts.success).toHaveBeenCalledWith(de.toast.imagesAddedToCanvas.replace('{count}', 2))
+    expect(toasts.success).toHaveBeenCalledWith(
+      de.toast.imagesAddedToCanvas.replace('{count}', '2'),
+    )
     expect(stock.deselectAllStockImages).toHaveBeenCalled()
   })
 
@@ -136,7 +153,7 @@ describe('GalleryPanel – auf den Canvas', () => {
       imageOffsetY: -50,
     })
     await emit('add-directly')
-    const [img, bounds, animation, opts] = images.addImageWithBounds.mock.calls[0]
+    const [img, bounds, animation, opts] = images.addImageWithBounds.mock.calls[0]!
     expect(img.stock).toBe('s1')
     expect(bounds.relWidth).toBeCloseTo(0.3)
     expect(bounds.relX).toBeCloseTo(0.6 - 0.15)
@@ -168,10 +185,10 @@ describe('GalleryPanel – Hintergrund und Bereich', () => {
     mountPanel([img1])
     await emit('start-range-selection')
     expect(canvas.startImageSelectionMode).toHaveBeenCalledTimes(1)
-    const [done] = canvas.startImageSelectionMode.mock.calls[0]
+    const [done] = canvas.startImageSelectionMode.mock.calls[0]!
     done({ relX: 0.1, relY: 0.2, relWidth: 0.4, relHeight: 0.2 })
     await flushPromises()
-    const [, bounds] = images.addImageWithBounds.mock.calls[0]
+    const [, bounds] = images.addImageWithBounds.mock.calls[0]!
     expect(bounds).toMatchObject({ relX: 0.1, relY: 0.2, relWidth: 0.4, relHeight: 0.2 })
     expect(stock.deselectAllStockImages).toHaveBeenCalled()
   })
@@ -179,7 +196,7 @@ describe('GalleryPanel – Hintergrund und Bereich', () => {
   it('abgebrochene Bereichsauswahl fügt nichts hinzu', async () => {
     mountPanel([img1])
     await emit('start-range-selection')
-    canvas.startImageSelectionMode.mock.calls[0][0](null)
+    canvas.startImageSelectionMode.mock.calls[0]![0](null)
     expect(images.addImageWithBounds).not.toHaveBeenCalled()
   })
 })

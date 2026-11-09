@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import LandingPage from '../../components/LandingPage.vue'
@@ -10,7 +10,7 @@ import en from '../../lib/i18n/en'
 // Hero-Visual der Landing-Page: statisches Bild statt animierter Balken.
 const stubs = { AdminPanel: true, LoginModal: true }
 
-let wrapper
+let wrapper: VueWrapper
 
 async function mountLanding() {
   const router = createRouter({

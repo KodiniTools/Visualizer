@@ -2,7 +2,7 @@
 // Preset-Panel: eingebaute Vorlagen anwenden, eigenes Preset speichern und
 // löschen, Rückmeldung per Toast.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import PresetPanel from '../../components/PresetPanel.vue'
@@ -10,11 +10,12 @@ import { BUILT_IN_PRESETS } from '../../data/builtInPresets'
 import { usePresetStore } from '../../stores/presetStore'
 import { useToastStore } from '../../stores/toastStore'
 import de from '../../lib/i18n/de'
+import { stub } from '../helpers/canvasStubs'
 
 const P = de.presets
-let wrapper
-let presets
-let toasts
+let wrapper: VueWrapper | null
+let presets: ReturnType<typeof usePresetStore>
+let toasts: ReturnType<typeof useToastStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -39,20 +40,20 @@ async function mountPanel(props = { embedded: true }) {
   return wrapper
 }
 
-const cards = () => wrapper.findAll('.presets-grid').at(0).findAll('button')
-const nameInput = () => wrapper.find(`input[placeholder="${P.namePlaceholder}"]`)
-const saveButton = () => wrapper.findAll('button').find((b) => b.text().includes(P.save))
+const cards = () => wrapper!.findAll('.presets-grid').at(0)!.findAll('button')
+const nameInput = () => wrapper!.find<HTMLInputElement>(`input[placeholder="${P.namePlaceholder}"]`)
+const saveButton = () => wrapper!.findAll('button').find((b) => b.text().includes(P.save))
 
 describe('PresetPanel – Vorlagen', () => {
   it('zeigt alle eingebauten Vorlagen mit Untertitel', async () => {
     await mountPanel()
     expect(cards()).toHaveLength(BUILT_IN_PRESETS.length)
     const multi = BUILT_IN_PRESETS.findIndex((p) => p.visualizer.mode === 'multi')
-    const count = BUILT_IN_PRESETS[multi].visualizer.layers.length
-    expect(cards()[multi].text()).toContain(`${count} ${P.layers}`)
-    const needsImage = BUILT_IN_PRESETS.findIndex((p) => p.needsImage)
+    const count = (BUILT_IN_PRESETS[multi]!.visualizer as { layers: unknown[] }).layers.length
+    expect(cards()[multi]!.text()).toContain(`${count} ${P.layers}`)
+    const needsImage = BUILT_IN_PRESETS.findIndex((p) => (p as { needsImage?: boolean }).needsImage)
     if (needsImage >= 0) {
-      expect(cards()[needsImage].attributes('title')).toContain(P.needsImageHint)
+      expect(cards()[needsImage]!.attributes('title')).toContain(P.needsImageHint)
     }
   })
 
@@ -60,21 +61,21 @@ describe('PresetPanel – Vorlagen', () => {
     const success = vi.spyOn(toasts, 'success')
     await mountPanel()
     const preset = BUILT_IN_PRESETS[1]
-    await cards()[1].trigger('click')
+    await cards()[1]!.trigger('click')
     expect(presets.applyPreset).toHaveBeenCalledWith(preset, { value: null })
-    expect(cards()[1].classes()).toContain('active')
-    expect(success).toHaveBeenCalledWith(P.applied.replace('{name}', preset.name))
+    expect(cards()[1]!.classes()).toContain('active')
+    expect(success).toHaveBeenCalledWith(P.applied.replace('{name}', preset!.name))
   })
 })
 
 describe('PresetPanel – eigene Presets', () => {
   it('Speichern nur mit Namen, Name wird getrimmt und geleert', async () => {
-    const save = vi.spyOn(presets, 'saveCurrentAsPreset').mockImplementation(() => {})
+    const save = vi.spyOn(presets, 'saveCurrentAsPreset').mockImplementation(stub(() => {}))
     const success = vi.spyOn(toasts, 'success')
     await mountPanel()
-    expect(saveButton().attributes('disabled')).toBeDefined()
+    expect(saveButton()!.attributes('disabled')).toBeDefined()
     await nameInput().setValue('  Mein Look  ')
-    expect(saveButton().attributes('disabled')).toBeUndefined()
+    expect(saveButton()!.attributes('disabled')).toBeUndefined()
     await nameInput().trigger('keydown', { key: 'Enter' })
     expect(save).toHaveBeenCalledWith('Mein Look', { value: null })
     expect(nameInput().element.value).toBe('')
@@ -92,8 +93,8 @@ describe('PresetPanel – eigene Presets', () => {
     }
     localStorage.setItem('visualizer-user-presets', JSON.stringify([stored]))
     await mountPanel()
-    expect(wrapper.text()).toContain(P.myPresets)
-    const card = wrapper.find('.user-preset')
+    expect(wrapper!.text()).toContain(P.myPresets)
+    const card = wrapper!.find('.user-preset')
     expect(card.text()).toContain('Gespeichert')
     await card.find('.preset-apply-area').trigger('click')
     expect(presets.applyPreset).toHaveBeenCalledWith(expect.objectContaining({ id: 'user-1' }), {
@@ -101,14 +102,14 @@ describe('PresetPanel – eigene Presets', () => {
     })
     await card.find(`button[title="${de.common.delete}"]`).trigger('click')
     expect(presets.userPresets).toHaveLength(0)
-    expect(wrapper.text()).not.toContain(P.myPresets)
-    expect(JSON.parse(localStorage.getItem('visualizer-user-presets'))).toEqual([])
+    expect(wrapper!.text()).not.toContain(P.myPresets)
+    expect(JSON.parse(localStorage.getItem('visualizer-user-presets')!)).toEqual([])
   })
 
   it('ohne embedded mit eigenem Kopf zum Einklappen', async () => {
     await mountPanel({ embedded: false })
-    expect(wrapper.find('.panel-header').text()).toContain(P.title)
-    await wrapper.find('.panel-header').trigger('click')
-    expect(wrapper.find('.panel-body').isVisible()).toBe(false)
+    expect(wrapper!.find('.panel-header').text()).toContain(P.title)
+    await wrapper!.find('.panel-header').trigger('click')
+    expect(wrapper!.find('.panel-body').isVisible()).toBe(false)
   })
 })

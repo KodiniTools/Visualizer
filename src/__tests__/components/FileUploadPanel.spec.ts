@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 // Audio-Upload: Dateiauswahl, Drag & Drop (Dateien und Ordner), Einfügen per
 // Strg+V. Nur Audiodateien landen in der Playlist, mit Toast als Rückmeldung.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest'
+import { mount, flushPromises, type DOMWrapper, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import FileUploadPanel from '../../components/FileUploadPanel.vue'
 import { usePlayerStore } from '../../stores/playerStore'
@@ -10,11 +10,12 @@ import { useToastStore } from '../../stores/toastStore'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
 
-let wrapper
-let player
-let addTracks
-let success
+let wrapper: VueWrapper
+let player: ReturnType<typeof usePlayerStore>
+let addTracks: MockInstance<ReturnType<typeof usePlayerStore>['addTracks']>
+let success: MockInstance
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -30,13 +31,13 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const audio = (name, type = 'audio/mpeg') => new File(['x'], name, { type })
-const text = (name) => new File(['x'], name, { type: 'text/plain' })
-const added = () => addTracks.mock.calls.flatMap(([files]) => files.map((f) => f.name))
-const toastFor = (n) => de.toast.tracksAdded.replace('{count}', n)
+const audio = (name: string, type = 'audio/mpeg') => new File(['x'], name, { type })
+const text = (name: string) => new File(['x'], name, { type: 'text/plain' })
+const added = () => addTracks.mock.calls.flatMap(([files]) => (files as File[]).map((f) => f.name))
+const toastFor = (n: number) => de.toast.tracksAdded.replace('{count}', String(n))
 
 /** Datei-Input füllen und change auslösen (jsdom: files per defineProperty). */
-async function select(input, files) {
+async function select(input: DOMWrapper<Element>, files: File[]) {
   Object.defineProperty(input.element, 'files', { value: files, configurable: true })
   await input.trigger('change')
 }
@@ -57,16 +58,16 @@ describe('FileUploadPanel – Dateiauswahl', () => {
   })
 
   it('Knöpfe öffnen Datei- bzw. Ordnerauswahl', async () => {
-    const [fileInput, folderInput] = wrapper.findAll('input[type="file"]')
-    const fileClick = vi.spyOn(fileInput.element, 'click')
-    const folderClick = vi.spyOn(folderInput.element, 'click')
+    const [fileInput, folderInput] = wrapper.findAll<HTMLInputElement>('input[type="file"]')
+    const fileClick = vi.spyOn(fileInput!.element, 'click')
+    const folderClick = vi.spyOn(folderInput!.element, 'click')
     const buttons = wrapper.findAll('.upload-area button')
     expect(buttons).toHaveLength(2)
-    await buttons[0].trigger('click')
-    await buttons[1].trigger('click')
+    await buttons[0]!.trigger('click')
+    await buttons[1]!.trigger('click')
     expect(fileClick).toHaveBeenCalled()
     expect(folderClick).toHaveBeenCalled()
-    expect(folderInput.attributes()).toHaveProperty('webkitdirectory')
+    expect(folderInput!.attributes()).toHaveProperty('webkitdirectory')
   })
 })
 
@@ -88,13 +89,13 @@ describe('FileUploadPanel – Drag & Drop', () => {
   })
 
   it('durchsucht abgelegte Ordner rekursiv', async () => {
-    const fileEntry = (f) => ({ isFile: true, file: (ok) => ok(f) })
-    const dirEntry = (children) => {
+    const fileEntry = (f: File) => ({ isFile: true, file: (ok: (file: File) => void) => ok(f) })
+    const dirEntry = (children: unknown[]) => {
       let done = false
       return {
         isDirectory: true,
         createReader: () => ({
-          readEntries: (ok) => {
+          readEntries: (ok: (entries: unknown[]) => void) => {
             const batch = done ? [] : children
             done = true
             ok(batch)
@@ -111,7 +112,7 @@ describe('FileUploadPanel – Drag & Drop', () => {
       { webkitGetAsEntry: () => tree },
       { webkitGetAsEntry: () => null, getAsFile: () => audio('3.m4a', '') },
     ]
-    const ev = new Event('drop', { cancelable: true })
+    const ev = new Event('drop', { cancelable: true }) as Event & { dataTransfer?: unknown }
     ev.dataTransfer = { items }
     wrapper.find('.upload-area').element.dispatchEvent(ev)
     await flushPromises()
@@ -122,8 +123,8 @@ describe('FileUploadPanel – Drag & Drop', () => {
 
 describe('FileUploadPanel – Einfügen', () => {
   it('Strg+V mit Audiodatei fügt sie hinzu, Text wird ignoriert', () => {
-    const paste = (items) => {
-      const ev = new Event('paste')
+    const paste = (items: object[]) => {
+      const ev = new Event('paste') as Event & { clipboardData?: unknown }
       ev.clipboardData = { items }
       document.dispatchEvent(ev)
     }
@@ -135,7 +136,7 @@ describe('FileUploadPanel – Einfügen', () => {
 
   it('nach dem Entfernen kein Einfügen mehr', () => {
     wrapper.unmount()
-    const ev = new Event('paste')
+    const ev = new Event('paste') as Event & { clipboardData?: unknown }
     ev.clipboardData = {
       items: [{ kind: 'file', type: 'audio/mpeg', getAsFile: () => audio('x.mp3') }],
     }
@@ -148,7 +149,7 @@ describe('FileUploadPanel – Einfügen', () => {
 describe('FileUploadPanel – Anzeige', () => {
   it('zeigt die Anzahl der Titel, sobald welche geladen sind', async () => {
     expect(wrapper.find('.tracks-info').exists()).toBe(false)
-    player.playlist.push({ name: 'a' }, { name: 'b' })
+    player.playlist.push(stub({ name: 'a' }), stub({ name: 'b' }))
     await flushPromises()
     expect(wrapper.find('.tracks-info').text()).toContain('2')
     expect(wrapper.find('.upload-area').text()).toContain('2')

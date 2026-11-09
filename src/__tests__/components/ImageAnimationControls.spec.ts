@@ -2,7 +2,7 @@
 // Bild-Animationen wie bei Texten: Abschnitte, Rahmen, Auswahl am Canvas-Bild
 // und Vorgaben für neue Bilder im Upload-Bereich.
 import { describe, it, expect, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick, reactive, toRaw } from 'vue'
 import ImageAnimationSections from '../../components/foto-panel/image-animation/ImageAnimationSections.vue'
 import ImageAnimationPanel from '../../components/foto-panel/image-animation/ImageAnimationPanel.vue'
@@ -11,12 +11,15 @@ import ImageUploadSection from '../../components/foto-panel/ImageUploadSection.v
 import {
   createImageAnimation,
   getImageAnimationTransform,
+  type ImageTimedAnimation,
 } from '../../lib/canvasObjects/imageAnimation'
 import de from '../../lib/i18n/de'
+import { stub } from '../helpers/canvasStubs'
+import type { GalleryImage } from '../../composables/useImageGallery'
 
 const TM = de.textManager
 const CANVAS = { width: 1000, height: 500 }
-let wrapper
+let wrapper: VueWrapper | null
 
 afterEach(() => {
   wrapper?.unmount()
@@ -24,7 +27,7 @@ afterEach(() => {
 })
 
 /** Knopf „Aktiviert/Deaktiviert“ des Abschnitts `key` */
-const toggleOf = (w, key) => w.find(`[data-effect="${key}"] button`)
+const toggleOf = (w: VueWrapper, key: string) => w.find(`[data-effect="${key}"] button`)
 
 describe('ImageAnimationSections', () => {
   it('zeigt Fade, Scale und Slide mit den Text-Beschriftungen', () => {
@@ -40,7 +43,7 @@ describe('ImageAnimationSections', () => {
     wrapper = mount(ImageAnimationSections, { props: { animation } })
     await toggleOf(wrapper, 'slide').trigger('click')
     expect(animation.slide.enabled).toBe(true)
-    expect(wrapper.emitted('toggle')[0]).toEqual(['slide', true])
+    expect(wrapper.emitted('toggle')![0]).toEqual(['slide', true])
     expect(wrapper.text()).toContain(TM.slideFrom)
   })
 
@@ -48,12 +51,13 @@ describe('ImageAnimationSections', () => {
     const animation = reactive(createImageAnimation())
     animation.fade.enabled = true
     wrapper = mount(ImageAnimationSections, { props: { animation, restartable: false } })
-    const headerButtons = () => wrapper.find('[data-effect="fade"] .button-group').findAll('button')
+    const headerButtons = () =>
+      wrapper!.find('[data-effect="fade"] .button-group').findAll('button')
     expect(headerButtons()).toHaveLength(1)
     await wrapper.setProps({ restartable: true })
     const buttons = headerButtons()
-    await buttons[1].trigger('click')
-    expect(wrapper.emitted('restart')[0]).toEqual(['fade'])
+    await buttons[1]!.trigger('click')
+    expect(wrapper.emitted('restart')![0]).toEqual(['fade'])
   })
 })
 
@@ -77,12 +81,12 @@ describe('ImageAnimationPanel', () => {
 
 describe('ImageAnimationControls (ausgewähltes Canvas-Bild)', () => {
   it('Auswahl allein ändert das Bild nicht; Einschalten legt timedAnimation an', async () => {
-    const image = reactive({ id: 1 })
+    const image = reactive<{ id: number; timedAnimation?: ImageTimedAnimation }>({ id: 1 })
     wrapper = mount(ImageAnimationControls, { props: { image } })
     expect(image.timedAnimation).toBeUndefined()
     await toggleOf(wrapper, 'fade').trigger('click')
-    expect(image.timedAnimation.fade.enabled).toBe(true)
-    expect(image.timedAnimation.slide.enabled).toBe(false)
+    expect(image.timedAnimation!.fade.enabled).toBe(true)
+    expect(image.timedAnimation!.slide.enabled).toBe(false)
   })
 
   it('„Neu starten“ setzt den Ablauf des Bildes zurück', async () => {
@@ -96,7 +100,7 @@ describe('ImageAnimationControls (ausgewähltes Canvas-Bild)', () => {
 
     wrapper = mount(ImageAnimationControls, { props: { image } })
     const buttons = wrapper.find('[data-effect="fade"]').findAll('button')
-    await buttons[1].trigger('click')
+    await buttons[1]!.trigger('click')
     expect(getImageAnimationTransform(raw, CANVAS, t0 + 6000).opacity).toBe(0)
   })
 
@@ -113,10 +117,10 @@ describe('ImageAnimationControls (ausgewähltes Canvas-Bild)', () => {
 
 describe('ImageUploadSection: Animation beim Hinzufügen', () => {
   const gallery = [{ id: '1', name: 'eins.webp', dimensions: '10×10', img: { src: 'data:,1' } }]
-  const mountUpload = (selected, newImageAnimation) =>
+  const mountUpload = (selected: number[], newImageAnimation: ImageTimedAnimation | null) =>
     mount(ImageUploadSection, {
       props: {
-        imageGallery: gallery,
+        imageGallery: stub<GalleryImage[]>(gallery),
         selectedImageIndices: new Set(selected),
         selectedImageCount: selected.length,
         newImageAnimation,

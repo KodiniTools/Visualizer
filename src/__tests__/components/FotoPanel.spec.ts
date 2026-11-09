@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref, nextTick, toRaw } from 'vue'
 
@@ -10,11 +10,53 @@ import { ref, nextTick, toRaw } from 'vue'
  * Slideshow). Die Kind-Komponenten sind gestubbt.
  */
 
+/** Methoden der Slideshow-Manager-Attrappe (alle vi.fn()) */
+type FakeSlideshowMethod =
+  | 'pause'
+  | 'resume'
+  | 'stop'
+  | 'applyLiveUpdate'
+  | 'setMoveWholeSlideshow'
+  | 'clearImageMemory'
+  | 'setBackgroundMode'
+  | 'setBackgroundColor'
+  | 'setWorkspaceColor'
+  | 'setBaseGradient'
+  | 'setBaseFillAudio'
+  | 'setBaseImage'
+  | 'setRenderBehindVisualizer'
+  | 'setTransform'
+  | 'setImageAdjustments'
+  | 'setImagePosition'
+  | 'setImageSize'
+  | 'setImageBounds'
+  | 'start'
+  | 'getImageAdjustments'
+  | 'getImageBounds'
+  | 'isFittedToWorkspace'
+  | 'getEffectiveImageBounds'
+  | 'getFittedImageBounds'
+
+/** Slideshow-Manager-Attrappe, wie die Specs sie lesen */
+interface FakeSlideshow extends Record<FakeSlideshowMethod, Mock> {
+  args: { multiImageManager: unknown; fotoManager: unknown }
+  callbacks: Record<string, (...args: unknown[]) => unknown>
+  isActive: boolean
+}
+
 // Slideshow-Manager-Attrappe: merkt sich Konstruktor-Callbacks und Aufrufe
-const managers = []
+const managers: FakeSlideshow[] = []
 vi.mock('../../lib/slideshowManager', () => {
   class FakeSlideshowManager {
-    constructor(multiImageManager, fotoManager, callbacks) {
+    [key: string]: unknown
+    declare args: FakeSlideshow['args']
+    declare callbacks: FakeSlideshow['callbacks']
+    declare isActive: boolean
+    constructor(
+      multiImageManager: unknown,
+      fotoManager: unknown,
+      callbacks: FakeSlideshow['callbacks'],
+    ) {
       this.args = { multiImageManager, fotoManager }
       this.callbacks = callbacks
       this.isActive = false
@@ -50,7 +92,7 @@ vi.mock('../../lib/slideshowManager', () => {
         relHeight: 0.2,
       }))
       this.getFittedImageBounds = vi.fn(() => ({ relWidth: 0.5, relHeight: 0.25 }))
-      managers.push(this)
+      managers.push(this as unknown as FakeSlideshow)
     }
   }
   return { SlideshowManager: FakeSlideshowManager }
@@ -70,15 +112,16 @@ import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSetti
 import { SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
 import { getFotoPanel } from '../../lib/fotoPanelBridge'
 import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge'
+import { stub } from '../helpers/canvasStubs'
 
-function img(name, w = 100, h = 50) {
+function img(name: string, w = 100, h = 50) {
   return { src: `data:,${name}`, naturalWidth: w, naturalHeight: h, tag: name }
 }
 
 function makeManagers() {
   const multiImageManager = {
     canvas: { width: 1000, height: 500 },
-    images: [],
+    images: [] as unknown[],
     addImage: vi.fn(),
     addImageWithBounds: vi.fn(),
     getImageIndex: vi.fn(() => 1),
@@ -104,16 +147,16 @@ function makeManagers() {
   return { multiImageManager, fotoManager, canvasManager }
 }
 
-let wrapper
-let m
-let toast
+let wrapper: VueWrapper | null
+let m: ReturnType<typeof makeManagers>
+let toast: ReturnType<typeof useToastStore>
 
 async function mountPanel() {
   m = makeManagers()
   const pinia = createPinia()
   setActivePinia(pinia)
   toast = useToastStore()
-  for (const k of ['success', 'error', 'warning', 'info']) vi.spyOn(toast, k)
+  for (const k of ['success', 'error', 'warning', 'info'] as const) vi.spyOn(toast, k)
   wrapper = mount(FotoPanel, {
     global: {
       plugins: [pinia],
@@ -156,15 +199,15 @@ async function mountPanel() {
   return wrapper
 }
 
-const upload = () => wrapper.findComponent(ImageUploadSection)
-const filters = () => wrapper.findComponent(ImageFiltersPanel)
-const slideshow = () => wrapper.findComponent(SlideshowPanel)
-const preview = () => wrapper.findComponent(ImagePreviewOverlay)
+const upload = () => wrapper!.findComponent(ImageUploadSection)
+const filters = () => wrapper!.findComponent(ImageFiltersPanel)
+const slideshow = () => wrapper!.findComponent(SlideshowPanel)
+const preview = () => wrapper!.findComponent(ImagePreviewOverlay)
 const latestManager = () => managers.at(-1)
 
-function selectGallery(...entries) {
+function selectGallery(...entries: object[]) {
   const g = useImageGallery()
-  g.imageGallery.value = entries
+  g.imageGallery.value = stub(entries)
   g.selectedImageIndices.value = new Set(entries.map((_, i) => i))
 }
 
@@ -192,9 +235,9 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     await mountPanel()
     expect(filters().props('presets')).toEqual([{ id: 'vintage' }])
     const panel = getFotoPanel()
-    expect(panel.currentActiveImage).toBe(useImageAudioReactive().currentActiveImage)
-    expect(typeof panel.loadImageSettings).toBe('function')
-    expect(window.fotoPanelControls).toBeUndefined()
+    expect(panel!.currentActiveImage).toBe(useImageAudioReactive().currentActiveImage)
+    expect(typeof panel!.loadImageSettings).toBe('function')
+    expect((window as unknown as Record<string, unknown>).fotoPanelControls).toBeUndefined()
   })
 
   it('fügt ausgewählte Bilder zum Canvas hinzu und hebt die Auswahl auf', async () => {
@@ -260,10 +303,11 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     upload().vm.$emit('start-range-selection')
     await nextTick()
     expect(upload().props('isInRangeSelectionMode')).toBe(true)
-    const [onDone, anim] = m.canvasManager.startImageSelectionMode.mock.calls[0]
+    const [onDone, anim] = m.canvasManager.startImageSelectionMode.mock.calls[0]!
     expect(anim).toBe('zoom')
     onDone({ relX: 0.2, relY: 0.2, relWidth: 0.4, relHeight: 0.2 })
-    const [addedImg, bounds, animation, opts] = m.multiImageManager.addImageWithBounds.mock.calls[0]
+    const [addedImg, bounds, animation, opts] =
+      m.multiImageManager.addImageWithBounds.mock.calls[0]!
     expect(toRaw(addedImg)).toBe(a)
     expect(bounds.relWidth).toBeCloseTo(0.2)
     expect(bounds.relHeight).toBeCloseTo(0.1)
@@ -279,7 +323,7 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     // Abbruch (keine Bounds) beendet den Modus ohne Bild
     selectGallery({ id: 1, name: 'a.png', img: a })
     upload().vm.$emit('start-range-selection')
-    m.canvasManager.startImageSelectionMode.mock.calls[1][0](null)
+    m.canvasManager.startImageSelectionMode.mock.calls[1]![0](null)
     expect(m.multiImageManager.addImageWithBounds).toHaveBeenCalledTimes(1)
   })
 
@@ -295,7 +339,7 @@ describe('FotoPanel – Galerie & Platzierung', () => {
       imageOffsetY: 50,
     })
     upload().vm.$emit('add-directly')
-    const [, bounds, anim, opts] = m.multiImageManager.addImageWithBounds.mock.calls[0]
+    const [, bounds, anim, opts] = m.multiImageManager.addImageWithBounds.mock.calls[0]!
     expect(bounds.relWidth).toBeCloseTo(0.3)
     expect(bounds.relX).toBeCloseTo(0.6 - 0.15)
     expect(bounds.relY).toBeCloseTo(0.6 - 0.15)
@@ -354,7 +398,7 @@ describe('FotoPanel – aktives Bild (Ebenen & Filter)', () => {
     expect(filters().props('canMoveUp')).toBe(false)
     expect(filters().props('currentLayerInfo')).toBe('')
     const active = { id: 7, fotoSettings: { brightness: 50, audioReactive: { x: 1 } } }
-    useImageAudioReactive().currentActiveImage.value = active
+    useImageAudioReactive().currentActiveImage.value = stub(active)
     await nextTick()
     expect(filters().props()).toMatchObject({
       canMoveUp: true,
@@ -366,23 +410,23 @@ describe('FotoPanel – aktives Bild (Ebenen & Filter)', () => {
       ['send-to-back', 'sendToBack'],
       ['move-up', 'moveUp'],
       ['move-down', 'moveDown'],
-    ]) {
+    ] as const) {
       filters().vm.$emit(ev)
       expect(m.multiImageManager[fn]).toHaveBeenCalledWith(active)
     }
     m.multiImageManager.getImageIndex.mockReturnValue(2)
-    useImageAudioReactive().currentActiveImage.value = { ...active }
+    useImageAudioReactive().currentActiveImage.value = stub({ ...active })
     await nextTick()
     expect(filters().props('canMoveUp')).toBe(false)
   })
 
   it('Filter, Presets, Reset', async () => {
     await mountPanel()
-    const active = {
+    const active: { id: number; fotoSettings: Record<string, unknown> } = {
       id: 7,
       fotoSettings: { brightness: 50, renderBehindVisualizer: true, audioReactive: { a: 1 } },
     }
-    useImageAudioReactive().currentActiveImage.value = active
+    useImageAudioReactive().currentActiveImage.value = stub(active)
     await nextTick()
     filters().vm.$emit('preset-change', '')
     expect(m.fotoManager.applyPreset).toHaveBeenLastCalledWith(active, 'normal')
@@ -401,8 +445,8 @@ describe('FotoPanel – aktives Bild (Ebenen & Filter)', () => {
       audioReactive: { a: 1 },
     })
 
-    const bare = { id: 8 }
-    useImageAudioReactive().currentActiveImage.value = bare
+    const bare: { id: number; fotoSettings?: Record<string, unknown> } = { id: 8 }
+    useImageAudioReactive().currentActiveImage.value = stub(bare)
     await nextTick()
     filters().vm.$emit('filter-change', { property: 'contrast', value: 80 })
     expect(bare.fotoSettings).toEqual({ contrast: 80 })
@@ -411,8 +455,8 @@ describe('FotoPanel – aktives Bild (Ebenen & Filter)', () => {
   it('Positions-API der Canvas-Bilder', async () => {
     await mountPanel()
     const api = filters().props('boundsApi')
-    expect(toRaw(api.getCanvas())).toBe(m.multiImageManager.canvas)
-    api.redraw()
+    expect(toRaw(api!.getCanvas!())).toBe(m.multiImageManager.canvas)
+    api!.redraw!()
     expect(m.canvasManager.redraw).toHaveBeenCalled()
   })
 })
@@ -467,13 +511,13 @@ describe('FotoPanel – Slideshow', () => {
     vi.advanceTimersByTime(1000)
     expect(managers).toHaveLength(1)
     expect(toRaw(getSlideshowManager())).toBe(latestManager())
-    expect(window.slideshowManager).toBeUndefined()
-    expect(latestManager().args).toEqual({
+    expect((window as unknown as Record<string, unknown>).slideshowManager).toBeUndefined()
+    expect(latestManager()!.args).toEqual({
       multiImageManager: m.multiImageManager,
       fotoManager: m.fotoManager,
     })
-    expect(latestManager().callbacks.getWorkspaceBounds()).toEqual({ x: 1 })
-    latestManager().callbacks.redrawCallback()
+    expect(latestManager()!.callbacks.getWorkspaceBounds!()).toEqual({ x: 1 })
+    latestManager()!.callbacks.redrawCallback!()
     expect(m.canvasManager.redraw).toHaveBeenCalled()
   })
 
@@ -481,8 +525,8 @@ describe('FotoPanel – Slideshow', () => {
     await mountPanel()
     const { a, b } = await startWith()
     const mgr = latestManager()
-    const [images, options] = mgr.start.mock.calls[0]
-    expect(images.map((i) => i.imageObject)).toEqual([a, b])
+    const [images, options] = mgr!.start.mock.calls[0]!
+    expect(images.map((i: { imageObject: unknown }) => i.imageObject)).toEqual([a, b])
     expect(images[0]).toMatchObject({
       name: 'a.png',
       id: 1,
@@ -504,7 +548,7 @@ describe('FotoPanel – Slideshow', () => {
     slideshow().vm.$emit('start', { images: [{ id: 9, name: 'weg.png' }] })
     await flushPromises()
     expect(toast.warning).toHaveBeenCalled()
-    expect(latestManager().start).not.toHaveBeenCalled()
+    expect(latestManager()!.start).not.toHaveBeenCalled()
   })
 
   it('Pause, Fortsetzen, Stopp, Ende', async () => {
@@ -513,26 +557,26 @@ describe('FotoPanel – Slideshow', () => {
     const mgr = latestManager()
     slideshow().vm.$emit('pause')
     await nextTick()
-    expect(mgr.pause).toHaveBeenCalled()
+    expect(mgr!.pause).toHaveBeenCalled()
     expect(slideshow().props('isPaused')).toBe(true)
     expect(useSlideshowPopover().paused).toBe(true)
     slideshow().vm.$emit('resume')
     await nextTick()
-    expect(mgr.resume).toHaveBeenCalled()
+    expect(mgr!.resume).toHaveBeenCalled()
     expect(slideshow().props('isPaused')).toBe(false)
 
-    mgr.callbacks.onImageTransition(1, 2, 'display')
+    mgr!.callbacks.onImageTransition!(1, 2, 'display')
     await nextTick()
     expect(slideshow().props()).toMatchObject({ currentImageIndex: 1, currentPhase: 'display' })
 
     slideshow().vm.$emit('stop')
     await nextTick()
-    expect(mgr.stop).toHaveBeenCalled()
+    expect(mgr!.stop).toHaveBeenCalled()
     expect(slideshow().props()).toMatchObject({ isActive: false, currentImageIndex: 0 })
     expect(getSlideshowManager()).toBeNull()
 
     await startWith()
-    mgr.callbacks.onSlideshowComplete()
+    mgr!.callbacks.onSlideshowComplete!()
     await nextTick()
     expect(slideshow().props()).toMatchObject({ isActive: false, totalImages: 0 })
     expect(getSlideshowManager()).toBeNull()
@@ -554,26 +598,26 @@ describe('FotoPanel – Slideshow', () => {
     s.vm.$emit('move-mode-change', true)
     s.vm.$emit('order-changed', [1, 2])
     s.vm.$emit('visibility-change', true)
-    expect(mgr.setRenderBehindVisualizer).toHaveBeenCalledWith(false)
-    expect(mgr.setTransform).toHaveBeenCalledWith({ relX: 0.3 })
-    expect(mgr.setBackgroundMode).toHaveBeenCalledWith('canvas')
-    expect(mgr.setBackgroundColor).toHaveBeenCalledWith('#111111')
-    expect(mgr.setWorkspaceColor).toHaveBeenCalledWith('#222222')
-    expect(mgr.setBaseGradient).toHaveBeenCalledWith('canvas', { a: 1 })
-    expect(mgr.setBaseFillAudio).toHaveBeenCalledWith('workspace', { b: 2 })
-    expect(mgr.setBaseImage).toHaveBeenCalledWith('canvas', { c: 3 }, 'IMG')
-    expect(mgr.setMoveWholeSlideshow).toHaveBeenCalledWith(true)
+    expect(mgr!.setRenderBehindVisualizer).toHaveBeenCalledWith(false)
+    expect(mgr!.setTransform).toHaveBeenCalledWith({ relX: 0.3 })
+    expect(mgr!.setBackgroundMode).toHaveBeenCalledWith('canvas')
+    expect(mgr!.setBackgroundColor).toHaveBeenCalledWith('#111111')
+    expect(mgr!.setWorkspaceColor).toHaveBeenCalledWith('#222222')
+    expect(mgr!.setBaseGradient).toHaveBeenCalledWith('canvas', { a: 1 })
+    expect(mgr!.setBaseFillAudio).toHaveBeenCalledWith('workspace', { b: 2 })
+    expect(mgr!.setBaseImage).toHaveBeenCalledWith('canvas', { c: 3 }, 'IMG')
+    expect(mgr!.setMoveWholeSlideshow).toHaveBeenCalledWith(true)
     expect(useSlideshowPopover().panelVisible).toBe(true)
 
-    mgr.isActive = false
+    mgr!.isActive = false
     s.vm.$emit('live-update', { images: [] })
-    expect(mgr.applyLiveUpdate).not.toHaveBeenCalled()
-    mgr.isActive = true
+    expect(mgr!.applyLiveUpdate).not.toHaveBeenCalled()
+    mgr!.isActive = true
     s.vm.$emit('live-update', {
       images: [{ id: 1, name: 'a.png', imageObject: img('a'), audioMode: 'off' }],
       preserveLive: true,
     })
-    const [liveImages, liveOptions] = mgr.applyLiveUpdate.mock.calls[0]
+    const [liveImages, liveOptions] = mgr!.applyLiveUpdate.mock.calls[0]!
     // 'off' = explizit deaktivierte Konfiguration (kein globaler Fallback)
     expect(liveImages[0].audioReactiveSettings).toMatchObject({ enabled: false })
     expect(liveOptions.preserveLive).toBe(true)
@@ -589,18 +633,18 @@ describe('FotoPanel – Slideshow', () => {
     vi.spyOn(adjStore, 'setAdjustments')
     vi.spyOn(setStore, 'updateImageSettings')
 
-    mgr.callbacks.onTransformChange({ relX: 0.5 })
+    mgr!.callbacks.onTransformChange!({ relX: 0.5 })
     await nextTick()
     expect(slideshow().props('externalTransform')).toEqual({ relX: 0.5 })
 
     const imageConfig = { name: 'a.png', source: 'upload' }
     const imageObject = img('a')
-    mgr.callbacks.onImageBoundsChange({
+    mgr!.callbacks.onImageBoundsChange!({
       imageConfig,
       imageObject,
       bounds: { relX: 0.1, relY: 0.1, relWidth: 0.5, relHeight: 0.5 },
     })
-    mgr.callbacks.onImageBoundsChange({
+    mgr!.callbacks.onImageBoundsChange!({
       imageConfig,
       imageObject,
       bounds: { relX: 0.2, relY: 0.1, relWidth: 0.5, relHeight: 0.5 },
@@ -614,7 +658,7 @@ describe('FotoPanel – Slideshow', () => {
       bounds: { relX: 0.2, relY: 0.1, relWidth: 0.5, relHeight: 0.5 },
     })
 
-    mgr.callbacks.onImageAdjustmentsChange({
+    mgr!.callbacks.onImageAdjustmentsChange!({
       imageConfig,
       imageObject,
       adjustments: { brightness: 120, contrast: 100 },
@@ -627,12 +671,12 @@ describe('FotoPanel – Slideshow', () => {
     )
 
     // Unmount schreibt ausstehende Bounds sofort
-    mgr.callbacks.onImageBoundsChange({
+    mgr!.callbacks.onImageBoundsChange!({
       imageConfig,
       imageObject,
       bounds: { relX: 0.3, relY: 0.1, relWidth: 0.5, relHeight: 0.5 },
     })
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = null
     expect(setStore.updateImageSettings).toHaveBeenLastCalledWith('upload:a.png|100x50', {
       bounds: { relX: 0.3, relY: 0.1, relWidth: 0.5, relHeight: 0.5 },
@@ -648,7 +692,7 @@ describe('FotoPanel – Slideshow', () => {
     vi.spyOn(adjStore, 'clearAll')
     vi.spyOn(setStore, 'clearField')
     slideshow().vm.$emit('reset-image-adjustments')
-    expect(mgr.clearImageMemory).toHaveBeenCalled()
+    expect(mgr!.clearImageMemory).toHaveBeenCalled()
     expect(adjStore.clearAll).toHaveBeenCalled()
     expect(setStore.clearField).toHaveBeenCalledWith('bounds')
   })
@@ -657,18 +701,23 @@ describe('FotoPanel – Slideshow', () => {
     await mountPanel()
     const api = slideshow().props('adjustmentsApi')
     const a = img('a')
-    const entry = { id: 1, name: 'a.png', source: 'upload', imageObject: a }
+    const entry = stub<Parameters<NonNullable<typeof api>['getPosition']>[0]>({
+      id: 1,
+      name: 'a.png',
+      source: 'upload',
+      imageObject: a,
+    })
     const adjStore = useSlideshowImageAdjustmentsStore()
     const setStore = useSlideshowImageSettingsStore()
 
     // Ohne laufende Slideshow: Positions-/Größen-API nicht verfügbar
-    expect(api.getPosition(entry)).toBeNull()
-    expect(api.getSize(entry)).toBeNull()
+    expect(api!.getPosition(entry)).toBeNull()
+    expect(api!.getSize(entry)).toBeNull()
     const mgr = latestManager() // von getPosition() erzeugt
     expect(mgr).toBeTruthy()
 
-    api.set(entry, { brightness: 130, contrast: 100 }, 'saved')
-    expect(mgr.setImageAdjustments).toHaveBeenCalledWith(
+    api!.set(entry, { brightness: 130, contrast: 100 }, 'saved')
+    expect(mgr!.setImageAdjustments).toHaveBeenCalledWith(
       a,
       { brightness: 130, contrast: 100 },
       'saved',
@@ -677,34 +726,34 @@ describe('FotoPanel – Slideshow', () => {
       adjustments: { brightness: 130 },
       audioMode: 'saved',
     })
-    expect(api.get(entry)).toEqual({ brightness: 130 })
-    mgr.getImageAdjustments.mockReturnValueOnce({ live: true })
-    expect(api.get(entry)).toEqual({ live: true })
+    expect(api!.get(entry)).toEqual({ brightness: 130 })
+    mgr!.getImageAdjustments.mockReturnValueOnce({ live: true })
+    expect(api!.get(entry)).toEqual({ live: true })
 
     const b = { relX: 0.4, relY: 0.1, relWidth: 0.2, relHeight: 0.3 }
-    api.setBounds(entry, b)
-    expect(mgr.setImageBounds).toHaveBeenCalledWith(a, b)
-    expect(setStore.getImageSettings('upload:a.png|100x50').bounds).toEqual(b)
-    expect(api.getBounds(entry)).toEqual(b)
-    mgr.getImageBounds.mockReturnValueOnce({ live: 1 })
-    expect(api.getBounds(entry)).toEqual({ live: 1 })
+    api!.setBounds(entry, b)
+    expect(mgr!.setImageBounds).toHaveBeenCalledWith(a, b)
+    expect(setStore.getImageSettings('upload:a.png|100x50')!.bounds).toEqual(b)
+    expect(api!.getBounds(entry)).toEqual(b)
+    mgr!.getImageBounds.mockReturnValueOnce({ live: 1 })
+    expect(api!.getBounds(entry)).toEqual({ live: 1 })
 
-    mgr.isActive = true
-    expect(api.getPosition(entry)).toEqual({ x: 0.30000000000000004, y: 0.30000000000000004 })
-    expect(api.getSize(entry)).toEqual({
+    mgr!.isActive = true
+    expect(api!.getPosition(entry)).toEqual({ x: 0.30000000000000004, y: 0.30000000000000004 })
+    expect(api!.getSize(entry)).toEqual({
       width: 0.4,
       height: 0.2,
       defaultWidth: 0.5,
       defaultHeight: 0.25,
     })
-    mgr.isFittedToWorkspace.mockReturnValueOnce(true)
-    expect(api.getPosition(entry)).toBeNull()
-    api.setPosition(entry, { x: 0.5, y: 0.6 })
-    expect(mgr.setImagePosition).toHaveBeenCalledWith(a, { centerX: 0.5, centerY: 0.6 })
-    api.setSize(entry, { width: 0.3, height: 0.2, keepAspect: true })
-    expect(mgr.setImageSize).toHaveBeenCalledWith(a, { width: 0.3, height: 0.2, keepAspect: true })
-    api.setPosition({ id: 2, name: 'x' }, { x: 1, y: 1 })
-    expect(mgr.setImagePosition).toHaveBeenCalledTimes(1)
+    mgr!.isFittedToWorkspace.mockReturnValueOnce(true)
+    expect(api!.getPosition(entry)).toBeNull()
+    api!.setPosition(entry, { x: 0.5, y: 0.6 })
+    expect(mgr!.setImagePosition).toHaveBeenCalledWith(a, { centerX: 0.5, centerY: 0.6 })
+    api!.setSize(entry, { width: 0.3, height: 0.2, keepAspect: true })
+    expect(mgr!.setImageSize).toHaveBeenCalledWith(a, { width: 0.3, height: 0.2, keepAspect: true })
+    api!.setPosition({ id: 2, name: 'x' }, { x: 1, y: 1 })
+    expect(mgr!.setImagePosition).toHaveBeenCalledTimes(1)
   })
 
   it('Klick auf Slideshow-Bild in der Leiste öffnet den Editor', async () => {

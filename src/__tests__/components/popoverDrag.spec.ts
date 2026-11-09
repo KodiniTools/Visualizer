@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { vPopoverDrag } from '../../directives/popoverDrag'
+import { stub } from '../helpers/canvasStubs'
 
 // Popover-Attrappe mit Header, wie sie die Sticky-Player-Bar rendert.
 const Popover = defineComponent({
@@ -13,10 +14,10 @@ const Popover = defineComponent({
     </div>`,
 })
 
-let wrapper
-let el
+let wrapper: VueWrapper | null
+let el: HTMLElement
 
-function pointer(target, type, x, y) {
+function pointer(target: EventTarget, type: string, x: number, y: number) {
   const ev = new MouseEvent(type, {
     bubbles: true,
     cancelable: true,
@@ -27,8 +28,8 @@ function pointer(target, type, x, y) {
   target.dispatchEvent(ev)
 }
 
-function drag(handle, fromX, fromY, toX, toY) {
-  pointer(handle, 'pointerdown', fromX, fromY)
+function drag(handle: Element | null, fromX: number, fromY: number, toX: number, toY: number) {
+  pointer(handle!, 'pointerdown', fromX, fromY)
   pointer(window, 'pointermove', toX, toY)
   pointer(window, 'pointerup', toX, toY)
 }
@@ -59,7 +60,7 @@ describe('v-popover-drag – Größe per Rand ziehen', () => {
       h.className.replace('spb-resize-handle spb-resize-', ''),
     )
     expect(dirs.sort()).toEqual(['e', 's', 'se', 'sw', 'w'])
-    expect(handles[0].hasAttribute('data-v-abc123')).toBe(true)
+    expect(handles[0]!.hasAttribute('data-v-abc123')).toBe(true)
   })
 
   it('vergrößert die Breite beim Ziehen des linken Rands nach links (jsdom: Basis 340px)', () => {
@@ -85,12 +86,12 @@ describe('v-popover-drag – Größe per Rand ziehen', () => {
 
   it('speichert die Größe pro Popover und stellt sie beim nächsten Öffnen wieder her', () => {
     drag(el.querySelector('.spb-resize-se'), 400, 500, 450, 560)
-    expect(JSON.parse(localStorage.getItem('spb-popover-size:testpop'))).toEqual({
+    expect(JSON.parse(localStorage.getItem('spb-popover-size:testpop')!)).toEqual({
       width: 390,
       height: 460,
     })
 
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = mount(Popover, { attachTo: document.body })
     expect(wrapper.element.style.width).toBe('390px')
     expect(wrapper.element.style.height).toBe('460px')
@@ -99,7 +100,7 @@ describe('v-popover-drag – Größe per Rand ziehen', () => {
   it('setzt die Größe per Doppelklick auf einen Griff zurück', () => {
     drag(el.querySelector('.spb-resize-e'), 100, 300, 200, 300)
     expect(el.style.width).toBe('440px')
-    el.querySelector('.spb-resize-e').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+    el.querySelector('.spb-resize-e')!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
     expect(el.style.width).toBe('')
     expect(localStorage.getItem('spb-popover-size:testpop')).toBeNull()
   })
@@ -112,9 +113,9 @@ describe('v-popover-drag – Größe per Rand ziehen', () => {
   })
 
   it('räumt Griffe und Body-Styles beim Unmount auf', () => {
-    pointer(el.querySelector('.spb-resize-e'), 'pointerdown', 100, 300)
+    pointer(el.querySelector('.spb-resize-e')!, 'pointerdown', 100, 300)
     expect(document.body.style.userSelect).toBe('none')
-    wrapper.unmount()
+    wrapper!.unmount()
     expect(document.body.style.userSelect).toBe('')
     expect(document.querySelectorAll('.spb-resize-handle')).toHaveLength(0)
     wrapper = null
@@ -133,7 +134,9 @@ describe('v-popover-drag – mittig öffnen (center)', () => {
 
   // Box 300×200, unverschoben unten rechts bei (600|500); translate wird addiert.
   function mockRect() {
-    return vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
+    return vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
       if (!this.classList.contains('spb-popover-centered')) return new DOMRect(0, 0, 0, 0)
       const m = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(this.style.transform)
       const tx = m ? Number(m[1]) : 0
@@ -167,7 +170,7 @@ describe('v-popover-drag – mittig öffnen (center)', () => {
 
   it('ohne center bleibt die bisherige Verankerung', () => {
     mockRect()
-    const w = mount(CenteredPopover, { attachTo: document.body, props: { offset: null } })
+    const w = mount(CenteredPopover, { attachTo: document.body, props: stub({ offset: null }) })
     expect(w.element.style.transform).toBe('')
     w.unmount()
   })

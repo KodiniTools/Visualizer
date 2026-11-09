@@ -3,7 +3,7 @@
 // über Texte, Namen und Rollen statt CSS-Klassen, damit die Tests den Wechsel
 // auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { computed, nextTick, ref } from 'vue'
 import LayerControls from '../../components/foto-panel/image-filters/LayerControls.vue'
 import { createPinia, setActivePinia } from 'pinia'
@@ -11,9 +11,10 @@ import { useImageFilterControls } from '../../composables/useImageFilterControls
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
 
 const F = de.foto
-let wrapper
+let wrapper: VueWrapper | null
 
 function makeControls({ index = 1, count = 3 } = {}) {
   const layer = ref({ index, count })
@@ -26,7 +27,7 @@ function makeControls({ index = 1, count = 3 } = {}) {
     canMoveUp: computed(() => layer.value.index < layer.value.count - 1),
     canMoveDown: computed(() => layer.value.index > 0),
     renderBehindVisualizerRef,
-    onRenderBehindVisualizerChange: vi.fn((e) => {
+    onRenderBehindVisualizerChange: vi.fn((e: boolean | { target: { checked: boolean } }) => {
       renderBehindVisualizerRef.value = typeof e === 'boolean' ? e : e.target.checked
     }),
     bringToFront: vi.fn(),
@@ -36,7 +37,7 @@ function makeControls({ index = 1, count = 3 } = {}) {
   }
 }
 
-function mountControls(opts) {
+function mountControls(opts?: Parameters<typeof makeControls>[0]) {
   const ifc = makeControls(opts)
   wrapper = mount(LayerControls, {
     attachTo: document.body,
@@ -51,10 +52,10 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 /** Knopf über seinen sichtbaren Text (ohne Pfeil-Glyphen). */
-const button = (name) =>
+const button = (name: string) =>
   [...root().querySelectorAll('button')].find(
     (b) => b.textContent.replace(/[⬆⬇↑↓]/gu, '').trim() === name,
   )
@@ -71,7 +72,7 @@ function behindToggle() {
   )
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
 
 describe('Ebenen – Anzeige', () => {
@@ -170,7 +171,7 @@ describe('Ebenen – Schalter-Handler im Composable', () => {
     const c = useImageFilterControls({ currentActiveImage: null }, emit)
     c.onRenderBehindVisualizerChange(true)
     expect(c.renderBehindVisualizerRef.value).toBe(true)
-    c.onRenderBehindVisualizerChange({ target: { checked: false } })
+    c.onRenderBehindVisualizerChange(stub({ target: { checked: false } }))
     expect(c.renderBehindVisualizerRef.value).toBe(false)
     expect(emit.mock.calls.map((a) => a[1].value)).toEqual([true, false])
   })

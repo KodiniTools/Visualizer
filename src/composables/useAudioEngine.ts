@@ -134,7 +134,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
         try {
           if (microphoneSourceNode) microphoneSourceNode.disconnect()
           await microphoneAudioContext.close()
-        } catch {}
+        } catch {
+          // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+        }
       }
 
       const AudioContextClass = AudioContextClassOf()
@@ -177,13 +179,17 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     if (microphoneSourceNode) {
       try {
         microphoneSourceNode.disconnect()
-      } catch {}
+      } catch {
+        // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+      }
       microphoneSourceNode = null
     }
     if (microphoneAudioContext) {
       try {
         void microphoneAudioContext.close()
-      } catch {}
+      } catch {
+        // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+      }
       microphoneAudioContext = null
       microphoneAnalyser = null
     }
@@ -208,7 +214,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     if (micRecordingSourceNode) {
       try {
         micRecordingSourceNode.disconnect()
-      } catch {}
+      } catch {
+        // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+      }
       micRecordingSourceNode = null
     }
 
@@ -253,7 +261,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     if (micRecordingSourceNode) {
       try {
         micRecordingSourceNode.disconnect()
-      } catch {}
+      } catch {
+        // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+      }
       micRecordingSourceNode = null
     }
     if (micRecordingStream) {
@@ -333,7 +343,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     try {
       nodes.gainNode.disconnect()
       videoSourceNodes.delete(videoElement)
-    } catch {}
+    } catch {
+      // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+    }
   }
 
   function setVideoVolume(videoElement: HTMLMediaElement, volume: number) {
@@ -388,7 +400,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     if (audioContext) {
       try {
         void audioContext.close()
-      } catch {}
+      } catch {
+        // Aufräumen: Node/Context ist evtl. schon getrennt oder geschlossen
+      }
     }
   }
 

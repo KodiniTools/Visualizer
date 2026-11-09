@@ -387,7 +387,9 @@ async function processConversion(jobId, inputPath, quality) {
       try {
         const stats = await fs.stat(outputPath)
         videoInfo = { size: stats.size, format: 'mp4' }
-      } catch {}
+      } catch {
+        // Dateigröße ist optional, Ergebnis bleibt ohne size gültig
+      }
     }
 
     // Falls währenddessen abgebrochen wurde (z.B. während des schnellen Remux,
@@ -783,7 +785,9 @@ async function processGifConversion(jobId, inputPath, options) {
     try {
       const stats = await fs.stat(outputPath)
       gifInfo.size = stats.size
-    } catch (e) {}
+    } catch (e) {
+      // Dateigröße ist optional, Ergebnis bleibt ohne size gültig
+    }
 
     updateJob(jobId, {
       status: 'completed',
@@ -972,7 +976,9 @@ async function processConcatenation(jobId, segmentPaths, quality) {
       try {
         const stats = await fs.stat(outputPath)
         videoInfo = { size: stats.size, format: 'mp4', segmentCount: segmentPaths.length }
-      } catch {}
+      } catch {
+        // Dateigröße ist optional, Ergebnis bleibt ohne size gültig
+      }
     }
 
     // Job als COMPLETED markieren

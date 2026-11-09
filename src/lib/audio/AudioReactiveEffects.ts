@@ -296,10 +296,11 @@ export function calculateEffectValue(
       // Vintage/Sepia look: 0-100% based on audio level
       return { sepia: level * 100 }
 
-    case 'invert':
+    case 'invert': {
       // Color inversion: quadratic curve for dramatic effect at peaks
       const invertLevel = Math.pow(level, 1.5) * 100
       return { invert: invertLevel }
+    }
 
     case 'blur':
       // Dynamic blur: 0-10px based on audio level
@@ -382,7 +383,7 @@ export function calculateEffectValue(
       }
       return { strobeOpacity: 1, strobeBrightness: 100 }
 
-    case 'chromatic':
+    case 'chromatic': {
       // Chromatic aberration (RGB shift / glitch)
       const chromaticOffset = level * 8 // Max 8px shift
       return {
@@ -391,6 +392,7 @@ export function calculateEffectValue(
         chromaticG: { x: 0, y: 0 },
         chromaticB: { x: -chromaticOffset, y: 0 },
       }
+    }
 
     case 'vignettePulse': {
       // Per-image edge darkening that snaps on each detected beat and eases out,

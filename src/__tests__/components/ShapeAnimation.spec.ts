@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ShapeAnimation from '../../components/shapes/ShapeAnimation.vue'
 import SliderControl from '../../components/ui/SliderControl.vue'
@@ -8,8 +8,8 @@ import { useShapeStore } from '../../stores/shapeStore'
 import de from '../../lib/i18n/de'
 
 describe('ShapeAnimation', () => {
-  let store
-  let shape
+  let store: ReturnType<typeof useShapeStore>
+  let shape: ReturnType<typeof store.addShape>
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -18,7 +18,7 @@ describe('ShapeAnimation', () => {
   })
 
   const mountIt = () => mount(ShapeAnimation, { props: { shape: store.selectedShape } })
-  const sliders = (w) => w.findAllComponents(SliderControl).map((c) => c.props('label'))
+  const sliders = (w: VueWrapper) => w.findAllComponents(SliderControl).map((c) => c.props('label'))
 
   it('startet ohne Animation und bietet alle Typen gruppiert an', () => {
     const w = mountIt()
@@ -34,7 +34,7 @@ describe('ShapeAnimation', () => {
   it('Typ wählen legt die Konfiguration an und meldet einen Verlaufsschritt', async () => {
     const w = mountIt()
     await w.find('select').setValue('pulse')
-    expect(store.shapes[0].animation).toEqual({
+    expect(store.shapes[0]!.animation).toEqual({
       type: 'pulse',
       duration: 1,
       intensity: 40,
@@ -46,7 +46,7 @@ describe('ShapeAnimation', () => {
   })
 
   it('einmalige Animation zeigt Dauer und Verzögerung, keine Stärke', async () => {
-    store.updateShape(shape.id, {
+    store.updateShape(shape!.id, {
       animation: { type: 'fadeIn', duration: 1, intensity: 100, delay: 0 },
     })
     const w = mountIt()
@@ -55,27 +55,27 @@ describe('ShapeAnimation', () => {
   })
 
   it('Regler ändern begrenzt den Wert; commit erst bei change', async () => {
-    store.updateShape(shape.id, {
+    store.updateShape(shape!.id, {
       animation: { type: 'pulse', duration: 1, intensity: 40, delay: 0 },
     })
     const w = mountIt()
     const intensity = w.findAllComponents(SliderControl)[1]
-    intensity.vm.$emit('update:modelValue', 250)
-    expect(store.shapes[0].animation.intensity).toBe(100)
+    intensity!.vm.$emit('update:modelValue', 250)
+    expect((store.shapes[0]!.animation as { intensity: number }).intensity).toBe(100)
     expect(w.emitted('commit')).toBeUndefined()
-    intensity.vm.$emit('change')
+    intensity!.vm.$emit('change')
     expect(w.emitted('commit')).toHaveLength(1)
   })
 
   it('„Keine“ entfernt die Animation, Neustart setzt die Uhr zurück', async () => {
-    store.updateShape(shape.id, {
+    store.updateShape(shape!.id, {
       animation: { type: 'blink', duration: 1, intensity: 100, delay: 0 },
     })
-    store.getAnimationElapsed(shape.id, 1000)
+    store.getAnimationElapsed(shape!.id, 1000)
     const w = mountIt()
     await w.find('[data-animation-restart]').trigger('click')
-    expect(store.getAnimationElapsed(shape.id, 5000)).toBe(0)
+    expect(store.getAnimationElapsed(shape!.id, 5000)).toBe(0)
     await w.find('select').setValue('none')
-    expect(store.shapes[0].animation).toBeNull()
+    expect(store.shapes[0]!.animation).toBeNull()
   })
 })

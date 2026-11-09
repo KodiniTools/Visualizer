@@ -3,7 +3,7 @@
 // Fortsetzen, Stop, Zurücksetzen). Zugriff über Beschriftungen statt
 // CSS-Klassen, damit die Tests den Wechsel auf UiButton unverändert überstehen.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import RecorderTransportControls from '../../components/recorder/RecorderTransportControls.vue'
 import { useRecorderStore } from '../../stores/recorderStore'
@@ -12,8 +12,8 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const R = de.recorder
-let wrapper
-let store
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useRecorderStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -32,9 +32,9 @@ function mountControls(state = {}, props = {}) {
   return wrapper
 }
 
-const buttons = () => [...wrapper.element.querySelectorAll('button')]
+const buttons = () => [...wrapper!.element.querySelectorAll('button')]
 const labels = () => buttons().map((b) => b.textContent.trim())
-const button = (name) => buttons().find((b) => b.textContent.trim() === name)
+const button = (name: string) => buttons().find((b) => b.textContent.trim() === name)
 
 describe('Recorder-Steuerung – sichtbare Knöpfe je Zustand', () => {
   it('bereit: nur „Vorbereiten“', () => {
@@ -63,18 +63,18 @@ describe('Recorder-Steuerung – Aktionen', () => {
     mountControls()
     button(R.prepare).click()
     store.isPrepared = true
-    await wrapper.vm.$nextTick()
+    await wrapper!.vm.$nextTick()
     button(R.start).click()
     button(R.reset).click()
     store.isRecording = true
-    await wrapper.vm.$nextTick()
+    await wrapper!.vm.$nextTick()
     button(R.pause).click()
     button(R.stop).click()
     store.isPaused = true
-    await wrapper.vm.$nextTick()
+    await wrapper!.vm.$nextTick()
     button(R.resume).click()
     for (const e of ['prepare', 'start', 'reset', 'pause', 'stop', 'resume']) {
-      expect(wrapper.emitted(e), e).toHaveLength(1)
+      expect(wrapper!.emitted(e), e).toHaveLength(1)
     }
   })
 
@@ -82,7 +82,7 @@ describe('Recorder-Steuerung – Aktionen', () => {
     mountControls({ isPrepared: true }, { disabled: true })
     expect(buttons().every((b) => b.disabled)).toBe(true)
     button(R.start).click()
-    expect(wrapper.emitted('start')).toBeUndefined()
+    expect(wrapper!.emitted('start')).toBeUndefined()
   })
 
   it('Knöpfe tragen ein Symbol, Texte folgen der Sprache', async () => {
@@ -104,7 +104,7 @@ describe('Recorder-Steuerung – Ui-Bausteine', () => {
     expect(button(R.start).classList.contains('ui-button--primary')).toBe(true)
     expect(button(R.start).querySelector('.ui-button__icon svg')).toBeTruthy()
     expect(button(R.reset).classList.contains('ui-button')).toBe(true)
-    wrapper.unmount()
+    wrapper!.unmount()
     mountControls({ isPrepared: true, isRecording: true })
     expect(button(R.stop).classList.contains('ui-button--danger')).toBe(true)
     expect(button(R.pause).classList.contains('ui-button')).toBe(true)

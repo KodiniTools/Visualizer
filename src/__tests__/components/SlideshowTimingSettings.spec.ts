@@ -4,7 +4,7 @@
 // statt CSS-Klassen, damit die Tests den Wechsel auf die Ui-Bausteine
 // unverändert überstehen.
 import { describe, it, expect, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import SlideshowTimingSettings from '../../components/foto-panel/slideshow/SlideshowTimingSettings.vue'
 import { SLIDESHOW_TRANSITIONS } from '../../lib/slideshowTransitions'
@@ -13,7 +13,7 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const S = de.slideshow
-let wrapper
+let wrapper: VueWrapper | null
 
 function mountSettings(props = {}) {
   wrapper = mount(SlideshowTimingSettings, {
@@ -38,16 +38,16 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 const select = () => {
   const label = [...root().querySelectorAll('label')].find(
     (l) => l.textContent.trim() === S.defaultTransitionLabel,
   )
-  return document.getElementById(label.htmlFor)
+  return document.getElementById(label.htmlFor) as HTMLSelectElement | null
 }
 /** Schalter über seinen Text (Checkbox im Label oder Switch). */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) => i.closest('label')?.textContent.trim() === name,
   )
@@ -55,30 +55,30 @@ function toggle(name) {
   const label = [...root().querySelectorAll('label')].find((l) => l.textContent.trim() === name)
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
-const lastEmit = (name) => wrapper.emitted(name)?.at(-1)?.[0]
+const lastEmit = (name: string) => wrapper!.emitted(name)?.at(-1)?.[0]
 
 describe('Slideshow-Zeiten – Übergang und Dauer', () => {
   it('Überschrift, Übergang mit allen Varianten, Auswahl wird gemeldet', async () => {
     mountSettings()
     expect(text()).toContain(S.timing)
     const sel = select()
-    expect([...sel.querySelectorAll('option')].map((o) => o.value)).toEqual(
+    expect([...sel!.querySelectorAll('option')].map((o) => o.value)).toEqual(
       SLIDESHOW_TRANSITIONS.map((tr) => tr.id),
     )
-    expect(sel.value).toBe('fade')
-    sel.value = 'slideLeft'
-    sel.dispatchEvent(new Event('change'))
+    expect(sel!.value).toBe('fade')
+    sel!.value = 'slideLeft'
+    sel!.dispatchEvent(new Event('change'))
     await nextTick()
     expect(lastEmit('update:transition')).toBe('slideLeft')
   })
 
   it('Übergangsnamen übersetzt', () => {
     mountSettings()
-    const labels = [...select().querySelectorAll('option')].map((o) => o.textContent.trim())
+    const labels = [...select()!.querySelectorAll('option')].map((o) => o.textContent!.trim())
     for (const [i, tr] of SLIDESHOW_TRANSITIONS.entries()) {
-      expect(labels[i]).toContain(S.transitions[tr.id])
+      expect(labels[i]).toContain(S.transitions[tr.id as keyof typeof S.transitions])
     }
   })
 
@@ -114,9 +114,9 @@ describe('Slideshow-Zeiten – Optionen', () => {
   it('Warnung nur bei Audio-Reaktiv ohne gespeicherte Einstellungen', async () => {
     mountSettings({ hasSavedSettings: false })
     expect(text()).toContain(S.noSavedSettings)
-    await wrapper.setProps({ hasSavedSettings: true })
+    await wrapper!.setProps({ hasSavedSettings: true })
     expect(text()).not.toContain(S.noSavedSettings)
-    await wrapper.setProps({ hasSavedSettings: false, applyAudioReactive: false })
+    await wrapper!.setProps({ hasSavedSettings: false, applyAudioReactive: false })
     expect(text()).not.toContain(S.noSavedSettings)
   })
 
@@ -136,7 +136,7 @@ describe('Slideshow-Zeiten – Optionen', () => {
 describe('Slideshow-Zeiten – Ui-Bausteine', () => {
   it('Übergang als Ui-Select', () => {
     mountSettings()
-    expect(select().closest('.ui-select')).toBeTruthy()
+    expect(select()!.closest('.ui-select')).toBeTruthy()
   })
 
   it('Schalter sind Switches, keine Checkboxen', () => {

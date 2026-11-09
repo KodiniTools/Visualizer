@@ -18,7 +18,7 @@ describe('SliderControl', () => {
     })
     expect(w.classes()).toEqual(expect.arrayContaining(['control-group', 'slider']))
     expect(w.find('label').text()).toBe('Anzeigedauer')
-    const range = w.find('input[type="range"]')
+    const range = w.find<HTMLInputElement>('input[type="range"]')
     expect(range.classes()).toContain('my-range')
     expect(range.attributes('aria-label')).toBe('Anzeigedauer')
     expect(w.find('input[type="number"]').exists()).toBe(true)
@@ -27,6 +27,6 @@ describe('SliderControl', () => {
 
     range.element.value = '5000'
     await range.trigger('input')
-    expect(w.emitted('update:modelValue').at(-1)).toEqual([5000])
+    expect(w.emitted('update:modelValue')!.at(-1)).toEqual([5000])
   })
 })

@@ -2,8 +2,8 @@
 // Charakterisierung der Recorder-Einstellungen (Qualität, Bildrate, Upload,
 // MP4/GIF/HQ). Zugriff über Beschriftungen und Rollen statt CSS-Klassen,
 // damit die Tests den Wechsel auf die Ui-Bausteine unverändert überstehen.
-import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { computed, nextTick, ref } from 'vue'
 import RecorderSettingsPanel from '../../components/recorder/RecorderSettingsPanel.vue'
 import {
@@ -15,7 +15,14 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const R = de.recorder
-let wrapper
+let wrapper: VueWrapper | null
+
+/** Auswahl-Funktionen der Attrappe (werden nach dem Anlegen gesetzt) */
+interface SelectMocks {
+  selectQuality: Mock<(v: number) => number>
+  selectFrameRate: Mock<(v: number) => number>
+  selectUploadMode: Mock<(v: string) => string>
+}
 
 function makeSettings({ server = true } = {}) {
   const s = {
@@ -39,14 +46,15 @@ function makeSettings({ server = true } = {}) {
     gifWidth: ref(480),
     enableHqExport: ref(false),
     hqFps: ref(30),
+    ...({} as SelectMocks),
   }
-  s.selectQuality = vi.fn((v) => (s.selectedQuality.value = v))
-  s.selectFrameRate = vi.fn((v) => (s.recordingFps.value = v))
-  s.selectUploadMode = vi.fn((v) => (s.uploadMode.value = v))
+  s.selectQuality = vi.fn((v: number) => (s.selectedQuality.value = v))
+  s.selectFrameRate = vi.fn((v: number) => (s.recordingFps.value = v))
+  s.selectUploadMode = vi.fn((v: string) => (s.uploadMode.value = v))
   return s
 }
 
-function mountPanel(opts) {
+function mountPanel(opts?: { server?: boolean }) {
   const s = makeSettings(opts)
   wrapper = mount(
     { components: { RecorderSettingsPanel }, template: '<div><RecorderSettingsPanel /></div>' },
@@ -61,14 +69,14 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 
 /**
  * Knöpfe einer Auswahlgruppe: neue Radiogroup mit aria-label oder alte
  * Abschnitt-/Zeilen-Beschriftung mit den Knöpfen dahinter.
  */
-function group(name) {
+function group(name: string) {
   const rg = [...root().querySelectorAll('[role="radiogroup"]')].find(
     (g) => g.getAttribute('aria-label') === name,
   )
@@ -79,12 +87,13 @@ function group(name) {
   const box = label?.closest('.gif-option-row') ?? label?.closest('.control-section')
   return box ? [...box.querySelectorAll('button')] : []
 }
-const labels = (btns) => btns.map((b) => b.textContent.trim())
-const isActive = (b) => b.getAttribute('aria-checked') === 'true' || b.classList.contains('active')
-const activeLabel = (name) => labels(group(name).filter(isActive))
+const labels = (btns: Element[]) => btns.map((b) => b.textContent!.trim())
+const isActive = (b: Element) =>
+  b.getAttribute('aria-checked') === 'true' || b.classList.contains('active')
+const activeLabel = (name: string) => labels(group(name).filter(isActive))
 
 /** Schalter über seinen Text (Checkbox im Label oder Switch). */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) => i.closest('label')?.textContent.trim() === name,
   )
@@ -92,7 +101,7 @@ function toggle(name) {
   const label = [...root().querySelectorAll('label')].find((l) => l.textContent.trim() === name)
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
 
 describe('Recorder-Einstellungen – Qualität, Bildrate, Upload', () => {

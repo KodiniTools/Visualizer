@@ -1,10 +1,37 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, afterEach, beforeEach, vi, type Mock } from 'vitest'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ColorField from '../../components/ui/ColorField.vue'
 import SlideshowPanel from '../../components/foto-panel/SlideshowPanel.vue'
 import * as persistence from '../../lib/slideshowImagePersistence'
+import type { SlideshowSourceImage } from '../../lib/slideshowSources'
+import type { SlideshowRunConfig } from '../../components/foto-panel/slideshow/slideshowPanelTypes'
+import type { ImageFillTarget } from '../../components/foto-panel/slideshow/useSlideshowImageFills'
+import type { SlideshowImageFill } from '../../lib/slideshowImageFill'
+import type { RelBounds } from '../../lib/slideshowTransitions'
+import type { SlideshowGradient } from '../../lib/slideshowBaseColor'
+import type { SlideshowFillAudio } from '../../lib/slideshowFillAudio'
+import { stub } from '../helpers/canvasStubs'
+import type { SlideshowImageEntry } from '../../components/foto-panel/slideshowAdjustmentsApi'
+
+/** Ereignisse des Panels mit ihren Argumenten (wie defineEmits in SlideshowPanel.vue) */
+type PanelEvents = {
+  start: [SlideshowRunConfig]
+  'live-update': [SlideshowRunConfig]
+  'transform-change': [RelBounds]
+  'render-layer-change': [boolean]
+  'background-mode-change': [string]
+  'background-color-change': [string]
+  'workspace-color-change': [string]
+  'base-gradient-change': [ImageFillTarget, SlideshowGradient]
+  'base-fill-audio-change': [ImageFillTarget, SlideshowFillAudio]
+  'base-image-change': [ImageFillTarget, SlideshowImageFill, HTMLImageElement | null]
+  'move-mode-change': [boolean]
+  'reset-image-adjustments': []
+  resume: []
+  stop: []
+}
 
 // Dauerhafte Bildablage (IndexedDB) im Panel-Test ersetzen
 vi.mock('../../lib/slideshowImagePersistence', () => ({
@@ -13,13 +40,26 @@ vi.mock('../../lib/slideshowImagePersistence', () => ({
   loadPersistedImage: vi.fn(async () => null),
 }))
 
-const images = [
+/** Typisierte Sicht auf die Attrappen: Einträge tragen im Test eine id, Ergebnisse dürfen null sein */
+const persistUploadMock = persistence.persistUploadImage as unknown as Mock<
+  (entry: { id?: string }) => Promise<{ key: string; name: string } | null>
+>
+const restoreUploadMock = persistence.restoreUploadImage as unknown as Mock<
+  (key: string) => Promise<{ imageObject: unknown; name: string } | null>
+>
+
+const images: {
+  id: string
+  name: string
+  imageObject: { src: string }
+  displayDuration?: number
+}[] = [
   { id: 'a', name: 'Eins', imageObject: { src: 'data:,a' } },
   { id: 'b', name: 'Zwei', imageObject: { src: 'data:,b' } },
 ]
 
-let wrapper
-let pinia
+let wrapper: VueWrapper
+let pinia: ReturnType<typeof createPinia>
 beforeEach(() => {
   localStorage.clear()
   pinia = createPinia()
@@ -29,7 +69,7 @@ afterEach(() => wrapper?.unmount())
 
 function mountPanel(props = {}) {
   wrapper = mount(SlideshowPanel, {
-    props: { images, hasSavedSettings: true, ...props },
+    props: { images: stub<SlideshowSourceImage[]>(images), hasSavedSettings: true, ...props },
     global: { plugins: [pinia] },
   })
   return wrapper
@@ -37,33 +77,33 @@ function mountPanel(props = {}) {
 
 /** Schaltet „Endlos wiederholen“ (Switch) auf den gewünschten Zustand. */
 /** Schalter (UiSwitch) unter einem Anker-Selektor ein- oder ausschalten. */
-async function setSwitch(w, selector, on) {
+async function setSwitch(w: VueWrapper, selector: string, on: boolean) {
   const sw = w.find(`${selector} [role="switch"]`)
   if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
 }
 
 /** Farbe eines ColorField (Anker-Klasse am Wurzelelement) setzen bzw. lesen. */
-async function setColor(w, cls, hex) {
+async function setColor(w: VueWrapper, cls: string, hex: string) {
   w.findAllComponents(ColorField)
-    .find((c) => c.classes().includes(cls))
+    .find((c) => c.classes().includes(cls))!
     .vm.$emit('update:modelValue', hex)
   await flushPromises()
 }
-function colorOf(w, cls) {
+function colorOf(w: VueWrapper, cls: string) {
   return w
     .findAllComponents(ColorField)
-    .find((c) => c.classes().includes(cls))
+    .find((c) => c.classes().includes(cls))!
     .props('modelValue')
 }
 /** Zustand eines Schalters (UiSwitch) unter einem Anker-Selektor. */
-function switchOn(w, selector) {
+function switchOn(w: VueWrapper, selector: string) {
   return w.find(`${selector} [role="switch"]`).attributes('aria-checked') === 'true'
 }
-function switchDisabled(w, selector) {
-  return w.find(`${selector} [role="switch"]`).element.disabled
+function switchDisabled(w: VueWrapper, selector: string) {
+  return w.find<HTMLButtonElement>(`${selector} [role="switch"]`).element.disabled
 }
 
-async function setLoop(w, on) {
+async function setLoop(w: VueWrapper, on: boolean) {
   const sw = w.find('.loop-section [role="switch"]')
   if ((sw.attributes('aria-checked') === 'true') !== on) await sw.trigger('click')
 }
@@ -82,10 +122,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const w = mountPanel()
     const timing = w.findAll('.timing-control')
     expect(new Set(timing.map((c) => c.element.parentElement)).size).toBe(1)
-    expect(timing[0].element.parentElement.classList.contains('slider-stack')).toBe(true)
+    expect(timing[0]!.element.parentElement!.classList.contains('slider-stack')).toBe(true)
     const transform = w.findAll('.transform-control')
     expect(new Set(transform.map((c) => c.element.parentElement)).size).toBe(1)
-    expect(transform[0].element.parentElement.classList.contains('transform-controls')).toBe(true)
+    expect(transform[0]!.element.parentElement!.classList.contains('transform-controls')).toBe(true)
   })
 
   it('hides settings and shows pause/stop + progress while active', () => {
@@ -108,67 +148,73 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('emits start with the full payload built from the section models', async () => {
     const w = mountPanel()
     // Anzeigedauer über den Spinner der Timing-Sektion ändern
-    const displayNum = w.findAll('.timing-control input[type="number"]')[1].element
+    const displayNum = w.findAll<HTMLInputElement>('.timing-control input[type="number"]')[1]!
+      .element
     displayNum.value = '4500'
     displayNum.dispatchEvent(new Event('input', { bubbles: true }))
     // Loop aktivieren
     await setLoop(w, true)
     // Breite über die Transform-Sektion ändern
-    const widthNum = w.findAll('.transform-control input[type="number"]')[2].element
+    const widthNum = w.findAll<HTMLInputElement>('.transform-control input[type="number"]')[2]!
+      .element
     widthNum.value = '60'
     widthNum.dispatchEvent(new Event('input', { bubbles: true }))
     await w.vm.$nextTick()
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.images.map((i) => i.id)).toEqual(['a', 'b'])
     expect(payload.displayDuration).toBe(4500)
     expect(payload.loop).toBe(true)
     expect(payload.transform).toEqual({ relX: 0.1, relY: 0.1, relWidth: 0.6, relHeight: 0.8 })
     // Transform-Änderung wurde (idle) live emittiert
-    expect(w.emitted('transform-change').at(-1)[0].relWidth).toBe(0.6)
+    expect(
+      w.emitted<PanelEvents['transform-change']>('transform-change')!.at(-1)![0].relWidth,
+    ).toBe(0.6)
   })
 
   it('passes per-image display durations; empty field falls back to the global value', async () => {
     const w = mountPanel()
     const inputs = w.findAll('.order-duration')
     expect(inputs).toHaveLength(2)
-    await inputs[0].setValue('7.5')
+    await inputs[0]!.setValue('7.5')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
-    expect(payload.images[0].displayDuration).toBe(7500)
-    expect(payload.images[1].displayDuration).toBeUndefined()
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
+    expect(payload.images[0]!.displayDuration).toBe(7500)
+    expect(payload.images[1]!.displayDuration).toBeUndefined()
     expect(payload.displayDuration).toBe(3000)
     // Props-Objekte werden nicht mutiert
-    expect(images[0].displayDuration).toBeUndefined()
+    expect(images[0]!.displayDuration).toBeUndefined()
 
     // Feld leeren -> eigener Wert entfernt
-    await w.findAll('.order-duration')[0].setValue('')
+    await w.findAll('.order-duration')[0]!.setValue('')
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[1][0].images[0].displayDuration).toBeUndefined()
+    expect(
+      w.emitted<PanelEvents['start']>('start')![1]![0].images[0]!.displayDuration,
+    ).toBeUndefined()
   })
 
   it('passes the per-image audio mode (default when unset)', async () => {
     const w = mountPanel()
     const selects = w.findAll('.order-audio')
     expect(selects).toHaveLength(2)
-    await selects[1].setValue('glitch')
+    await selects[1]!.setValue('glitch')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.images.map((i) => i.audioMode)).toEqual(['default', 'glitch'])
   })
 
   it('saves a preset with per-image durations/audio and restores it on load', async () => {
     const w = mountPanel()
-    await w.findAll('.order-duration')[1].setValue('9')
-    await w.findAll('.order-audio')[0].setValue('pulse')
+    await w.findAll('.order-duration')[1]!.setValue('9')
+    await w.findAll('.order-audio')[0]!.setValue('pulse')
     await setLoop(w, true)
     await w.find('.preset-name-input').setValue('Party')
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(w.findAll('.preset-item')).toHaveLength(1)
     expect(w.find('.preset-name').text()).toBe('Party')
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots).toEqual([
       {
         displayDuration: null,
@@ -197,54 +243,62 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     ])
 
     // Werte ändern, dann Preset laden -> ursprünglicher Zustand
-    await w.findAll('.order-duration')[1].setValue('')
-    await w.findAll('.order-audio')[0].setValue('off')
+    await w.findAll('.order-duration')[1]!.setValue('')
+    await w.findAll('.order-audio')[0]!.setValue('off')
     await setLoop(w, false)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
 
-    expect(w.findAll('.order-duration')[1].element.value).toBe('9')
-    expect(w.findAll('.order-audio')[0].element.value).toBe('pulse')
+    expect(w.findAll<HTMLInputElement>('.order-duration')[1]!.element.value).toBe('9')
+    expect(w.findAll<HTMLInputElement>('.order-audio')[0]!.element.value).toBe('pulse')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.loop).toBe(true)
-    expect(payload.images[1].displayDuration).toBe(9000)
-    expect(payload.images[0].audioMode).toBe('pulse')
+    expect(payload.images[1]!.displayDuration).toBe(9000)
+    expect(payload.images[0]!.audioMode).toBe('pulse')
   })
 
   it('background mode: workspace option disabled without a workspace format', () => {
     const w = mountPanel({ hasWorkspace: false })
-    expect(w.find('.bg-mode-workspace').element.disabled).toBe(true)
-    expect(w.find('.bg-mode-canvas').element.disabled).toBe(false)
-    expect(w.find('.bg-mode-none').element.checked).toBe(true)
+    expect(w.find<HTMLInputElement>('.bg-mode-workspace').element.disabled).toBe(true)
+    expect(w.find<HTMLInputElement>('.bg-mode-canvas').element.disabled).toBe(false)
+    expect(w.find<HTMLInputElement>('.bg-mode-none').element.checked).toBe(true)
   })
 
   it('background mode workspace: behind visualizer, hides transform, sends option', async () => {
     const w = mountPanel({ hasWorkspace: true })
     await w.find('.bg-mode-workspace').setValue(true)
-    expect(w.emitted('background-mode-change').at(-1)).toEqual(['workspace'])
-    expect(w.emitted('render-layer-change').at(-1)).toEqual([true])
+    expect(
+      w.emitted<PanelEvents['background-mode-change']>('background-mode-change')!.at(-1),
+    ).toEqual(['workspace'])
+    expect(w.emitted<PanelEvents['render-layer-change']>('render-layer-change')!.at(-1)).toEqual([
+      true,
+    ])
     expect(w.find('.transform-section').exists()).toBe(false)
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.backgroundMode).toBe('workspace')
     expect(payload.fitToWorkspace).toBe(true)
     expect(payload.renderBehindVisualizer).toBe(true)
 
     // Workspace-Format entfernt → wirkungslos, Transform wieder sichtbar
     await w.setProps({ hasWorkspace: false })
-    expect(w.emitted('background-mode-change').at(-1)).toEqual(['none'])
+    expect(
+      w.emitted<PanelEvents['background-mode-change']>('background-mode-change')!.at(-1),
+    ).toEqual(['none'])
     expect(w.find('.transform-section').exists()).toBe(true)
   })
 
   it('background mode canvas: works without workspace, saved in presets', async () => {
     const w = mountPanel({ hasWorkspace: false })
     await w.find('.bg-mode-canvas').setValue(true)
-    expect(w.emitted('background-mode-change').at(-1)).toEqual(['canvas'])
+    expect(
+      w.emitted<PanelEvents['background-mode-change']>('background-mode-change')!.at(-1),
+    ).toEqual(['canvas'])
     expect(w.find('.transform-section').exists()).toBe(false)
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0]).toMatchObject({
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0]).toMatchObject({
       backgroundMode: 'canvas',
       fitToWorkspace: false,
     })
@@ -252,12 +306,12 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.backgroundMode,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings.backgroundMode,
     ).toBe('canvas')
     await w.find('.bg-mode-none').setValue(true)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.bg-mode-canvas').element.checked).toBe(true)
+    expect(w.find<HTMLInputElement>('.bg-mode-canvas').element.checked).toBe(true)
   })
 
   it('base color: only in background mode, live change, preset, reset', async () => {
@@ -268,24 +322,30 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.btn-reset-base-color').exists()).toBe(false)
 
     await setColor(w, 'slideshow-base-color', '#336699')
-    expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
+    expect(
+      w.emitted<PanelEvents['background-color-change']>('background-color-change')!.at(-1),
+    ).toEqual(['#336699'])
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0].backgroundColor).toBe('#336699')
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0].backgroundColor).toBe('#336699')
 
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.backgroundColor,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings.backgroundColor,
     ).toBe('#336699')
 
     await w.find('.btn-reset-base-color').trigger('click')
-    expect(w.emitted('background-color-change').at(-1)).toEqual(['#000000'])
+    expect(
+      w.emitted<PanelEvents['background-color-change']>('background-color-change')!.at(-1),
+    ).toEqual(['#000000'])
     expect(colorOf(w, 'slideshow-base-color')).toBe('#000000')
 
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
     expect(colorOf(w, 'slideshow-base-color')).toBe('#336699')
-    expect(w.emitted('background-color-change').at(-1)).toEqual(['#336699'])
+    expect(
+      w.emitted<PanelEvents['background-color-change']>('background-color-change')!.at(-1),
+    ).toEqual(['#336699'])
   })
 
   it('base color is remembered without a preset (after remount)', async () => {
@@ -299,7 +359,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.bg-mode-canvas').setValue(true)
     expect(colorOf(w, 'slideshow-base-color')).toBe('#aa5500')
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0].backgroundColor).toBe('#aa5500')
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0].backgroundColor).toBe('#aa5500')
 
     // Zurücksetzen entfernt den Eintrag
     await w.find('.btn-reset-base-color').trigger('click')
@@ -313,12 +373,14 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(colorOf(w, 'slideshow-workspace-color')).toBe('#000000')
 
     await setColor(w, 'slideshow-workspace-color', '#224466')
-    expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#224466'])
+    expect(
+      w.emitted<PanelEvents['workspace-color-change']>('workspace-color-change')!.at(-1),
+    ).toEqual(['#224466'])
     expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBe('#224466')
     // Canvas-Farbe bleibt unberührt
     expect(localStorage.getItem('visualizer-slideshow-base-color')).toBeNull()
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0]).toMatchObject({
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0]).toMatchObject({
       workspaceColor: '#224466',
       backgroundColor: '#000000',
     })
@@ -326,7 +388,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.workspaceColor,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings.workspaceColor,
     ).toBe('#224466')
     w.unmount()
 
@@ -335,7 +397,9 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.bg-mode-workspace').setValue(true)
     expect(colorOf(w, 'slideshow-workspace-color')).toBe('#224466')
     await w.find('.btn-reset-workspace-color').trigger('click')
-    expect(w.emitted('workspace-color-change').at(-1)).toEqual(['#000000'])
+    expect(
+      w.emitted<PanelEvents['workspace-color-change']>('workspace-color-change')!.at(-1),
+    ).toEqual(['#000000'])
     expect(localStorage.getItem('visualizer-slideshow-workspace-color')).toBeNull()
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
@@ -347,7 +411,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.bg-mode-canvas').setValue(true)
     expect(w.find('.base-gradient-color2').exists()).toBe(false)
     await w.find('.base-gradient-toggle [role="switch"]').trigger('click')
-    expect(w.emitted('base-gradient-change').at(-1)).toEqual([
+    expect(w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)).toEqual([
       'canvas',
       {
         enabled: true,
@@ -358,7 +422,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       },
     ])
     w.findAllComponents(ColorField)
-      .find((c) => c.classes().includes('base-gradient-color2'))
+      .find((c) => c.classes().includes('base-gradient-color2'))!
       .vm.$emit('update:modelValue', '#ff8800')
     await flushPromises()
     await w.find('.base-gradient-angle').setValue('45')
@@ -371,8 +435,11 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       angle: 45,
       audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
     }
-    expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient'))).toEqual(
+    expect(w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)).toEqual([
+      'canvas',
+      canvasGradient,
+    ])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')!)).toEqual(
       canvasGradient,
     )
 
@@ -382,17 +449,19 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       'false',
     )
     await w.find('.workspace-gradient-toggle [role="switch"]').trigger('click')
-    expect(w.emitted('base-gradient-change').at(-1)[0]).toBe('workspace')
+    expect(w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)![0]).toBe(
+      'workspace',
+    )
 
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0]).toMatchObject({
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0]).toMatchObject({
       backgroundGradient: canvasGradient,
       workspaceGradient: { enabled: true },
     })
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .backgroundGradient,
     ).toEqual(canvasGradient)
     w.unmount()
@@ -407,11 +476,14 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.btn-reset-base-color').exists()).toBe(false)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.emitted('base-gradient-change').at(-1)).toEqual(['canvas', canvasGradient])
+    expect(w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)).toEqual([
+      'canvas',
+      canvasGradient,
+    ])
     // Preset wurde im Workspace-Modus gespeichert → Modus mit wiederhergestellt
-    expect(w.find('.bg-mode-workspace').element.checked).toBe(true)
+    expect(w.find<HTMLInputElement>('.bg-mode-workspace').element.checked).toBe(true)
     await w.find('.bg-mode-canvas').setValue(true)
-    expect(w.find('.base-gradient-type').element.value).toBe('radial')
+    expect(w.find<HTMLInputElement>('.base-gradient-type').element.value).toBe('radial')
   })
 
   it('gradient audio-reactive: toggle, source, strengths reach the slideshow', async () => {
@@ -425,14 +497,14 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.base-gradient-audio-source').setValue('trebleOnset')
     await w.find('.base-gradient-audio-pulse').setValue('40')
     await w.find('.base-gradient-audio-rotation').setValue('0')
-    const last = w.emitted('base-gradient-change').at(-1)
-    expect(last[0]).toBe('canvas')
-    expect(last[1].audio).toEqual({ enabled: true, source: 'trebleOnset', pulse: 40, rotation: 0 })
+    const last = w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)
+    expect(last![0]).toBe('canvas')
+    expect(last![1].audio).toEqual({ enabled: true, source: 'trebleOnset', pulse: 40, rotation: 0 })
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')).audio.source,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')!).audio.source,
     ).toBe('trebleOnset')
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0].backgroundGradient.audio.pulse).toBe(40)
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0].backgroundGradient.audio.pulse).toBe(40)
   })
 
   it('audio-reactive fill color: per area, persisted, preset, reset', async () => {
@@ -443,20 +515,22 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.workspace-fill-audio-source').setValue('volume')
     await w.find('.workspace-fill-audio-hue').setValue('60')
     const fx = { enabled: true, source: 'volume', brightness: 80, hue: 60 }
-    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio'))).toEqual(
+    expect(
+      w.emitted<PanelEvents['base-fill-audio-change']>('base-fill-audio-change')!.at(-1),
+    ).toEqual(['workspace', fx])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')!)).toEqual(
       fx,
     )
     expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0]).toMatchObject({
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0]).toMatchObject({
       workspaceFillAudio: fx,
       backgroundFillAudio: { enabled: false },
     })
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .workspaceFillAudio,
     ).toEqual(fx)
     w.unmount()
@@ -470,16 +544,18 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
     expect(switchOn(w, '.workspace-fill-audio-toggle')).toBe(true)
-    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual(['workspace', fx])
+    expect(
+      w.emitted<PanelEvents['base-fill-audio-change']>('base-fill-audio-change')!.at(-1),
+    ).toEqual(['workspace', fx])
   })
 
   it('own area image: pick from upload gallery, persisted, audio, sent with start', async () => {
     const { useImageGallery } = await import('../../composables/useImageGallery')
     const gallery = useImageGallery()
     gallery.clearAllImages()
-    const img = { src: 'data:,galerie' }
-    gallery.imageGallery.value.push({ id: 7, img, name: 'galerie.png' })
-    persistence.persistUploadImage.mockResolvedValueOnce({
+    const img = stub<HTMLImageElement>({ src: 'data:,galerie' })
+    gallery.imageGallery.value.push(stub({ id: 7, img, name: 'galerie.png' }))
+    persistUploadMock.mockResolvedValueOnce({
       key: 'b'.repeat(64),
       name: 'galerie.png',
     })
@@ -490,46 +566,52 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.base-image-choose').trigger('click')
     const options = w.findAll('.base-image-option')
     expect(options).toHaveLength(1)
-    await options[0].trigger('click')
+    await options[0]!.trigger('click')
     await flushPromises()
 
     expect(persistence.persistUploadImage).toHaveBeenCalledWith({
       name: 'galerie.png',
       imageObject: img,
     })
-    const [target, fill, image] = w.emitted('base-image-change').at(-1)
+    const [target, fill, image] = w
+      .emitted<PanelEvents['base-image-change']>('base-image-change')!
+      .at(-1)!
     expect(target).toBe('canvas')
     expect(fill).toMatchObject({ enabled: true, upload: { key: 'b'.repeat(64) } })
     expect(image).toBe(img)
     expect(w.find('.base-image-current').attributes('src')).toBe('data:,galerie')
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')).upload.name).toBe(
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')!).upload.name).toBe(
       'galerie.png',
     )
 
     await w.find('.base-image-fit').setValue('contain')
     await setSwitch(w, '.base-image-audio-toggle', true)
     await w.find('.base-image-audio-zoom').setValue('90')
-    expect(w.emitted('base-image-change').at(-1)[1]).toMatchObject({
+    expect(
+      w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)![1],
+    ).toMatchObject({
       fit: 'contain',
       audio: { enabled: true, zoom: 90 },
     })
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.backgroundImageObject).toBe(img)
     expect(payload.backgroundImageFill).toMatchObject({ enabled: true, fit: 'contain' })
     expect(payload.workspaceImageFill.enabled).toBe(false)
 
     await w.find('.base-image-clear').trigger('click')
     await flushPromises()
-    expect(w.emitted('base-image-change').at(-1)[2]).toBeNull()
+    expect(w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)![2]).toBeNull()
     gallery.clearAllImages()
   })
 
   it('emits reset-image-adjustments from the reset button', async () => {
     const w = mountPanel()
     await w.find('.btn-reset-adjustments').trigger('click')
-    expect(w.emitted('reset-image-adjustments')).toHaveLength(1)
+    expect(
+      w.emitted<PanelEvents['reset-image-adjustments']>('reset-image-adjustments'),
+    ).toHaveLength(1)
     // Während der Slideshow ausgeblendet
     await w.setProps({ isActive: true })
     expect(w.find('.btn-reset-adjustments').exists()).toBe(false)
@@ -537,16 +619,17 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('saves and restores image adjustments per position via adjustmentsApi', async () => {
     const memory = new Map([['a', { contrast: 120, sepia: 30 }]])
-    const calls = []
+    const calls: unknown[][] = []
     const adjustmentsApi = {
-      get: (img) => memory.get(img.id) ?? null,
-      set: (img, settings, audioMode) => calls.push([img.id, settings, audioMode]),
+      get: (img: { id: string }) => memory.get(img.id) ?? null,
+      set: (img: { id: string }, settings: unknown, audioMode: string) =>
+        calls.push([img.id, settings, audioMode]),
     }
     const w = mountPanel({ adjustmentsApi })
-    await w.findAll('.order-audio')[0].setValue('glow')
+    await w.findAll('.order-audio')[0]!.setValue('glow')
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots[0].adjustments).toEqual({ contrast: 120, sepia: 30 })
     expect(stored[0].slots[1].adjustments).toBeNull()
 
@@ -559,13 +642,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   })
 
   it('saves and loads presets while running (live-update), keeping the started positions', async () => {
-    const setBounds = []
+    const setBounds: unknown[][] = []
     const adjustmentsApi = {
-      get: (img) => (img.id === 'b' ? { sepia: 50 } : null),
+      get: (img: { id: string }) => (img.id === 'b' ? { sepia: 50 } : null),
       set: () => {},
-      getBounds: (img) =>
+      getBounds: (img: { id: string }) =>
         img.id === 'a' ? { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.3 } : null,
-      setBounds: (img, b) => setBounds.push([img.id, b]),
+      setBounds: (img: { id: string }, b: unknown) => setBounds.push([img.id, b]),
     }
     const w = mountPanel({ adjustmentsApi })
     // Start → FotoPanel hebt die Auswahl auf (images = [])
@@ -573,7 +656,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.preset-name-input').setValue('Live')
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].name).toBe('Live')
     expect(stored[0].slots).toHaveLength(2)
     expect(stored[0].slots[1].adjustments).toEqual({ sepia: 50 })
@@ -586,7 +669,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(stored[0].slots[1].bounds).toBeNull()
 
     // Laden während der Slideshow → Bounds gesetzt + live-update mit beiden Bildern
-    const loadBtn = w.find('.btn-load-preset')
+    const loadBtn = w.find<HTMLInputElement>('.btn-load-preset')
     expect(loadBtn.element.disabled).toBe(false)
     await loadBtn.trigger('click')
     await flushPromises()
@@ -594,14 +677,14 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       ['a', { relX: 0.1, relY: 0.2, relWidth: 0.3, relHeight: 0.3 }],
       ['b', null],
     ])
-    const live = w.emitted('live-update').at(-1)[0]
+    const live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
     expect(live.images.map((i) => i.id)).toEqual(['a', 'b'])
 
     // Nach dem Stoppen ohne Auswahl bleibt das Panel sichtbar, weil ein Preset
     // mit Bildern (Sitzung) existiert – Start ist ohne Bilder gesperrt
     await w.setProps({ isActive: false })
     expect(w.find('.slideshow-panel').exists()).toBe(true)
-    expect(w.find('.btn-start').element.disabled).toBe(true)
+    expect(w.find<HTMLInputElement>('.btn-start').element.disabled).toBe(true)
     // … mit neuer Auswahl gilt wieder diese
     await w.setProps({ images: [images[1], images[0]] })
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Zwei', 'Eins'])
@@ -613,7 +696,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.move-whole-hint').exists()).toBe(false)
     expect(w.find('.move-whole-checkbox').attributes('title')).toBeUndefined()
     await setSwitch(w, '.move-whole-checkbox', true)
-    expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
+    expect(w.emitted<PanelEvents['move-mode-change']>('move-mode-change')!.at(-1)).toEqual([true])
     await w.setProps({
       externalTransform: { relX: 0.25, relY: 0.3, relWidth: 0.8, relHeight: 0.8 },
     })
@@ -626,16 +709,16 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await setSwitch(w, '.move-whole-checkbox', true)
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].settings.moveWholeSlideshow).toBe(true)
 
     await setSwitch(w, '.move-whole-checkbox', false)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
     expect(switchOn(w, '.move-whole-checkbox')).toBe(true)
-    expect(w.emitted('move-mode-change').at(-1)).toEqual([true])
+    expect(w.emitted<PanelEvents['move-mode-change']>('move-mode-change')!.at(-1)).toEqual([true])
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0].moveWholeSlideshow).toBe(true)
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0].moveWholeSlideshow).toBe(true)
   })
 
   it('preset with session images restores the image list (also with stock images)', async () => {
@@ -652,7 +735,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await flushPromises()
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Stock Wald'])
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start')[0][0].images.map((i) => i.id)).toEqual(['a', 'stock:s1'])
+    expect(w.emitted<PanelEvents['start']>('start')![0]![0].images.map((i) => i.id)).toEqual([
+      'a',
+      'stock:s1',
+    ])
   })
 
   it('loading a preset with other images while running restarts the slideshow', async () => {
@@ -663,11 +749,11 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.setProps({ isActive: true, images: [] }) // läuft mit a, b
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.emitted('live-update')).toBeUndefined()
+    expect(w.emitted<PanelEvents['live-update']>('live-update')).toBeUndefined()
     expect(
       w
-        .emitted('start')
-        .at(-1)[0]
+        .emitted<PanelEvents['start']>('start')!
+        .at(-1)![0]
         .images.map((i) => i.id),
     ).toEqual(['b', 'a'])
   })
@@ -680,7 +766,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.slideshow-panel').exists()).toBe(true)
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.btn-start').element.disabled).toBe(false)
+    expect(w.find<HTMLInputElement>('.btn-start').element.disabled).toBe(false)
   })
 
   it('stock images are saved permanently and restored after reload (without session images)', async () => {
@@ -697,10 +783,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       },
     }
     let w = mountPanel({ images: [stockImg, images[0]] })
-    await w.findAll('.order-duration')[0].setValue('6')
+    await w.findAll('.order-duration')[0]!.setValue('6')
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots[0].stock).toMatchObject({ id: 's1', file: 'gallery/bg/wald.png' })
     expect(stored[0].slots[1].stock).toBeNull()
     w.unmount()
@@ -716,25 +802,25 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Stock Wald', 'Zwei'])
-    expect(w.findAll('.order-duration')[0].element.value).toBe('6')
-    expect(w.find('.btn-start').element.disabled).toBe(false)
+    expect(w.findAll<HTMLInputElement>('.order-duration')[0]!.element.value).toBe('6')
+    expect(w.find<HTMLInputElement>('.btn-start').element.disabled).toBe(false)
   })
 
   it('uploaded images are persisted and restored after reload (IndexedDB)', async () => {
     const keyA = 'a'.repeat(64)
-    persistence.persistUploadImage.mockImplementation(async (img) =>
+    persistUploadMock.mockImplementation(async (img) =>
       img.id === 'a' ? { key: keyA, name: 'Eins' } : null,
     )
     const restoredObj = { restored: true }
-    persistence.restoreUploadImage.mockImplementation(async (key) =>
+    restoreUploadMock.mockImplementation(async (key) =>
       key === keyA ? { imageObject: restoredObj, name: 'Eins' } : null,
     )
 
     let w = mountPanel()
-    await w.findAll('.order-duration')[0].setValue('4')
+    await w.findAll('.order-duration')[0]!.setValue('4')
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots[0].upload).toEqual({ key: keyA, name: 'Eins' })
     expect(stored[0].slots[1].upload).toBeNull()
     w.unmount()
@@ -750,13 +836,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await flushPromises()
     // Position 1 aus IndexedDB, Position 2 (nicht gespeichert) aus der Auswahl
     expect(w.findAll('.order-name').map((n) => n.text())).toEqual(['Eins', 'Zwei'])
-    expect(w.findAll('.order-duration')[0].element.value).toBe('4')
+    expect(w.findAll<HTMLInputElement>('.order-duration')[0]!.element.value).toBe('4')
     await w.find('.btn-start').trigger('click')
-    const started = w.emitted('start')[0][0].images
+    const started = w.emitted<PanelEvents['start']>('start')![0]![0].images
     expect(started[0]).toMatchObject({ id: `preset:${keyA}`, imageObject: restoredObj })
-    persistence.persistUploadImage.mockReset()
-    persistence.persistUploadImage.mockImplementation(async () => null)
-    persistence.restoreUploadImage.mockImplementation(async () => null)
+    persistUploadMock.mockReset()
+    persistUploadMock.mockImplementation(async () => null)
+    restoreUploadMock.mockImplementation(async () => null)
   })
 
   it('a new image list with the same images does not overwrite a loaded preset list', async () => {
@@ -779,7 +865,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it('full storage: cleans up and retries saving the image once', async () => {
     const quota = Object.assign(new Error('full'), { name: 'QuotaExceededError' })
     let attemptsA = 0
-    persistence.persistUploadImage.mockImplementation(async (img) => {
+    persistUploadMock.mockImplementation(async (img) => {
       if (img.id !== 'a') return null
       attemptsA++
       if (attemptsA === 1) throw quota
@@ -792,10 +878,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(cleanup).toHaveBeenCalledTimes(1)
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots[0].upload).toEqual({ key: 'c'.repeat(64), name: 'Eins' })
     expect(attemptsA).toBe(2)
-    persistence.persistUploadImage.mockImplementation(async () => null)
+    persistUploadMock.mockImplementation(async () => null)
   })
 
   it('„Jetzt aufräumen“ entfernt ungenutzte Bilder und meldet den freigegebenen Platz', async () => {
@@ -819,71 +905,74 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-cleanup-storage').trigger('click')
     await flushPromises()
     expect(cleanup).toHaveBeenCalledWith({ minAgeMs: MANUAL_CLEANUP_GRACE_MS })
-    expect(success.mock.calls.at(-1)[0]).toBe('Aufgeräumt: 2 Bilder · 2 MB')
+    expect(success.mock.calls.at(-1)![0]).toBe('Aufgeräumt: 2 Bilder · 2 MB')
 
     cleanup.mockResolvedValue(0)
     await w.find('.btn-cleanup-storage').trigger('click')
     await flushPromises()
     expect(info).toHaveBeenCalled()
-    expect(w.find('.btn-cleanup-storage').element.disabled).toBe(false)
+    expect(w.find<HTMLInputElement>('.btn-cleanup-storage').element.disabled).toBe(false)
   })
 
   it('saves the preset even if persisting an image fails', async () => {
-    persistence.persistUploadImage.mockImplementationOnce(async () => {
+    persistUploadMock.mockImplementationOnce(async () => {
       throw new Error('QuotaExceeded')
     })
     const w = mountPanel()
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored).toHaveLength(1)
-    expect(stored[0].slots.every((slot) => slot.upload === null)).toBe(true)
+    expect(stored[0].slots.every((slot: { upload: unknown }) => slot.upload === null)).toBe(true)
   })
 
   it('transition: global select + per-image override go into payload and presets', async () => {
     const w = mountPanel()
-    expect(w.find('.transition-select').element.value).toBe('fade')
+    expect(w.find<HTMLInputElement>('.transition-select').element.value).toBe('fade')
     await w.find('.transition-select').setValue('slideLeft')
-    await w.findAll('.order-transition')[1].setValue('zoomIn')
+    await w.findAll('.order-transition')[1]!.setValue('zoomIn')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.transition).toBe('slideLeft')
     expect(payload.images.map((i) => i.transition)).toEqual([undefined, 'zoomIn'])
 
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].settings.transition).toBe('slideLeft')
-    expect(stored[0].slots.map((sl) => sl.transition)).toEqual([null, 'zoomIn'])
+    expect(stored[0].slots.map((sl: { transition: string | null }) => sl.transition)).toEqual([
+      null,
+      'zoomIn',
+    ])
 
     await w.find('.transition-select').setValue('fade')
-    await w.findAll('.order-transition')[1].setValue('default')
+    await w.findAll('.order-transition')[1]!.setValue('default')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.transition-select').element.value).toBe('slideLeft')
-    expect(w.findAll('.order-transition')[1].element.value).toBe('zoomIn')
-    expect(w.findAll('.order-transition')[0].element.value).toBe('default')
+    expect(w.find<HTMLInputElement>('.transition-select').element.value).toBe('slideLeft')
+    expect(w.findAll<HTMLInputElement>('.order-transition')[1]!.element.value).toBe('zoomIn')
+    expect(w.findAll<HTMLInputElement>('.order-transition')[0]!.element.value).toBe('default')
   })
 
   it('per-image transitions are remembered permanently (reload)', async () => {
-    const withObj = (img, w, h) => ({
+    const withObj = (img: (typeof images)[number], w: number, h: number) => ({
       ...img,
       imageObject: { ...img.imageObject, width: w, height: h },
     })
-    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    const imgs = [withObj(images[0]!, 10, 10), withObj(images[1]!, 20, 10)]
     let w = mountPanel({ images: imgs })
-    await w.findAll('.order-transition')[1].setValue('rotate')
+    await w.findAll('.order-transition')[1]!.setValue('rotate')
     w.unmount()
     pinia = createPinia()
     setActivePinia(pinia)
     // neue IDs (z. B. nach Neuladen), gleiche Namen + Maße
     w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
     wrapper = w
-    expect(w.findAll('.order-transition')[1].element.value).toBe('rotate')
-    expect(w.findAll('.order-transition')[0].element.value).toBe('default')
+    expect(w.findAll<HTMLInputElement>('.order-transition')[1]!.element.value).toBe('rotate')
+    expect(w.findAll<HTMLInputElement>('.order-transition')[0]!.element.value).toBe('default')
     // zurück auf Standard → vergessen
-    await w.findAll('.order-transition')[1].setValue('default')
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
+    await w.findAll('.order-transition')[1]!.setValue('default')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions')!)).toEqual({})
   })
 
   it('paused editor: position sliders move the image via adjustmentsApi and follow mouse drags', async () => {
@@ -894,27 +983,31 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const adjustmentsApi = {
       get: () => null,
       set: () => {},
-      getPosition: vi.fn(() => pos),
+      getPosition: vi.fn<(img: SlideshowImageEntry) => typeof pos | null>(() => pos),
       setPosition,
     }
     const w = mountPanel({ adjustmentsApi })
     await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 1, nonce: 3 } })
     const editor = w.find('.image-editor')
-    const x = editor.find('input.editor-position-x')
+    const x = editor.find<HTMLInputElement>('input.editor-position-x')
     expect(Number(x.element.value)).toBeCloseTo(50)
-    expect(adjustmentsApi.getPosition.mock.calls.at(-1)[0].name).toBe(images[1].name)
+    expect(adjustmentsApi.getPosition.mock.calls.at(-1)![0]!.name).toBe(images[1]!.name)
 
     x.element.value = '20'
     await x.trigger('input')
     expect(setPosition).toHaveBeenCalledTimes(1)
-    expect(setPosition.mock.calls[0][0].name).toBe(images[1].name)
-    expect(setPosition.mock.calls[0][1]).toEqual({ x: 0.2, y: 0.5 })
+    expect(setPosition.mock.calls[0]![0].name).toBe(images[1]!.name)
+    expect(setPosition.mock.calls[0]![1]).toEqual({ x: 0.2, y: 0.5 })
 
     // Bild mit der Maus verschoben → Regler folgen nach boundsRevision
     pos = { x: 0.9, y: 0.1 }
     await w.setProps({ boundsRevision: 1 })
-    expect(Number(editor.find('input.editor-position-x').element.value)).toBeCloseTo(90)
-    expect(Number(editor.find('input.editor-position-y').element.value)).toBeCloseTo(10)
+    expect(
+      Number(editor.find<HTMLInputElement>('input.editor-position-x').element.value),
+    ).toBeCloseTo(90)
+    expect(
+      Number(editor.find<HTMLInputElement>('input.editor-position-y').element.value),
+    ).toBeCloseTo(10)
 
     // nicht positionierbar (z. B. Canvas-Hintergrund) → keine Regler
     adjustmentsApi.getPosition.mockReturnValue(null)
@@ -929,22 +1022,24 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const adjustmentsApi = {
       get: () => null,
       set: () => {},
-      getSize: vi.fn(() => size),
+      getSize: vi.fn<(img: SlideshowImageEntry) => typeof size | null>(() => size),
       setSize,
     }
     const w = mountPanel({ adjustmentsApi })
     await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 4 } })
-    const width = w.find('input.editor-size-width')
+    const width = w.find<HTMLInputElement>('input.editor-size-width')
     expect(Number(width.element.value)).toBeCloseTo(80)
 
     width.element.value = '60'
     await width.trigger('input')
-    expect(setSize.mock.calls[0][0].name).toBe(images[0].name)
-    expect(setSize.mock.calls[0][1]).toEqual({ width: 0.6, keepAspect: true })
+    expect(setSize.mock.calls[0]![0].name).toBe(images[0]!.name)
+    expect(setSize.mock.calls[0]![1]).toEqual({ width: 0.6, keepAspect: true })
 
     size = { ...size, width: 0.5, height: 0.25 }
     await w.setProps({ boundsRevision: 1 })
-    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(25)
+    expect(Number(w.find<HTMLInputElement>('input.editor-size-height').element.value)).toBeCloseTo(
+      25,
+    )
 
     adjustmentsApi.getSize.mockReturnValue(null)
     await w.setProps({ boundsRevision: 2 })
@@ -966,11 +1061,15 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     }
     const w = mountPanel({ adjustmentsApi, hasWorkspace: true })
     await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 8 } })
-    expect(Number(w.find('input.editor-size-width').element.value)).toBeCloseTo(30)
+    expect(Number(w.find<HTMLInputElement>('input.editor-size-width').element.value)).toBeCloseTo(
+      30,
+    )
 
     fitted = true
     await w.find('.bg-mode-workspace').setValue(true)
-    expect(w.emitted('background-mode-change').at(-1)).toEqual(['workspace'])
+    expect(
+      w.emitted<PanelEvents['background-mode-change']>('background-mode-change')!.at(-1),
+    ).toEqual(['workspace'])
     expect(w.find('.image-editor').exists()).toBe(true)
     expect(w.find('.image-editor-size').exists()).toBe(false)
     expect(w.find('.image-editor-position').exists()).toBe(false)
@@ -979,9 +1078,15 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // zurück auf „Aus“: gemerkte Größe/Position erscheinen wieder
     fitted = false
     await w.find('.bg-mode-none').setValue(true)
-    expect(Number(w.find('input.editor-size-width').element.value)).toBeCloseTo(30)
-    expect(Number(w.find('input.editor-size-height').element.value)).toBeCloseTo(15)
-    expect(Number(w.find('input.editor-position-y').element.value)).toBeCloseTo(75)
+    expect(Number(w.find<HTMLInputElement>('input.editor-size-width').element.value)).toBeCloseTo(
+      30,
+    )
+    expect(Number(w.find<HTMLInputElement>('input.editor-size-height').element.value)).toBeCloseTo(
+      15,
+    )
+    expect(Number(w.find<HTMLInputElement>('input.editor-position-y').element.value)).toBeCloseTo(
+      75,
+    )
   })
 
   it('paused: click request opens the image editor; edits go live and close on resume', async () => {
@@ -994,23 +1099,23 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(editor.text()).toContain('Zwei')
 
     await editor.find('.editor-transition').setValue('slideUp')
-    let live = w.emitted('live-update').at(-1)[0]
+    let live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
     expect(live.preserveLive).toBe(true)
-    expect(live.images[1].transition).toBe('slideUp')
+    expect(live.images[1]!.transition).toBe('slideUp')
 
-    const dur = editor.find('.editor-duration')
+    const dur = editor.find<HTMLInputElement>('.editor-duration')
     dur.element.value = '7'
     await dur.trigger('input')
-    live = w.emitted('live-update').at(-1)[0]
-    expect(live.images[1].displayDuration).toBe(7000)
+    live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
+    expect(live.images[1]!.displayDuration).toBe(7000)
 
     await editor.find('.editor-audio').setValue('glitch')
-    live = w.emitted('live-update').at(-1)[0]
-    expect(live.images[1].audioMode).toBe('glitch')
-    expect(live.images[0].audioMode).toBe('default')
+    live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
+    expect(live.images[1]!.audioMode).toBe('glitch')
+    expect(live.images[0]!.audioMode).toBe('default')
 
     // Eigene Audio-Quelle des Bildes (inkl. Onset)
-    const source = editor.find('.editor-audio-source')
+    const source = editor.find<HTMLInputElement>('.editor-audio-source')
     expect(source.element.value).toBe('')
     expect(source.findAll('option').map((o) => o.element.value)).toEqual([
       '',
@@ -1025,15 +1130,17 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       'allOnset',
     ])
     await source.setValue('allOnset')
-    live = w.emitted('live-update').at(-1)[0]
-    expect(live.images[1].audioSource).toBe('allOnset')
-    expect(live.images[0].audioSource).toBeNull()
+    live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
+    expect(live.images[1]!.audioSource).toBe('allOnset')
+    expect(live.images[0]!.audioSource).toBeNull()
     // Modus „Aus“ sperrt die Quelle; zurück auf „Wie Einstellung“ entfernt sie
     await editor.find('.editor-audio').setValue('off')
-    expect(editor.find('.editor-audio-source').element.disabled).toBe(true)
+    expect(editor.find<HTMLInputElement>('.editor-audio-source').element.disabled).toBe(true)
     await editor.find('.editor-audio').setValue('glitch')
     await editor.find('.editor-audio-source').setValue('')
-    expect(w.emitted('live-update').at(-1)[0].images[1].audioSource).toBeNull()
+    expect(
+      w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0].images[1]!.audioSource,
+    ).toBeNull()
 
     await w.setProps({ isPaused: false })
     expect(w.find('.image-editor').exists()).toBe(false)
@@ -1041,24 +1148,24 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('order list: audio source per row (incl. onset), locked when audio is off', async () => {
     const w = mountPanel()
-    const sources = w.findAll('.order-audio-source')
+    const sources = w.findAll<HTMLInputElement>('.order-audio-source')
     expect(sources).toHaveLength(2)
-    expect(sources[0].findAll('option')).toHaveLength(10) // „Wie Einstellung“ + 9 Quellen
-    expect(sources[0].find('optgroup').exists()).toBe(true)
-    expect(sources[0].element.value).toBe('')
+    expect(sources[0]!.findAll('option')).toHaveLength(10) // „Wie Einstellung“ + 9 Quellen
+    expect(sources[0]!.find('optgroup').exists()).toBe(true)
+    expect(sources[0]!.element.value).toBe('')
 
-    await sources[1].setValue('bassOnset')
-    expect(w.findAll('.order-audio-source')[1].classes()).toContain('is-own')
+    await sources[1]!.setValue('bassOnset')
+    expect(w.findAll('.order-audio-source')[1]!.classes()).toContain('is-own')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.images.map((i) => i.audioSource)).toEqual([null, 'bassOnset'])
 
-    await w.findAll('.order-audio')[1].setValue('off')
-    expect(w.findAll('.order-audio-source')[1].element.disabled).toBe(true)
-    await w.findAll('.order-audio')[1].setValue('pulse')
-    await w.findAll('.order-audio-source')[1].setValue('')
+    await w.findAll('.order-audio')[1]!.setValue('off')
+    expect(w.findAll<HTMLInputElement>('.order-audio-source')[1]!.element.disabled).toBe(true)
+    await w.findAll('.order-audio')[1]!.setValue('pulse')
+    await w.findAll('.order-audio-source')[1]!.setValue('')
     await w.find('.btn-start').trigger('click')
-    expect(w.emitted('start').at(-1)[0].images[1].audioSource).toBeNull()
+    expect(w.emitted<PanelEvents['start']>('start')!.at(-1)![0].images[1]!.audioSource).toBeNull()
   })
 
   it('workspace mode: area and per-image sources (incl. onset) reach the slideshow', async () => {
@@ -1080,10 +1187,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // Canvas-Felder sind im Workspace-Modus ausgeblendet
     expect(w.find('.base-fill-audio-source').exists()).toBe(false)
     // eigene Quelle pro Bild
-    await w.findAll('.order-audio-source')[0].setValue('midOnset')
+    await w.findAll('.order-audio-source')[0]!.setValue('midOnset')
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.backgroundMode).toBe('workspace')
     expect(payload.workspaceFillAudio.source).toBe('allOnset')
     expect(payload.workspaceGradient.audio.source).toBe('bassOnset')
@@ -1093,8 +1200,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
     // ohne Workspace-Format: Felder gesperrt, Modus wirkungslos
     await w.setProps({ hasWorkspace: false })
-    expect(w.find('.workspace-fill-audio-source').element.disabled).toBe(true)
-    expect(w.emitted('background-mode-change').at(-1)).toEqual(['none'])
+    expect(w.find<HTMLInputElement>('.workspace-fill-audio-source').element.disabled).toBe(true)
+    expect(
+      w.emitted<PanelEvents['background-mode-change']>('background-mode-change')!.at(-1),
+    ).toEqual(['none'])
   })
 
   it('workspace mode: image editor source goes live and stays in the list', async () => {
@@ -1109,7 +1218,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await editor.find('.editor-audio').setValue('pulse')
     await source.setValue('trebleOnset')
 
-    const live = w.emitted('live-update').at(-1)[0]
+    const live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
     expect(live.preserveLive).toBe(true)
     expect(live.backgroundMode).toBe('workspace')
     expect(live.fitToWorkspace).toBe(true)
@@ -1122,8 +1231,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.setProps({ isPaused: false })
     expect(w.find('.image-editor').exists()).toBe(false)
     await w.setProps({ isActive: false })
-    expect(w.findAll('.order-audio-source')[0].element.value).toBe('trebleOnset')
-    expect(w.findAll('.order-audio-source')[1].element.value).toBe('')
+    expect(w.findAll<HTMLInputElement>('.order-audio-source')[0]!.element.value).toBe('trebleOnset')
+    expect(w.findAll<HTMLInputElement>('.order-audio-source')[1]!.element.value).toBe('')
   })
 
   it('canvas mode: area image audio source (incl. onset) – start, live, preset, memory', async () => {
@@ -1148,15 +1257,19 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.workspace-image-audio-source').exists()).toBe(false)
 
     await source.setValue('trebleOnset')
-    expect(w.emitted('base-image-change').at(-1)[0]).toBe('canvas')
-    expect(w.emitted('base-image-change').at(-1)[1].audio.source).toBe('trebleOnset')
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')).audio.source).toBe(
+    expect(w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)![0]).toBe(
+      'canvas',
+    )
+    expect(
+      w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)![1].audio.source,
+    ).toBe('trebleOnset')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-image')!).audio.source).toBe(
       'trebleOnset',
     )
     expect(localStorage.getItem('visualizer-slideshow-workspace-image')).toBeNull()
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.backgroundMode).toBe('canvas')
     expect(payload.backgroundImageFill.audio).toMatchObject({
       enabled: true,
@@ -1167,7 +1280,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // während der Slideshow: Wechsel geht sofort an die Slideshow
     await w.setProps({ isActive: true })
     await w.find('.base-image-audio-source').setValue('allOnset')
-    expect(w.emitted('base-image-change').at(-1)).toEqual([
+    expect(w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)).toEqual([
       'canvas',
       expect.objectContaining({ audio: expect.objectContaining({ source: 'allOnset' }) }),
       null, // noch kein Bild gewählt
@@ -1177,13 +1290,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .backgroundImageFill.audio.source,
     ).toBe('allOnset')
     await w.find('.base-image-audio-source').setValue('bass')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.base-image-audio-source').element.value).toBe('allOnset')
+    expect(w.find<HTMLInputElement>('.base-image-audio-source').element.value).toBe('allOnset')
   })
 
   it('workspace mode: area image audio source (incl. onset) – start, live, preset, memory', async () => {
@@ -1193,25 +1306,26 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await setSwitch(w, '.workspace-image-audio-toggle', true)
     const source = w.find('.workspace-image-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
-    expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
-      'bassOnset',
-      'midOnset',
-      'trebleOnset',
-      'allOnset',
-    ])
+    expect(source.findAll<HTMLInputElement>('optgroup option').map((o) => o.element.value)).toEqual(
+      ['bassOnset', 'midOnset', 'trebleOnset', 'allOnset'],
+    )
     // Canvas-Felder sind im Workspace-Modus ausgeblendet
     expect(w.find('.base-image-audio-source').exists()).toBe(false)
 
     await source.setValue('midOnset')
-    expect(w.emitted('base-image-change').at(-1)[0]).toBe('workspace')
-    expect(w.emitted('base-image-change').at(-1)[1].audio.source).toBe('midOnset')
+    expect(w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)![0]).toBe(
+      'workspace',
+    )
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-image')).audio.source,
+      w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)![1].audio.source,
+    ).toBe('midOnset')
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-image')!).audio.source,
     ).toBe('midOnset')
     expect(localStorage.getItem('visualizer-slideshow-base-image')).toBeNull()
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.backgroundMode).toBe('workspace')
     expect(payload.workspaceImageFill.audio).toMatchObject({ enabled: true, source: 'midOnset' })
     expect(payload.backgroundImageFill.audio.enabled).toBe(false)
@@ -1219,7 +1333,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // während der Slideshow: Wechsel geht sofort an die Slideshow
     await w.setProps({ isActive: true })
     await w.find('.workspace-image-audio-source').setValue('dynamic')
-    expect(w.emitted('base-image-change').at(-1)).toEqual([
+    expect(w.emitted<PanelEvents['base-image-change']>('base-image-change')!.at(-1)).toEqual([
       'workspace',
       expect.objectContaining({ audio: expect.objectContaining({ source: 'dynamic' }) }),
       null,
@@ -1229,17 +1343,17 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .workspaceImageFill.audio.source,
     ).toBe('dynamic')
     await w.find('.workspace-image-audio-source').setValue('bass')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.workspace-image-audio-source').element.value).toBe('dynamic')
+    expect(w.find<HTMLInputElement>('.workspace-image-audio-source').element.value).toBe('dynamic')
 
     // ohne Workspace-Format gesperrt
     await w.setProps({ hasWorkspace: false })
-    expect(w.find('.workspace-image-audio-source').element.disabled).toBe(true)
+    expect(w.find<HTMLInputElement>('.workspace-image-audio-source').element.disabled).toBe(true)
   })
 
   it('canvas mode: gradient audio source (incl. onset) – live, preset, memory, workspace untouched', async () => {
@@ -1256,7 +1370,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.workspace-gradient-audio-source').exists()).toBe(false)
 
     await source.setValue('allOnset')
-    expect(w.emitted('base-gradient-change').at(-1)).toEqual([
+    expect(w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)).toEqual([
       'canvas',
       expect.objectContaining({
         type: 'radial',
@@ -1264,18 +1378,21 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       }),
     ])
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')).audio.source,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-base-gradient')!).audio.source,
     ).toBe('allOnset')
     expect(localStorage.getItem('visualizer-slideshow-workspace-gradient')).toBeNull()
 
     // während der Slideshow sofort weitergegeben
     await w.setProps({ isActive: true })
     await w.find('.base-gradient-audio-source').setValue('bassOnset')
-    expect(w.emitted('base-gradient-change').at(-1)[1].audio.source).toBe('bassOnset')
+    expect(
+      w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)![1].audio
+        .source,
+    ).toBe('bassOnset')
     await w.setProps({ isActive: false })
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start').at(-1)[0]
+    const payload = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
     expect(payload.backgroundMode).toBe('canvas')
     expect(payload.backgroundGradient.audio.source).toBe('bassOnset')
     expect(payload.workspaceGradient.audio.enabled).toBe(false)
@@ -1283,13 +1400,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .backgroundGradient.audio.source,
     ).toBe('bassOnset')
     await w.find('.base-gradient-audio-source').setValue('mid')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.base-gradient-audio-source').element.value).toBe('bassOnset')
+    expect(w.find<HTMLInputElement>('.base-gradient-audio-source').element.value).toBe('bassOnset')
   })
 
   it('workspace mode: gradient audio source (incl. onset) – live, preset, memory, canvas untouched', async () => {
@@ -1300,18 +1417,15 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.workspace-gradient-audio-toggle [role="switch"]').trigger('click')
     const source = w.find('.workspace-gradient-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
-    expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
-      'bassOnset',
-      'midOnset',
-      'trebleOnset',
-      'allOnset',
-    ])
+    expect(source.findAll<HTMLInputElement>('optgroup option').map((o) => o.element.value)).toEqual(
+      ['bassOnset', 'midOnset', 'trebleOnset', 'allOnset'],
+    )
     // linear: Regler heißt „Rotation“; Canvas-Felder ausgeblendet
     expect(w.text()).toContain('Rotation')
     expect(w.find('.base-gradient-audio-source').exists()).toBe(false)
 
     await source.setValue('trebleOnset')
-    expect(w.emitted('base-gradient-change').at(-1)).toEqual([
+    expect(w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)).toEqual([
       'workspace',
       expect.objectContaining({
         type: 'linear',
@@ -1319,17 +1433,20 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       }),
     ])
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-gradient')).audio.source,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-gradient')!).audio.source,
     ).toBe('trebleOnset')
     expect(localStorage.getItem('visualizer-slideshow-base-gradient')).toBeNull()
 
     await w.setProps({ isActive: true })
     await w.find('.workspace-gradient-audio-source').setValue('dynamic')
-    expect(w.emitted('base-gradient-change').at(-1)[1].audio.source).toBe('dynamic')
+    expect(
+      w.emitted<PanelEvents['base-gradient-change']>('base-gradient-change')!.at(-1)![1].audio
+        .source,
+    ).toBe('dynamic')
     await w.setProps({ isActive: false })
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start').at(-1)[0]
+    const payload = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
     expect(payload.backgroundMode).toBe('workspace')
     expect(payload.workspaceGradient.audio.source).toBe('dynamic')
     expect(payload.backgroundGradient.audio.enabled).toBe(false)
@@ -1337,16 +1454,18 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings.workspaceGradient
-        .audio.source,
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
+        .workspaceGradient.audio.source,
     ).toBe('dynamic')
     await w.find('.workspace-gradient-audio-source').setValue('bass')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.workspace-gradient-audio-source').element.value).toBe('dynamic')
+    expect(w.find<HTMLInputElement>('.workspace-gradient-audio-source').element.value).toBe(
+      'dynamic',
+    )
 
     await w.setProps({ hasWorkspace: false })
-    expect(w.find('.workspace-gradient-audio-source').element.disabled).toBe(true)
+    expect(w.find<HTMLInputElement>('.workspace-gradient-audio-source').element.disabled).toBe(true)
   })
 
   it('canvas mode: fill color audio source (incl. onset) – live, preset, memory, workspace untouched', async () => {
@@ -1369,11 +1488,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     expect(w.find('.workspace-fill-audio-source').exists()).toBe(false)
 
     await source.setValue('bassOnset')
-    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual([
-      'canvas',
-      { enabled: true, source: 'bassOnset', brightness: 80, hue: 0 },
-    ])
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-fill-audio')).source).toBe(
+    expect(
+      w.emitted<PanelEvents['base-fill-audio-change']>('base-fill-audio-change')!.at(-1),
+    ).toEqual(['canvas', { enabled: true, source: 'bassOnset', brightness: 80, hue: 0 }])
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-base-fill-audio')!).source).toBe(
       'bassOnset',
     )
     expect(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).toBeNull()
@@ -1381,11 +1499,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // während der Slideshow sofort weitergegeben
     await w.setProps({ isActive: true })
     await w.find('.base-fill-audio-source').setValue('allOnset')
-    expect(w.emitted('base-fill-audio-change').at(-1)[1].source).toBe('allOnset')
+    expect(
+      w.emitted<PanelEvents['base-fill-audio-change']>('base-fill-audio-change')!.at(-1)![1].source,
+    ).toBe('allOnset')
     await w.setProps({ isActive: false })
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start').at(-1)[0]
+    const payload = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
     expect(payload.backgroundMode).toBe('canvas')
     expect(payload.backgroundFillAudio).toMatchObject({ enabled: true, source: 'allOnset' })
     expect(payload.workspaceFillAudio.enabled).toBe(false)
@@ -1393,13 +1513,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .backgroundFillAudio.source,
     ).toBe('allOnset')
     await w.find('.base-fill-audio-source').setValue('treble')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.base-fill-audio-source').element.value).toBe('allOnset')
+    expect(w.find<HTMLInputElement>('.base-fill-audio-source').element.value).toBe('allOnset')
 
     // Zurücksetzen (↺) schaltet es ab und vergisst die Quelle
     await w.find('.btn-reset-base-color').trigger('click')
@@ -1413,31 +1533,29 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await setSwitch(w, '.workspace-fill-audio-toggle', true)
     const source = w.find('.workspace-fill-audio-source')
     expect(source.findAll('option')).toHaveLength(9)
-    expect(source.findAll('optgroup option').map((o) => o.element.value)).toEqual([
-      'bassOnset',
-      'midOnset',
-      'trebleOnset',
-      'allOnset',
-    ])
+    expect(source.findAll<HTMLInputElement>('optgroup option').map((o) => o.element.value)).toEqual(
+      ['bassOnset', 'midOnset', 'trebleOnset', 'allOnset'],
+    )
     expect(w.find('.base-fill-audio-source').exists()).toBe(false)
 
     await source.setValue('midOnset')
-    expect(w.emitted('base-fill-audio-change').at(-1)).toEqual([
-      'workspace',
-      { enabled: true, source: 'midOnset', brightness: 80, hue: 0 },
-    ])
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')).source,
+      w.emitted<PanelEvents['base-fill-audio-change']>('base-fill-audio-change')!.at(-1),
+    ).toEqual(['workspace', { enabled: true, source: 'midOnset', brightness: 80, hue: 0 }])
+    expect(
+      JSON.parse(localStorage.getItem('visualizer-slideshow-workspace-fill-audio')!).source,
     ).toBe('midOnset')
     expect(localStorage.getItem('visualizer-slideshow-base-fill-audio')).toBeNull()
 
     await w.setProps({ isActive: true })
     await w.find('.workspace-fill-audio-source').setValue('dynamic')
-    expect(w.emitted('base-fill-audio-change').at(-1)[1].source).toBe('dynamic')
+    expect(
+      w.emitted<PanelEvents['base-fill-audio-change']>('base-fill-audio-change')!.at(-1)![1].source,
+    ).toBe('dynamic')
     await w.setProps({ isActive: false })
 
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start').at(-1)[0]
+    const payload = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
     expect(payload.backgroundMode).toBe('workspace')
     expect(payload.workspaceFillAudio).toMatchObject({ enabled: true, source: 'dynamic' })
     expect(payload.backgroundFillAudio.enabled).toBe(false)
@@ -1445,13 +1563,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     expect(
-      JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))[0].settings
+      JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)[0].settings
         .workspaceFillAudio.source,
     ).toBe('dynamic')
     await w.find('.workspace-fill-audio-source').setValue('bass')
     await w.find('.btn-load-preset').trigger('click')
     await flushPromises()
-    expect(w.find('.workspace-fill-audio-source').element.value).toBe('dynamic')
+    expect(w.find<HTMLInputElement>('.workspace-fill-audio-source').element.value).toBe('dynamic')
 
     // ↺ setzt die Workspace-Fläche zurück (inkl. Audio), Canvas bleibt unberührt
     await w.find('.btn-reset-workspace-color').trigger('click')
@@ -1465,7 +1583,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it.each([
     ['canvas', 'base', 'backgroundFillAudio', 'backgroundGradient'],
     ['workspace', 'workspace', 'workspaceFillAudio', 'workspaceGradient'],
-  ])(
+  ] as const)(
     '%s mode: fill color audio together with gradient – own sources, both sent',
     async (mode, prefix, fillKey, gradientKey) => {
       const w = mountPanel({ hasWorkspace: true })
@@ -1477,11 +1595,15 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       await w.find(`.${prefix}-fill-audio-source`).setValue('bassOnset')
 
       // beide Bereiche sichtbar, Quellen unabhängig
-      expect(w.find(`.${prefix}-fill-audio-source`).element.value).toBe('bassOnset')
-      expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('trebleOnset')
+      expect(w.find<HTMLInputElement>(`.${prefix}-fill-audio-source`).element.value).toBe(
+        'bassOnset',
+      )
+      expect(w.find<HTMLInputElement>(`.${prefix}-gradient-audio-source`).element.value).toBe(
+        'trebleOnset',
+      )
 
       await w.find('.btn-start').trigger('click')
-      const payload = w.emitted('start').at(-1)[0]
+      const payload = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
       expect(payload[fillKey]).toMatchObject({ enabled: true, source: 'bassOnset' })
       expect(payload[gradientKey]).toMatchObject({
         enabled: true,
@@ -1491,7 +1613,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       // Verlauf aus → „Farbe audio-reaktiv“ bleibt erhalten
       await w.find(`.${prefix}-gradient-toggle [role="switch"]`).trigger('click')
       await w.find('.btn-start').trigger('click')
-      const again = w.emitted('start').at(-1)[0]
+      const again = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
       expect(again[gradientKey].enabled).toBe(false)
       expect(again[fillKey]).toMatchObject({ enabled: true, source: 'bassOnset' })
     },
@@ -1500,7 +1622,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   it.each([
     ['canvas', 'base', 'Gradient', 'backgroundGradient', 'backgroundImageFill', 'base'],
     ['workspace', 'workspace', 'Gradient', 'workspaceGradient', 'workspaceImageFill', 'workspace'],
-  ])(
+  ] as const)(
     '%s mode: gradient source together with area image – own sources, stored separately',
     async (mode, prefix, _g, gradientKey, imageKey, storeName) => {
       const w = mountPanel({ hasWorkspace: true })
@@ -1512,16 +1634,20 @@ describe('SlideshowPanel (aufgeteilt)', () => {
       await setSwitch(w, `.${prefix}-image-audio-toggle`, true)
       await w.find(`.${prefix}-image-audio-source`).setValue('midOnset')
 
-      expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('allOnset')
-      expect(w.find(`.${prefix}-image-audio-source`).element.value).toBe('midOnset')
+      expect(w.find<HTMLInputElement>(`.${prefix}-gradient-audio-source`).element.value).toBe(
+        'allOnset',
+      )
+      expect(w.find<HTMLInputElement>(`.${prefix}-image-audio-source`).element.value).toBe(
+        'midOnset',
+      )
 
       // getrennt dauerhaft gemerkt
-      const stored = (key) => JSON.parse(localStorage.getItem(key))
+      const stored = (key: string) => JSON.parse(localStorage.getItem(key)!)
       expect(stored(`visualizer-slideshow-${storeName}-gradient`).audio.source).toBe('allOnset')
       expect(stored(`visualizer-slideshow-${storeName}-image`).audio.source).toBe('midOnset')
 
       await w.find('.btn-start').trigger('click')
-      const payload = w.emitted('start').at(-1)[0]
+      const payload = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
       expect(payload[gradientKey].audio).toMatchObject({ enabled: true, source: 'allOnset' })
       expect(payload[imageKey]).toMatchObject({
         enabled: true,
@@ -1530,11 +1656,15 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
       // Quelle des Verlaufs ändern lässt die des Bildes unberührt (und umgekehrt)
       await w.find(`.${prefix}-gradient-audio-source`).setValue('bassOnset')
-      expect(w.find(`.${prefix}-image-audio-source`).element.value).toBe('midOnset')
+      expect(w.find<HTMLInputElement>(`.${prefix}-image-audio-source`).element.value).toBe(
+        'midOnset',
+      )
       await w.find(`.${prefix}-image-audio-source`).setValue('dynamic')
-      expect(w.find(`.${prefix}-gradient-audio-source`).element.value).toBe('bassOnset')
+      expect(w.find<HTMLInputElement>(`.${prefix}-gradient-audio-source`).element.value).toBe(
+        'bassOnset',
+      )
       await w.find('.btn-start').trigger('click')
-      const again = w.emitted('start').at(-1)[0]
+      const again = w.emitted<PanelEvents['start']>('start')!.at(-1)![0]
       expect(again[gradientKey].audio.source).toBe('bassOnset')
       expect(again[imageKey].audio.source).toBe('dynamic')
     },
@@ -1542,13 +1672,13 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('no explanatory hint texts – only status/warning messages remain', async () => {
     // erlaubte Meldungen: Warnungen, leere Listen, fehlende Bilder
-    const texts = (w) =>
+    const texts = (w: VueWrapper) =>
       w
         .findAll('.hint')
         .filter((h) => !h.classes('warning') && !h.classes('empty'))
         .map((h) => h.text())
     const allowed = ['Keine Bilder vorhanden']
-    const onlyAllowed = (w) =>
+    const onlyAllowed = (w: VueWrapper) =>
       expect(texts(w).filter((t) => !allowed.some((a) => t.startsWith(a)))).toEqual([])
 
     const w = mountPanel({ hasWorkspace: false })
@@ -1576,7 +1706,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     // auch keine erklärenden Tooltips mehr – title nur an Symbol-Knöpfen
     // (↺, ✕) und für volle Namen abgeschnittener Texte
     await w.setProps({ isActive: false, hasWorkspace: false })
-    expect(w.find('.bg-mode-workspace').element.closest('label').title).toBe('')
+    expect(w.find('.bg-mode-workspace').element.closest('label')!.title).toBe('')
     const titled = w.findAll('[title]').filter((el) => el.attributes('title'))
     expect(titled.length).toBeGreaterThan(0)
     for (const el of titled) {
@@ -1594,28 +1724,28 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   })
 
   it('per-image fade in/out: payload, permanent memory, presets; default label shows global', async () => {
-    const withObj = (img, w, h) => ({
+    const withObj = (img: (typeof images)[number], w: number, h: number) => ({
       ...img,
       imageObject: { ...img.imageObject, width: w, height: h },
     })
-    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    const imgs = [withObj(images[0]!, 10, 10), withObj(images[1]!, 20, 10)]
     let w = mountPanel({ images: imgs })
     // „Standard (Überblenden)“ zeigt den aktuellen Standard-Übergang
-    expect(w.findAll('.order-transition')[0].find('option').text()).toContain('Überblenden')
+    expect(w.findAll('.order-transition')[0]!.find('option').text()).toContain('Überblenden')
     await w.find('.transition-select').setValue('blur')
-    expect(w.findAll('.order-transition')[0].find('option').text()).toContain('Weichzeichnen')
+    expect(w.findAll('.order-transition')[0]!.find('option').text()).toContain('Weichzeichnen')
 
-    await w.findAll('.order-fadein')[1].setValue('0.4')
-    await w.findAll('.order-fadeout')[1].setValue('2.5')
-    expect(w.findAll('.order-fadein')[1].classes()).toContain('is-own')
+    await w.findAll('.order-fadein')[1]!.setValue('0.4')
+    await w.findAll('.order-fadeout')[1]!.setValue('2.5')
+    expect(w.findAll('.order-fadein')[1]!.classes()).toContain('is-own')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
     expect(payload.images[1]).toMatchObject({ fadeInDuration: 400, fadeOutDuration: 2500 })
-    expect(payload.images[0].fadeInDuration).toBeUndefined()
+    expect(payload.images[0]!.fadeInDuration).toBeUndefined()
 
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
-    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots[1]).toMatchObject({ fadeIn: 400, fadeOut: 2500 })
     w.unmount()
 
@@ -1624,57 +1754,57 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     setActivePinia(pinia)
     w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
     wrapper = w
-    expect(w.findAll('.order-fadein')[1].element.value).toBe('0.4')
-    expect(w.findAll('.order-fadeout')[1].element.value).toBe('2.5')
-    expect(w.findAll('.order-fadein')[0].element.value).toBe('')
+    expect(w.findAll<HTMLInputElement>('.order-fadein')[1]!.element.value).toBe('0.4')
+    expect(w.findAll<HTMLInputElement>('.order-fadeout')[1]!.element.value).toBe('2.5')
+    expect(w.findAll<HTMLInputElement>('.order-fadein')[0]!.element.value).toBe('')
   })
 
   it('image editor: fade in/out fields go live', async () => {
     const w = mountPanel()
     await w.setProps({ isActive: true, isPaused: true, editImageRequest: { index: 0, nonce: 5 } })
-    const fin = w.find('.image-editor .editor-fadein')
+    const fin = w.find<HTMLInputElement>('.image-editor .editor-fadein')
     fin.element.value = '0.8'
     await fin.trigger('input')
-    const live = w.emitted('live-update').at(-1)[0]
+    const live = w.emitted<PanelEvents['live-update']>('live-update')!.at(-1)![0]
     expect(live.preserveLive).toBe(true)
-    expect(live.images[0].fadeInDuration).toBe(800)
+    expect(live.images[0]!.fadeInDuration).toBe(800)
   })
 
   it('per-image display duration and audio are remembered permanently (reload)', async () => {
-    const withObj = (img, w, h) => ({
+    const withObj = (img: (typeof images)[number], w: number, h: number) => ({
       ...img,
       imageObject: { ...img.imageObject, width: w, height: h },
     })
-    const imgs = [withObj(images[0], 10, 10), withObj(images[1], 20, 10)]
+    const imgs = [withObj(images[0]!, 10, 10), withObj(images[1]!, 20, 10)]
     let w = mountPanel({ images: imgs })
-    await w.findAll('.order-duration')[0].setValue('8')
-    await w.findAll('.order-audio')[1].setValue('pulse')
+    await w.findAll('.order-duration')[0]!.setValue('8')
+    await w.findAll('.order-audio')[1]!.setValue('pulse')
     w.unmount()
     pinia = createPinia()
     setActivePinia(pinia)
     w = mountPanel({ images: imgs.map((i) => ({ ...i, id: `${i.id}-neu` })) })
     wrapper = w
-    expect(w.findAll('.order-duration')[0].element.value).toBe('8')
-    expect(w.findAll('.order-audio')[1].element.value).toBe('pulse')
-    expect(w.findAll('.order-audio')[0].element.value).toBe('default')
+    expect(w.findAll<HTMLInputElement>('.order-duration')[0]!.element.value).toBe('8')
+    expect(w.findAll<HTMLInputElement>('.order-audio')[1]!.element.value).toBe('pulse')
+    expect(w.findAll<HTMLInputElement>('.order-audio')[0]!.element.value).toBe('default')
     await w.find('.btn-start').trigger('click')
-    const payload = w.emitted('start')[0][0]
-    expect(payload.images[0].displayDuration).toBe(8000)
-    expect(payload.images[1].audioMode).toBe('pulse')
+    const payload = w.emitted<PanelEvents['start']>('start')![0]![0]
+    expect(payload.images[0]!.displayDuration).toBe(8000)
+    expect(payload.images[1]!.audioMode).toBe('pulse')
     // zurück auf Standard → vergessen
-    await w.findAll('.order-duration')[0].setValue('')
-    await w.findAll('.order-audio')[1].setValue('default')
-    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions'))).toEqual({})
+    await w.findAll('.order-duration')[0]!.setValue('')
+    await w.findAll('.order-audio')[1]!.setValue('default')
+    expect(JSON.parse(localStorage.getItem('visualizer-slideshow-image-transitions')!)).toEqual({})
   })
 
   it('reset in the transform section restores defaults and emits transform-change', async () => {
     const w = mountPanel()
-    const xNum = w.findAll('.transform-control input[type="number"]')[0].element
+    const xNum = w.findAll<HTMLInputElement>('.transform-control input[type="number"]')[0]!.element
     xNum.value = '40'
     xNum.dispatchEvent(new Event('input', { bubbles: true }))
     await w.vm.$nextTick()
     await w.find('.btn-reset-transform').trigger('click')
-    expect(w.emitted('transform-change').at(-1)[0]).toEqual({
+    expect(w.emitted<PanelEvents['transform-change']>('transform-change')!.at(-1)![0]).toEqual({
       relX: 0.1,
       relY: 0.1,
       relWidth: 0.8,
@@ -1688,8 +1818,8 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     await w.find('.btn-resume').trigger('click')
     await w.find('.btn-stop').trigger('click')
     await setSwitch(w, '.layer-section .render-behind-toggle', true)
-    expect(w.emitted('resume')).toHaveLength(1)
-    expect(w.emitted('stop')).toHaveLength(1)
-    expect(w.emitted('render-layer-change')).toEqual([[true]])
+    expect(w.emitted<PanelEvents['resume']>('resume')).toHaveLength(1)
+    expect(w.emitted<PanelEvents['stop']>('stop')).toHaveLength(1)
+    expect(w.emitted<PanelEvents['render-layer-change']>('render-layer-change')).toEqual([[true]])
   })
 })

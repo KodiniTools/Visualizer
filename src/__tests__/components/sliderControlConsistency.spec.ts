@@ -10,13 +10,13 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../components')
-const read = (rel) => readFileSync(join(root, rel), 'utf8')
+const read = (rel: string) => readFileSync(join(root, rel), 'utf8')
 const SLIDESHOW_DIR = 'foto-panel/slideshow'
 const slideshowFiles = readdirSync(join(root, SLIDESHOW_DIR))
   .filter((f) => f.endsWith('.vue'))
   .map((f) => `${SLIDESHOW_DIR}/${f}`)
-const template = (src) => src.slice(0, src.indexOf('<script'))
-const styles = (src) => src.slice(src.indexOf('<style'))
+const template = (src: string) => src.slice(0, src.indexOf('<script'))
+const styles = (src: string) => src.slice(src.indexOf('<style'))
 
 describe('Einheitliche Regler', () => {
   it('Slideshow-Komponenten: keine eigenen Range-Inputs oder SliderField-Zeilen', () => {
@@ -88,10 +88,10 @@ describe('Einheitliche Regler', () => {
         expect(template(src), `${file}: .${cls}`).toMatch(new RegExp(`class="${cls}"`))
         // keine Regel mit gap ≠ 0 für diesen Container
         const rules = [...styles(src).matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, sel]) =>
-          sel.split(',').some((x) => x.trim() === `.${cls}`),
+          sel!.split(',').some((x) => x.trim() === `.${cls}`),
         )
         for (const [, sel, body] of rules) {
-          expect(body, `${file}: ${sel.trim()}`).not.toMatch(/gap:\s*(?!0[;\s])/)
+          expect(body, `${file}: ${sel!.trim()}`).not.toMatch(/gap:\s*(?!0[;\s])/)
         }
       }
     }

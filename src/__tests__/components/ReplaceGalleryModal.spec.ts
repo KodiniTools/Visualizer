@@ -3,7 +3,7 @@
 // Zugriff über sichtbare Texte statt CSS-Klassen, damit die Tests den Wechsel
 // auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -11,9 +11,10 @@ import ReplaceGalleryModal from '../../components/canvas-bar/ReplaceGalleryModal
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
 
 const A = de.app
-let wrapper
+let wrapper: VueWrapper | null
 
 const categories = [
   { id: 'nature', name: 'Natur', name_en: 'Nature', icon: '🌿' },
@@ -37,7 +38,8 @@ function mountModal(props = {}) {
     props: {
       showReplaceGallery: true,
       replaceGalleryCategories: categories,
-      replaceGalleryImages: images,
+      replaceGalleryImages:
+        stub<InstanceType<typeof ReplaceGalleryModal>['$props']['replaceGalleryImages']>(images),
       selectedReplaceCategory: 'nature',
       selectedReplaceImage: null,
       replaceGalleryLoading: false,
@@ -56,14 +58,14 @@ afterEach(() => {
 })
 
 const body = () => document.body
-const text = () => body().textContent.replace(/\s+/g, ' ')
+const text = () => body().textContent!.replace(/\s+/g, ' ')
 const buttons = () => [...body().querySelectorAll('button')]
-const button = (label) =>
+const button = (label: string) =>
   buttons()
-    .filter((b) => b.textContent.includes(label))
+    .filter((b) => b.textContent!.includes(label))
     .pop()
 /** Galerie-Kachel, die das Bild mit dieser Datei zeigt. */
-const tile = (file) => {
+const tile = (file: string) => {
   const img = [...body().querySelectorAll('img')].find((i) =>
     i.getAttribute('src')?.startsWith(file.replace('.jpg', '')),
   )
@@ -72,7 +74,7 @@ const tile = (file) => {
 /** Die abgedunkelte Ebene hinter dem Dialog. */
 const overlay = () =>
   body().querySelector('[role="dialog"]')?.parentElement ??
-  [...body().children].find((el) => el.textContent.includes(A.selectFromGallery))
+  [...body().children].find((el) => el.textContent!.includes(A.selectFromGallery))
 
 describe('Ersatz-Galerie – Anzeige', () => {
   it('ist geschlossen unsichtbar', () => {
@@ -95,7 +97,7 @@ describe('Ersatz-Galerie – Anzeige', () => {
     mountModal({ replaceGalleryLoading: true })
     expect(text()).toContain(de.common.loading)
     expect(body().querySelector('img')).toBeNull()
-    wrapper.unmount()
+    wrapper!.unmount()
     mountModal({ replaceGalleryImages: [] })
     expect(text()).toContain(de.common.noResults)
   })
@@ -104,22 +106,22 @@ describe('Ersatz-Galerie – Anzeige', () => {
 describe('Ersatz-Galerie – Auswahl', () => {
   it('Kategorie wählen meldet die ID', () => {
     const fns = mountModal()
-    button('Stadt').click()
+    button('Stadt')!.click()
     expect(fns.selectReplaceGalleryCategory).toHaveBeenCalledWith('city')
   })
 
   it('Bild wählen meldet das Bild', () => {
     const fns = mountModal()
-    tile('g/see.jpg').click()
+    tile('g/see.jpg')!.click()
     expect(fns.selectReplaceGalleryImage).toHaveBeenCalledWith(images[1])
   })
 
   it('„Bild ersetzen“ erst mit Auswahl aktiv', async () => {
     const fns = mountModal()
-    expect(button(A.replaceImage).disabled).toBe(true)
-    await wrapper.setProps({ selectedReplaceImage: images[0] })
-    expect(button(A.replaceImage).disabled).toBe(false)
-    button(A.replaceImage).click()
+    expect(button(A.replaceImage)!.disabled).toBe(true)
+    await wrapper!.setProps({ selectedReplaceImage: images[0] })
+    expect(button(A.replaceImage)!.disabled).toBe(false)
+    button(A.replaceImage)!.click()
     expect(fns.confirmReplaceFromGallery).toHaveBeenCalledTimes(1)
   })
 })
@@ -127,24 +129,26 @@ describe('Ersatz-Galerie – Auswahl', () => {
 describe('Ersatz-Galerie – Schließen', () => {
   it('Abbrechen schließt', () => {
     const fns = mountModal()
-    button(de.common.cancel).click()
+    button(de.common.cancel)!.click()
     expect(fns.closeReplaceGallery).toHaveBeenCalledTimes(1)
   })
 
   it('Klick auf den Hintergrund schließt, Klick ins Raster nicht', () => {
     const fns = mountModal()
     body()
-      .querySelector('img')
+      .querySelector('img')!
       .dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(fns.closeReplaceGallery).not.toHaveBeenCalled()
-    overlay().dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    overlay()!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(fns.closeReplaceGallery).toHaveBeenCalledTimes(1)
   })
 
   it('Schließen-Knopf schließt', () => {
     const fns = mountModal()
     buttons()
-      .find((b) => b.getAttribute('aria-label') === de.common.close || b.textContent.trim() === '×')
+      .find(
+        (b) => b.getAttribute('aria-label') === de.common.close || b.textContent!.trim() === '×',
+      )!
       .click()
     expect(fns.closeReplaceGallery).toHaveBeenCalledTimes(1)
   })
@@ -169,17 +173,17 @@ describe('Ersatz-Galerie – Ui-Bausteine', () => {
   it('Dialog mit Titel, Escape schließt', () => {
     const fns = mountModal()
     const dialog = body().querySelector('[role="dialog"]')
-    const titleId = dialog.getAttribute('aria-labelledby')
-    expect(document.getElementById(titleId).textContent).toBe(A.selectFromGallery)
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    const titleId = dialog!.getAttribute('aria-labelledby')
+    expect(document.getElementById(titleId!)!.textContent).toBe(A.selectFromGallery)
+    dialog!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     expect(fns.closeReplaceGallery).toHaveBeenCalledTimes(1)
   })
 
   it('Kategorien als Radiogroup, Bilder als Knöpfe mit Namen und aria-pressed', () => {
     mountModal({ selectedReplaceImage: images[1] })
     const group = body().querySelector('[role="radiogroup"]')
-    expect(group.getAttribute('aria-label')).toBe(de.backgroundTiles.galleryCategories)
-    expect(group.querySelector('[aria-checked="true"]').textContent).toContain('Natur')
+    expect(group!.getAttribute('aria-label')).toBe(de.backgroundTiles.galleryCategories)
+    expect(group!.querySelector('[aria-checked="true"]')!.textContent).toContain('Natur')
     const tiles = [...body().querySelectorAll('button[aria-pressed]')]
     expect(tiles.map((b) => b.getAttribute('aria-label'))).toEqual(['Wald', 'See'])
     expect(tiles.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true'])

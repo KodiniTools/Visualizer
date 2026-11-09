@@ -18,10 +18,10 @@ const css = readFileSync(
 const tokensCss = readFileSync(join(SRC, 'design-system/tokens-v2.css'), 'utf8')
 
 /** Deklarationen `--name: value` des Top-Level-Blocks mit genau diesem Selektor. */
-function block(src, selector) {
+function block(src: string, selector: string) {
   const re = new RegExp(`(?:^|\\n)${selector.replace(/[[\]'.]/g, '\\$&')}\\s*\\{([^}]*)\\}`)
-  const body = src.match(re)[1].replace(/\/\*[\s\S]*?\*\//g, '')
-  const map = new Map()
+  const body = src.match(re)![1]!.replace(/\/\*[\s\S]*?\*\//g, '')
+  const map = new Map<string, string>()
   for (const decl of body.split(';')) {
     const i = decl.indexOf(':')
     if (i > 0)
@@ -40,32 +40,33 @@ const themes = {
   light: block(tokensCss, ":root[data-theme='light']"),
 }
 
-function resolveHex(value, theme) {
+function resolveHex(value: string, theme: keyof typeof themes): string {
   const m = value.match(/^var\((--[\w-]+)\)$/)
   if (!m) return value
-  const next = themes[theme].get(m[1])
+  const next = themes[theme].get(m[1]!)
   expect(next, `${m[1]} fehlt in tokens-v2.css`).toBeDefined()
-  return resolveHex(next, theme)
+  return resolveHex(next!, theme)
 }
 
-const rule = (sel) => {
+const rule = (sel: string) => {
   const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return css.match(new RegExp(`(^|\\n)${esc} \\{([^}]*)\\}`))?.[2] ?? null
+  return css!.match(new RegExp(`(^|\\n)${esc} \\{([^}]*)\\}`))?.[2] ?? null
 }
-const decl = (body, prop) => body?.match(new RegExp(`(?:^|\\s)${prop}: ([^;]+);`))?.[1]
+const decl = (body: string | null, prop: string) =>
+  body?.match(new RegExp(`(?:^|\\s)${prop}: ([^;]+);`))?.[1]
 /** Wert für einen Zustand: Zustandsregel, sonst Basisregel. */
-const stateDecl = (state, prop, pseudo = '') =>
+const stateDecl = (state: string, prop: string, pseudo = '') =>
   decl(rule(`.status-badge${state ? `.${state}` : ''}${pseudo}`), prop) ??
   decl(rule(`.status-badge${pseudo}`), prop)
 
-function luminance(hex) {
+function luminance(hex: string) {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
   const l = c.map((x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4))
-  return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]
+  return 0.2126 * l[0]! + 0.7152 * l[1]! + 0.0722 * l[2]!
 }
-const contrast = (a, b) => {
+const contrast = (a: string, b: string) => {
   const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m)
-  return (x + 0.05) / (y + 0.05)
+  return (x! + 0.05) / (y! + 0.05)
 }
 
 describe('SlideshowStatusBadge', () => {
@@ -74,20 +75,23 @@ describe('SlideshowStatusBadge', () => {
     expect(css).not.toMatch(/\[data-theme='light'\]/)
   })
 
-  it.each(['dark', 'light'])('%s: Bereit, Läuft und Pausiert haben drei Punktfarben', (theme) => {
-    const dots = ['', 'active', 'paused'].map((s) =>
-      resolveHex(stateDecl(s, 'background-color', '::before'), theme),
-    )
-    expect(dots.every((c) => /^#[0-9a-f]{6}$/i.test(c))).toBe(true)
-    expect(new Set(dots).size).toBe(3)
-    expect(stateDecl('active', 'background-color', '::before')).toBe('var(--ds-success)')
-    expect(stateDecl('paused', 'background-color', '::before')).toBe('var(--ds-warning)')
-  })
+  it.each(['dark', 'light'] as const)(
+    '%s: Bereit, Läuft und Pausiert haben drei Punktfarben',
+    (theme) => {
+      const dots = ['', 'active', 'paused'].map((s) =>
+        resolveHex(stateDecl(s, 'background-color', '::before')!, theme),
+      )
+      expect(dots.every((c) => /^#[0-9a-f]{6}$/i.test(c))).toBe(true)
+      expect(new Set(dots).size).toBe(3)
+      expect(stateDecl('active', 'background-color', '::before')).toBe('var(--ds-success)')
+      expect(stateDecl('paused', 'background-color', '::before')).toBe('var(--ds-warning)')
+    },
+  )
 
-  it.each(['dark', 'light'])('%s: Text mit Kontrast ≥ 4,5:1 auf dem Badge', (theme) => {
+  it.each(['dark', 'light'] as const)('%s: Text mit Kontrast ≥ 4,5:1 auf dem Badge', (theme) => {
     for (const state of ['', 'active', 'paused']) {
-      const text = resolveHex(stateDecl(state, 'color'), theme)
-      const bg = resolveHex(stateDecl(state, 'background-color'), theme)
+      const text = resolveHex(stateDecl(state, 'color')!, theme)
+      const bg = resolveHex(stateDecl(state, 'background-color')!, theme)
       expect(contrast(text, bg), `${state || 'ready'} (${theme})`).toBeGreaterThanOrEqual(4.5)
     }
   })

@@ -18,7 +18,7 @@
  * kein `timedAnimation`; das Objekt entsteht beim ersten Einschalten, damit
  * eine reine Auswahl keinen Verlaufsschritt erzeugt.
  */
-import { computed, inject, onUnmounted, ref, toRaw, watch, type Ref } from 'vue'
+import { computed, inject, ref, toRaw, watch, type Ref } from 'vue'
 import { notifyMarkerTargetEdited } from '../../../lib/markerTargetEdits'
 import { useI18n } from '../../../lib/i18n'
 import {
@@ -83,28 +83,11 @@ function notifyEdit() {
   }
 }
 
-// Geänderte Regler sofort sichtbar machen: Effekt kurz nach der letzten
-// Änderung von vorn abspielen (nicht bei jedem Zwischenwert eines Reglers)
-const CHANGE_RESTART_MS = 350
-let changeTimer: ReturnType<typeof setTimeout> | null = null
-const changedKeys = new Set<ImageAnimationKey>()
-
-function onChange(key: ImageAnimationKey) {
+// Regler-Änderungen gelten sofort, ohne den Effekt neu zu starten
+function onChange() {
   if (!props.image.timedAnimation) return // nur Platzhalter, nichts am Bild
-  changedKeys.add(key)
   notifyEdit()
-  if (changeTimer !== null) clearTimeout(changeTimer)
-  changeTimer = setTimeout(() => {
-    changeTimer = null
-    for (const k of changedKeys) restartImageAnimation(toRaw(props.image), k)
-    changedKeys.clear()
-    reveal()
-  }, CHANGE_RESTART_MS)
 }
-
-onUnmounted(() => {
-  if (changeTimer !== null) clearTimeout(changeTimer)
-})
 
 function onToggle(key: ImageAnimationKey, enabled: boolean) {
   const image = props.image

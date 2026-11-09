@@ -122,3 +122,70 @@ describe('Beat-Marker übernehmen Bearbeitungen sofort', () => {
     expect(vm.getMarkerImageLabel('weg')).toBeNull()
   })
 })
+
+describe('Marker greifen nur während der Wiedergabe ein', () => {
+  async function setPlaying(playing: boolean, time?: number) {
+    if (time !== undefined) {
+      playerStore.audioRef!.currentTime = time
+      playerStore.currentTime = time
+      await nextTick()
+    }
+    playerStore.isPlaying = playing
+    await nextTick()
+  }
+
+  it('Pause blendet alle vom Marker ausgeblendeten Texte und Bilder ein', async () => {
+    markerStore.addMarker(5, { textId: 1 })
+    markerStore.addMarker(8, { imageId: image.id })
+    await startPlaybackAtZero()
+    expect(text.opacity).toBe(0)
+    expect(mim.isMarkerHidden(image.id)).toBe(true)
+
+    await setPlaying(false)
+    expect(text.opacity).toBe(80)
+    expect(mim.isMarkerHidden(image.id)).toBe(false)
+  })
+
+  it('Fortsetzen mitten im Track stellt den Marker-Stand her, ohne Animationen neu zu starten', async () => {
+    markerStore.addMarker(5, { textId: 1 })
+    markerStore.addMarker(8, { imageId: image.id })
+    await startPlaybackAtZero()
+    await setPlaying(false, 6)
+    // Stand der Text-Animation, den der Nutzer gerade sieht
+    const state = { startTime: 42, isPlaying: true, currentIndex: 3 }
+    text.animation!._state = { ...text.animation!._state, ...state }
+
+    await setPlaying(true)
+    // Marker bei 5 s ist erreicht: Text sichtbar, Bild (Marker bei 8 s) noch nicht
+    expect(text.opacity).toBe(80)
+    expect(text.animation!._state).toMatchObject(state)
+    expect(mim.isMarkerHidden(image.id)).toBe(true)
+  })
+
+  it('Fortsetzen vor dem ersten Marker blendet dessen Elemente aus', async () => {
+    markerStore.addMarker(5, { textId: 1 })
+    await setPlaying(false, 3)
+    expect(text.opacity).toBe(80)
+    await setPlaying(true)
+    expect(text.opacity).toBe(0)
+  })
+
+  it('Sprung während der Wiedergabe übernimmt den Marker-Stand der neuen Position', async () => {
+    markerStore.addMarker(5, { textId: 1 })
+    markerStore.addMarker(8, { imageId: image.id })
+    await startPlaybackAtZero()
+    playerStore.currentTime = 9
+    await nextTick()
+    // Ein Marker ohne Text lässt den Text des vorherigen Markers stehen
+    expect(text.opacity).toBe(80)
+    expect(mim.isMarkerHidden(image.id)).toBe(false)
+  })
+
+  it('deaktivierte Marker blenden beim Fortsetzen nichts aus', async () => {
+    markerStore.addMarker(5, { textId: 1 })
+    markerStore.toggleEnabled()
+    await setPlaying(false, 3)
+    await setPlaying(true)
+    expect(text.opacity).toBe(80)
+  })
+})

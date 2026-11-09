@@ -308,7 +308,7 @@ export function useBeatMarkers(
    * neu starten), alle anderen von Markern gesteuerten Texte werden
    * ausgeblendet.
    */
-  const applyTextAction = (action: MarkerAction) => {
+  const applyTextAction = (action: MarkerAction, restart = true) => {
     const tid = action?.textId
     if (tid === undefined || tid === null || tid === '') return
     const target = findText(tid)
@@ -337,7 +337,7 @@ export function useBeatMarkers(
       visible = target.opacity
     }
     target.opacity = visible > 0 ? visible : 100
-    restartTextAnimation(target)
+    if (restart) restartTextAnimation(target)
     canvasManager.value?.redrawCallback?.()
   }
 
@@ -578,7 +578,7 @@ export function useBeatMarkers(
    * gesteuerten Bilder werden ausgeblendet. Ein Marker ohne Bild blendet alle
    * Marker-Bilder aus (wie bei Formen); Bilder ohne Marker bleiben unberührt.
    */
-  const applyImageAction = (action: MarkerAction) => {
+  const applyImageAction = (action: MarkerAction, restart = true) => {
     const mim = multiImageManager.value
     if (!mim) return
     const raw = action?.imageId
@@ -587,7 +587,7 @@ export function useBeatMarkers(
         ? raw
         : null
     for (const id of referencedImageIds()) mim.setMarkerHidden(id, id !== iid)
-    if (iid !== null) mim.restartImageAnimations(iid)
+    if (iid !== null && restart) mim.restartImageAnimations(iid)
     else mim.redrawCallback?.()
   }
 
@@ -875,6 +875,39 @@ export function useBeatMarkers(
     applyShapeAction(action)
     applyImageAction(action)
   }
+
+  /**
+   * Sichtbarkeit der Marker-Elemente (Texte, Formen, Bilder) für eine
+   * Wiedergabe-Position herstellen, ohne Animationen neu zu starten: Es gilt
+   * jeweils der letzte Marker bis `time`, Elemente späterer Marker bleiben
+   * ausgeblendet. Für das Fortsetzen nach einer Pause oder einen Sprung
+   * während der Wiedergabe – die Elemente zeigen dabei ihre aktuellen
+   * Einstellungen.
+   */
+  const syncMarkerVisibility = (time: number) =>
+    historyRecorder.absorb(() => {
+      const passed = [...beatMarkerStore.markers]
+        .filter((m) => m.time <= time)
+        .sort((a, b) => a.time - b.time)
+      const last = passed[passed.length - 1]?.action as MarkerAction | undefined
+      const lastText = [...passed].reverse().find((m) => {
+        const tid = (m.action as MarkerAction | undefined)?.textId
+        return tid !== undefined && tid !== null && tid !== ''
+      })?.action as MarkerAction | undefined
+
+      activateTextMarkersNow()
+      if (lastText) applyTextAction(lastText, false)
+
+      for (const id of referencedShapeIds()) shapeStore.setMarkerHidden(id, true)
+      if (last) applyShapeAction(last)
+
+      const mim = multiImageManager.value
+      if (mim) {
+        for (const id of referencedImageIds()) mim.setMarkerHidden(id, true)
+        if (last) applyImageAction(last, false)
+        else mim.redrawCallback?.()
+      }
+    })
 
   /**
    * Führt einen ausgelösten Marker aus. Ist der Crossfade aktiviert, wird der
@@ -1243,6 +1276,9 @@ export function useBeatMarkers(
           restoreShapeMarkers()
           restoreImageMarkers()
           restoreBackgroundImageMarkers()
+        } else if (playerStore.isPlaying && beatMarkerStore.markersEnabled) {
+          // Sprung während der Wiedergabe: Stand der Marker bis hierher
+          syncMarkerVisibility(newTime)
         }
       }
     },
@@ -1255,18 +1291,30 @@ export function useBeatMarkers(
       // Frame-Referenz auf die Startposition setzen, damit der erste Frame
       // Marker direkt hinter dem Startpunkt korrekt als überschritten erkennt.
       lastFrameTime = isPlaying ? playerStore.getPreciseTime() : null
-      if (isPlaying && playerStore.currentTime < 0.5) {
-        beatMarkerStore.resetTriggers()
-        // Zugewiesene Texte ausblenden, damit sie erst zum jeweiligen
-        // Marker-Zeitpunkt erscheinen.
-        activateTextMarkers()
-        activateShapeMarkers()
-        activateImageMarkers()
-        const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
-        if (triggered && triggered.action) {
-          // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
-          runMarkerTrigger(triggered.action, false)
-        }
+      if (!isPlaying) {
+        // Marker greifen nur während der Wiedergabe ein: Bei Pause/Stopp ist
+        // alles sichtbar und frei bearbeitbar (Hintergrund bleibt, wie er ist).
+        restoreTextMarkers()
+        restoreShapeMarkers()
+        restoreImageMarkers()
+        return
+      }
+      if (playerStore.currentTime >= 0.5) {
+        // Fortsetzen mitten im Track: Elemente späterer Marker wieder
+        // ausblenden, ohne laufende Animationen neu zu starten.
+        if (beatMarkerStore.markersEnabled) syncMarkerVisibility(playerStore.currentTime)
+        return
+      }
+      beatMarkerStore.resetTriggers()
+      // Zugewiesene Texte ausblenden, damit sie erst zum jeweiligen
+      // Marker-Zeitpunkt erscheinen.
+      activateTextMarkers()
+      activateShapeMarkers()
+      activateImageMarkers()
+      const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
+      if (triggered && triggered.action) {
+        // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
+        runMarkerTrigger(triggered.action, false)
       }
     },
   )

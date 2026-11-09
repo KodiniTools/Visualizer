@@ -48,6 +48,7 @@ import {
   type MarkerVideoRef,
 } from '../lib/background/markerBackgroundVideo'
 import type { TextObject } from '../lib/textManager/types'
+import { seekTextAnimation } from '../lib/textManager/animation/seek'
 import type { CanvasImage, MultiImageManager } from '../lib/multiImageManager'
 import type { CanvasManagerRef } from './types'
 
@@ -883,6 +884,18 @@ export function useBeatMarkers(
 
   const applyMarkerActionNow = (action: MarkerAction | null | undefined) => {
     if (!action) return
+    applyMarkerSceneNow(action)
+    applyTextAction(action)
+    applyShapeAction(action)
+    applyImageAction(action)
+  }
+
+  /**
+   * Szenen-Teil eines Markers: Visualizer, Farbe, Hintergrund (Preset,
+   * Galerie-Bild, Video). Texte, Formen und Bilder steuern die
+   * Element-Aktionen.
+   */
+  const applyMarkerSceneNow = (action: MarkerAction) => {
     // Vorgaben des vorherigen Hintergrund-Bildes erfassen, bevor ein
     // Hintergrund-Preset dieses Markers den Hintergrund ändert.
     const previousBgImage = action.video
@@ -927,43 +940,86 @@ export function useBeatMarkers(
     }
     const presetApplied = applyMarkerBackground(action)
     applyBackgroundImageAction(action, previousBgImage, presetApplied)
-    applyTextAction(action)
-    applyShapeAction(action)
-    applyImageAction(action)
   }
 
   /**
-   * Sichtbarkeit der Marker-Elemente (Texte, Formen, Bilder) für eine
-   * Wiedergabe-Position herstellen, ohne Animationen neu zu starten: Es gilt
-   * jeweils der letzte Marker bis `time`, Elemente späterer Marker bleiben
-   * ausgeblendet. Für das Fortsetzen nach einer Pause oder einen Sprung
-   * während der Wiedergabe – die Elemente zeigen dabei ihre aktuellen
-   * Einstellungen.
+   * Stand aller Marker für eine Wiedergabe-Position herstellen, als wäre der
+   * Track von vorn bis `time` gelaufen – für das Fortsetzen nach einer Pause
+   * und für Sprünge (Spulen).
+   *
+   * - Elemente (Texte, Formen, Bilder): Alle Marker bis `time` werden der
+   *   Reihe nach durchgespielt, mit denselben Regeln wie beim Abspielen
+   *   (Elemente mit eigener Anzeigedauer bleiben stehen, Marker ohne Bild
+   *   blendet Marker-Bilder aus …). Elemente späterer Marker bleiben
+   *   ausgeblendet.
+   * - Animationen der zuletzt ausgelösten Texte und Bilder stehen danach an
+   *   der Stelle, an der sie beim Abspielen von vorn wären (Eingang,
+   *   Anzeigedauer, Ausgang); nichts startet von vorn. Ein Bild mit 14,6 s
+   *   Anzeigedauer, dessen Marker 6 s zurückliegt, ist also noch 8,6 s zu
+   *   sehen; eines, dessen Anzeigedauer abgelaufen ist, bleibt unsichtbar.
+   * - `scene`: zusätzlich Visualizer, Farbe und Hintergrund des letzten
+   *   Markers bis `time` übernehmen (nur nach einem Sprung; beim reinen
+   *   Fortsetzen bleibt die Szene, wie sie ist).
    */
-  const syncMarkerVisibility = (time: number) =>
-    historyRecorder.absorb(() => {
-      const passed = [...beatMarkerStore.markers]
-        .filter((m) => m.time <= time)
-        .sort((a, b) => a.time - b.time)
-      const last = passed[passed.length - 1]?.action as MarkerAction | undefined
-      const lastText = [...passed].reverse().find((m) => {
-        const tid = (m.action as MarkerAction | undefined)?.textId
-        return tid !== undefined && tid !== null && tid !== ''
-      })?.action as MarkerAction | undefined
-
-      activateTextMarkersNow()
-      if (lastText) applyTextAction(lastText, false)
-
-      for (const id of referencedShapeIds()) shapeStore.setMarkerHidden(id, true)
-      if (last) applyShapeAction(last)
-
-      const mim = multiImageManager.value
-      if (mim) {
-        for (const id of referencedImageIds()) mim.setMarkerHidden(id, true)
-        if (last) applyImageAction(last, false)
-        else mim.redrawCallback?.()
-      }
+  const syncMarkerVisibility = (time: number, { scene = false }: { scene?: boolean } = {}) =>
+    historyRecorder.absorb(() => syncMarkerStateNow(time, scene), {
+      // Marker-Bilder/-Videos laden asynchron (wie beim Auslösen)
+      settleMs: scene ? MARKER_MEDIA_SETTLE_MS : undefined,
     })
+
+  const syncMarkerStateNow = (time: number, scene: boolean) => {
+    const passed = [...beatMarkerStore.markers]
+      .filter((m) => m.time <= time)
+      .sort((a, b) => a.time - b.time)
+
+    if (scene && passed.length === 0) {
+      // Vor dem ersten Marker: Hintergrund von vor den Marker-Bildern
+      mediaToken++
+      if (bgImageBase) restoreBaseBackground(canvasManager.value, bgImageBase)
+      bgImageBase = null
+      dropOnceVideoBefore()
+    } else if (scene) {
+      const last = passed[passed.length - 1]?.action as MarkerAction | undefined
+      if (last) applyMarkerSceneNow(last)
+      // Farbe setzt nur ein Marker mit Farbe; die letzte gilt weiter.
+      const lastColor = [...passed]
+        .reverse()
+        .find((m) => (m.action as MarkerAction | undefined)?.color)
+      const color = (lastColor?.action as MarkerAction | undefined)?.color
+      if (color && color !== last?.color) visualizerStore.setColor(color)
+    }
+
+    activateTextMarkersNow()
+    for (const id of referencedShapeIds()) shapeStore.setMarkerHidden(id, true)
+    const mim = multiImageManager.value
+    if (mim) for (const id of referencedImageIds()) mim.setMarkerHidden(id, true)
+
+    // Letzter Auslöse-Zeitpunkt je Text bzw. Bild
+    const textTriggeredAt = new Map<TextObject['id'], number>()
+    const imageTriggeredAt = new Map<CanvasImage['id'], number>()
+    for (const m of passed) {
+      const action = m.action as MarkerAction | undefined
+      if (!action) continue
+      applyTextAction(action, false)
+      applyShapeAction(action)
+      if (mim) applyImageAction(action, false)
+      const tid = action.textId
+      if (tid !== undefined && tid !== null && tid !== '') textTriggeredAt.set(tid, m.time)
+      const iid = action.imageId
+      if (iid !== undefined && iid !== null && iid !== '') imageTriggeredAt.set(iid, m.time)
+    }
+
+    const now = Date.now()
+    for (const [id, at] of textTriggeredAt) {
+      const obj = findText(id)
+      if (obj) seekTextAnimation(obj, (time - at) * 1000, now)
+    }
+    if (mim) {
+      for (const [id, at] of imageTriggeredAt) mim.seekImageAnimations(id, (time - at) * 1000)
+      mim.redrawCallback?.()
+    }
+    canvasManager.value?.redrawCallback?.()
+  }
 
   /**
    * Führt einen ausgelösten Marker aus. Ist der Crossfade aktiviert, wird der
@@ -1319,11 +1375,17 @@ export function useBeatMarkers(
     },
   )
 
+  // Während der Pause gespult? (Szene beim Fortsetzen neu herstellen)
+  let seekedWhilePaused = false
+
   // Reset markers when seeking (large time jump)
   watch(
     () => playerStore.currentTime,
     (newTime, oldTime) => {
       if (Math.abs(newTime - oldTime) > 1) {
+        // Gespult, während die Wiedergabe steht: Beim Fortsetzen auch die
+        // Szene (Visualizer, Hintergrund) der neuen Position übernehmen.
+        if (!playerStore.isPlaying) seekedWhilePaused = true
         beatMarkerStore.resetTriggers()
         // Beim Zurückspulen an den Anfang die von Markern gesteuerten Texte
         // wieder einblenden (Marker blenden sie beim nächsten Start erneut aus).
@@ -1334,7 +1396,7 @@ export function useBeatMarkers(
           restoreBackgroundImageMarkers()
         } else if (playerStore.isPlaying && beatMarkerStore.markersEnabled) {
           // Sprung während der Wiedergabe: Stand der Marker bis hierher
-          syncMarkerVisibility(newTime)
+          syncMarkerVisibility(newTime, { scene: true })
         }
       }
     },
@@ -1355,10 +1417,14 @@ export function useBeatMarkers(
         restoreImageMarkers()
         return
       }
+      const seeked = seekedWhilePaused
+      seekedWhilePaused = false
       if (playerStore.currentTime >= 0.5) {
-        // Fortsetzen mitten im Track: Elemente späterer Marker wieder
-        // ausblenden, ohne laufende Animationen neu zu starten.
-        if (beatMarkerStore.markersEnabled) syncMarkerVisibility(playerStore.currentTime)
+        // Fortsetzen mitten im Track: Stand der Marker bis hierher, ohne
+        // Animationen neu zu starten; nach dem Spulen auch die Szene.
+        if (beatMarkerStore.markersEnabled) {
+          syncMarkerVisibility(playerStore.currentTime, { scene: seeked })
+        }
         return
       }
       beatMarkerStore.resetTriggers()

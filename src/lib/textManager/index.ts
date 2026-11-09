@@ -29,6 +29,7 @@ export { getFadeOpacity, restartFade } from './animation/fade'
 export { getScaleValue, restartScale } from './animation/scale'
 export { getSlideOffset, restartSlide } from './animation/slide'
 export { getDisplayOpacity } from './animation/displayOpacity'
+export { seekTextAnimation } from './animation/seek'
 
 export { calculateTextEffectValue, getAudioReactiveValues } from './audio/textEffectValues'
 

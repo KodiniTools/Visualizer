@@ -17,7 +17,7 @@
  * @module canvasObjects/imageAnimation
  */
 import { toRaw } from 'vue'
-import { resolveTimeline } from '../textManager/animation/timeline'
+import { resolveTimeline, timelineStartForElapsed } from '../textManager/animation/timeline'
 import { getDisplayOpacity } from '../textManager/animation/displayOpacity'
 import { defaultTextSettings } from '../textDefaults'
 import type {
@@ -124,6 +124,30 @@ export function restartImageAnimation(
   if (!state) return
   const keys = key ? [key] : IMAGE_ANIMATION_KEYS
   for (const k of keys) state[STATE_KEYS[k]] = null
+}
+
+/**
+ * Setzt die aktiven Effekte so, als liefen sie seit `elapsedMs` (Spulen zu
+ * einer Stelle, an der ein Beat-Marker das Bild vor `elapsedMs` eingeblendet
+ * hat). Inaktive Effekte bleiben unberührt.
+ *
+ * @param target Bild mit `timedAnimation`
+ * @param elapsedMs Zeit seit dem Auslösen in ms
+ * @param now Bezugszeitpunkt in ms (wie beim Zeichnen)
+ */
+export function seekImageAnimation(
+  target: ImageAnimationTarget | null | undefined,
+  elapsedMs: number,
+  now = Date.now(),
+): void {
+  const cfg = target?.timedAnimation
+  if (!target || !cfg || !hasImageAnimation(cfg)) return
+  const state = holderOf(target)._state
+  if (!state) return
+  for (const key of IMAGE_ANIMATION_KEYS) {
+    if (cfg[key]?.enabled)
+      state[STATE_KEYS[key]] = timelineStartForElapsed(cfg[key], elapsedMs, now)
+  }
 }
 
 /**

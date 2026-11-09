@@ -37,6 +37,7 @@ import {
   getImageAnimationTransform,
   hasImageAnimation,
   restartImageAnimation,
+  seekImageAnimation,
   type ImageTimedAnimation,
 } from './canvasObjects/imageAnimation'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder'
@@ -1111,6 +1112,18 @@ export class MultiImageManager {
       this._startAnimation(image)
     }
     this.redrawCallback()
+    return true
+  }
+
+  /**
+   * Setzt die Animationen eines Bildes auf eine Laufzeit (Spulen): Das Bild
+   * steht danach so, als hätte ein Marker es vor `elapsedMs` eingeblendet.
+   * Der einmalige Einblend-Effekt der Platzierung läuft dabei nicht.
+   */
+  seekImageAnimations(imageId: CanvasImage['id'], elapsedMs: number): boolean {
+    const image = this.images.find((img) => img.id === imageId)
+    if (!image) return false
+    seekImageAnimation(image, elapsedMs)
     return true
   }
 

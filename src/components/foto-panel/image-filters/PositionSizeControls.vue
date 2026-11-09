@@ -22,6 +22,24 @@
         />
         <UiSwitch v-model="keepAspect" class="image-keep-aspect" :label="t('foto.keepAspect')" />
       </div>
+
+      <!-- Exakt an Canvas/Workspace anpassen (Ziehen mit der Maus ist nie pixelgenau) -->
+      <div class="image-fit" role="group" :aria-label="t('foto.fitToCanvas')">
+        <span class="image-fit__label">{{ t('foto.fitToCanvas') }}</span>
+        <div class="image-fit__buttons">
+          <UiButton
+            v-for="mode in IMAGE_FIT_MODES"
+            :key="mode"
+            :class="`image-fit-${mode}`"
+            variant="secondary"
+            size="sm"
+            :title="t(FIT_HINTS[mode])"
+            @click="fit(mode)"
+          >
+            {{ t(FIT_LABELS[mode]) }}
+          </UiButton>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -39,6 +57,7 @@ import { reactive, ref, toRaw, watch, onMounted, onBeforeUnmount } from 'vue'
 import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings'
 import { useI18n } from '../../../lib/i18n'
 import SliderControl from '../../ui/SliderControl.vue'
+import UiButton from '../../ui/UiButton.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import {
   getBoundsCenter,
@@ -46,6 +65,9 @@ import {
   resizeBounds,
   getDefaultImageSize,
   isValidBounds,
+  fitBoundsToArea,
+  IMAGE_FIT_MODES,
+  type ImageFitMode,
 } from '../../../lib/imageBoundsControls'
 import type { ImageBoundsApi } from './imageFilterContext'
 
@@ -78,6 +100,17 @@ const LABELS: Record<Axis, string> = {
   y: 'foto.positionY',
   width: 'foto.imageWidth',
   height: 'foto.imageHeight',
+}
+
+const FIT_LABELS: Record<ImageFitMode, string> = {
+  cover: 'foto.fitCover',
+  contain: 'foto.fitContain',
+  stretch: 'foto.fitStretch',
+}
+const FIT_HINTS: Record<ImageFitMode, string> = {
+  cover: 'foto.fitCoverHint',
+  contain: 'foto.fitContainHint',
+  stretch: 'foto.fitStretchHint',
 }
 
 // Seitenverhältnis beibehalten (Standard) – sonst wird das Bild verzerrt
@@ -136,6 +169,22 @@ function onChange(axis: Axis, value: unknown) {
   props.api?.redraw?.()
 }
 
+/** Bild exakt an Canvas (bzw. aktiven Workspace) anpassen. */
+function fit(mode: ImageFitMode) {
+  const img = rawImage()
+  if (!img || !readBounds()) return
+  const next = fitBoundsToArea(
+    img.imageObject,
+    props.api?.getCanvas?.(),
+    mode,
+    props.api?.getFitArea?.() ?? null,
+  )
+  if (!next) return
+  Object.assign(img, next)
+  sync()
+  props.api?.redraw?.()
+}
+
 watch(() => props.image, sync, { immediate: true })
 
 // Maus-Verschieben/-Skalieren und Undo ändern das Bild außerhalb von Vue
@@ -152,8 +201,28 @@ onBeforeUnmount(() => {
   frame = null
 })
 
-defineExpose({ sync })
+defineExpose({ sync, fit })
 </script>
 
 <style scoped src="../../ui/slider-control.css"></style>
 <style scoped src="./image-filters-shared.css"></style>
+<style scoped>
+.image-fit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.image-fit__label {
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+}
+.image-fit__buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.image-fit__buttons :deep(.ui-button) {
+  justify-content: center;
+  min-width: 0;
+}
+</style>

@@ -2005,6 +2005,14 @@ export default {
     imageWidth: 'Breite',
     imageHeight: 'Höhe',
     keepAspect: 'Seitenverhältnis beibehalten',
+    fitToCanvas: 'An Canvas anpassen',
+    fitCover: 'Füllen',
+    fitCoverHint:
+      'Füllt Canvas bzw. Workspace komplett, Seitenverhältnis bleibt, Überstand wird abgeschnitten',
+    fitContain: 'Einpassen',
+    fitContainHint: 'Ganzes Bild sichtbar und zentriert, Seitenverhältnis bleibt',
+    fitStretch: 'Strecken',
+    fitStretchHint: 'Exakt auf Canvas-Größe, das Bild wird dabei ggf. verzerrt',
     imageAnimation: 'Animation',
     imageAnimationHint:
       'Wie bei Texten: Einblenden, Hereingleiten oder Skalieren. Startet, sobald das Bild erscheint.',

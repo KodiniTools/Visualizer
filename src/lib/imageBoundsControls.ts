@@ -107,3 +107,67 @@ export function getDefaultImageSize(
   const width = 1 / 3
   return { width, height: (width * (ih / iw)) / (ch / cw) }
 }
+
+/** Anpassung eines Bildes an die Zielfläche (Canvas bzw. Workspace) */
+export type ImageFitMode = 'cover' | 'contain' | 'stretch'
+
+export const IMAGE_FIT_MODES: readonly ImageFitMode[] = Object.freeze([
+  'cover',
+  'contain',
+  'stretch',
+])
+
+/** Fläche in Canvas-Pixeln */
+interface PixelArea {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/**
+ * Bounds, mit denen ein Bild die Zielfläche exakt füllt (ohne Maus-Abweichung).
+ * - cover: Seitenverhältnis bleibt, Fläche komplett gefüllt, Überstand zentriert
+ *   (wird vom Canvas-Rand abgeschnitten)
+ * - contain: Seitenverhältnis bleibt, ganzes Bild sichtbar, zentriert
+ * - stretch: genau die Fläche, Bild wird bei abweichendem Verhältnis verzerrt
+ * Die Größe ist bewusst nicht auf IMAGE_SIZE_MAX begrenzt (Panorama auf
+ * Hochformat-Canvas braucht ggf. mehr als 200 %).
+ * @param imageObject - Bild mit natürlicher Größe (für das Seitenverhältnis)
+ * @param canvas - Canvas (Bezug der relativen Werte)
+ * @param mode - cover | contain | stretch
+ * @param area - Zielfläche in Canvas-Pixeln; fehlt sie, die ganze Canvas
+ * @returns relative Bounds oder null bei ungültigen Maßen
+ */
+export function fitBoundsToArea(
+  imageObject: Sized | null | undefined,
+  canvas: { width?: number; height?: number } | null | undefined,
+  mode: ImageFitMode,
+  area?: PixelArea | null,
+): RelBounds | null {
+  const cw = Number(canvas?.width)
+  const ch = Number(canvas?.height)
+  if (!(cw > 0 && ch > 0)) return null
+  const a: PixelArea =
+    area && area.width > 0 && area.height > 0 ? area : { x: 0, y: 0, width: cw, height: ch }
+
+  let w = a.width
+  let h = a.height
+  if (mode === 'cover' || mode === 'contain') {
+    const iw = Number(imageObject?.naturalWidth || imageObject?.width)
+    const ih = Number(imageObject?.naturalHeight || imageObject?.height)
+    if (!(iw > 0 && ih > 0)) return null
+    const scale =
+      mode === 'cover'
+        ? Math.max(a.width / iw, a.height / ih)
+        : Math.min(a.width / iw, a.height / ih)
+    w = iw * scale
+    h = ih * scale
+  } else if (mode !== 'stretch') {
+    return null
+  }
+
+  const x = a.x + (a.width - w) / 2
+  const y = a.y + (a.height - h) / 2
+  return { relX: x / cw, relY: y / ch, relWidth: w / cw, relHeight: h / ch }
+}

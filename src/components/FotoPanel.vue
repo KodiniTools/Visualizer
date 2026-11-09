@@ -241,6 +241,8 @@ const imageBoundsApi: ImageBoundsApi = {
   getCanvas: () => multiImageManagerRef?.value?.canvas ?? null,
   // CanvasManager hat (noch) kein redraw(); der Render-Loop zeichnet ohnehin neu
   redraw: () => (canvasManagerRef?.value as { redraw?: () => void } | null | undefined)?.redraw?.(),
+  // Mit aktivem Workspace-Preset füllt „Füllen“ den Workspace (exportierter Bereich)
+  getFitArea: () => canvasManagerRef?.value?.getWorkspaceBounds?.() ?? null,
 }
 
 // ═══════════════════════════════════════════════════════════════════

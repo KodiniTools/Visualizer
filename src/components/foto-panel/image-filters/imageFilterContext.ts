@@ -24,4 +24,6 @@ export type ImageFilterContext = ReturnType<typeof useImageFilterControls> & {
 export interface ImageBoundsApi {
   getCanvas?: () => HTMLCanvasElement | null
   redraw?: () => void
+  /** Zielfläche für „Füllen/Einpassen/Strecken“ in Canvas-Pixeln (Workspace); null = ganze Canvas */
+  getFitArea?: () => { x: number; y: number; width: number; height: number } | null
 }

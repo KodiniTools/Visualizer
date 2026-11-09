@@ -1999,6 +1999,13 @@ export default {
     imageWidth: 'Width',
     imageHeight: 'Height',
     keepAspect: 'Keep aspect ratio',
+    fitToCanvas: 'Fit to canvas',
+    fitCover: 'Fill',
+    fitCoverHint: 'Fills the whole canvas or workspace, keeps the aspect ratio, crops the overflow',
+    fitContain: 'Fit',
+    fitContainHint: 'Whole image visible and centered, keeps the aspect ratio',
+    fitStretch: 'Stretch',
+    fitStretchHint: 'Exactly the canvas size, the image may be distorted',
     imageAnimation: 'Animation',
     imageAnimationHint:
       'Same as for texts: fade in, slide in or scale. Starts as soon as the image appears.',

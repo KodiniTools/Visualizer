@@ -106,6 +106,47 @@ describe('PositionSizeControls', () => {
     expect(val(w, 'x')).toBeCloseTo(70)
   })
 
+  it('Füllen/Einpassen/Strecken: exakt an die Canvas, zeichnet neu', async () => {
+    const { w, image, api } = mountControls() // 200×100 auf 1000×500
+    expect(w.findAll('.image-fit button')).toHaveLength(3)
+    await w.find('.image-fit-stretch').trigger('click')
+    expect(image).toMatchObject({ relX: 0, relY: 0, relWidth: 1, relHeight: 1 })
+    expect(api.redraw).toHaveBeenCalled()
+    expect(val(w, 'width')).toBeCloseTo(100)
+
+    image.imageObject = { width: 100, height: 200 } // Hochformat
+    await w.find('.image-fit-cover').trigger('click')
+    expect(image.relWidth).toBeCloseTo(1)
+    expect(image.relHeight).toBeCloseTo(4)
+    expect(image.relY).toBeCloseTo(-1.5)
+    expect(val(w, 'y')).toBeCloseTo(50) // zentriert
+
+    await w.find('.image-fit-contain').trigger('click')
+    expect(image.relWidth).toBeCloseTo(0.25)
+    expect(image.relHeight).toBeCloseTo(1)
+    expect(image.relX).toBeCloseTo(0.375)
+  })
+
+  it('Füllen nutzt die Workspace-Fläche, falls vorhanden', async () => {
+    const image = makeImage()
+    const api = {
+      getCanvas: () => ({ width: 1000, height: 500 }),
+      getFitArea: () => ({ x: 250, y: 50, width: 500, height: 400 }),
+      redraw: vi.fn(),
+    }
+    wrapper = mount(PositionSizeControls, {
+      props: {
+        image: stub<InstanceType<typeof PositionSizeControls>['$props']['image']>(reactive(image)),
+        api: stub<ImageBoundsApi>(api),
+      },
+    })
+    await wrapper.find('.image-fit-stretch').trigger('click')
+    expect(image.relX).toBeCloseTo(0.25)
+    expect(image.relY).toBeCloseTo(0.1)
+    expect(image.relWidth).toBeCloseTo(0.5)
+    expect(image.relHeight).toBeCloseTo(0.8)
+  })
+
   it('ungültige Bounds werden nicht überschrieben', async () => {
     const { w, image } = mountControls({ ...makeImage(), relWidth: NaN })
     const x = range(w, 'x')

@@ -79,6 +79,11 @@ import type { FontManager } from '../../lib/fontManager'
 import type { TextObject } from '../../lib/textManager/types'
 import type { TextEditControls } from './text-edit/textEditControls'
 
+/* eslint-disable vue/no-mutating-props --
+ * Gewollt: selectedText ist das geteilte TextObject des Canvas-Modells
+ * (TextManager). Das Panel bearbeitet es direkt, der Canvas liest es beim
+ * nächsten Render. Ein Umbau auf Emits wäre eine Verhaltensänderung.
+ */
 const props = withDefaults(
   defineProps<{ selectedText: TextObject; canvasWidth?: number; canvasHeight?: number }>(),
   { canvasWidth: 1920, canvasHeight: 1080 },

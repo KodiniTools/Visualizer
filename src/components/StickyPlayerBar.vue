@@ -79,10 +79,20 @@ const volumeEq = usePlayerVolumeEq()
 const playMode = usePlayMode()
 const audioSource = useAudioSourceControls()
 // Video-Zustand vor den Markern anlegen: Marker können hochgeladene Videos
-// als Hintergrund aktivieren.
+// als Hintergrund aktivieren oder mit den Platzierungs-Einstellungen des
+// Video-Panels auf den Canvas legen („Video auf Canvas“).
 const videoPanel = useVideoPanel()
 const markers = useBeatMarkers(() => popover.openPopover('markers'), {
   videoGallery: videoPanel.videoGallery,
+  canvasVideoPlacement: {
+    place: (entry, options) =>
+      videoPanel.placeVideoOnCanvas(
+        videoPanel.videoGallery.value.find((v) => v.id === entry.id),
+        options,
+      ),
+    loop: videoPanel.videoLoop,
+    connectAudio: videoPanel.connectVideoAudioForRecording,
+  },
 })
 const playlist = usePlaylistManager()
 

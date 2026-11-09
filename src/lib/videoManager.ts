@@ -71,6 +71,8 @@ export interface VideoObject extends FotoImageObject {
   imageObject: unknown
   settings?: VideoBasicSettings
   animation: VideoAnimation
+  /** Name des hochgeladenen Videos (für Listen und Beat-Marker; optional) */
+  name?: string
 }
 
 export interface VideoAddOptions {
@@ -88,6 +90,10 @@ export interface VideoAddOptions {
   animationDuration?: number
   /** Dauer der Einblend-Animation (addVideoWithBounds) */
   duration?: number
+  /** Name des hochgeladenen Videos */
+  name?: string
+  /** false = neues Video nicht auswählen (z. B. vom Beat-Marker angelegt) */
+  select?: boolean
 }
 
 export interface VideoBounds {
@@ -119,6 +125,12 @@ export class VideoManager {
   syncWithAudio: boolean
   isPlaying: boolean
   globalPlaybackRate: number
+  /**
+   * Von Beat-Markern bis zu ihrem Zeitpunkt ausgeblendete Videos (reiner
+   * Laufzeit-Zustand, nicht im Verlauf). Ausgeblendete Videos werden weder
+   * gezeichnet noch per Klick ausgewählt.
+   */
+  markerHiddenIds: Set<VideoObject['id']>
 
   constructor(canvas: HTMLCanvasElement, callbacks: VideoManagerCallbacks = {}) {
     this.canvas = canvas
@@ -140,6 +152,7 @@ export class VideoManager {
     // Playback-Status
     this.isPlaying = false
     this.globalPlaybackRate = 1.0
+    this.markerHiddenIds = new Set()
 
     console.log('✅ VideoManager initialisiert')
   }
@@ -312,6 +325,7 @@ export class VideoManager {
       startTime: options.startTime || 0,
       endTime: options.endTime || videoElement.duration || 0,
       isPlaying: false,
+      ...(options.name ? { name: options.name } : {}),
       // Für Canvas-Bild-Kompatibilität
       imageObject: null, // Wird für Thumbnail verwendet
       // Filter-Einstellungen
@@ -346,7 +360,7 @@ export class VideoManager {
     videoElement.crossOrigin = 'anonymous'
 
     this.videos.push(newVideo)
-    this.setSelectedVideo(newVideo)
+    if (options.select !== false) this.setSelectedVideo(newVideo)
 
     console.log(
       '✅ Video hinzugefügt:',
@@ -449,6 +463,7 @@ export class VideoManager {
     }
 
     this.videos.splice(index, 1)
+    this.markerHiddenIds.delete(videoId)
 
     if (this.selectedVideo && this.selectedVideo.id === videoId) {
       this.selectedVideo = null
@@ -661,6 +676,7 @@ export class VideoManager {
     }
 
     this.videos.forEach((videoData) => {
+      if (this.markerHiddenIds.has(videoData.id)) return
       this._drawSingleVideo(ctx, videoData)
     })
   }
@@ -826,6 +842,7 @@ export class VideoManager {
    */
   drawInteractiveElements(ctx: CanvasRenderingContext2D): void {
     if (!this.selectedVideo || this.selectedVideo.type !== 'video') return
+    if (this.markerHiddenIds.has(this.selectedVideo.id)) return
 
     const bounds = this.getVideoBounds(this.selectedVideo)
     if (!bounds) return
@@ -891,6 +908,82 @@ export class VideoManager {
     ctx.restore()
   }
 
+  // ══════════════════ Beat-Marker ══════════════════
+
+  /**
+   * Blendet ein Video für Beat-Marker aus bzw. ein. Ausblenden pausiert es;
+   * Einblenden startet es nicht (das übernimmt `restartVideo`).
+   */
+  setMarkerHidden(videoId: VideoObject['id'], hidden: boolean): void {
+    if (hidden) {
+      this.markerHiddenIds.add(videoId)
+      const video = this.videos.find((v) => v.id === videoId)
+      if (video?.videoElement && !video.videoElement.paused) {
+        video.videoElement.pause()
+        video.isPlaying = false
+      }
+    } else {
+      this.markerHiddenIds.delete(videoId)
+    }
+  }
+
+  isMarkerHidden(videoId: VideoObject['id']): boolean {
+    return this.markerHiddenIds.has(videoId)
+  }
+
+  /** Alle von Markern ausgeblendeten Videos wieder einblenden. */
+  clearMarkerHidden(): void {
+    if (this.markerHiddenIds.size === 0) return
+    this.markerHiddenIds.clear()
+    this.redrawCallback()
+  }
+
+  /**
+   * Spielt ein Video ab einer Position: Einblend-Animation an der passenden
+   * Stelle (`offsetSeconds` nach dem Start), Video bei derselben Position
+   * (in Schleife modulo Länge). Ist ein einmal laufendes Video schon zu Ende,
+   * bleibt es auf dem letzten Bild stehen.
+   * @returns false ohne Video, sonst true
+   */
+  playVideoFrom(videoId: VideoObject['id'], offsetSeconds = 0): boolean {
+    const video = this.videos.find((v) => v.id === videoId)
+    if (!video?.videoElement) return false
+    const el = video.videoElement
+    const offset = Math.max(0, Number.isFinite(offsetSeconds) ? offsetSeconds : 0)
+
+    // Einblend-Animation (wie beim Platzieren) an der Stelle `offset` aufsetzen
+    const anim = video.animation
+    if (anim && anim.type && anim.type !== 'none') {
+      const elapsedMs = offset * 1000
+      anim.startTime = Date.now() - elapsedMs
+      anim.progress = Math.min(elapsedMs / (anim.duration || 1), 1)
+      const wasActive = anim.active
+      anim.active = anim.progress < 1
+      if (anim.active && !wasActive) this._startAnimation(video)
+    }
+
+    const duration = el.duration
+    let position = offset
+    if (duration && isFinite(duration)) {
+      position = video.loop ? offset % duration : Math.min(offset, duration)
+    }
+    try {
+      el.currentTime = position
+    } catch {
+      /* Metadaten noch nicht geladen */
+    }
+
+    const ended = !video.loop && !!duration && isFinite(duration) && offset >= duration
+    if (ended) {
+      el.pause()
+      video.isPlaying = false
+    } else {
+      this.playVideo(videoId)
+    }
+    this.redrawCallback()
+    return true
+  }
+
   getResizeHandles(bounds: Rect): Record<string, Rect> {
     return getResizeHandles(bounds)
   }
@@ -908,6 +1001,7 @@ export class VideoManager {
   findVideoAt(x: number, y: number): VideoObject | null {
     for (let i = this.videos.length - 1; i >= 0; i--) {
       const video = this.videos[i] as VideoObject
+      if (this.markerHiddenIds.has(video.id)) continue // unsichtbar → nicht anklickbar
       const bounds = this.getVideoBounds(video)
 
       if (bounds && this.isPointInRect(x, y, bounds)) {
@@ -1038,6 +1132,7 @@ export class VideoManager {
     })
 
     this.videos = []
+    this.markerHiddenIds.clear()
     this.selectedVideo = null
     this.onVideoSelected(null)
     this.redrawCallback()

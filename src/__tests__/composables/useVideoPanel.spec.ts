@@ -348,6 +348,30 @@ describe('useVideoPanel – Platzieren', () => {
     expect(console.error).toHaveBeenCalledWith('❌ Fehler beim Laden des Video-Hintergrunds')
   })
 
+  it('placeVideoOnCanvas: Galerie-Video mit Platzierungs-Einstellungen, ohne Auswahl (Beat-Marker)', async () => {
+    const { vm } = mountPanel()
+    await uploadVideo('clip.mp4')
+    const placedObj = { id: 'cv' }
+    vm!.addVideo = (el: unknown, opts: unknown) => {
+      L('vm.addVideo', el, opts)
+      return placedObj
+    }
+    vp.videoLoop.value = false
+    await nextTick()
+    log.length = 0
+    const pending = vp.placeVideoOnCanvas(vp.videoGallery.value[0], { select: false })
+    created.at(-1)!.onloadeddata()
+    await expect(pending).resolves.toBe(placedObj)
+    expect(log.find((l) => l.startsWith('vm.addVideo'))).toContain('"loop":false')
+    expect(log.find((l) => l.startsWith('vm.addVideo'))).toContain('"name":"clip","select":false')
+
+    // Ladefehler bzw. fehlendes Video → null
+    const failing = vp.placeVideoOnCanvas(vp.videoGallery.value[0])
+    created.at(-1)!.onerror()
+    await expect(failing).resolves.toBeNull()
+    await expect(vp.placeVideoOnCanvas(null)).resolves.toBeNull()
+  })
+
   it('ohne Video-Manager', async () => {
     mountPanel({ noVm: true })
     await uploadVideo('a.mp4')

@@ -170,6 +170,8 @@ export class SelectionManager {
       const videos = this.manager.videoManager.getAllVideos()
       for (let i = videos.length - 1; i >= 0; i--) {
         const videoData = videos[i] as VideoObject // i < length
+        // Vom Beat-Marker ausgeblendet → unsichtbar, nicht anklickbar
+        if (this.manager.videoManager.isMarkerHidden?.(videoData.id)) continue
         const bounds = this.manager.getObjectBounds(videoData)
         if (bounds && this.isPointInRect(x, y, bounds)) {
           return videoData

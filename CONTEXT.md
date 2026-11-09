@@ -132,7 +132,7 @@ Visualizer/
 ├── ecosystem.config.cjs       # PM2 Konfiguration
 ├── vite.config.js             # Vite Build-Konfiguration
 ├── eslint.config.js           # ESLint Konfiguration
-├── playwright.config.js       # Playwright E2E Konfiguration
+├── playwright.config.ts       # Playwright E2E Konfiguration
 ├── package.json               # NPM Dependencies
 └── index.html                 # HTML Entry Point
 ```

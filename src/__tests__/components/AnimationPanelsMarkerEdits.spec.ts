@@ -1,5 +1,5 @@
 // Animations-Panels (Text und Bild) melden Bearbeitungen an die Beat-Marker
-// und spielen geänderte Effekte kurz nach der letzten Änderung neu ab.
+// – Regler-Änderungen starten den Effekt NICHT neu (kein Warten beim Bearbeiten).
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick, reactive, ref } from 'vue'
@@ -54,7 +54,7 @@ describe('TextAnimationsPanel → Beat-Marker', () => {
     })
   }
 
-  it('Regler-Änderung meldet den Text und startet den Effekt danach neu', async () => {
+  it('Regler-Änderung meldet den Text, ohne den Effekt neu zu starten', async () => {
     const text = fadeText()
     wrapper = mountPanel(text)
     const fade = wrapper.findAllComponents(FadeControls)[0]!
@@ -64,20 +64,9 @@ describe('TextAnimationsPanel → Beat-Marker', () => {
       { kind: 'text', id: 7 },
       { kind: 'text', id: 7 },
     ])
-    expect(text.animation!._state!.fadeStartTime).toBe(123) // noch nicht
-    vi.advanceTimersByTime(400)
+    vi.advanceTimersByTime(2000)
     await nextTick()
-    expect(text.animation!._state!.fadeStartTime).toBeNull()
-  })
-
-  it('Textwechsel verwirft den ausstehenden Neustart', async () => {
-    const first = fadeText()
-    const second = fadeText()
-    wrapper = mountPanel(first)
-    wrapper.findAllComponents(FadeControls)[0]!.vm.$emit('change')
-    await wrapper.setProps({ selectedText: second })
-    vi.advanceTimersByTime(400)
-    expect(second.animation!._state!.fadeStartTime).toBe(123)
+    expect(text.animation!._state!.fadeStartTime).toBe(123)
   })
 })
 
@@ -98,18 +87,18 @@ describe('ImageAnimationControls → Beat-Marker', () => {
     expect(edits.at(-1)).toEqual({ kind: 'image', id: 3 })
   })
 
-  it('Regler-Änderung startet den Effekt kurz danach neu', () => {
+  it('Regler-Änderung meldet das Bild, ohne den Effekt neu zu starten', () => {
     const timedAnimation = createImageAnimation()
     Object.assign(timedAnimation.fade, { enabled: true, easing: 'linear', duration: 1000 })
     const image = reactive({ id: 4, type: 'image', timedAnimation })
     const t0 = Date.now()
     getImageAnimationTransform(image, { width: 10, height: 10 }, t0)
-    expect(getImageAnimationTransform(image, { width: 10, height: 10 }, t0 + 5000).opacity).toBe(1)
 
     wrapper = mount(ImageAnimationControls, { props: { image } })
     wrapper.findAllComponents(FadeControls)[0]!.vm.$emit('change')
     expect(edits).toEqual([{ kind: 'image', id: 4 }])
-    vi.advanceTimersByTime(400)
-    expect(getImageAnimationTransform(image, { width: 10, height: 10 }, t0 + 6000).opacity).toBe(0)
+    vi.advanceTimersByTime(2000)
+    // Effekt lief weiter durch, statt von vorn zu beginnen
+    expect(getImageAnimationTransform(image, { width: 10, height: 10 }, t0 + 6000).opacity).toBe(1)
   })
 })

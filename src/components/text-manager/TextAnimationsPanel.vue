@@ -20,7 +20,7 @@
           <component
             :is="section.controls"
             :effect="selectedText.animation[section.key]"
-            @change="onChange(section)"
+            @change="onChange"
           />
         </AnimationEditSection>
       </template>
@@ -37,7 +37,7 @@
  * reicht das Effekt-Objekt des markierten Textes hinein und zeichnet bei
  * jeder Änderung (`change`) den Canvas neu.
  */
-import { computed, inject, onUnmounted, toRef, watch } from 'vue'
+import { computed, inject, toRef, watch } from 'vue'
 import { notifyMarkerTargetEdited } from '../../lib/markerTargetEdits'
 import type { Component } from 'vue'
 import type { CanvasManagerRef } from '../../composables/types'
@@ -108,32 +108,12 @@ function onRestart(section: Section) {
   notifyEdit()
 }
 
-// Geänderte Regler sofort sichtbar machen: Effekt kurz nach der letzten
-// Änderung von vorn abspielen (nicht bei jedem Zwischenwert eines Reglers)
-const CHANGE_RESTART_MS = 350
-let changeTimer: ReturnType<typeof setTimeout> | null = null
-const changedSections = new Set<Section>()
-
-function onChange(section: Section) {
+// Regler-Änderungen gelten sofort, ohne den Effekt neu zu starten: Wer
+// bearbeitet, soll nicht auf das Durchlaufen der Animation warten müssen.
+function onChange() {
   updateText()
   notifyEdit()
-  changedSections.add(section)
-  if (changeTimer !== null) clearTimeout(changeTimer)
-  changeTimer = setTimeout(() => {
-    changeTimer = null
-    for (const s of changedSections) s.restart()
-    changedSections.clear()
-  }, CHANGE_RESTART_MS)
 }
-
-function cancelChangeRestart() {
-  if (changeTimer !== null) clearTimeout(changeTimer)
-  changeTimer = null
-  changedSections.clear()
-}
-// Neustart gilt nur dem Text, an dem geändert wurde
-watch(selectedText, cancelChangeRestart)
-onUnmounted(cancelChangeRestart)
 
 const SECTIONS: {
   key: AnimationKey

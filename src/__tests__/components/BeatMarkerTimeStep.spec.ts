@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { defineComponent, ref } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
@@ -15,10 +15,12 @@ const Host = defineComponent({
   template: '<div />',
 })
 
-let wrapper
-let vm
-let playerStore
-let markerStore
+type HostVm = InstanceType<typeof Host>
+
+let wrapper: VueWrapper<HostVm>
+let vm: HostVm
+let playerStore: ReturnType<typeof usePlayerStore>
+let markerStore: ReturnType<typeof useBeatMarkerStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -46,7 +48,7 @@ describe('Beat-Marker Zeit mit Hundertsteln', () => {
     expect(vm.pendingMarkerTimeInput).toBe('1:30.25')
 
     vm.confirmAddMarker()
-    expect(markerStore.markers.at(-1).time).toBe(90.25)
+    expect(markerStore.markers.at(-1)!.time).toBe(90.25)
   })
 
   it('schrittet standardmäßig in 0,01 s und speichert den Wert exakt', () => {
@@ -57,7 +59,7 @@ describe('Beat-Marker Zeit mit Hundertsteln', () => {
     expect(vm.pendingMarkerTimeInput).toBe('0:00.03')
 
     vm.confirmAddMarker()
-    expect(markerStore.markers.at(-1).time).toBe(0.03)
+    expect(markerStore.markers.at(-1)!.time).toBe(0.03)
   })
 
   it('nutzt die gewählte Schrittweite (schnell = 1 s, mittel = 0,1 s)', () => {

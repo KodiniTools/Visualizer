@@ -3,21 +3,25 @@
 // Texte und Labels statt CSS-Klassen, damit die Tests den Wechsel auf die
 // Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { ref } from 'vue'
 import BackgroundReplaceModal from '../../components/canvas-control/background/BackgroundReplaceModal.vue'
 import { useBgReplace } from '../../composables/bg/useBgReplace'
+import type { CanvasManagerRef } from '../../composables/types'
+import { stub } from '../helpers/canvasStubs'
 import de from '../../lib/i18n/de'
 
 const C = de.canvasControl
 const A = de.app
-let wrapper
-let bg
-let canvasManager
+let wrapper: VueWrapper | null
+let bg: ReturnType<typeof useBgReplace>
+let canvasManager: CanvasManagerRef
 
 /** Bild-Attrappe, die sofort „lädt“. */
 class FakeImage {
-  set src(v) {
+  declare _src: string
+  declare onload?: () => void
+  set src(v: string) {
     this._src = v
     queueMicrotask(() => this.onload?.())
   }
@@ -51,10 +55,12 @@ function stubGallery() {
 }
 
 function mountModal(type = 'background') {
-  canvasManager = ref({
-    replaceBackground: vi.fn(() => true),
-    replaceWorkspaceBackground: vi.fn(() => true),
-  })
+  canvasManager = stub<CanvasManagerRef>(
+    ref({
+      replaceBackground: vi.fn(() => true),
+      replaceWorkspaceBackground: vi.fn(() => true),
+    }),
+  )
   bg = useBgReplace(canvasManager, {
     backgroundImageSrc: ref('data:image/png;base64,bg'),
     workspaceBackgroundImageSrc: ref('data:image/png;base64,ws'),
@@ -68,18 +74,18 @@ function mountModal(type = 'background') {
 }
 
 const body = () => document.body
-function button(text) {
+function button(text: string) {
   const el = [...body().querySelectorAll('button')].find(
     (b) =>
-      b.textContent.replace(/\s+/g, ' ').trim() === text ||
+      b.textContent!.replace(/\s+/g, ' ').trim() === text ||
       b.getAttribute('aria-label') === text ||
       b.getAttribute('title') === text,
   )
   expect(el, `Knopf „${text}“`).toBeTruthy()
   return el
 }
-async function click(text) {
-  button(text).click()
+async function click(text: string) {
+  button(text)!.click()
   await flushPromises()
 }
 
@@ -112,9 +118,9 @@ describe('Hintergrund ersetzen – Dialog', () => {
   it('Schließen-Knopf schließt den Dialog', async () => {
     await mountModal()
     const close = [...body().querySelectorAll('button')].find(
-      (b) => b.textContent.trim() === '×' || b.getAttribute('aria-label') === de.common.close,
+      (b) => b.textContent!.trim() === '×' || b.getAttribute('aria-label') === de.common.close,
     )
-    close.click()
+    close!.click()
     await flushPromises()
     expect(bg.showBackgroundReplaceModal.value).toBe(false)
     expect(body().textContent).not.toContain(C.replaceBackground)
@@ -124,23 +130,23 @@ describe('Hintergrund ersetzen – Dialog', () => {
     await mountModal()
     const input = body().querySelector('input[type="file"]')
     const clickSpy = vi.fn()
-    input.addEventListener('click', clickSpy)
+    input!.addEventListener('click', clickSpy)
     await click(A.uploadImage)
     expect(clickSpy).toHaveBeenCalled()
 
     // Vorschau direkt setzen (FileReader liest in jsdom asynchron)
-    bg.pendingBackgroundReplaceImage.value = new FakeImage()
+    bg.pendingBackgroundReplaceImage.value = stub(new FakeImage())
     bg.pendingBackgroundReplaceSrc.value = 'data:image/png;base64,new'
     await flushPromises()
     expect(body().querySelector('img[src="data:image/png;base64,new"]')).toBeTruthy()
     await click(A.confirmReplace)
-    expect(canvasManager.value.replaceBackground).toHaveBeenCalled()
+    expect(canvasManager.value!.replaceBackground).toHaveBeenCalled()
     expect(bg.showBackgroundReplaceModal.value).toBe(false)
   })
 
   it('Vorschau abbrechen verwirft das neue Bild', async () => {
     await mountModal()
-    bg.pendingBackgroundReplaceImage.value = new FakeImage()
+    bg.pendingBackgroundReplaceImage.value = stub(new FakeImage())
     bg.pendingBackgroundReplaceSrc.value = 'data:image/png;base64,new'
     await flushPromises()
     await click(de.common.cancel)
@@ -157,27 +163,29 @@ describe('Hintergrund ersetzen – Galerie', () => {
     expect(body().textContent).toContain('Natur')
     expect(body().textContent).toContain('Stadt')
     expect(body().querySelectorAll('img[src^="n.json"]')).toHaveLength(2)
-    expect(button(A.selectImage).disabled).toBe(true)
+    expect(button(A.selectImage)!.disabled).toBe(true)
 
-    body().querySelector('img[src="n.json-2.jpg"]').click()
+    body().querySelector<HTMLElement>('img[src="n.json-2.jpg"]')!.click()
     await flushPromises()
-    expect(bg.selectedBgGalleryImage.value.name).toBe('See')
-    expect(button(A.selectImage).disabled).toBe(false)
+    expect(bg.selectedBgGalleryImage.value!.name).toBe('See')
+    expect(button(A.selectImage)!.disabled).toBe(false)
 
-    const city = [...body().querySelectorAll('button')].find((b) => b.textContent.includes('Stadt'))
-    city.click()
+    const city = [...body().querySelectorAll('button')].find((b) =>
+      b.textContent!.includes('Stadt'),
+    )
+    city!.click()
     await flushPromises()
     expect(fetch).toHaveBeenCalledWith('c.json')
     expect(body().querySelectorAll('img[src^="c.json"]')).toHaveLength(2)
 
-    body().querySelector('img[src="c.json-1.jpg"]').click()
+    body().querySelector<HTMLElement>('img[src="c.json-1.jpg"]')!.click()
     await flushPromises()
     await click(A.selectImage)
     await flushPromises()
     expect(bg.pendingBackgroundReplaceSrc.value).toBe('c.json-1.jpg')
     expect(bg.showBgReplaceGallery.value).toBe(false)
     await click(A.confirmReplace)
-    expect(canvasManager.value.replaceWorkspaceBackground).toHaveBeenCalled()
+    expect(canvasManager.value!.replaceWorkspaceBackground).toHaveBeenCalled()
   })
 
   it('Abbrechen schließt nur die Galerie', async () => {
@@ -212,20 +220,20 @@ describe('Hintergrund ersetzen – Ui-Bausteine', () => {
     await mountModal()
     const dialog = body().querySelector('[role="dialog"]')
     expect(dialog).toBeTruthy()
-    const titleId = dialog.getAttribute('aria-labelledby')
-    expect(document.getElementById(titleId).textContent).toBe(C.replaceBackground)
+    const titleId = dialog!.getAttribute('aria-labelledby')
+    expect(document.getElementById(titleId!)!.textContent).toBe(C.replaceBackground)
 
     await click(A.fromGallery)
     const group = body().querySelector('[role="radiogroup"]')
-    expect(group.getAttribute('aria-label')).toBe(de.backgroundTiles.galleryCategories)
-    expect(group.querySelector('[aria-checked="true"]').textContent).toContain('Natur')
+    expect(group!.getAttribute('aria-label')).toBe(de.backgroundTiles.galleryCategories)
+    expect(group!.querySelector('[aria-checked="true"]')!.textContent).toContain('Natur')
     // Bilder sind Knöpfe mit Namen und gedrücktem Zustand
     const see = button('See')
-    see.click()
+    see!.click()
     await flushPromises()
-    expect(see.getAttribute('aria-pressed')).toBe('true')
+    expect(see!.getAttribute('aria-pressed')).toBe('true')
 
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    dialog!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await flushPromises()
     expect(bg.showBackgroundReplaceModal.value).toBe(false)
   })

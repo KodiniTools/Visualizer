@@ -4,7 +4,7 @@
  * passend zum Code, Navigation im eigenen Scroll-Container.
  */
 import { describe, it, expect, afterEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
@@ -12,9 +12,9 @@ import { setLocale } from '../../lib/i18n'
 import { SLIDESHOW_TRANSITIONS } from '../../lib/slideshowTransitions'
 import BlogPage from '../../components/BlogPage.vue'
 
-const shape = (o) => JSON.stringify(o, (k, v) => (typeof v === 'string' ? '' : v))
+const shape = (o: unknown) => JSON.stringify(o, (k, v) => (typeof v === 'string' ? '' : v))
 
-let wrapper
+let wrapper: VueWrapper | null
 afterEach(async () => {
   wrapper?.unmount()
   wrapper = null
@@ -56,18 +56,22 @@ describe('Funktionen-Seite – Inhalte', () => {
       expect(ids, id).toContain(id)
     }
     expect(new Set(ids).size).toBe(ids.length)
-    expect(de.blog.sections.find((s) => s.id === 'slideshow').isNew).toBe(true)
+    expect(de.blog.sections.find((s) => s.id === 'slideshow')!.isNew).toBe(true)
     // Übersichtskarten verweisen auf vorhandene Abschnitte
     for (const card of de.blog.overview) expect(ids).toContain(card.id)
   })
 
   it('Slideshow-Übergänge entsprechen dem Code (Anzahl und Bezeichnungen)', () => {
     for (const lang of [de, en]) {
-      const tags = lang.blog.sections.find((s) => s.id === 'slideshow').tags.items
-      expect(tags).toEqual(SLIDESHOW_TRANSITIONS.map((tr) => lang.slideshow.transitions[tr.id]))
+      const tags = lang.blog.sections.find((s) => s.id === 'slideshow')!.tags!.items
+      expect(tags).toEqual(
+        SLIDESHOW_TRANSITIONS.map(
+          (tr) => lang.slideshow.transitions[tr.id as keyof typeof lang.slideshow.transitions],
+        ),
+      )
     }
     const stat = de.blog.stats.find((s) => /Übergänge/.test(s.label))
-    expect(Number(stat.value)).toBe(SLIDESHOW_TRANSITIONS.length)
+    expect(Number(stat!.value)).toBe(SLIDESHOW_TRANSITIONS.length)
   })
 
   it('keine Umlaut-Ersatzschreibweisen im deutschen Text', () => {
@@ -112,8 +116,8 @@ describe('Funktionen-Seite – Darstellung', () => {
     Object.defineProperty(page, 'scrollHeight', { configurable: true, value: 5000 })
     Object.defineProperty(page, 'clientHeight', { configurable: true, value: 800 })
     page.scrollTop = 200
-    const calls = []
-    page.scrollTo = (opts) => calls.push(opts)
+    const calls: unknown[] = []
+    page.scrollTo = (opts: unknown) => calls.push(opts)
     const target = page.querySelector('#slideshow')
     target.getBoundingClientRect = () => ({ top: 1000, bottom: 1400, left: 0, right: 0 })
     await w.find('.overview-card[href="#slideshow"]').trigger('click')

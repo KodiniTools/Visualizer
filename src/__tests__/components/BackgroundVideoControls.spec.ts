@@ -3,7 +3,7 @@
 // über Texte, Namen und Werte statt CSS-Klassen, damit die Tests den Wechsel
 // auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import BackgroundVideoControls from '../../components/video-panel/BackgroundVideoControls.vue'
 import { useI18n } from '../../lib/i18n'
@@ -11,7 +11,7 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const V = de.videoPanel
-let wrapper
+let wrapper: VueWrapper | null
 
 const AudioStub = defineComponent({
   name: 'VideoAudioReactive',
@@ -44,11 +44,12 @@ function makePanel({ bg = true, ws = false } = {}) {
     updateWsBgVideoVolume: vi.fn(),
     removeVideoBackground: vi.fn(),
     removeWsVideoBackground: vi.fn(),
-    formatTime: (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`,
+    formatTime: (s: number) =>
+      `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`,
   }
 }
 
-function mountControls(opts) {
+function mountControls(opts: Parameters<typeof makePanel>[0]) {
   const panel = makePanel(opts)
   wrapper = mount(BackgroundVideoControls, {
     attachTo: document.body,
@@ -63,11 +64,11 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => (root().textContent || '').replace(/\s+/g, ' ')
 
 /** Abschnitt eines Videos über seine Beschriftung (kleinster Block mit eigenen Knöpfen). */
-function item(label) {
+function item(label: string) {
   const blocks = [...root().querySelectorAll('div, section')].filter(
     (el) => el.textContent.includes(label) && el.querySelector('button'),
   )
@@ -75,11 +76,13 @@ function item(label) {
 }
 
 /** Knopf über Namen: alter title oder neues aria-label. */
-const btn = (scope, ...names) =>
+const btn = (scope: Element, ...names: (string | null)[]) =>
   [...scope.querySelectorAll('button')].find((b) =>
     names.includes(b.getAttribute('aria-label') || b.getAttribute('title')),
   )
-const ranges = (scope) => [...scope.querySelectorAll('input[type="range"]')]
+const ranges = (scope: Element) => [
+  ...scope.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+]
 
 describe('Hintergrund-Video – Anzeige', () => {
   it('ohne Hintergrund-Video nichts', () => {
@@ -111,36 +114,36 @@ describe('Hintergrund-Video – Bedienung', () => {
   it('Abspielen, Spulen, Entfernen (Hintergrund)', () => {
     const p = mountControls({ bg: true })
     const scope = item(V.bgLabel)
-    btn(scope, 'Play', V.play).click()
+    btn(scope, 'Play', V.play)!.click()
     expect(p.toggleVideoBackground).toHaveBeenCalledTimes(1)
-    btn(scope, '-5s', V.seekBack5).click()
+    btn(scope, '-5s', V.seekBack5)!.click()
     expect(p.seekBackwardBg).toHaveBeenCalledWith(5)
-    btn(scope, '+5s', V.seekForward5).click()
+    btn(scope, '+5s', V.seekForward5)!.click()
     expect(p.seekForwardBg).toHaveBeenCalledWith(5)
-    btn(scope, de.common.remove).click()
+    btn(scope, de.common.remove)!.click()
     expect(p.removeVideoBackground).toHaveBeenCalledTimes(1)
   })
 
   it('Workspace läuft: Pause-Knopf, eigene Handler', () => {
     const p = mountControls({ bg: false, ws: true })
     const scope = item(V.wsBgLabel)
-    btn(scope, 'Pause', V.pause).click()
+    btn(scope, 'Pause', V.pause)!.click()
     expect(p.toggleWsVideoBackground).toHaveBeenCalledTimes(1)
-    btn(scope, '-5s', V.seekBack5).click()
+    btn(scope, '-5s', V.seekBack5)!.click()
     expect(p.seekBackwardWsBg).toHaveBeenCalledWith(5)
-    btn(scope, '+5s', V.seekForward5).click()
+    btn(scope, '+5s', V.seekForward5)!.click()
     expect(p.seekForwardWsBg).toHaveBeenCalledWith(5)
-    btn(scope, de.common.remove).click()
+    btn(scope, de.common.remove)!.click()
     expect(p.removeWsVideoBackground).toHaveBeenCalledTimes(1)
   })
 
   it('Zeit- und Lautstärke-Regler melden Werte', async () => {
     const p = mountControls({ bg: true })
     const [seek, volume] = ranges(root())
-    seek.value = '20'
-    seek.dispatchEvent(new Event('input'))
-    volume.value = '0.3'
-    volume.dispatchEvent(new Event('input'))
+    seek!.value = '20'
+    seek!.dispatchEvent(new Event('input'))
+    volume!.value = '0.3'
+    volume!.dispatchEvent(new Event('input'))
     await nextTick()
     expect(p.seekVideoBackground).toHaveBeenCalledWith(20)
     expect(p.updateBgVideoVolume).toHaveBeenCalledWith(0.3)
@@ -197,6 +200,6 @@ describe('Hintergrund-Video – Ui-Bausteine', () => {
 
   it('beide Videos teilen sich eine Zeilen-Komponente', () => {
     mountControls({ bg: true, ws: true })
-    expect(wrapper.findAllComponents({ name: 'BackgroundVideoItem' })).toHaveLength(2)
+    expect(wrapper!.findAllComponents({ name: 'BackgroundVideoItem' })).toHaveLength(2)
   })
 })

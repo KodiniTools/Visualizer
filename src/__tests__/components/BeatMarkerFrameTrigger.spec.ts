@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { stub } from '../helpers/canvasStubs'
 import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
@@ -15,19 +16,19 @@ const Host = defineComponent({
   template: '<div />',
 })
 
-let wrapper
-let playerStore
-let markerStore
-let visualizerStore
+let wrapper: VueWrapper
+let playerStore: ReturnType<typeof usePlayerStore>
+let markerStore: ReturnType<typeof useBeatMarkerStore>
+let visualizerStore: ReturnType<typeof useVisualizerStore>
 
 // Simuliert einen Render-Frame bei der angegebenen Audio-Position.
-function frame(time) {
-  playerStore.audioRef.currentTime = time
+function frame(time: number) {
+  playerStore.audioRef!.currentTime = time
   playerStore.notifyFrame()
 }
 
 // Simuliert das timeupdate-Ereignis (~4x/s) des Audio-Elements.
-async function timeupdate(time) {
+async function timeupdate(time: number) {
   playerStore.currentTime = time
   await nextTick()
 }
@@ -40,10 +41,10 @@ beforeEach(async () => {
   visualizerStore = useVisualizerStore()
   useMarkerTransitionStore().enabled = false
   playerStore.duration = 300
-  playerStore.audioRef = { currentTime: 0 }
+  playerStore.audioRef = stub({ currentTime: 0 })
   wrapper = mount(Host, { global: { provide: { canvasManager: ref(null) } } })
   // Wiedergabe ab 2.0s starten (kein Start-Marker-Sonderfall bei < 0.5s)
-  playerStore.audioRef.currentTime = 2
+  playerStore.audioRef!.currentTime = 2
   playerStore.currentTime = 2
   playerStore.isPlaying = true
   await nextTick()
@@ -58,11 +59,11 @@ describe('Beat-Marker Auslösung über die Render-Schleife', () => {
     expect(visualizerStore.visualizerColor).not.toBe('#123456')
     frame(5.38)
     expect(visualizerStore.visualizerColor).toBe('#123456')
-    expect(markerStore.markers[0].triggered).toBe(true)
+    expect(markerStore.markers[0]!.triggered).toBe(true)
   })
 
   it('feuert mehrere Marker innerhalb eines Frames in zeitlicher Reihenfolge', () => {
-    const order = []
+    const order: unknown[] = []
     const spy = vi.spyOn(visualizerStore, 'setColor').mockImplementation((c) => order.push(c))
     markerStore.addMarker(5.02, { color: '#bbbbbb', visualizerVisible: true }, 'B')
     markerStore.addMarker(5.0, { color: '#aaaaaa', visualizerVisible: true }, 'A')

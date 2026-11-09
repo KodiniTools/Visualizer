@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { stub } from '../helpers/canvasStubs'
 import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import { useShapeStore } from '../../stores/shapeStore'
+import { useShapeStore, type Shape } from '../../stores/shapeStore'
 
 const Host = defineComponent({
   setup() {
@@ -15,16 +16,18 @@ const Host = defineComponent({
   template: '<div />',
 })
 
-let wrapper
-let vm
-let playerStore
-let markerStore
-let shapes
-let star
-let heart
+type HostVm = InstanceType<typeof Host>
 
-function frame(time) {
-  playerStore.audioRef.currentTime = time
+let wrapper: VueWrapper<HostVm>
+let vm: HostVm
+let playerStore: ReturnType<typeof usePlayerStore>
+let markerStore: ReturnType<typeof useBeatMarkerStore>
+let shapes: ReturnType<typeof useShapeStore>
+let star: Shape
+let heart: Shape
+
+function frame(time: number) {
+  playerStore.audioRef!.currentTime = time
   playerStore.notifyFrame()
 }
 
@@ -36,9 +39,9 @@ beforeEach(async () => {
   shapes = useShapeStore()
   useMarkerTransitionStore().enabled = false
   playerStore.duration = 300
-  playerStore.audioRef = { currentTime: 0 }
-  star = shapes.addShape('star', 800, 600)
-  heart = shapes.addShape('emojiHeart', 800, 600)
+  playerStore.audioRef = stub({ currentTime: 0 })
+  star = shapes.addShape('star', 800, 600)!
+  heart = shapes.addShape('emojiHeart', 800, 600)!
 
   wrapper = mount(Host, { global: { provide: { canvasManager: ref(null) } } })
   vm = wrapper.vm
@@ -48,7 +51,7 @@ beforeEach(async () => {
 afterEach(() => wrapper?.unmount())
 
 async function startPlaybackAtZero() {
-  playerStore.audioRef.currentTime = 0
+  playerStore.audioRef!.currentTime = 0
   playerStore.currentTime = 0
   playerStore.isPlaying = true
   await nextTick()
@@ -59,7 +62,7 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
     const list = vm.getMarkerShapes()
     expect(list.map((s) => s.id)).toEqual([star.id, heart.id])
     expect(list[0]).toMatchObject({ number: 1, name: 'Stern' })
-    expect(list[1].extra).toBe(heart.emoji)
+    expect(list[1]!.extra).toBe(heart.emoji)
   })
 
   it('speichert die gewählte Form samt Bezeichnung im Marker', () => {
@@ -67,8 +70,8 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
     vm.newMarkerShapeId = star.id
     vm.confirmAddMarker()
     const marker = markerStore.markers.at(-1)
-    expect(marker.action.shapeId).toBe(star.id)
-    expect(marker.action.shapeLabel).toBe('Stern')
+    expect(marker!.action.shapeId).toBe(star.id)
+    expect(marker!.action.shapeLabel).toBe('Stern')
     expect(vm.newMarkerShapeId).toBe('')
   })
 
@@ -152,8 +155,8 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
       'stickers',
     ])
     const stickers = groups.find((g) => g.category === 'stickers')
-    expect(stickers.label).toBe('Sticker')
-    expect(stickers.items.find((i) => i.value === 'gallery:emojiFire').name).toContain('🔥')
+    expect(stickers!.label).toBe('Sticker')
+    expect(stickers!.items.find((i) => i.value === 'gallery:emojiFire')!.name).toContain('🔥')
     expect(groups.flatMap((g) => g.items).every((i) => i.value.startsWith('gallery:'))).toBe(true)
   })
 
@@ -163,16 +166,16 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
     vm.confirmAddMarker()
     expect(shapes.shapes).toHaveLength(3)
     const created = shapes.shapes.at(-1)
-    expect(created.galleryId).toBe('arrow')
+    expect(created!.galleryId).toBe('arrow')
     expect(created).toMatchObject({ x: 400, y: 300 })
     expect(shapes.selectedShapeId).toBeNull()
     const marker = markerStore.markers.at(-1)
-    expect(marker.action.shapeId).toBe(created.id)
-    expect(marker.action.shapeLabel).toBe('Pfeil')
+    expect(marker!.action.shapeId).toBe(created!.id)
+    expect(marker!.action.shapeLabel).toBe('Pfeil')
   })
 
   it('während der Wiedergabe erscheint die neue Form erst zum Marker-Zeitpunkt', async () => {
-    playerStore.audioRef.currentTime = 2
+    playerStore.audioRef!.currentTime = 2
     playerStore.currentTime = 2
     playerStore.isPlaying = true
     await nextTick()
@@ -182,9 +185,9 @@ describe('Beat-Marker mit Formen & Symbolen', () => {
     vm.newMarkerShapeId = 'gallery:emojiFire'
     vm.confirmAddMarker()
     const created = shapes.shapes.at(-1)
-    expect(shapes.isMarkerHidden(created.id)).toBe(true)
+    expect(shapes.isMarkerHidden(created!.id)).toBe(true)
     frame(5.99)
     frame(6.01)
-    expect(shapes.isMarkerHidden(created.id)).toBe(false)
+    expect(shapes.isMarkerHidden(created!.id)).toBe(false)
   })
 })

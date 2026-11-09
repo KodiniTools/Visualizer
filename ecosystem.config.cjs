@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * PM2 Ecosystem Configuration
  *

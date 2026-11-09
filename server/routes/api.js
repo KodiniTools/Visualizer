@@ -56,12 +56,12 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024 * 1024, // 5 GB
   },
-  fileFilter: (req, file, /** @type {any} */ cb) => {
+  fileFilter: (req, file, cb) => {
     const allowedTypes = ['video/webm', 'video/mp4', 'video/quicktime', 'video/x-matroska']
     if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(webm|mp4|mov|mkv)$/i)) {
       cb(null, true)
     } else {
-      cb(new Error(`Ungültiger Dateityp: ${file.mimetype}`), false)
+      cb(new Error(`Ungültiger Dateityp: ${file.mimetype}`))
     }
   },
 })
@@ -821,6 +821,13 @@ router.post(
     if (!req.body || req.body.length === 0) {
       return res.status(400).json({ error: 'Keine Videodaten empfangen' })
     }
+    // quality kommt als Query; mehrfach angegeben (Array) oder verschachtelt
+    // (Objekt) ist ungültig, statt still auf 'high' zurückzufallen.
+    const rawQuality = req.query.quality
+    if (rawQuality !== undefined && typeof rawQuality !== 'string') {
+      return res.status(400).json({ error: 'Ungültiger Parameter quality' })
+    }
+    const quality = rawQuality || 'high'
 
     const inputFilename = `blob_${Date.now()}.webm`
     const inputPath = path.join(UPLOADS_DIR, inputFilename)
@@ -829,11 +836,10 @@ router.post(
       // Schreibe Blob zu Datei
       await fs.writeFile(inputPath, req.body)
 
-      const quality = req.query.quality || 'high'
       const job = createJob(inputPath, { quality, action: 'convert-blob' })
 
       // Starte Konvertierung
-      processConversion(job.id, inputPath, /** @type {string} */ (quality))
+      processConversion(job.id, inputPath, quality)
 
       res.json({
         success: true,
@@ -1057,10 +1063,13 @@ router.post('/frame-export/start', async (req, res) => {
 router.post('/frame-export/:jobId/frames', frameUpload.any(), async (req, res) => {
   const job = frameJobs.get(req.params.jobId)
   if (!job) return res.status(404).json({ error: 'Frame job not found' })
+  if (!Array.isArray(req.files) || req.files.length === 0) {
+    return res.status(400).json({ error: 'Keine Frames empfangen' })
+  }
 
   try {
     const startIndex = parseInt(req.body.startIndex) || 0
-    const frames = /** @type {Express.Multer.File[]} */ (req.files).map((file, i) => ({
+    const frames = req.files.map((file, i) => ({
       index: startIndex + i,
       buffer: file.buffer,
     }))

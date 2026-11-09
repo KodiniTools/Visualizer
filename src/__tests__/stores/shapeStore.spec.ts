@@ -5,8 +5,11 @@ import { useHistoryStore } from '../../stores/historyStore'
 import { createHistoryRecorder } from '../../lib/history/historyRecorder'
 import { createShapesSegment } from '../../lib/history/segments/shapesSegment'
 
+/** Audio-Reaktiv-Konfiguration, wie die Tests sie lesen */
+type ArView = { enabled: boolean; effects: Record<string, unknown> }
+
 describe('shapeStore', () => {
-  let store
+  let store: ReturnType<typeof useShapeStore>
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -16,8 +19,8 @@ describe('shapeStore', () => {
   it('addShape legt die Form mittig an, wählt sie aus und merkt sich die Canvas-Größe', () => {
     const shape = store.addShape('star', 1920, 1080)
     expect(shape).toMatchObject({ type: 'star', x: 960, y: 540 })
-    expect(store.selectedShapeId).toBe(shape.id)
-    expect(store.selectedShape.id).toBe(shape.id)
+    expect(store.selectedShapeId).toBe(shape!.id)
+    expect(store.selectedShape!.id).toBe(shape!.id)
     expect(store.canvasSize).toEqual({ width: 1920, height: 1080 })
     expect(store.addShape('unbekannt', 100, 100)).toBeNull()
   })
@@ -25,16 +28,16 @@ describe('shapeStore', () => {
   it('duplizieren, Reihenfolge, löschen', () => {
     const a = store.addShape('rect', 800, 600)
     const b = store.addShape('ellipse', 800, 600)
-    const copy = store.duplicateShape(a.id)
-    expect(store.shapes.map((s) => s.id)).toEqual([a.id, copy.id, b.id])
-    expect(copy.x).toBeGreaterThan(a.x)
-    expect(store.selectedShapeId).toBe(copy.id)
+    const copy = store.duplicateShape(a!.id)
+    expect(store.shapes.map((s) => s.id)).toEqual([a!.id, copy!.id, b!.id])
+    expect(copy!.x).toBeGreaterThan(a!.x)
+    expect(store.selectedShapeId).toBe(copy!.id)
 
-    expect(store.moveShapeOrder(copy.id, 'up')).toBe(true)
-    expect(store.shapes.at(-1).id).toBe(copy.id)
-    expect(store.moveShapeOrder(copy.id, 'up')).toBe(false)
+    expect(store.moveShapeOrder(copy!.id, 'up')).toBe(true)
+    expect(store.shapes.at(-1)!.id).toBe(copy!.id)
+    expect(store.moveShapeOrder(copy!.id, 'up')).toBe(false)
 
-    expect(store.deleteShape(copy.id)).toBe(true)
+    expect(store.deleteShape(copy!.id)).toBe(true)
     expect(store.selectedShapeId).toBeNull()
     expect(store.deleteShape('gibt-es-nicht')).toBe(false)
   })
@@ -43,13 +46,13 @@ describe('shapeStore', () => {
     store.addShape('marker', 400, 300)
     store.addShape('rect', 400, 300)
     const second = store.addShape('markerSquare', 400, 300)
-    expect(second.number).toBe(2)
-    expect(store.duplicateShape(second.id).number).toBe(3)
+    expect(second!.number).toBe(2)
+    expect(store.duplicateShape(second!.id)!.number).toBe(3)
   })
 
   it('skaliert Formen mit, wenn sich die Canvas-Größe ändert', () => {
     const shape = store.addShape('rect', 1920, 1080)
-    const { width } = shape
+    const { width } = shape!
     expect(store.syncCanvasSize(1920, 1080)).toBe(false)
     expect(store.syncCanvasSize(960, 540)).toBe(true)
     expect(store.shapes[0]).toMatchObject({ x: 480, y: 270, width: Math.round(width / 2) })
@@ -76,12 +79,12 @@ describe('shapeStore', () => {
 
   it('Snapshot hin und zurück; fehlende Auswahl wird aufgehoben', () => {
     const shape = store.addShape('heart', 800, 600)
-    const originalX = shape.x
+    const originalX = shape!.x
     const snap = store.captureSnapshot()
-    store.updateShape(shape.id, { x: 10 })
+    store.updateShape(shape!.id, { x: 10 })
     store.applySnapshot(snap)
-    expect(store.shapes[0].x).toBe(originalX)
-    expect(store.selectedShapeId).toBe(shape.id)
+    expect(store.shapes[0]!.x).toBe(originalX)
+    expect(store.selectedShapeId).toBe(shape!.id)
     store.applySnapshot({ shapes: [], canvasSize: { width: 1, height: 1 } })
     expect(store.shapes).toEqual([])
     expect(store.selectedShapeId).toBeNull()
@@ -89,7 +92,7 @@ describe('shapeStore', () => {
 })
 
 describe('History-Segment shapes', () => {
-  let recorder
+  let recorder: ReturnType<typeof createHistoryRecorder> | undefined
 
   afterEach(() => recorder?.destroy())
 
@@ -102,12 +105,12 @@ describe('History-Segment shapes', () => {
 
     const shape = store.addShape('star', 800, 600)
     expect(recorder.checkpoint()).not.toBeNull()
-    store.updateShape(shape.id, { x: 100 })
+    store.updateShape(shape!.id, { x: 100 })
     expect(recorder.checkpoint()).not.toBeNull()
     expect(history.history.map((c) => c.segments)).toEqual([['shapes'], ['shapes']])
 
     await history.undo()
-    expect(store.shapes[0].x).toBe(400)
+    expect(store.shapes[0]!.x).toBe(400)
     await history.undo()
     expect(store.shapes).toEqual([])
     await history.redo()
@@ -116,7 +119,7 @@ describe('History-Segment shapes', () => {
 })
 
 describe('shapeStore – Audio-Reaktiv und Beat-Marker', () => {
-  let store
+  let store: ReturnType<typeof useShapeStore>
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -125,40 +128,40 @@ describe('shapeStore – Audio-Reaktiv und Beat-Marker', () => {
 
   it('Audio-Reaktiv: legt die Konfiguration erst bei Bedarf an (nicht für Effekt-Bereiche)', () => {
     const star = store.addShape('star', 800, 600)
-    expect(star.audioReactive).toBeUndefined()
-    const ar = store.ensureAudioReactive(star.id)
-    expect(ar.enabled).toBe(false)
-    expect(ar.effects.beatPulse).toBeTruthy()
-    expect(ar.effects.border).toBeUndefined()
-    expect(store.ensureAudioReactive(star.id)).toBe(store.shapes[0].audioReactive)
+    expect(star!.audioReactive).toBeUndefined()
+    const ar = store.ensureAudioReactive(star!.id) as ArView | null
+    expect(ar!.enabled).toBe(false)
+    expect(ar!.effects.beatPulse).toBeTruthy()
+    expect(ar!.effects.border).toBeUndefined()
+    expect(store.ensureAudioReactive(star!.id)).toBe(store.shapes[0]!.audioReactive)
 
     const blur = store.addShape('blur', 800, 600)
-    expect(store.ensureAudioReactive(blur.id)).toBeNull()
+    expect(store.ensureAudioReactive(blur!.id)).toBeNull()
     expect(store.ensureAudioReactive('unknown')).toBeNull()
   })
 
   it('Audio-Reaktiv wird beim Duplizieren und im Verlaufs-Snapshot mitgenommen', () => {
     const star = store.addShape('star', 800, 600)
-    store.ensureAudioReactive(star.id).enabled = true
-    const copy = store.duplicateShape(star.id)
-    expect(copy.audioReactive.enabled).toBe(true)
-    expect(copy.audioReactive).not.toBe(store.shapes[0].audioReactive)
+    ;(store.ensureAudioReactive(star!.id) as ArView).enabled = true
+    const copy = store.duplicateShape(star!.id)
+    expect((copy!.audioReactive as ArView).enabled).toBe(true)
+    expect(copy!.audioReactive).not.toBe(store.shapes[0]!.audioReactive)
     const snap = store.captureSnapshot()
     store.applySnapshot({ shapes: [], canvasSize: snap.canvasSize })
     store.applySnapshot(snap)
-    expect(store.shapes[0].audioReactive.enabled).toBe(true)
+    expect((store.shapes[0]!.audioReactive as ArView).enabled).toBe(true)
   })
 
   it('Beat-Marker: Ausblenden ist Laufzeit-Zustand und wird bei clearShapes zurückgesetzt', () => {
     const star = store.addShape('star', 800, 600)
-    store.setMarkerHidden(star.id, true)
-    expect(store.isMarkerHidden(star.id)).toBe(true)
+    store.setMarkerHidden(star!.id, true)
+    expect(store.isMarkerHidden(star!.id)).toBe(true)
     expect(store.captureSnapshot()).not.toHaveProperty('markerHiddenIds')
-    store.setMarkerHidden(star.id, false)
-    expect(store.isMarkerHidden(star.id)).toBe(false)
-    store.setMarkerHidden(star.id, true)
+    store.setMarkerHidden(star!.id, false)
+    expect(store.isMarkerHidden(star!.id)).toBe(false)
+    store.setMarkerHidden(star!.id, true)
     store.clearShapes()
-    expect(store.isMarkerHidden(star.id)).toBe(false)
+    expect(store.isMarkerHidden(star!.id)).toBe(false)
   })
 })
 
@@ -168,25 +171,25 @@ describe('shapeStore – Animations-Uhr', () => {
   it('misst ab dem ersten Aufruf und startet beim Einblenden durch Marker neu', () => {
     const store = useShapeStore()
     const shape = store.addShape('rect', 1000, 500)
-    expect(store.getAnimationElapsed(shape.id, 100)).toBe(0)
-    expect(store.getAnimationElapsed(shape.id, 600)).toBe(500)
-    store.setMarkerHidden(shape.id, true)
-    expect(store.getAnimationElapsed(shape.id, 700)).toBe(600)
-    store.setMarkerHidden(shape.id, false)
-    expect(store.getAnimationElapsed(shape.id, 900)).toBe(0)
+    expect(store.getAnimationElapsed(shape!.id, 100)).toBe(0)
+    expect(store.getAnimationElapsed(shape!.id, 600)).toBe(500)
+    store.setMarkerHidden(shape!.id, true)
+    expect(store.getAnimationElapsed(shape!.id, 700)).toBe(600)
+    store.setMarkerHidden(shape!.id, false)
+    expect(store.getAnimationElapsed(shape!.id, 900)).toBe(0)
     store.restartAnimations()
-    expect(store.getAnimationElapsed(shape.id, 2000)).toBe(0)
+    expect(store.getAnimationElapsed(shape!.id, 2000)).toBe(0)
   })
 
   it('animation ist Teil des Snapshots und wird dupliziert', () => {
     const store = useShapeStore()
     const shape = store.addShape('rect', 1000, 500)
-    store.updateShape(shape.id, {
+    store.updateShape(shape!.id, {
       animation: { type: 'pulse', duration: 1, intensity: 40, delay: 0 },
     })
-    expect(store.captureSnapshot().shapes[0].animation.type).toBe('pulse')
-    const copy = store.duplicateShape(shape.id)
-    expect(copy.animation).toEqual(shape.animation)
-    expect(copy.animation).not.toBe(shape.animation)
+    expect((store.captureSnapshot().shapes[0]!.animation as { type: string }).type).toBe('pulse')
+    const copy = store.duplicateShape(shape!.id)
+    expect(copy!.animation).toEqual(shape!.animation)
+    expect(copy!.animation).not.toBe(shape!.animation)
   })
 })

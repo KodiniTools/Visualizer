@@ -4,12 +4,14 @@ import { reactive } from 'vue'
 import { useHistoryStore } from '../../stores/historyStore'
 import { createHistoryRecorder } from '../../lib/history/historyRecorder'
 
-function makeSegment(initial) {
-  const state = reactive({ ...initial })
-  const adapter = {
+type Snap = Record<string, unknown>
+
+function makeSegment(initial: Snap) {
+  const state = reactive<Snap>({ ...initial })
+  const adapter: { label: string; capture: () => Snap; apply: (snap: Snap) => void } = {
     label: 'test',
     capture: () => ({ ...state }),
-    apply: vi.fn((snap) => {
+    apply: vi.fn((snap: Snap) => {
       Object.keys(state).forEach((k) => delete state[k])
       Object.assign(state, snap)
     }),
@@ -18,8 +20,8 @@ function makeSegment(initial) {
 }
 
 describe('historyRecorder', () => {
-  let store
-  let recorder
+  let store: ReturnType<typeof useHistoryStore>
+  let recorder: ReturnType<typeof createHistoryRecorder>
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -42,7 +44,7 @@ describe('historyRecorder', () => {
     state.color = '#fff'
     expect(recorder.checkpoint()).not.toBeNull()
     expect(store.history.length).toBe(1)
-    expect(store.history[0].segments).toEqual(['bg'])
+    expect(store.history[0]!.segments).toEqual(['bg'])
   })
 
   it('undo/redo stellt den Snapshot wieder her', async () => {
@@ -79,16 +81,16 @@ describe('historyRecorder', () => {
   })
 
   it('mehrere geänderte Segmente → ein gemeinsamer Schritt, Anwenden in Registrierungs-Reihenfolge', async () => {
-    const order = []
+    const order: string[] = []
     const a = makeSegment({ x: 1 })
     const b = makeSegment({ y: 1 })
     const origA = a.adapter.apply
     const origB = b.adapter.apply
-    a.adapter.apply = (s) => {
+    a.adapter.apply = (s: Snap) => {
       order.push('a')
       origA(s)
     }
-    b.adapter.apply = (s) => {
+    b.adapter.apply = (s: Snap) => {
       order.push('b')
       origB(s)
     }
@@ -99,7 +101,7 @@ describe('historyRecorder', () => {
     b.state.y = 2
     recorder.checkpoint('preset')
     expect(store.history.length).toBe(1)
-    expect(store.history[0].name).toBe('preset')
+    expect(store.history[0]!.name).toBe('preset')
 
     await store.undo()
     expect(a.state.x).toBe(1)
@@ -112,11 +114,11 @@ describe('historyRecorder', () => {
   })
 
   it('schnelles Doppel-Undo macht jeden Schritt genau einmal rückgängig', async () => {
-    const values = []
+    const values: unknown[] = []
     let current = 0
     const adapter = {
       capture: () => ({ current }),
-      apply: async (snap) => {
+      apply: async (snap: { current: number }) => {
         await new Promise((r) => setTimeout(r, 5))
         current = snap.current
         values.push(snap.current)
@@ -182,7 +184,7 @@ describe('historyRecorder', () => {
       state.b = 1
     })
     expect(store.history.length).toBe(1)
-    expect(store.history[0].name).toBe('reset')
+    expect(store.history[0]!.name).toBe('reset')
   })
 
   it('fremde Commands (closure-basiert) erzeugen keinen Doppel-Eintrag', async () => {
@@ -248,7 +250,9 @@ describe('historyRecorder – absorb (programmgesteuerte Änderungen)', () => {
     const state = reactive({ user: 0, marker: 'a' })
     recorder.registerSegment('seg', {
       capture: () => ({ ...state }),
-      apply: (s) => Object.assign(state, s),
+      apply: (s: object) => {
+        Object.assign(state, s)
+      },
     })
 
     state.user = 1
@@ -266,7 +270,7 @@ describe('historyRecorder – absorb (programmgesteuerte Änderungen)', () => {
         }),
     )
     state.marker = 'c' // async nachgeladen
-    resolveLoad()
+    resolveLoad!()
     await Promise.resolve()
     await Promise.resolve()
     expect(recorder.checkpoint()).toBeNull()
@@ -278,8 +282,8 @@ describe('historyRecorder – absorb (programmgesteuerte Änderungen)', () => {
 })
 
 describe('historyRecorder – Reihenfolge, hold, Start-Phase, Nach-Checkpoint', () => {
-  let store
-  let recorder
+  let store: ReturnType<typeof useHistoryStore>
+  let recorder: ReturnType<typeof createHistoryRecorder>
   beforeEach(() => {
     setActivePinia(createPinia())
     store = useHistoryStore()
@@ -291,13 +295,13 @@ describe('historyRecorder – Reihenfolge, hold, Start-Phase, Nach-Checkpoint', 
   })
 
   it('wendet Segmente nach `order` an – unabhängig von der Registrierung', async () => {
-    const order = []
+    const order: string[] = []
     const bg = makeSegment({ v: 0 })
     const ws = makeSegment({ v: 0 })
     recorder.registerSegment('background', {
       ...bg.adapter,
       order: 20,
-      apply: (s) => {
+      apply: (s: Snap) => {
         order.push('background')
         bg.adapter.apply(s)
       },
@@ -305,7 +309,7 @@ describe('historyRecorder – Reihenfolge, hold, Start-Phase, Nach-Checkpoint', 
     recorder.registerSegment('workspace', {
       ...ws.adapter,
       order: 10,
-      apply: (s) => {
+      apply: (s: Snap) => {
         order.push('workspace')
         ws.adapter.apply(s)
       },
@@ -313,7 +317,7 @@ describe('historyRecorder – Reihenfolge, hold, Start-Phase, Nach-Checkpoint', 
     bg.state.v = 1
     ws.state.v = 1
     recorder.checkpoint()
-    expect(store.history[0].segments).toEqual(['workspace', 'background'])
+    expect(store.history[0]!.segments).toEqual(['workspace', 'background'])
     await store.undo()
     expect(order).toEqual(['workspace', 'background'])
   })

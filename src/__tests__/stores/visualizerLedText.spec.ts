@@ -5,6 +5,7 @@ import { useVisualizerStore } from '../../stores/visualizerStore'
 import { usePresetStore } from '../../stores/presetStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
 import { DEFAULT_LED_CONFIG } from '../../lib/visualizers/gl/ledTextSettings'
+import { stub } from '../helpers/canvasStubs'
 
 describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {
   beforeEach(() => {
@@ -14,8 +15,8 @@ describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {
 
   it('listet LED-Text und LED-Zahlen vorne in ihren LED-Sektionen', () => {
     const store = useVisualizerStore()
-    expect(store.categorizedVisualizers['LED-Buchstaben'][0].id).toBe('glLedText')
-    expect(store.categorizedVisualizers['LED-Ziffern'][0].id).toBe('glLedNumber')
+    expect(store.categorizedVisualizers['LED-Buchstaben']![0]!.id).toBe('glLedText')
+    expect(store.categorizedVisualizers['LED-Ziffern']![0]!.id).toBe('glLedNumber')
     store.selectVisualizer('glLedNumber')
     expect(store.selectedVisualizer).toBe('glLedNumber')
   })
@@ -42,7 +43,7 @@ describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {
     store.updateLayerProperty(layer.id, 'ledCountdownTarget', '2027-01-01T00:00:00Z')
     expect(layer.ledCountdownTarget).toBe('2027-01-01T00:00:00.000Z')
     const copy = store.duplicateLayer(layer.id)
-    expect(copy.ledCountdownTarget).toBe('2027-01-01T00:00:00.000Z')
+    expect(copy!.ledCountdownTarget).toBe('2027-01-01T00:00:00.000Z')
   })
 
   it('synchronisiert zwischen Single-Modus und aktivem Layer', () => {
@@ -50,13 +51,13 @@ describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {
     store.selectVisualizer('glLedText')
     store.setLedConfig('ledText', 'PARTY')
     store.setMultiLayerMode(true)
-    expect(store.activeLayer.ledText).toBe('PARTY')
-    store.updateLayer(store.activeLayer.id, { ledText: 'HELLO WORLD', ledNumberSeconds: false })
+    expect(store.activeLayer!.ledText).toBe('PARTY')
+    store.updateLayer(store.activeLayer!.id, { ledText: 'HELLO WORLD', ledNumberSeconds: false })
     store.syncSingleModeFromLayer()
     expect(store.ledText).toBe('HELLO WORLD')
     expect(store.ledNumberSeconds).toBe(false)
     // Layer ohne die Felder (älteres Preset) → Standardwerte
-    delete store.activeLayer.ledText
+    delete store.activeLayer!.ledText
     store.syncSingleModeFromLayer()
     expect(store.ledText).toBe(DEFAULT_LED_CONFIG.ledText)
   })
@@ -91,18 +92,18 @@ describe('LED-Text / LED-Zahlen im Visualizer-Store', () => {
     vizStore.updateLayerProperty(layer.id, 'ledText', 'LIVE')
 
     const saved = layerPresets.saveCurrentLayersAsPreset('LED')
-    expect(saved.layers[0].ledText).toBe('LIVE')
+    expect(saved!.layers[0]!.ledText).toBe('LIVE')
     vizStore.clearAllLayers()
     layerPresets.applyLayerPreset(saved)
-    expect(vizStore.visualizerLayers[0].ledText).toBe('LIVE')
+    expect(vizStore.visualizerLayers[0]!.ledText).toBe('LIVE')
     expect(layerPresets.isLayerPresetActive(saved)).toBe(true)
 
     presets.applyPreset(
-      {
+      stub({
         id: 'legacy',
         visualizer: { mode: 'multi', layers: [{ id: 'l1', visualizerId: 'glLedNumber' }] },
         background: {},
-      },
+      }),
       null,
     )
     expect(vizStore.visualizerLayers[0]).toMatchObject(DEFAULT_LED_CONFIG)

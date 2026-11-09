@@ -4,6 +4,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { BUILT_IN_PRESETS, usePresetStore } from '../../stores/presetStore'
 import { Visualizers, glVisualizers } from '../../lib/visualizers/index'
+import { stub } from '../helpers/canvasStubs'
 
 describe('visualizer catalogue (migration stage 1)', () => {
   beforeEach(() => {
@@ -17,48 +18,48 @@ describe('visualizer catalogue (migration stage 1)', () => {
     expect(categories).toContain('Klassisch')
 
     const gpuIds = [
-      ...store.categorizedVisualizers['GPU-Presets'],
-      ...store.categorizedVisualizers.Laser,
-      ...store.categorizedVisualizers['LED-Ziffern'],
-      ...store.categorizedVisualizers['LED-Buchstaben'],
-      ...store.categorizedVisualizers['LED-Rahmen'],
-      ...store.categorizedVisualizers.Portrait,
+      ...store.categorizedVisualizers['GPU-Presets']!,
+      ...store.categorizedVisualizers.Laser!,
+      ...store.categorizedVisualizers['LED-Ziffern']!,
+      ...store.categorizedVisualizers['LED-Buchstaben']!,
+      ...store.categorizedVisualizers['LED-Rahmen']!,
+      ...store.categorizedVisualizers.Portrait!,
     ].map((v) => v.id)
     expect(gpuIds.sort()).toEqual(Object.keys(glVisualizers).sort())
 
-    const classicIds = store.categorizedVisualizers.Klassisch.map((v) => v.id)
+    const classicIds = store.categorizedVisualizers.Klassisch!.map((v) => v.id)
     const expectedClassic = Object.keys(Visualizers).filter((id) => !glVisualizers[id])
     expect(classicIds.sort()).toEqual(expectedClassic.sort())
   })
 
   it('keeps every laser preset in its own category', () => {
     const store = useVisualizerStore()
-    const laser = store.categorizedVisualizers.Laser.map((v) => v.id)
+    const laser = store.categorizedVisualizers.Laser!.map((v) => v.id)
     const allLaserIds = Object.keys(glVisualizers).filter((id) => id.startsWith('glLaser'))
     expect([...laser].sort()).toEqual(allLaserIds.sort())
     expect(laser).toHaveLength(16)
-    const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    const gpu = store.categorizedVisualizers['GPU-Presets']!.map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLaser'))).toBe(false)
   })
 
   it('keeps the LED letters A–Z in their own category, in alphabetical order', () => {
     const store = useVisualizerStore()
-    const letters = store.categorizedVisualizers['LED-Buchstaben'].map((v) => v.id)
+    const letters = store.categorizedVisualizers['LED-Buchstaben']!.map((v) => v.id)
     // LED-Text (ganze Wörter) steht vorne, danach A–Z
     expect(letters).toEqual([
       'glLedText',
       ...[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map((c) => `glLedLetter${c}`),
     ])
-    const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    const gpu = store.categorizedVisualizers['GPU-Presets']!.map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLedLetter'))).toBe(false)
   })
 
   it('keeps the LED digits 0–9 in their own category, in numeric order', () => {
     const store = useVisualizerStore()
-    const digits = store.categorizedVisualizers['LED-Ziffern'].map((v) => v.id)
+    const digits = store.categorizedVisualizers['LED-Ziffern']!.map((v) => v.id)
     // LED-Zahlen (Zahl, Uhrzeit, Countdown) steht vorne, danach 0–9
     expect(digits).toEqual(['glLedNumber', ...[...Array(10).keys()].map((d) => `glLedDigit${d}`)])
-    const gpu = store.categorizedVisualizers['GPU-Presets'].map((v) => v.id)
+    const gpu = store.categorizedVisualizers['GPU-Presets']!.map((v) => v.id)
     expect(gpu.some((id) => id.startsWith('glLedDigit'))).toBe(false)
     // Reihenfolge der Sektionen im Picker
     expect(Object.keys(store.categorizedVisualizers)).toEqual([
@@ -74,7 +75,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
 
   it('keeps the five LED frame presets in their own category', () => {
     const store = useVisualizerStore()
-    const frames = store.categorizedVisualizers['LED-Rahmen'].map((v) => v.id)
+    const frames = store.categorizedVisualizers['LED-Rahmen']!.map((v) => v.id)
     expect(frames).toEqual([
       'glLedFrameChase',
       'glLedFrameSpectrum',
@@ -112,11 +113,11 @@ describe('visualizer catalogue (migration stage 1)', () => {
     vizStore.selectVisualizer('glBars')
     vizStore.markVisualizerWorking('glBars')
     presets.applyPreset(
-      {
+      stub({
         id: 'x',
         visualizer: { mode: 'single', selectedVisualizer: 'removedLongAgo', color: '#fff' },
         background: {},
-      },
+      }),
       null,
     )
     expect(vizStore.selectedVisualizer).toBe('glBars')
@@ -127,7 +128,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
     const presets = usePresetStore()
     vizStore.markVisualizerWorking('glBars')
     presets.applyPreset(
-      {
+      stub({
         id: 'y',
         visualizer: {
           mode: 'multi',
@@ -137,7 +138,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
           ],
         },
         background: {},
-      },
+      }),
       null,
     )
     expect(vizStore.visualizerLayers.map((l) => l.visualizerId)).toEqual(['glFire', 'glBars'])
@@ -168,9 +169,9 @@ describe('visualizer catalogue (migration stage 1)', () => {
       store.setReactSource('bassOnset')
       store.setReactStrength(40)
       store.setMultiLayerMode(true)
-      expect(store.activeLayer.reactSource).toBe('bassOnset')
-      expect(store.activeLayer.reactStrength).toBe(40)
-      store.updateLayerProperty(store.activeLayer.id, 'reactSource', 'treble')
+      expect(store.activeLayer!.reactSource).toBe('bassOnset')
+      expect(store.activeLayer!.reactStrength).toBe(40)
+      store.updateLayerProperty(store.activeLayer!.id, 'reactSource', 'treble')
       store.syncSingleModeFromLayer()
       expect(store.reactSource).toBe('treble')
     })
@@ -260,14 +261,14 @@ describe('visualizer catalogue (migration stage 1)', () => {
         reactBeatBoost: 1.5,
         reactPhase: 180,
       })
-      store.updateLayer(store.activeLayer.id, { reactSmoothing: 20, reactEasing: 'bounce' })
+      store.updateLayer(store.activeLayer!.id, { reactSmoothing: 20, reactEasing: 'bounce' })
       store.syncSingleModeFromLayer()
       expect(store.reactSmoothing).toBe(20)
       expect(store.reactEasing).toBe('bounce')
       expect(store.reactGain).toBe(120)
       // A layer without the fields (older preset) syncs back to the defaults.
-      delete store.activeLayer.reactSmoothing
-      delete store.activeLayer.reactBeatBoost
+      delete (store.activeLayer as Record<string, unknown>).reactSmoothing
+      delete (store.activeLayer as Record<string, unknown>).reactBeatBoost
       store.syncSingleModeFromLayer()
       expect(store.reactSmoothing).toBe(50)
       expect(store.reactBeatBoost).toBe(1)
@@ -320,7 +321,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
       const vizStore = useVisualizerStore()
       const presets = usePresetStore()
       presets.applyPreset(
-        {
+        stub({
           id: 'legacy-multi',
           visualizer: {
             mode: 'multi',
@@ -336,7 +337,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
             ],
           },
           background: {},
-        },
+        }),
         null,
       )
       expect(vizStore.visualizerLayers[0]).toMatchObject({
@@ -363,8 +364,8 @@ describe('visualizer catalogue (migration stage 1)', () => {
     })
 
     it('marks portrait presets as needing an image', () => {
-      expect(Visualizers.glPortraitLed.needsImage).toBe(true)
-      expect(Visualizers.glBars.needsImage).toBe(false)
+      expect(Visualizers.glPortraitLed!.needsImage).toBe(true)
+      expect(Visualizers.glBars!.needsImage).toBe(false)
     })
 
     it('round-trips the image id through single mode, layers and presets', () => {
@@ -372,7 +373,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
       const presets = usePresetStore()
       vizStore.setVisualizerImageId('img_7')
       vizStore.setMultiLayerMode(true)
-      expect(vizStore.activeLayer.imageId).toBe('img_7')
+      expect(vizStore.activeLayer!.imageId).toBe('img_7')
       vizStore.setMultiLayerMode(false)
       const preset = presets.saveCurrentAsPreset('portrait', null)
       expect(preset.visualizer.imageId).toBe('img_7')

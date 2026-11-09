@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { reactive, ref } from 'vue'
 import { useHistoryStore } from '../../stores/historyStore'
@@ -22,19 +22,101 @@ import {
 } from '../../lib/history/segments/canvasSegments'
 import { createBackgroundSegment } from '../../lib/history/segments/backgroundSegment'
 import { createTextObject } from '../../lib/textManager/createTextObject'
+import { stub } from '../helpers/canvasStubs'
+
+interface FakeImageEl {
+  tagName: string
+  src: string
+  complete: boolean
+  naturalWidth: number
+  width: number
+  height: number
+}
+
+interface FakeVideoEl {
+  tagName: string
+  getAttribute(name: string): string | null
+  src: string
+  pause: Mock
+  play: Mock
+  loop: boolean
+  muted: boolean
+  playbackRate: number
+}
+
+interface FakeTimedAnimation {
+  fade: { enabled: boolean; duration: number }
+}
+
+interface FakeImageEntry {
+  id: number
+  type?: string
+  isSlideshowImage?: boolean
+  imageObject: FakeImageEl
+  relX?: number
+  relY?: number
+  relWidth?: number
+  relHeight?: number
+  settings?: Record<string, unknown>
+  fotoSettings: { rotation?: number; _cachedFilterKey?: string } & Record<string, unknown>
+  timedAnimation?: FakeTimedAnimation
+}
+
+interface FakeVideoEntry {
+  id: number
+  type: string
+  videoElement: FakeVideoEl
+  [key: string]: unknown
+}
+
+interface FakeBgEntry {
+  id: string
+  type: string
+  imageObject: FakeImageEl
+  fotoSettings: Record<string, unknown>
+  timedAnimation?: FakeTimedAnimation
+}
+
+type FakeGradient = { enabled: boolean; color2: string; type: string; angle: number }
+
+interface FakeCanvasManager {
+  activeObject: unknown
+  selectedObjects: unknown[]
+  background: string | FakeBgEntry | null
+  workspaceBackground: null
+  videoBackground: null
+  workspaceVideoBackground: null
+  gradientSettings: FakeGradient
+  setGradientSettings(s: Partial<FakeGradient>): void
+  setActiveObject(obj: unknown): void
+  textManager: { textObjects: ReturnType<typeof createTextObject>[] }
+  multiImageManager: {
+    images: FakeImageEntry[]
+    selectedImage: null
+    onImageSelected: Mock
+    onImageChanged: Mock
+  }
+  videoManager: {
+    videos: FakeVideoEntry[]
+    selectedVideo: null
+    isPlaying: boolean
+    onVideoSelected: Mock
+    onVideoChanged: Mock
+  }
+}
 
 /** Fake-Bild-Element (jsdom lädt keine Bilder) */
-function fakeImage(src) {
+function fakeImage(src: string): FakeImageEl {
   return { tagName: 'IMG', src, complete: true, naturalWidth: 10, width: 10, height: 10 }
 }
 
 /** Fake-Video-Element mit src-Attribut wie im Browser */
-function fakeVideo(src) {
+function fakeVideo(src: string): FakeVideoEl {
   let attr = src
   return {
     tagName: 'VIDEO',
-    getAttribute: (name) => (name === 'src' ? attr : null),
-    set src(v) {
+    getAttribute: (name: string) => (name === 'src' ? attr : null),
+    set src(v: string) {
       attr = v
     },
     get src() {
@@ -49,7 +131,7 @@ function fakeVideo(src) {
 }
 
 function makeCanvasManager() {
-  const cm = reactive({
+  const cm = reactive<FakeCanvasManager>({
     activeObject: null,
     selectedObjects: [],
     background: '#ffffff',
@@ -82,8 +164,8 @@ function makeCanvasManager() {
 }
 
 describe('History-Segmente', () => {
-  let store
-  let recorder
+  let store: ReturnType<typeof useHistoryStore>
+  let recorder: ReturnType<typeof createHistoryRecorder>
 
   beforeEach(() => {
     localStorage.clear()
@@ -123,7 +205,7 @@ describe('History-Segmente', () => {
     await store.redo()
     expect(viz.visualizerColor).toBe('#123456')
     expect(viz.visualizerLayers.length).toBe(1)
-    expect(viz.activeLayerId).toBe(viz.visualizerLayers[0].id)
+    expect(viz.activeLayerId).toBe(viz.visualizerLayers[0]!.id)
   })
 
   it('Ticker: verschachteltes audioFx wird in-place wiederhergestellt', async () => {
@@ -148,7 +230,7 @@ describe('History-Segmente', () => {
     markers.addMarker(2)
     recorder.checkpoint()
 
-    markers.markers[0].triggered = true // Wiedergabe
+    markers.markers[0]!.triggered = true // Wiedergabe
     expect(recorder.checkpoint()).toBeNull()
 
     markers.clearAllMarkers()
@@ -177,18 +259,18 @@ describe('History-Segmente', () => {
     recorder.registerSegment('backgroundTiles', createBackgroundTilesSegment(tiles))
 
     const img = fakeImage('data:image/png;base64,AAA')
-    tiles.setTileImage(0, img, img.src)
+    tiles.setTileImage(0, stub(img), img.src)
     tiles.updateTileImageSetting(0, 'brightness', 150)
     recorder.checkpoint()
 
     tiles.removeTileImage(0)
     recorder.checkpoint()
-    expect(tiles.tiles[0].image).toBeNull()
+    expect(tiles.tiles[0]!.image).toBeNull()
 
     await store.undo()
-    expect(tiles.tiles[0].imageSrc).toBe(img.src)
-    expect(tiles.tiles[0].image).toStrictEqual(img) // gleiches Element aus der Registry
-    expect(tiles.tiles[0].imageSettings.brightness).toBe(150)
+    expect(tiles.tiles[0]!.imageSrc).toBe(img.src)
+    expect(tiles.tiles[0]!.image).toStrictEqual(img) // gleiches Element aus der Registry
+    expect(tiles.tiles[0]!.imageSettings.brightness).toBe(150)
   })
 
   it('Snapshots enthalten große Data-URLs nur als kurzen Schlüssel', () => {
@@ -196,7 +278,7 @@ describe('History-Segmente', () => {
     tiles.setTilesEnabled(true)
     const seg = createBackgroundTilesSegment(tiles)
     const bigSrc = 'data:image/png;base64,' + 'A'.repeat(100000)
-    tiles.setTileImage(0, fakeImage(bigSrc), bigSrc)
+    tiles.setTileImage(0, stub(fakeImage(bigSrc)), bigSrc)
     const json = JSON.stringify(seg.capture())
     expect(json.length).toBeLessThan(20000)
     expect(json).toContain('media:')
@@ -208,11 +290,11 @@ describe('History-Segmente', () => {
     const cm = makeCanvasManager()
     recorder.registerSegment(
       'texts',
-      createTextsSegment(() => cm),
+      createTextsSegment(() => stub(cm)),
     )
     const a = createTextObject('A')
     const b = createTextObject('B')
-    b.id = a.id + 1
+    b.id = (a.id as number) + 1
     cm.textManager.textObjects.push(a, b)
     recorder.rebase()
 
@@ -226,7 +308,7 @@ describe('History-Segmente', () => {
 
     await store.undo()
     expect(cm.textManager.textObjects.map((t) => t.content).sort()).toEqual(['A', 'B'])
-    expect(cm.textManager.textObjects.find((t) => t.id === removed.id)).toBe(removed)
+    expect(cm.textManager.textObjects.find((t) => t.id === removed!.id)).toBe(removed)
 
     await store.redo()
     expect(cm.textManager.textObjects.length).toBe(1)
@@ -237,24 +319,24 @@ describe('History-Segmente', () => {
     const cm = makeCanvasManager()
     recorder.registerSegment(
       'texts',
-      createTextsSegment(() => cm),
+      createTextsSegment(() => stub(cm)),
     )
     const t = createTextObject('Hi')
     cm.textManager.textObjects.push(t)
     recorder.rebase()
 
     const live = cm.textManager.textObjects[0]
-    const audioRef = live.audioReactive
-    live.fontSize = 99
-    live.shadow.blur = 7
-    live.animation._state = { startTime: 1, isPlaying: true, currentIndex: 3 }
+    const audioRef = live!.audioReactive
+    live!.fontSize = 99
+    live!.shadow.blur = 7
+    live!.animation._state = { startTime: 1, isPlaying: true, currentIndex: 3 }
     recorder.checkpoint()
 
     await store.undo()
-    expect(live.fontSize).not.toBe(99)
-    expect(live.shadow.blur).toBe(0)
-    expect(live.audioReactive).toBe(audioRef)
-    expect(live.animation._state.currentIndex).toBe(3)
+    expect(live!.fontSize).not.toBe(99)
+    expect(live!.shadow.blur).toBe(0)
+    expect(live!.audioReactive).toBe(audioRef)
+    expect(live!.animation._state.currentIndex).toBe(3)
   })
 
   it('Bilder: Position/Filter, Slideshow-Bilder und Filter-Caches werden ignoriert', async () => {
@@ -262,7 +344,7 @@ describe('History-Segmente', () => {
     const mgr = cm.multiImageManager
     recorder.registerSegment(
       'images',
-      createImagesSegment(() => cm),
+      createImagesSegment(() => stub(cm)),
     )
     mgr.images.push({
       id: 1,
@@ -278,12 +360,12 @@ describe('History-Segmente', () => {
     recorder.rebase()
 
     const img = mgr.images[0]
-    img.fotoSettings._cachedFilterKey = 'x' // Renderer-Cache
-    mgr.images.push({ id: 99, isSlideshowImage: true, imageObject: fakeImage('data:s') })
+    img!.fotoSettings._cachedFilterKey = 'x' // Renderer-Cache
+    mgr.images.push(stub({ id: 99, isSlideshowImage: true, imageObject: fakeImage('data:s') }))
     expect(recorder.checkpoint()).toBeNull()
 
-    img.relX = 0.5
-    img.fotoSettings.rotation = 45
+    img!.relX = 0.5
+    img!.fotoSettings.rotation = 45
     recorder.checkpoint()
 
     mgr.images.splice(0, 1) // löschen
@@ -292,9 +374,9 @@ describe('History-Segmente', () => {
     await store.undo()
     expect(mgr.images.map((i) => i.id)).toEqual([1, 99])
     await store.undo()
-    expect(mgr.images[0].relX).toBe(0.1)
-    expect(mgr.images[0].fotoSettings.rotation).toBe(0)
-    expect(mgr.images[0].imageObject.src).toBe('data:a')
+    expect(mgr.images[0]!.relX).toBe(0.1)
+    expect(mgr.images[0]!.fotoSettings.rotation).toBe(0)
+    expect(mgr.images[0]!.imageObject.src).toBe('data:a')
   })
 
   it('Bilder: Animationen (wie bei Texten) sind Teil des Verlaufs', async () => {
@@ -302,7 +384,7 @@ describe('History-Segmente', () => {
     const mgr = cm.multiImageManager
     recorder.registerSegment(
       'images',
-      createImagesSegment(() => cm),
+      createImagesSegment(() => stub(cm)),
     )
     mgr.images.push({
       id: 1,
@@ -318,17 +400,17 @@ describe('History-Segmente', () => {
     recorder.rebase()
 
     const img = mgr.images[0]
-    img.timedAnimation = { fade: { enabled: true, duration: 1000 } }
+    img!.timedAnimation = { fade: { enabled: true, duration: 1000 } }
     recorder.checkpoint()
-    img.timedAnimation.fade.duration = 3000
+    img!.timedAnimation.fade.duration = 3000
     recorder.checkpoint()
 
     await store.undo()
-    expect(img.timedAnimation.fade.duration).toBe(1000)
+    expect(img!.timedAnimation.fade.duration).toBe(1000)
     await store.undo()
-    expect(img.timedAnimation).toBeUndefined()
+    expect(img!.timedAnimation).toBeUndefined()
     await store.redo()
-    expect(img.timedAnimation).toEqual({ fade: { enabled: true, duration: 1000 } })
+    expect(img!.timedAnimation).toEqual({ fade: { enabled: true, duration: 1000 } })
   })
 
   it('Videos: entfernte Videos werden nur pausiert, zerstörte aus der Quelle neu erzeugt', async () => {
@@ -336,7 +418,7 @@ describe('History-Segmente', () => {
     const mgr = cm.videoManager
     recorder.registerSegment(
       'videos',
-      createVideosSegment(() => cm),
+      createVideosSegment(() => stub(cm)),
     )
     const el = fakeVideo('blob:video-1')
     mgr.videos.push({
@@ -357,12 +439,12 @@ describe('History-Segmente', () => {
 
     // Löschen mit Zerstörung (z. B. Reset: src = '')
     const removed = mgr.videos.pop()
-    removed.videoElement.src = ''
+    removed!.videoElement.src = ''
     recorder.checkpoint()
 
     await store.undo()
     expect(mgr.videos.length).toBe(1)
-    expect(mgr.videos[0].videoElement.getAttribute('src')).toBe('blob:video-1')
+    expect(mgr.videos[0]!.videoElement.getAttribute('src')).toBe('blob:video-1')
 
     await store.redo()
     expect(mgr.videos.length).toBe(0)
@@ -382,7 +464,12 @@ describe('History-Segmente', () => {
     const afterApply = vi.fn()
     recorder.registerSegment(
       'background',
-      createBackgroundSegment({ getCanvasManager: () => cm, refs, bgAudioReactive, afterApply }),
+      createBackgroundSegment({
+        getCanvasManager: () => stub(cm),
+        refs,
+        bgAudioReactive,
+        afterApply,
+      }),
     )
 
     refs.backgroundColor.value = '#ff0000'
@@ -391,7 +478,7 @@ describe('History-Segmente', () => {
     bgAudioReactive.effects.pulse.enabled = true
     recorder.checkpoint()
 
-    const bgObj = {
+    const bgObj: FakeBgEntry = {
       id: '1_bg',
       type: 'background',
       imageObject: fakeImage('data:bg'),
@@ -404,8 +491,8 @@ describe('History-Segmente', () => {
     expect(cm.background).toBe('rgba(255, 0, 0, 1)')
 
     await store.redo()
-    expect(cm.background.id).toBe('1_bg')
-    expect(cm.background.imageObject.src).toBe('data:bg')
+    expect((cm.background as FakeBgEntry).id).toBe('1_bg')
+    expect((cm.background as FakeBgEntry).imageObject.src).toBe('data:bg')
 
     await store.undo()
     await store.undo()
@@ -430,13 +517,13 @@ describe('History-Segmente', () => {
     recorder.registerSegment(
       'background',
       createBackgroundSegment({
-        getCanvasManager: () => cm,
+        getCanvasManager: () => stub(cm),
         refs,
         bgAudioReactive: reactive({ enabled: false, effects: {} }),
         afterApply: vi.fn(),
       }),
     )
-    const bgObj = {
+    const bgObj: FakeBgEntry = {
       id: '2_bg',
       type: 'background',
       imageObject: fakeImage('data:bg'),
@@ -450,10 +537,12 @@ describe('History-Segmente', () => {
     recorder.checkpoint()
 
     await store.undo()
-    expect(cm.background.timedAnimation.fade.duration).toBe(800)
+    expect((cm.background as FakeBgEntry).timedAnimation!.fade.duration).toBe(800)
     await store.undo()
-    expect(cm.background.timedAnimation).toBeUndefined()
+    expect((cm.background as FakeBgEntry).timedAnimation).toBeUndefined()
     await store.redo()
-    expect(cm.background.timedAnimation).toEqual({ fade: { enabled: true, duration: 800 } })
+    expect((cm.background as FakeBgEntry).timedAnimation).toEqual({
+      fade: { enabled: true, duration: 800 },
+    })
   })
 })

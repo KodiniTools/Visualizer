@@ -3,12 +3,34 @@ import { createPinia, setActivePinia } from 'pinia'
 import { BUILT_IN_PRESETS, usePresetStore } from '../../stores/presetStore'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../../stores/visualizerStore'
 import { Visualizers } from '../../lib/visualizers/index'
+import { stub } from '../helpers/canvasStubs'
 
-const multiPresets = BUILT_IN_PRESETS.filter((p) => p.visualizer.mode === 'multi')
+/** Gemeinsame Sicht auf die eingebauten Presets (Einzel- und Multi-Layer) */
+interface PresetLayerView {
+  id: string
+  visualizerId: string
+  blendMode: string
+  reactSource: string
+  scale: number
+  color: string
+  opacity: number
+  imageId?: unknown
+}
+interface PresetView {
+  id: string
+  name: string
+  needsImage?: boolean
+  visualizer: { mode: string; selectedVisualizer: string; layers?: PresetLayerView[] }
+}
+type MultiPresetView = PresetView & { visualizer: { layers: PresetLayerView[] } }
+
+const multiPresets = (BUILT_IN_PRESETS as readonly PresetView[]).filter(
+  (p): p is MultiPresetView => p.visualizer.mode === 'multi',
+)
 const blendIds = BLEND_MODES.map((m) => m.id)
 
-let viz
-let presets
+let viz: ReturnType<typeof useVisualizerStore>
+let presets: ReturnType<typeof usePresetStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -33,7 +55,7 @@ describe('eingebaute Presets – Grundlagen', () => {
   })
 
   it('verweist überall auf vorhandene Visualizer', () => {
-    for (const p of BUILT_IN_PRESETS) {
+    for (const p of BUILT_IN_PRESETS as readonly PresetView[]) {
       expect(Visualizers[p.visualizer.selectedVisualizer], p.name).toBeDefined()
       for (const l of p.visualizer.layers ?? []) {
         expect(Visualizers[l.visualizerId], `${p.name} → ${l.visualizerId}`).toBeDefined()
@@ -88,7 +110,7 @@ describe('Multi-Layer-Vorlagen – Layer-Form', () => {
 
   it('nutzt Bild-Visualizer nur in als solche gekennzeichneten Vorlagen', () => {
     for (const p of multiPresets) {
-      const usesImage = p.visualizer.layers.some((l) => Visualizers[l.visualizerId].needsImage)
+      const usesImage = p.visualizer.layers.some((l) => Visualizers[l.visualizerId]!.needsImage)
       expect(Boolean(p.needsImage), p.name).toBe(usesImage)
     }
   })
@@ -103,7 +125,7 @@ describe('Multi-Layer-Vorlagen – Layer-Form', () => {
 
   it('legt den untersten Layer ohne Mischmodus an, damit der Hintergrund trägt', () => {
     for (const p of multiPresets) {
-      expect(p.visualizer.layers[0].blendMode, p.name).toBe('source-over')
+      expect(p.visualizer.layers[0]!.blendMode, p.name).toBe('source-over')
     }
   })
 })
@@ -115,7 +137,7 @@ describe('Portrait-Vorlagen', () => {
     expect(portraitPresets.length).toBeGreaterThanOrEqual(4)
     for (const p of portraitPresets) {
       const portraitLayers = p.visualizer.layers.filter(
-        (l) => Visualizers[l.visualizerId].needsImage,
+        (l) => Visualizers[l.visualizerId]!.needsImage,
       )
       expect(portraitLayers, p.name).toHaveLength(1)
     }
@@ -131,7 +153,7 @@ describe('Portrait-Vorlagen', () => {
 
   it('legt den Portrait-Layer nach unten (er füllt das Canvas deckend)', () => {
     for (const p of portraitPresets) {
-      const index = p.visualizer.layers.findIndex((l) => Visualizers[l.visualizerId].needsImage)
+      const index = p.visualizer.layers.findIndex((l) => Visualizers[l.visualizerId]!.needsImage)
       expect(index, p.name).toBe(0)
     }
   })
@@ -151,25 +173,27 @@ describe('Anwenden einer Multi-Layer-Vorlage', () => {
     viz.showVisualizer = false
     viz.multiLayerMode = false
 
-    presets.applyPreset(preset, { value: null })
+    presets.applyPreset(stub(preset), { value: null })
 
     expect(viz.multiLayerMode).toBe(true)
     expect(viz.showVisualizer).toBe(true)
     expect(viz.visualizerLayers.map((l) => l.visualizerId)).toEqual(
-      preset.visualizer.layers.map((l) => l.visualizerId),
+      preset!.visualizer.layers.map((l) => l.visualizerId),
     )
-    expect(viz.activeLayerId).toBe(preset.visualizer.layers[0].id)
-    expect(presets.activePresetId).toBe(preset.id)
+    expect(viz.activeLayerId).toBe(preset!.visualizer.layers[0]!.id)
+    expect(presets.activePresetId).toBe(preset!.id)
   })
 
   it('wechselt sauber zurück auf eine Einzel-Vorlage', () => {
-    const single = BUILT_IN_PRESETS.find((p) => p.visualizer.mode === 'single')
-    presets.applyPreset(multiPresets[0], { value: null })
+    const single = (BUILT_IN_PRESETS as readonly PresetView[]).find(
+      (p) => p.visualizer.mode === 'single',
+    )
+    presets.applyPreset(stub(multiPresets[0]!), { value: null })
     expect(viz.multiLayerMode).toBe(true)
 
-    presets.applyPreset(single, { value: null })
+    presets.applyPreset(stub(single!), { value: null })
     expect(viz.multiLayerMode).toBe(false)
     expect(viz.visualizerLayers).toHaveLength(0)
-    expect(viz.selectedVisualizer).toBe(single.visualizer.selectedVisualizer)
+    expect(viz.selectedVisualizer).toBe(single!.visualizer.selectedVisualizer)
   })
 })

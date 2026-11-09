@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useVisualizerStore } from '../../stores/visualizerStore'
+import { stub } from '../helpers/canvasStubs'
 
-let viz
-let id
+let viz: ReturnType<typeof useVisualizerStore>
+let id: string
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -25,7 +26,7 @@ describe('Effekte pro Layer – Standardwerte', () => {
 
   it('ergänzt fehlende Effekte bei Layern aus älteren Presets', () => {
     const legacy = { id: 'alt', visualizerId: 'bars', visible: true }
-    const fx = viz.layerEffects(legacy)
+    const fx = viz.layerEffects(stub(legacy))
     expect(fx.bloomEnabled).toBe(false)
     expect(fx.beatPunchSource).toBe('all')
   })

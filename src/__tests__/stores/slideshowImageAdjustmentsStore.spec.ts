@@ -7,16 +7,21 @@ import {
   restorePersistedBounds,
 } from '../../lib/slideshowAdjustmentsPersistence'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
-import { SlideshowManager } from '../../lib/slideshowManager'
+import {
+  SlideshowManager,
+  type SlideshowAdjustmentsChange,
+  type SlideshowBoundsChange,
+} from '../../lib/slideshowManager'
+import { stub } from '../helpers/canvasStubs'
 
 const KEY = 'visualizer-slideshow-image-adjustments'
 
 function memoryStorage() {
-  const data = new Map()
+  const data = new Map<string, string>()
   return {
-    getItem: (k) => (data.has(k) ? data.get(k) : null),
-    setItem: vi.fn((k, v) => data.set(k, String(v))),
-    removeItem: (k) => data.delete(k),
+    getItem: (k: string) => (data.has(k) ? data.get(k) : null),
+    setItem: vi.fn((k: string, v: unknown) => data.set(k, String(v))),
+    removeItem: (k: string) => data.delete(k),
   }
 }
 
@@ -37,13 +42,16 @@ describe('slideshowImageAdjustmentsStore', () => {
       adjustments: { brightness: 150, sepia: 30 },
       audioMode: 'pulse',
     })
-    const writes = localStorage.setItem.mock.calls.length
+    const writes = vi.mocked(localStorage.setItem).mock.calls.length
     store.setAdjustments('upload:a.png|10x10', { brightness: 150, sepia: 30 }, 'pulse')
-    expect(localStorage.setItem.mock.calls.length).toBe(writes)
+    expect(vi.mocked(localStorage.setItem).mock.calls.length).toBe(writes)
 
     setActivePinia(createPinia())
     const again = useSlideshowImageAdjustmentsStore()
-    expect(again.getAdjustments('upload:a.png|10x10').adjustments.brightness).toBe(150)
+    expect(
+      (again.getAdjustments('upload:a.png|10x10')!.adjustments as Record<string, unknown>)
+        .brightness,
+    ).toBe(150)
     again.setAdjustments('upload:a.png|10x10', null)
     expect(again.getAdjustments('upload:a.png|10x10')).toBeNull()
   })
@@ -87,19 +95,24 @@ describe('restorePersistedAdjustments', () => {
   it('nur für Bilder ohne Anpassungen in dieser Sitzung, per dauerhaftem Schlüssel', () => {
     const a = { width: 10, height: 10 }
     const b = { width: 20, height: 10 }
-    const session = new Map([[b, { contrast: 90 }]])
+    const session = new Map<object, object>([[b, { contrast: 90 }]])
     const manager = {
-      getImageAdjustments: (obj) => session.get(obj) ?? null,
+      getImageAdjustments: (obj: object) => session.get(obj) ?? null,
       setImageAdjustments: vi.fn(),
     }
-    const stored = { 'upload:a.png|10x10': { adjustments: { sepia: 40 }, audioMode: 'glow' } }
+    const stored: Record<string, { adjustments: object; audioMode: string }> = {
+      'upload:a.png|10x10': { adjustments: { sepia: 40 }, audioMode: 'glow' },
+    }
     const n = restorePersistedAdjustments(
       manager,
       [
         { name: 'a.png', imageObject: a },
         { name: 'b.png', imageObject: b },
       ],
-      { resolveImageObject: (img) => img.imageObject, getAdjustments: (k) => stored[k] ?? null },
+      {
+        resolveImageObject: (img) => img.imageObject as object,
+        getAdjustments: (k) => stored[k as string] ?? null,
+      },
     )
     expect(n).toBe(1)
     expect(manager.setImageAdjustments).toHaveBeenCalledWith(a, { sepia: 40 }, 'glow')
@@ -107,11 +120,14 @@ describe('restorePersistedAdjustments', () => {
 })
 
 describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => {
-  function createManager(onImageAdjustmentsChange, onImageBoundsChange) {
+  function createManager(
+    onImageAdjustmentsChange?: (change: SlideshowAdjustmentsChange) => void,
+    onImageBoundsChange?: (change: SlideshowBoundsChange) => void,
+  ) {
     let nextId = 1
     const multiImageManager = {
       canvas: { width: 1000, height: 1000 },
-      addImageWithBounds: vi.fn((imageObject, bounds) => ({
+      addImageWithBounds: vi.fn((imageObject: object, bounds: object) => ({
         id: nextId++,
         imageObject,
         ...bounds,
@@ -120,14 +136,14 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
     }
     const fotoManager = {
       defaultSettings: { brightness: 100, sepia: 0 },
-      initializeImageSettings: (img) => {
+      initializeImageSettings: (img: { fotoSettings?: object | null }) => {
         img.fotoSettings ??= { brightness: 100, sepia: 0, audioReactive: null }
       },
     }
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.stubGlobal('requestAnimationFrame', () => 1)
     vi.stubGlobal('cancelAnimationFrame', () => {})
-    return new SlideshowManager(multiImageManager, fotoManager, {
+    return new SlideshowManager(stub(multiImageManager), stub(fotoManager), {
       onImageAdjustmentsChange,
       onImageBoundsChange,
     })
@@ -138,11 +154,16 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
       '../../components/foto-panel/slideshow/slideshowImageKey'
     )
     const store = useSlideshowImageAdjustmentsStore()
-    const persist = ({ imageConfig, imageObject, adjustments, audioMode }) =>
+    const persist = ({
+      imageConfig,
+      imageObject,
+      adjustments,
+      audioMode,
+    }: SlideshowAdjustmentsChange) =>
       store.setAdjustments(
         slideshowStableKey({ ...imageConfig, imageObject }),
         diffAdjustments(adjustments, { brightness: 100, sepia: 0 }),
-        audioMode,
+        audioMode as string | undefined,
       )
     const imgA = { width: 10, height: 10 }
     const imgs = () => [
@@ -151,22 +172,22 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
     ]
 
     const m1 = createManager(persist)
-    m1.start(imgs())
-    m1.activeImages[0].fotoSettings.brightness = 175
+    m1.start(stub(imgs()))
+    m1.activeImages[0]!.fotoSettings!.brightness = 175
     m1.stop()
-    expect(store.getAdjustments('upload:a.png|10x10').adjustments).toEqual({ brightness: 175 })
+    expect(store.getAdjustments('upload:a.png|10x10')!.adjustments).toEqual({ brightness: 175 })
     // unverändertes Bild b → kein Eintrag
     expect(Object.keys(store.entries)).toEqual(['upload:a.png|10x10'])
 
     // Neue Sitzung: neuer Manager (leerer Sitzungsspeicher), neues Bildobjekt
     const m2 = createManager(persist)
     const fresh = [{ name: 'a.png', imageObject: { width: 10, height: 10 }, audioMode: 'default' }]
-    restorePersistedAdjustments(m2, fresh, {
-      resolveImageObject: (img) => img.imageObject,
-      getAdjustments: (k) => store.getAdjustments(k),
+    restorePersistedAdjustments(stub(m2), fresh, {
+      resolveImageObject: (img) => img.imageObject as object,
+      getAdjustments: (k) => store.getAdjustments(k as string),
     })
-    m2.start([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }])
-    expect(m2.activeImages[0].fotoSettings.brightness).toBe(175)
+    m2.start(stub([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }]))
+    expect(m2.activeImages[0]!.fotoSettings!.brightness).toBe(175)
     m2.stop()
   })
 })
@@ -177,7 +198,7 @@ describe('Ablauf: Größe/Position ändern → neue Sitzung → Start', () => {
       '../../components/foto-panel/slideshow/slideshowImageKey'
     )
     const settings = useSlideshowImageSettingsStore()
-    const onBounds = ({ imageConfig, imageObject, bounds }) =>
+    const onBounds = ({ imageConfig, imageObject, bounds }: SlideshowBoundsChange) =>
       settings.updateImageSettings(slideshowStableKey({ ...imageConfig, imageObject }), { bounds })
 
     let nextId = 1
@@ -186,44 +207,49 @@ describe('Ablauf: Größe/Position ändern → neue Sitzung → Start', () => {
       vi.stubGlobal('requestAnimationFrame', () => 1)
       vi.stubGlobal('cancelAnimationFrame', () => {})
       return new SlideshowManager(
-        {
+        stub({
           canvas: { width: 1000, height: 1000 },
-          addImageWithBounds: vi.fn((imageObject, bounds) => ({
+          addImageWithBounds: vi.fn((imageObject: object, bounds: object) => ({
             id: nextId++,
             imageObject,
             ...bounds,
           })),
           removeImage: vi.fn(),
-        },
-        { initializeImageSettings: (img) => (img.fotoSettings ??= { audioReactive: null }) },
+        }),
+        stub({
+          initializeImageSettings: (img: { fotoSettings?: object | null }) =>
+            (img.fotoSettings ??= { audioReactive: null }),
+        }),
         { onImageBoundsChange: onBounds },
       )
     }
     const imgA = { width: 10, height: 10 }
     const m1 = make()
-    m1.start([
-      { name: 'a.png', imageObject: imgA },
-      { name: 'b.png', imageObject: { width: 20, height: 10 } },
-    ])
+    m1.start(
+      stub([
+        { name: 'a.png', imageObject: imgA },
+        { name: 'b.png', imageObject: { width: 20, height: 10 } },
+      ]),
+    )
     const a = m1.activeImages[0]
-    Object.assign(a, { relX: 0.05, relY: 0.05, relWidth: 0.3, relHeight: 0.3 })
-    m1.commitImageBounds(a)
-    expect(settings.getImageSettings('upload:a.png|10x10').bounds.relWidth).toBeCloseTo(0.3)
+    Object.assign(a!, { relX: 0.05, relY: 0.05, relWidth: 0.3, relHeight: 0.3 })
+    m1.commitImageBounds(a!)
+    expect(settings.getImageSettings('upload:a.png|10x10')!.bounds!.relWidth).toBeCloseTo(0.3)
     // ganze Slideshow verschieben → auch gemeldet
     m1.moveSlideshow(0.1, 0)
-    expect(settings.getImageSettings('upload:a.png|10x10').bounds.relX).toBeCloseTo(0.15)
+    expect(settings.getImageSettings('upload:a.png|10x10')!.bounds!.relX).toBeCloseTo(0.15)
     m1.stop()
 
     const m2 = make()
     const fresh = [{ name: 'a.png', imageObject: { width: 10, height: 10 } }]
-    const n = restorePersistedBounds(m2, fresh, {
-      resolveImageObject: (img) => img.imageObject,
-      getBounds: (k) => settings.getImageSettings(k)?.bounds ?? null,
+    const n = restorePersistedBounds(stub(m2), fresh, {
+      resolveImageObject: (img) => img.imageObject as object,
+      getBounds: (k) => settings.getImageSettings(k as string)?.bounds ?? null,
     })
     expect(n).toBe(1)
-    m2.start([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }])
+    m2.start(stub([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }]))
     const again = m2.activeImages[0]
-    expect([again.relX, again.relWidth].map((v) => +v.toFixed(3))).toEqual([0.15, 0.3])
+    expect([again!.relX, again!.relWidth].map((v) => +v.toFixed(3))).toEqual([0.15, 0.3])
     m2.stop()
   })
 })

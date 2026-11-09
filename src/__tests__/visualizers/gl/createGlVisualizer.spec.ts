@@ -66,7 +66,8 @@ describe('gl/createGlVisualizer (no WebGL2 available)', () => {
     })
     const ctx = fakeCtx()
     const data = new Uint8Array(1024)
-    ;(viz.init as (w: number, h: number) => void)(640, 360)
+    // init() nimmt keine Größe: Sie erreicht den Fallback über draw().
+    viz.init()
     viz.draw(stub(ctx), data, 1024, 640, 360, '#ff8800', 0.7)
     viz.draw(stub(ctx), data, 1024, 640, 360, '#ff8800', 0.7)
 

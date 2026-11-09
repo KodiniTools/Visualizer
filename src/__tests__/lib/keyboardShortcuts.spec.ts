@@ -3,6 +3,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { KeyboardShortcuts } from '../../lib/keyboardShortcuts'
 import { stub } from '../helpers/canvasStubs'
 
+/** Canvas ohne Auswahl: Tasten für Player/Raster greifen nicht darauf zu */
+const idleCanvasManager = () => ({
+  activeObject: null,
+  deleteActiveObject: vi.fn(),
+  addText: vi.fn(),
+  setActiveObject: vi.fn(),
+})
+
 /**
  * Verhaltenstest für KeyboardShortcuts.
  *
@@ -262,7 +270,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
     const playerStore = usePlayerStore()
     const ks = new KeyboardShortcuts(
       stub({ playerStore, gridStore: {} }),
-      stub({ canvasManager: null }),
+      stub({ canvasManager: idleCanvasManager() }),
     )
     // ohne Titel: kein Fehler (vorher: „play/previousTrack/toggleMute is not a function“)
     expect(() => ks.togglePlayPause()).not.toThrow()
@@ -425,7 +433,9 @@ describe('KeyboardShortcuts – Aktionen', () => {
     setActivePinia(createPinia())
     const gridStore = useGridStore()
     const before = gridStore.isVisible
-    const ks = new KeyboardShortcuts(stub({ gridStore }), stub({ canvasManager: null }))
+    const ks = new KeyboardShortcuts(stub({ gridStore }), {
+      canvasManager: idleCanvasManager(),
+    })
     // vorher: „this.gridStore.toggle is not a function“
     ks.handleKeyDown(makeEvent('g'))
     expect(gridStore.isVisible).toBe(!before)

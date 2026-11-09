@@ -19,12 +19,12 @@ const appVue = readFileSync(join(SRC, 'App.vue'), 'utf8')
 const tokensCss = readFileSync(join(SRC, 'design-system/tokens-v2.css'), 'utf8')
 
 /** Deklarationen `--name: value` des ersten Top-Level-Blocks mit genau diesem Selektor. */
-function block(src, selector) {
+function block(src: string, selector: string) {
   const re = new RegExp(`(?:^|\\n)${selector.replace(/[[\]'.]/g, '\\$&')}\\s*\\{([^}]*)\\}`)
   const m = src.match(re)
   expect(m, `Block ${selector}`).not.toBeNull()
-  const body = m[1].replace(/\/\*[\s\S]*?\*\//g, '')
-  const tokens = new Map()
+  const body = m![1]!.replace(/\/\*[\s\S]*?\*\//g, '')
+  const tokens = new Map<string, string>()
   for (const decl of body.split(';')) {
     const i = decl.indexOf(':')
     if (i === -1) continue
@@ -41,7 +41,7 @@ function block(src, selector) {
   return tokens
 }
 
-const refs = (value) => [...value.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1])
+const refs = (value: string) => [...value.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]!)
 
 describe('tokens-v2.css: die gemeinsame Token-Datei', () => {
   const root = block(tokensCss, ':root')

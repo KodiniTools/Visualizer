@@ -1,12 +1,15 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { ref, nextTick, type Ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TextAudioReactivePopover from '../../components/sticky-player-bar/TextAudioReactivePopover.vue'
 
 // Canvas-Manager-Attrappe; unbekannte Methoden liefern eine leere Mock-Funktion.
-function canvasManagerStub(activeObject = null) {
-  const base = {
+/** Attrappe: bekannte Felder plus beliebige (per Proxy angelegte) Methoden */
+type FakeCm = Record<string | symbol, unknown> & { activeObject: unknown }
+
+function canvasManagerStub(activeObject: unknown = null) {
+  const base: FakeCm = {
     canvas: { width: 960, height: 540 },
     activeObject,
     textManager: { textObjects: [] },
@@ -33,11 +36,11 @@ function textObject(id = 't1') {
   return { id, type: 'text', content: 'Hallo', opacity: 100 }
 }
 
-let wrapper
-let canvasManager
-let closePopover
+let wrapper: VueWrapper
+let canvasManager: Ref<FakeCm>
+let closePopover: Mock
 
-function mountPopover(active = null) {
+function mountPopover(active: unknown = null) {
   canvasManager = ref(canvasManagerStub(active))
   closePopover = vi.fn()
   wrapper = mount(TextAudioReactivePopover, {

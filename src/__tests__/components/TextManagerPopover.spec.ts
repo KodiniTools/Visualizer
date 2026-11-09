@@ -1,18 +1,24 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { defineComponent, ref, nextTick, type Ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TextManagerPopover from '../../components/sticky-player-bar/TextManagerPopover.vue'
 
 // Canvas-Manager-Attrappe; unbekannte Methoden liefern eine leere Mock-Funktion.
+/** Attrappe: bekannte Felder plus beliebige (per Proxy angelegte) Methoden */
+type FakeCm = Record<string | symbol, unknown> & {
+  activeObject: unknown
+  selectionListeners: unknown[]
+}
+
 function canvasManagerStub() {
-  const selectionListeners = []
-  const base = {
+  const selectionListeners: unknown[] = []
+  const base: FakeCm = {
     canvas: { width: 960, height: 540 },
     activeObject: null,
     textManager: { textObjects: [] },
     selectionListeners,
-    onSelectionChanged: (cb) => selectionListeners.push(cb),
+    onSelectionChanged: (cb: unknown) => selectionListeners.push(cb),
     redrawCallback: vi.fn(),
   }
   return new Proxy(base, {
@@ -48,8 +54,8 @@ const BarStub = defineComponent({
   template: '<div><TextManagerPopover v-show="open" /></div>',
 })
 
-let wrapper
-let canvasManager
+let wrapper: VueWrapper<InstanceType<typeof BarStub>>
+let canvasManager: Ref<FakeCm>
 
 beforeEach(() => {
   setActivePinia(createPinia())

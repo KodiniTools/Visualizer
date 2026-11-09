@@ -3,30 +3,35 @@
 // Formular für neue Texte. Zugriff über Beschriftungen, Titel und Rollen statt
 // CSS-Klassen, damit die Tests den Wechsel auf die Ui-Bausteine überstehen.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick, reactive, ref } from 'vue'
 import TextStyleSection from '../../components/text-manager/text-new-form/TextStyleSection.vue'
 import PositionSection from '../../components/text-manager/text-new-form/PositionSection.vue'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import { stub } from '../helpers/canvasStubs'
 
 const T = de.textManager
-let wrapper
-let settings
+let wrapper: VueWrapper | null
+/** Formular-Einstellungen, wie TextStyleSection sie erwartet */
+type FormSettings = InstanceType<typeof TextStyleSection>['$props']['settings']
+let settings: FormSettings
 
 beforeEach(() => {
-  settings = reactive({
-    fontSize: 48,
-    fontFamily: 'Arial',
-    color: '#ff0000',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-    textAlign: 'center',
-    opacity: 100,
-    autoFit: false,
-    autoFitPadding: 10,
-  })
+  settings = stub(
+    reactive({
+      fontSize: 48,
+      fontFamily: 'Arial',
+      color: '#ff0000',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textAlign: 'center',
+      opacity: 100,
+      autoFit: false,
+      autoFitPadding: 10,
+    }),
+  )
 })
 
 afterEach(() => {
@@ -35,11 +40,11 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const buttons = () => [...root().querySelectorAll('button')]
-const buttonByText = (name) => buttons().find((b) => b.textContent.trim() === name)
-const buttonWithText = (part) => buttons().find((b) => b.textContent.includes(part))
-const buttonByTitle = (title) => buttons().find((b) => b.title === title)
+const buttonByText = (name: string) => buttons().find((b) => b.textContent.trim() === name)
+const buttonWithText = (part: string) => buttons().find((b) => b.textContent.includes(part))
+const buttonByTitle = (title: string) => buttons().find((b) => b.title === title)
 
 async function mountStyle() {
   wrapper = mount(TextStyleSection, {
@@ -52,7 +57,7 @@ async function mountStyle() {
       },
     },
   })
-  wrapper.vm.populateNewTextFontDropdown()
+  ;(wrapper as VueWrapper<InstanceType<typeof TextStyleSection>>).vm.populateNewTextFontDropdown()
   await nextTick()
   return wrapper
 }
@@ -113,8 +118,8 @@ describe('Neuer Text – Text-Stil', () => {
     await mountStyle()
     buttonWithText(T.saveAsDefault).click()
     buttonWithText(T.resetToDefault).click()
-    expect(wrapper.emitted('save')).toHaveLength(1)
-    expect(wrapper.emitted('reset')).toHaveLength(1)
+    expect(wrapper!.emitted('save')).toHaveLength(1)
+    expect(wrapper!.emitted('reset')).toHaveLength(1)
   })
 
   it('Texte folgen der Sprache, auch die Titel', async () => {
@@ -146,13 +151,13 @@ describe('Neuer Text – Position & Bereich', () => {
   it('Bereich markieren, Pixel-Eingabe und Schnellauswahl melden sich', async () => {
     mountPosition()
     buttonWithText('Bereich auf Canvas markieren').click()
-    expect(wrapper.emitted('start-selection')).toHaveLength(1)
+    expect(wrapper!.emitted('start-selection')).toHaveLength(1)
     const x = root().querySelector('input[placeholder="0 - 1920"]')
     x.value = '100'
     x.dispatchEvent(new Event('input'))
-    expect(wrapper.emitted('update-pixel')[0]).toEqual(['x'])
+    expect(wrapper!.emitted('update-pixel')![0]).toEqual(['x'])
     buttonByTitle(T.quickPos.bottomRight).click()
-    expect(wrapper.emitted('quick-position')[0]).toEqual(['bottom-right'])
+    expect(wrapper!.emitted('quick-position')![0]).toEqual(['bottom-right'])
   })
 
   it('beim Zeichnen gesperrt; mit Auswahl Größe und Löschen', async () => {
@@ -160,7 +165,7 @@ describe('Neuer Text – Position & Bereich', () => {
     expect(buttonWithText('Zeichnen Sie ein Rechteck').disabled).toBe(true)
     expect(root().textContent).toMatch(/400 × 201 px/)
     buttonByText(T.layout.clearSelection).click()
-    expect(wrapper.emitted('clear-selection')).toHaveLength(1)
+    expect(wrapper!.emitted('clear-selection')).toHaveLength(1)
   })
 })
 

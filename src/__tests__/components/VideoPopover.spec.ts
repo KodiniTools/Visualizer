@@ -1,14 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VideoPopover from '../../components/sticky-player-bar/VideoPopover.vue'
 import { useVideoPanel } from '../../composables/useVideoPanel'
+import { stub } from '../helpers/canvasStubs'
 
 // Attrappen für Canvas- und Video-Manager; unbekannte Zugriffe liefern eine
 // leere Mock-Funktion, Vue-interne Flags bleiben unangetastet.
-function managerStub(extra = {}) {
-  const base = { canvas: { width: 960, height: 540 }, redrawCallback: vi.fn(), ...extra }
+function managerStub(extra: Record<string, unknown> = {}) {
+  const base: Record<string | symbol, unknown> = {
+    canvas: { width: 960, height: 540 },
+    redrawCallback: vi.fn(),
+    ...extra,
+  }
   return new Proxy(base, {
     get(target, prop) {
       if (prop in target) return target[prop]
@@ -43,7 +48,7 @@ const BarStub = defineComponent({
   template: '<div><VideoPopover v-if="open" /></div>',
 })
 
-let wrapper
+let wrapper: VueWrapper<InstanceType<typeof BarStub>>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -77,7 +82,7 @@ describe('VideoPopover', () => {
 
   it('behält hochgeladene Videos und Einstellungen über Schließen und Öffnen', async () => {
     const vp = wrapper.vm.vp
-    vp.videoGallery.value.push({ name: 'clip.mp4', url: 'blob:test' })
+    vp.videoGallery.value.push(stub({ name: 'clip.mp4', url: 'blob:test' }))
     vp.videoScale.value = 5
     vp.videoMuted.value = true
     await nextTick()
@@ -89,7 +94,7 @@ describe('VideoPopover', () => {
     await wrapper.setProps({ open: true })
     await nextTick()
     expect(wrapper.vm.vp.videoGallery.value).toHaveLength(1)
-    expect(wrapper.vm.vp.videoGallery.value[0].name).toBe('clip.mp4')
+    expect(wrapper.vm.vp.videoGallery.value[0]!.name).toBe('clip.mp4')
     expect(wrapper.vm.vp.videoScale.value).toBe(5)
     expect(wrapper.vm.vp.videoMuted.value).toBe(true)
     expect(wrapper.find('.spb-popover-video .video-panel-wrapper').exists()).toBe(true)

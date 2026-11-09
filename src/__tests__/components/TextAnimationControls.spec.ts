@@ -28,7 +28,7 @@ describe('Text-Animations-Controls (Edit-Panel und Neu-Formular)', () => {
   it('FadeControls schreibt die Richtung ins Effekt-Objekt und meldet change', async () => {
     const effect = fadeEffect()
     const w = mount(FadeControls, { props: { effect } })
-    await w.findAll('select')[0].setValue('out')
+    await w.findAll('select')[0]!.setValue('out')
     expect(effect.direction).toBe('out')
     expect(w.emitted('change')).toHaveLength(1)
   })
@@ -36,7 +36,7 @@ describe('Text-Animations-Controls (Edit-Panel und Neu-Formular)', () => {
   it('Easing-Select setzt effect.easing', async () => {
     const effect = fadeEffect()
     const w = mount(FadeControls, { props: { effect } })
-    await w.findAll('select')[1].setValue('linear')
+    await w.findAll('select')[1]!.setValue('linear')
     expect(effect.easing).toBe('linear')
   })
 
@@ -45,7 +45,7 @@ describe('Text-Animations-Controls (Edit-Panel und Neu-Formular)', () => {
     const w = mount(FadeControls, { props: { effect } })
     expect(w.text()).not.toContain('Pause zwischen Wiederholungen')
     const loopSwitch = w.findAll('[role="switch"]')[0]
-    await loopSwitch.trigger('click')
+    await loopSwitch!.trigger('click')
     expect(effect.loop).toBe(true)
     expect(w.text()).toContain('Pause zwischen Wiederholungen')
   })
@@ -97,7 +97,7 @@ describe('AnimationEditSection', () => {
     await w.setProps({ effect: fadeEffect({ enabled: true }) })
     expect(w.find('.slot-body').exists()).toBe(true)
     const buttons = w.findAll('button')
-    await buttons[1].trigger('click')
+    await buttons[1]!.trigger('click')
     expect(w.emitted('restart')).toHaveLength(1)
   })
 
@@ -127,10 +127,10 @@ describe('Neu-Formular: AnimationNewSection / FadeSection', () => {
       slots: { default: '<div class="slot-body" />' },
     })
     expect(w.find('.slot-body').exists()).toBe(false)
-    await w.findAll('button')[0].trigger('click')
+    await w.findAll('button')[0]!.trigger('click')
     expect(effect.enabled).toBe(true)
     expect(w.find('.slot-body').exists()).toBe(true)
-    await w.findAll('button').at(-1).trigger('click')
+    await w.findAll('button').at(-1)!.trigger('click')
     expect(w.emitted('add')).toHaveLength(1)
   })
 
@@ -138,14 +138,14 @@ describe('Neu-Formular: AnimationNewSection / FadeSection', () => {
     const w = mount(AnimationNewSection, {
       props: { effect: fadeEffect(), icon: 'x', title: 'Fade', addLabel: 'Add', canAdd: false },
     })
-    expect(w.findAll('button').at(-1).attributes('disabled')).toBeDefined()
+    expect(w.findAll('button').at(-1)!.attributes('disabled')).toBeDefined()
   })
 
   it('FadeSection bindet die gemeinsamen FadeControls an settings', async () => {
     const settings = fadeEffect()
     const w = mount(FadeSection, { props: { settings } })
     expect(w.findComponent(FadeControls).exists()).toBe(true)
-    await w.findAll('select')[0].setValue('inOut')
+    await w.findAll('select')[0]!.setValue('inOut')
     expect(settings.direction).toBe('inOut')
   })
 })

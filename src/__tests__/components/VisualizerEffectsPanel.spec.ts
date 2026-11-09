@@ -3,15 +3,15 @@
 // Zugriff über sichtbare Texte und Rollen statt CSS-Klassen, damit die Tests
 // den Wechsel auf die Ui-Bausteine und i18n unverändert überstehen.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerEffectsPanel from '../../components/VisualizerEffectsPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useI18n } from '../../lib/i18n'
 
-let wrapper
-let store
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useVisualizerStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -29,10 +29,10 @@ function mountPanel(props = {}) {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 /** Schalter über seinen Text (Checkbox im Label oder Switch). */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) => i.closest('label')?.textContent.trim() === name,
   )
@@ -40,9 +40,9 @@ function toggle(name) {
   const label = [...root().querySelectorAll('label')].find((l) => l.textContent.trim() === name)
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
-async function flip(name) {
+async function flip(name: string) {
   const el = toggle(name)
   if (el.type === 'checkbox') {
     el.checked = !el.checked
@@ -56,7 +56,7 @@ function sourceOptions() {
   if (rg) return [...rg.querySelectorAll('[role="radio"]')].map((b) => b.textContent.trim())
   return [...root().querySelectorAll('select option')].map((o) => o.textContent.trim())
 }
-async function chooseSource(label) {
+async function chooseSource(label: string) {
   const rg = root().querySelector('[role="radiogroup"]')
   if (rg) {
     ;[...rg.querySelectorAll('[role="radio"]')].find((b) => b.textContent.trim() === label).click()
@@ -137,7 +137,7 @@ describe('Effekte – je Ebene', () => {
   it('ohne Titel und adaptive Qualität; Schalter wirkt nur auf die Ebene', async () => {
     store.setMultiLayerMode(true)
     store.addLayer()
-    const layerId = store.visualizerLayers[0].id
+    const layerId = store.visualizerLayers[0]!.id
     const globalBloom = store.bloomEnabled
     mountPanel({ layerId })
     expect(text()).not.toContain('Effekte (Post-Processing)')

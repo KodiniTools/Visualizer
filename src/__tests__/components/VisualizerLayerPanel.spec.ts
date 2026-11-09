@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerLayerPanel from '../../components/VisualizerLayerPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
 
-let wrapper
-let viz
-let presets
+let wrapper: VueWrapper
+let viz: ReturnType<typeof useVisualizerStore>
+let presets: ReturnType<typeof useLayerPresetStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -47,7 +47,7 @@ describe('VisualizerLayerPanel – Effekte pro Layer', () => {
   })
 
   it('zählt aktive Effekte und setzt sie zurück', async () => {
-    const layerId = viz.visualizerLayers[0].id
+    const layerId = viz.visualizerLayers[0]!.id
     viz.updateLayerEffect(layerId, 'bloomEnabled', true)
     viz.updateLayerEffect(layerId, 'trailsEnabled', true)
     await wrapper.vm.$nextTick()
@@ -68,9 +68,9 @@ describe('VisualizerLayerPanel – Preset speichern', () => {
     await wrapper.find('.save-preset-btn').trigger('click')
 
     expect(presets.layerPresets).toHaveLength(1)
-    expect(presets.layerPresets[0].name).toBe('Mein Set')
-    expect(presets.layerPresets[0].layers).toHaveLength(viz.visualizerLayers.length)
-    expect(wrapper.find('.preset-name-input').element.value).toBe('')
+    expect(presets.layerPresets[0]!.name).toBe('Mein Set')
+    expect(presets.layerPresets[0]!.layers).toHaveLength(viz.visualizerLayers.length)
+    expect(wrapper.find<HTMLInputElement>('.preset-name-input').element.value).toBe('')
     expect(wrapper.find('.preset-item .preset-name').text()).toBe('Mein Set')
     // Gerade gespeichert → entspricht den aktuellen Layern → aktiv markiert
     expect(wrapper.find('.preset-item').classes()).toContain('active')

@@ -3,38 +3,42 @@
 // Position, Standard speichern, Löschen). Zugriff über Beschriftungen, Titel
 // und Rollen statt CSS-Klassen, damit die Tests den Wechsel auf die
 // Ui-Bausteine unverändert überstehen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, reactive, ref } from 'vue'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, reactive, ref, type Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import TextEditPanel from '../../components/text-manager/TextEditPanel.vue'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import type { TextObject } from '../../lib/textManager/types'
+import { stub } from '../helpers/canvasStubs'
 
 const T = de.textManager
-let wrapper
-let canvasManager
-let fontManager
-let text
+let wrapper: VueWrapper<InstanceType<typeof TextEditPanel>> | null
+let canvasManager: Ref<{ redrawCallback: Mock; deleteActiveObject: Mock }>
+let fontManager: Ref<{ isInitialized: boolean; loadedFonts: Set<string> }>
+let text: TextObject
 
 beforeEach(() => {
   setActivePinia(createPinia())
   localStorage.clear()
   canvasManager = ref({ redrawCallback: vi.fn(), deleteActiveObject: vi.fn() })
   fontManager = ref({ isInitialized: true, loadedFonts: new Set(['Roboto']) })
-  text = reactive({
-    content: 'Hallo',
-    fontFamily: 'Georgia',
-    fontSize: 48,
-    opacity: 100,
-    color: '#ffffff',
-    fontWeight: 'normal',
-    fontStyle: 'normal',
-    textAlign: 'center',
-    relX: 0.5,
-    relY: 0.5,
-  })
+  text = stub(
+    reactive({
+      content: 'Hallo',
+      fontFamily: 'Georgia',
+      fontSize: 48,
+      opacity: 100,
+      color: '#ffffff',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textAlign: 'center',
+      relX: 0.5,
+      relY: 0.5,
+    }),
+  )
 })
 
 afterEach(() => {
@@ -62,10 +66,10 @@ async function mountPanel() {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const buttons = () => [...root().querySelectorAll('button')]
-const buttonByText = (name) => buttons().find((b) => b.textContent.trim() === name)
-const buttonByTitle = (title) => buttons().find((b) => b.title === title)
+const buttonByText = (name: string) => buttons().find((b) => b.textContent.trim() === name)
+const buttonByTitle = (title: string) => buttons().find((b) => b.title === title)
 const fontSelect = () =>
   [...root().querySelectorAll('select')].find((s) =>
     [...s.options].some((o) => o.value === 'Roboto'),
@@ -93,7 +97,7 @@ describe('Text-Editor – Inhalt', () => {
 
   it('stellt das Textfeld für Fokus und Cursor bereit', async () => {
     await mountPanel()
-    expect(wrapper.vm.editTextInput).toBe(textarea())
+    expect(wrapper!.vm.editTextInput).toBe(textarea())
   })
 })
 
@@ -171,7 +175,7 @@ describe('Text-Editor – Aktionen', () => {
     expect(Object.keys(localStorage)).toHaveLength(0)
     buttonByText(T.deleteText).click()
     expect(canvasManager.value.deleteActiveObject).toHaveBeenCalled()
-    expect(wrapper.emitted('delete')).toHaveLength(1)
+    expect(wrapper!.emitted('delete')).toHaveLength(1)
   })
 
   it('Texte folgen der Sprache', async () => {

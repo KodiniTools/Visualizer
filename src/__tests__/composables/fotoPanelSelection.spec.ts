@@ -4,6 +4,7 @@ import { ref, toRaw } from 'vue'
 import { useCanvasSetup } from '../../composables/useCanvasSetup'
 import { useCanvasImages } from '../../composables/useCanvasImages'
 import { registerFotoPanel } from '../../lib/fotoPanelBridge'
+import { stub } from '../helpers/canvasStubs'
 
 /**
  * Verhaltenstest: Canvas-Auswahl → Foto-Panel (aktives Bild + Filter laden).
@@ -11,33 +12,35 @@ import { registerFotoPanel } from '../../lib/fotoPanelBridge'
  * unabhängig davon bleiben, wie das Panel registriert wird.
  */
 
-function registerPanel(controls) {
-  return registerFotoPanel(controls)
+function registerPanel(controls: object) {
+  return registerFotoPanel(stub(controls))
 }
 
 let unregister = () => {}
 
 function makePanel() {
-  return { currentActiveImage: ref(null), loadImageSettings: vi.fn() }
+  return { currentActiveImage: ref<object | null>(null), loadImageSettings: vi.fn() }
 }
 
 function setupSelection() {
-  const selectedCanvasImageId = ref(null)
+  const selectedCanvasImageId = ref<string | null>(null)
   const fotoManager = { updateUIFromSettings: vi.fn() }
-  const api = useCanvasSetup({
-    audioRef: ref(null),
-    managers: {
-      canvasManagerInstance: ref(null),
-      fotoManagerInstance: ref(fotoManager),
-      gridManagerInstance: ref(null),
-      multiImageManagerInstance: ref(null),
-      videoManagerInstance: ref(null),
-    },
-    stores: {},
-    t: (k) => k,
-    getRecordingCanvas: () => null,
-    selectedCanvasImageId,
-  })
+  const api = useCanvasSetup(
+    stub({
+      audioRef: ref(null),
+      managers: {
+        canvasManagerInstance: ref(null),
+        fotoManagerInstance: ref(fotoManager),
+        gridManagerInstance: ref(null),
+        multiImageManagerInstance: ref(null),
+        videoManagerInstance: ref(null),
+      },
+      stores: {},
+      t: (k: string) => k,
+      getRecordingCanvas: () => null,
+      selectedCanvasImageId,
+    }),
+  )
   return { onObjectSelected: api.onObjectSelected, selectedCanvasImageId, fotoManager }
 }
 
@@ -59,7 +62,7 @@ describe('onObjectSelected → Foto-Panel', () => {
     const { onObjectSelected, selectedCanvasImageId, fotoManager } = setupSelection()
     const img = { type: 'image', id: 'i1' }
 
-    onObjectSelected(img)
+    onObjectSelected(stub(img))
 
     expect(toRaw(panel.currentActiveImage.value)).toBe(img)
     expect(selectedCanvasImageId.value).toBe('i1')
@@ -74,7 +77,7 @@ describe('onObjectSelected → Foto-Panel', () => {
     const { onObjectSelected, selectedCanvasImageId } = setupSelection()
     selectedCanvasImageId.value = 'old'
 
-    onObjectSelected({ type: 'text', id: 't1' })
+    onObjectSelected(stub({ type: 'text', id: 't1' }))
 
     expect(panel.currentActiveImage.value).toBeNull()
     expect(selectedCanvasImageId.value).toBeNull()
@@ -89,7 +92,7 @@ describe('onObjectSelected → Foto-Panel', () => {
     selectedCanvasImageId.value = 'old'
     const bg = { type: 'workspace-background' }
 
-    onObjectSelected(bg)
+    onObjectSelected(stub(bg))
     expect(panel.currentActiveImage.value).toBeNull()
     expect(selectedCanvasImageId.value).toBe('old')
     expect(panel.loadImageSettings).toHaveBeenCalledWith(bg)
@@ -102,7 +105,7 @@ describe('onObjectSelected → Foto-Panel', () => {
     const { onObjectSelected } = setupSelection()
     const img = { type: 'image', id: 'i2' }
 
-    onObjectSelected(img)
+    onObjectSelected(stub(img))
     vi.advanceTimersByTime(250)
 
     const panel = makePanel()
@@ -118,22 +121,24 @@ describe('onObjectSelected → Foto-Panel', () => {
 describe('selectCanvasImage → Foto-Panel', () => {
   function setupImages() {
     const manager = { setSelectedImage: vi.fn(), getAllImages: () => [] }
-    return useCanvasImages({
-      multiImageManagerInstance: ref(manager),
-      canvasManagerInstance: ref(null),
-      t: (k) => k,
-    })
+    return useCanvasImages(
+      stub({
+        multiImageManagerInstance: ref(manager),
+        canvasManagerInstance: ref(null),
+        t: (k: string) => k,
+      }),
+    )
   }
 
   it('setzt das aktive Bild im Panel', () => {
     const panel = makePanel()
     unregister = registerPanel(panel)
     const img = { id: 'c1' }
-    setupImages().selectCanvasImage(img)
+    setupImages().selectCanvasImage(stub(img))
     expect(toRaw(panel.currentActiveImage.value)).toBe(img)
   })
 
   it('ohne Panel kein Fehler', () => {
-    expect(() => setupImages().selectCanvasImage({ id: 'c2' })).not.toThrow()
+    expect(() => setupImages().selectCanvasImage(stub({ id: 'c2' }))).not.toThrow()
   })
 })

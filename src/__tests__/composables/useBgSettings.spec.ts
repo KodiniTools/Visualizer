@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { defineComponent, ref, nextTick, h } from 'vue'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { defineComponent, ref, nextTick, h, type Ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBgSettings } from '../../composables/useBgSettings'
 import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
 import { useTickerStore } from '../../stores/tickerStore'
 import { AUDIO_REACTIVE_PRESETS } from '../../lib/audio/audioReactiveConfig'
+import { stub } from '../helpers/canvasStubs'
 
 /**
  * Verhaltenstests für useBgSettings: sichern die öffentliche API und die
@@ -15,12 +16,18 @@ import { AUDIO_REACTIVE_PRESETS } from '../../lib/audio/audioReactiveConfig'
 
 // Bild-Attrappe: löst onload (bzw. onerror bei "fail"-URLs) asynchron aus.
 class FakeImage {
+  declare crossOrigin: string | null
+  declare naturalWidth: number
+  declare naturalHeight: number
+  declare _src: string
+  declare onload?: () => void
+  declare onerror?: () => void
   constructor() {
     this.crossOrigin = null
     this.naturalWidth = 640
     this.naturalHeight = 480
   }
-  set src(v) {
+  set src(v: string) {
     this._src = v
     queueMicrotask(() => {
       if (String(v).includes('fail') && this.crossOrigin) this.onerror?.()
@@ -33,12 +40,54 @@ class FakeImage {
   }
 }
 
-function fakeVideo(src, extra = {}) {
+function fakeVideo(src: string, extra: Record<string, unknown> = {}) {
   return { src, muted: true, loop: true, pause: vi.fn(), ...extra }
 }
 
+/** Hintergrund-Eintrag der Attrappe (Bild oder Video) */
+type BgEntry = { imageObject?: unknown; videoElement?: unknown; fotoSettings?: unknown }
+type Entries = Record<string, unknown>[]
+
+/** Canvas-Manager-Attrappe für useBgSettings */
+interface FakeBgCm {
+  background: string | BgEntry | null
+  workspaceBackground: BgEntry | null
+  videoBackground: BgEntry | null
+  workspaceVideoBackground: BgEntry | null
+  workspacePreset: unknown
+  redrawCallback: Mock
+  updateUICallback: Mock
+  setBackground: Mock
+  setWorkspaceBackground: Mock
+  setVideoBackground: Mock
+  setWorkspaceVideoBackground: Mock
+  setGradientSettings: Mock
+  setBackgroundColorAudioReactive: Mock
+  updateBackgroundFlip: Mock
+  updateWorkspaceBackgroundFlip: Mock
+  replaceBackground: Mock
+  replaceWorkspaceBackground: Mock
+  isCanvasEmpty: Mock
+  reset: Mock
+  setActiveObject: Mock
+  multiImageManager: {
+    images: Entries
+    getAllImages(): Entries
+    clear: Mock
+    restoreImage: Mock
+    fotoManager: { initializeImageSettings: Mock }
+  }
+  videoManager: { videos: Entries; getAllVideos(): Entries; clear: Mock; addVideo: Mock }
+  textManager: {
+    textObjects: ({ animation: { _state?: unknown } & Record<string, unknown> } & Record<
+      string,
+      unknown
+    >)[]
+  }
+}
+
 function makeCanvasManager() {
-  const cm = {
+  const cm: FakeBgCm = {
     background: 'rgba(255, 255, 255, 1)',
     workspaceBackground: null,
     videoBackground: null,
@@ -46,16 +95,16 @@ function makeCanvasManager() {
     workspacePreset: null,
     redrawCallback: vi.fn(),
     updateUICallback: vi.fn(),
-    setBackground: vi.fn(function (v) {
+    setBackground: vi.fn(function (this: FakeBgCm, v: unknown) {
       this.background = typeof v === 'string' ? v : { imageObject: v }
     }),
-    setWorkspaceBackground: vi.fn(function (img) {
+    setWorkspaceBackground: vi.fn(function (this: FakeBgCm, img: unknown) {
       this.workspaceBackground = { imageObject: img }
     }),
-    setVideoBackground: vi.fn(function (video) {
+    setVideoBackground: vi.fn(function (this: FakeBgCm, video: unknown) {
       this.videoBackground = { videoElement: video }
     }),
-    setWorkspaceVideoBackground: vi.fn(function (video) {
+    setWorkspaceVideoBackground: vi.fn(function (this: FakeBgCm, video: unknown) {
       this.workspaceVideoBackground = { videoElement: video }
     }),
     setGradientSettings: vi.fn(),
@@ -74,7 +123,11 @@ function makeCanvasManager() {
       },
       clear: vi.fn(),
       restoreImage: vi.fn(),
-      fotoManager: { initializeImageSettings: vi.fn((d) => (d.fotoSettings = { init: true })) },
+      fotoManager: {
+        initializeImageSettings: vi.fn(
+          (d: { fotoSettings?: unknown }) => (d.fotoSettings = { init: true }),
+        ),
+      },
     },
     videoManager: {
       videos: [],
@@ -89,12 +142,12 @@ function makeCanvasManager() {
   return cm
 }
 
-let wrapper
-let bg
-let cmRef
+let wrapper: VueWrapper | null
+let bg: ReturnType<typeof useBgSettings>
+let cmRef: Ref<FakeBgCm | null>
 
 function mountBg(cm = makeCanvasManager()) {
-  cmRef = ref(cm)
+  cmRef = ref(cm) as Ref<FakeBgCm | null>
   const Host = defineComponent({
     setup() {
       bg = useBgSettings()
@@ -102,7 +155,7 @@ function mountBg(cm = makeCanvasManager()) {
     },
   })
   wrapper = mount(Host, { global: { provide: { canvasManager: cmRef } } })
-  return cmRef.value
+  return cmRef.value!
 }
 
 const flush = async () => {
@@ -196,20 +249,20 @@ describe('useBgSettings – Audio-Reaktiv', () => {
     bg.setBgAudioProperty('effects', 'x')
     bg.setBgAudioProperty('gibtsNicht', 1)
     expect(bg.bgAudioReactive.gain).toBe(2)
-    expect(bg.bgAudioReactive.gibtsNicht).toBeUndefined()
+    expect((bg.bgAudioReactive as Record<string, unknown>).gibtsNicht).toBeUndefined()
 
-    const name = Object.keys(bg.bgAudioReactive.effects)[0]
+    const name = Object.keys(bg.bgAudioReactive.effects)[0]!
     bg.setBgEffectEnabled(name, true)
     bg.setBgEffectIntensity(name, '250')
-    expect(bg.bgAudioReactive.effects[name].intensity).toBe(100)
+    expect(bg.bgAudioReactive.effects[name]!.intensity).toBe(100)
     bg.setBgEffectIntensity(name, 'abc')
-    expect(bg.bgAudioReactive.effects[name].intensity).toBe(100)
+    expect(bg.bgAudioReactive.effects[name]!.intensity).toBe(100)
     bg.setBgEffectSource(name, '')
-    expect(bg.bgAudioReactive.effects[name].source).toBeNull()
+    expect(bg.bgAudioReactive.effects[name]!.source).toBeNull()
     bg.setBgEffectSource(name, 'mid')
-    expect(bg.bgAudioReactive.effects[name].source).toBe('mid')
+    expect(bg.bgAudioReactive.effects[name]!.source).toBe('mid')
 
-    const last = cm.setBackgroundColorAudioReactive.mock.calls.at(-1)[0]
+    const last = cm.setBackgroundColorAudioReactive.mock.calls.at(-1)![0]
     expect(last.effects[name]).toMatchObject({ enabled: true, intensity: 100, source: 'mid' })
 
     bg.setBgAudioEnabled(false)
@@ -218,7 +271,7 @@ describe('useBgSettings – Audio-Reaktiv', () => {
 
   it('Preset an/aus stellt Nutzer-Effekte wieder her', () => {
     mountBg()
-    const name = Object.keys(bg.bgAudioReactive.effects)[0]
+    const name = Object.keys(bg.bgAudioReactive.effects)[0]!
     bg.setBgEffectIntensity(name, 33)
     const before = JSON.stringify(bg.bgAudioReactive)
     const rev = bg.bgAudioRevision.value
@@ -226,7 +279,7 @@ describe('useBgSettings – Audio-Reaktiv', () => {
     bg.toggleBgAudioPreset('gibtsNicht')
     expect(bg.activeBgAudioPreset.value).toBeNull()
 
-    const [first, second] = Object.keys(AUDIO_REACTIVE_PRESETS)
+    const [first, second] = Object.keys(AUDIO_REACTIVE_PRESETS) as [string, string]
     bg.toggleBgAudioPreset(first)
     expect(bg.activeBgAudioPreset.value).toBe(first)
     expect(bg.bgAudioReactive.enabled).toBe(true)
@@ -245,7 +298,7 @@ describe('useBgSettings – Audio-Reaktiv', () => {
     bg.setBgAudioProperty('gain', 1.7)
     bg.saveBgAudioSettings()
     expect(bg.hasSavedBgAudioSettings.value).toBe(true)
-    expect(JSON.parse(localStorage.getItem('visualizer_bgAudioReactivePreset')).gain).toBe(1.7)
+    expect(JSON.parse(localStorage.getItem('visualizer_bgAudioReactivePreset')!).gain).toBe(1.7)
 
     bg.setBgAudioProperty('gain', 1)
     bg.applyBgAudioSettings()
@@ -266,7 +319,7 @@ describe('useBgSettings – Flip', () => {
     bg.toggleBgFlipH()
     expect(cm.updateBackgroundFlip).not.toHaveBeenCalled()
 
-    cmRef.value.background = { imageObject: { src: 'a.png' }, fotoSettings: { flipH: true } }
+    cmRef.value!.background = { imageObject: { src: 'a.png' }, fotoSettings: { flipH: true } }
     await nextTick()
     expect(bg.hasImageBackground.value).toBe(true)
     expect(bg.backgroundImageSrc.value).toBe('a.png')
@@ -276,7 +329,7 @@ describe('useBgSettings – Flip', () => {
 
     bg.toggleWsBgFlipH()
     expect(cm.updateWorkspaceBackgroundFlip).not.toHaveBeenCalled()
-    cmRef.value.workspaceBackground = { imageObject: { src: 'w.png' } }
+    cmRef.value!.workspaceBackground = { imageObject: { src: 'w.png' } }
     await nextTick()
     bg.toggleWsBgFlipH()
     bg.toggleWsBgFlipV()
@@ -288,7 +341,7 @@ describe('useBgSettings – Flip', () => {
     expect(bg.currentBackgroundForReplace.value).toBe('a.png')
 
     // Watcher setzen Flip zurück, wenn der Hintergrund keine fotoSettings hat
-    cmRef.value.workspaceBackground = null
+    cmRef.value!.workspaceBackground = null
     await nextTick()
     expect(bg.wsBgFlipH.value).toBe(false)
   })
@@ -304,7 +357,7 @@ describe('useBgSettings – Ersetzen & Galerie', () => {
     bg.confirmBackgroundReplace()
     expect(cm.replaceWorkspaceBackground).not.toHaveBeenCalled()
 
-    const img = new FakeImage()
+    const img = stub<HTMLImageElement>(new FakeImage())
     bg.pendingBackgroundReplaceImage.value = img
     bg.confirmBackgroundReplace()
     expect(cm.replaceWorkspaceBackground).toHaveBeenCalledTimes(1)
@@ -356,7 +409,7 @@ describe('useBgSettings – Ersetzen & Galerie', () => {
     bg.selectBgGalleryImage({ file: 'pic.jpg' })
     await bg.confirmBgReplaceFromGallery()
     expect(bg.pendingBackgroundReplaceSrc.value).toBe('pic.jpg')
-    expect(bg.pendingBackgroundReplaceImage.value.crossOrigin).toBe('anonymous')
+    expect(bg.pendingBackgroundReplaceImage.value!.crossOrigin).toBe('anonymous')
     expect(bg.showBgReplaceGallery.value).toBe(false)
 
     // Ohne Auswahl: nur schließen
@@ -372,7 +425,7 @@ describe('useBgSettings – Ersetzen & Galerie', () => {
 })
 
 describe('useBgSettings – Presets', () => {
-  function populate(cm) {
+  function populate(cm: FakeBgCm) {
     cm.background = {
       imageObject: { src: 'bg.png' },
       fotoSettings: { flipH: false, audioReactive: { enabled: true } },
@@ -400,10 +453,10 @@ describe('useBgSettings – Presets', () => {
     const cm = mountBg()
     populate(cm)
     bg.backgroundColor.value = '#112233'
-    bg.gradientEnabled.value = 1
+    bg.gradientEnabled.value = 1 as unknown as boolean
     bg.saveCurrentAsPreset()
     expect(bg.savedPresets.value).toHaveLength(1)
-    const stored = JSON.parse(localStorage.getItem('visualizer-canvas-presets'))
+    const stored = JSON.parse(localStorage.getItem('visualizer-canvas-presets')!)
     const preset = stored[0]
     expect(preset.elements.ticker).toBeTruthy()
     preset.elements.ticker = '[ticker]'
@@ -424,7 +477,7 @@ describe('useBgSettings – Presets', () => {
     mountBg()
     expect(bg.savedPresets.value).toHaveLength(2)
     bg.deletePreset(1)
-    expect(JSON.parse(localStorage.getItem('visualizer-canvas-presets'))).toEqual([{ id: 2 }])
+    expect(JSON.parse(localStorage.getItem('visualizer-canvas-presets')!)).toEqual([{ id: 2 }])
   })
 
   it('Farb-Preset: entfernt Videos + Workspace-Bild, setzt Farbe und Gradient', () => {
@@ -432,12 +485,14 @@ describe('useBgSettings – Presets', () => {
     const vid = fakeVideo('blob:x')
     cm.videoBackground = { videoElement: vid }
     cm.workspaceBackground = { imageObject: { src: 'w' } }
-    bg.loadPreset({
-      backgroundColor: '#010203',
-      backgroundOpacity: 0.5,
-      gradientEnabled: true,
-      gradientAngle: 0,
-    })
+    bg.loadPreset(
+      stub({
+        backgroundColor: '#010203',
+        backgroundOpacity: 0.5,
+        gradientEnabled: true,
+        gradientAngle: 0,
+      }),
+    )
     expect(vid.pause).toHaveBeenCalled()
     expect(vid.src).toBe('')
     expect(cm.videoBackground).toBeNull()
@@ -456,24 +511,26 @@ describe('useBgSettings – Presets', () => {
   it('Bild-Preset + Elemente: Hintergrund und Szene werden wiederhergestellt', async () => {
     const cm = mountBg()
     cm.workspacePreset = 'x'
-    bg.loadPreset({
-      backgroundColor: '#000000',
-      backgroundOpacity: 1,
-      backgroundImage: { target: 'workspace', src: 'fail-cors.png', settings: { flipV: true } },
-      elements: {
-        images: [
-          { src: 'data:image/png;base64,AAA', relX: 0.5 },
-          { src: 'x.png', fotoSettings: { a: 1 }, settings: { b: 2 } },
-          { src: null },
-        ],
-        texts: [{ id: 't', animation: { type: 'fade', _state: { isPlaying: true } } }],
-        videos: [],
-        ticker: { enabled: true },
-      },
-    })
+    bg.loadPreset(
+      stub({
+        backgroundColor: '#000000',
+        backgroundOpacity: 1,
+        backgroundImage: { target: 'workspace', src: 'fail-cors.png', settings: { flipV: true } },
+        elements: {
+          images: [
+            { src: 'data:image/png;base64,AAA', relX: 0.5 },
+            { src: 'x.png', fotoSettings: { a: 1 }, settings: { b: 2 } },
+            { src: null },
+          ],
+          texts: [{ id: 't', animation: { type: 'fade', _state: { isPlaying: true } } }],
+          videos: [],
+          ticker: { enabled: true },
+        },
+      }),
+    )
     await flush()
     expect(cm.setWorkspaceBackground).toHaveBeenCalledTimes(1)
-    expect(cm.workspaceBackground.fotoSettings).toEqual({ flipV: true })
+    expect(cm.workspaceBackground!.fotoSettings).toEqual({ flipV: true })
     expect(cm.multiImageManager.clear).toHaveBeenCalled()
     expect(cm.setActiveObject).toHaveBeenCalledWith(null)
     const restored = cm.multiImageManager.restoreImage.mock.calls
@@ -487,7 +544,7 @@ describe('useBgSettings – Presets', () => {
       fotoSettings: { init: true },
     })
     expect(byIndex[1]).toMatchObject({ settings: { b: 2 }, fotoSettings: { a: 1 } })
-    expect(cm.textManager.textObjects[0].animation._state).toEqual({
+    expect(cm.textManager.textObjects[0]!.animation._state).toEqual({
       startTime: null,
       isPlaying: false,
       currentIndex: 0,
@@ -498,7 +555,7 @@ describe('useBgSettings – Presets', () => {
   it('fehlerhafte Presets werden abgefangen', () => {
     mountBg()
     cmRef.value = null
-    expect(() => bg.loadPreset({ backgroundColor: '#000' })).not.toThrow()
+    expect(() => bg.loadPreset(stub({ backgroundColor: '#000' }))).not.toThrow()
     expect(console.error).toHaveBeenCalled()
   })
 })
@@ -518,27 +575,31 @@ describe('useBgSettings – Snapshot (Beat-Marker)', () => {
 
   it('Video-Snapshot startet das Video von vorne', async () => {
     const cm = mountBg()
-    const created = []
+    const created: { load: Mock; play: Mock; currentTime: number; onloadeddata?: () => void }[] = []
     const orig = document.createElement.bind(document)
-    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
-      if (tag !== 'video') return orig(tag)
-      const v = { load: vi.fn(), play: vi.fn(() => Promise.resolve()), currentTime: 5 }
-      created.push(v)
-      return v
-    })
-    bg.applyBackgroundSnapshot({
-      backgroundColor: '#ffffff',
-      gradientAngle: 0,
-      backgroundVideo: { src: 'blob:v', muted: true, settings: { s: 1 } },
-    })
+    vi.spyOn(document, 'createElement').mockImplementation(
+      stub((tag: string) => {
+        if (tag !== 'video') return orig(tag)
+        const v = { load: vi.fn(), play: vi.fn(() => Promise.resolve()), currentTime: 5 }
+        created.push(v)
+        return v
+      }),
+    )
+    bg.applyBackgroundSnapshot(
+      stub({
+        backgroundColor: '#ffffff',
+        gradientAngle: 0,
+        backgroundVideo: { src: 'blob:v', muted: true, settings: { s: 1 } },
+      }),
+    )
     expect(created).toHaveLength(1)
     const v = created[0]
     expect(v).toMatchObject({ src: 'blob:v', muted: true, loop: true, crossOrigin: 'anonymous' })
-    v.onloadeddata()
+    v!.onloadeddata!()
     expect(cm.setVideoBackground).toHaveBeenCalledWith(v)
-    expect(cm.videoBackground.fotoSettings).toEqual({ s: 1 })
-    expect(v.currentTime).toBe(0)
-    expect(v.play).toHaveBeenCalled()
+    expect(cm.videoBackground!.fotoSettings).toEqual({ s: 1 })
+    expect(v!.currentTime).toBe(0)
+    expect(v!.play).toHaveBeenCalled()
     // Snapshot: 0 bleibt 0 (?? statt ||)
     expect(cm.setGradientSettings).toHaveBeenLastCalledWith(
       expect.objectContaining({ angle: 0, enabled: false }),
@@ -548,7 +609,7 @@ describe('useBgSettings – Snapshot (Beat-Marker)', () => {
   it('ohne CanvasManager passiert nichts', () => {
     mountBg()
     cmRef.value = null
-    expect(() => bg.applyBackgroundSnapshot({ backgroundColor: '#000' })).not.toThrow()
+    expect(() => bg.applyBackgroundSnapshot(stub({ backgroundColor: '#000' }))).not.toThrow()
   })
 })
 
@@ -612,7 +673,7 @@ describe('useBgSettings – Reset & Events', () => {
     expect(cm.setBackground).toHaveBeenLastCalledWith('rgba(0, 255, 0, 0.5)')
     expect(cm.setGradientSettings).toHaveBeenCalled()
 
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = null
     window.dispatchEvent(
       new CustomEvent('preset:apply', { detail: { background: { color: '#0000ff' } } }),

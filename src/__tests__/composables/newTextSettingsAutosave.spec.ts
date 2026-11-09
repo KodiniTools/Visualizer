@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { useNewTextSettings } from '../../composables/useNewTextSettings'
 import {
   loadTextDefaults,
@@ -19,8 +19,8 @@ import {
   TEXT_SEQUENCE_KEY,
 } from '../../lib/textSequenceSettings'
 
-let wrapper
-let form
+let wrapper: VueWrapper | null
+let form: ReturnType<typeof useNewTextSettings>
 function mountForm() {
   const Host = defineComponent({
     setup() {
@@ -65,18 +65,18 @@ describe('Neuer Text – automatisch speichern', () => {
     f.newTextFade.value.enabled = true
     await settle()
     const saved = loadTextDefaults()
-    expect(saved.style.fontFamily).toBe('Satoshi')
-    expect(saved.style.color).toBe('#00aaff')
-    expect(saved.shadow.blur).toBe(12)
-    expect(saved.stroke.enabled).toBe(true)
-    expect(saved.fade.enabled).toBe(true)
+    expect(saved!.style.fontFamily).toBe('Satoshi')
+    expect(saved!.style.color).toBe('#00aaff')
+    expect(saved!.shadow.blur).toBe(12)
+    expect(saved!.stroke.enabled).toBe(true)
+    expect(saved!.fade.enabled).toBe(true)
   })
 
   it('nach Neustart lädt das Formular die gemerkten Werte', async () => {
     let f = mountForm()
     f.newTextStyle.value.fontSize = 88
     await settle()
-    wrapper.unmount()
+    wrapper!.unmount()
     f = mountForm()
     expect(f.loadSavedSettings()).toBe(true)
     expect(f.newTextStyle.value.fontSize).toBe(88)
@@ -98,8 +98,8 @@ describe('Neuer Text – automatisch speichern', () => {
     f.resetNewTextPosition() // Formular öffnet mit Position Mitte
     f.newTextStyle.value.color = '#123456'
     await settle()
-    expect(loadTextDefaults().position).toEqual({ x: 0.2, y: 0.8 })
-    expect(loadTextDefaults().style.color).toBe('#123456')
+    expect(loadTextDefaults()!.position).toEqual({ x: 0.2, y: 0.8 })
+    expect(loadTextDefaults()!.style.color).toBe('#123456')
   })
 
   it('„Als Standard speichern“ beim markierten Text: Formular übernimmt statt zu überschreiben', async () => {
@@ -108,8 +108,8 @@ describe('Neuer Text – automatisch speichern', () => {
     saveTextDefaults({ style: { color: '#ff0000', fontSize: 64 }, position: { x: 0.3, y: 0.3 } })
     await settle()
     expect(f.newTextStyle.value.color).toBe('#ff0000')
-    expect(loadTextDefaults().style.color).toBe('#ff0000')
-    expect(loadTextDefaults().style.fontSize).toBe(64)
+    expect(loadTextDefaults()!.style.color).toBe('#ff0000')
+    expect(loadTextDefaults()!.style.fontSize).toBe(64)
   })
 
   it('„Zurücksetzen“ beim markierten Text: Formular auf Werkseinstellung, nichts neu gespeichert', async () => {
@@ -135,9 +135,9 @@ describe('Neuer Text – automatisch speichern', () => {
     const f = mountForm()
     f.newTextStyle.value.color = '#0f0f0f'
     await nextTick()
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = null
-    expect(loadTextDefaults().style.color).toBe('#0f0f0f')
+    expect(loadTextDefaults()!.style.color).toBe('#0f0f0f')
   })
 })
 

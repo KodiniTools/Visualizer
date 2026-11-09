@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { textSlotMs, DEFAULT_SLOT_MS } from '../../composables/textManager/useTextSequence'
 import { ensureTextObjectDefaults } from '../../composables/textManager/textObjectDefaults'
 import { sortTextsById, textObjectsOf } from '../../composables/textManager/textOrder'
+import { stub } from '../helpers/canvasStubs'
 
 describe('textSlotMs', () => {
   it('ohne Animation gilt der Standardwert', () => {
-    expect(textSlotMs({})).toBe(DEFAULT_SLOT_MS)
+    expect(textSlotMs(stub({}))).toBe(DEFAULT_SLOT_MS)
     expect(textSlotMs({ animation: { type: 'none' } })).toBe(DEFAULT_SLOT_MS)
   })
 
@@ -32,7 +33,7 @@ describe('textSlotMs', () => {
   it('globale Dauer überschreibt alles, mindestens 500 ms', () => {
     const opts = { globalEnabled: true, globalDuration: 2000 }
     expect(textSlotMs({ animation: { type: 'fade' } }, opts)).toBe(2400)
-    expect(textSlotMs({}, { globalEnabled: true, globalDuration: 100 })).toBe(900)
+    expect(textSlotMs(stub({}), { globalEnabled: true, globalDuration: 100 })).toBe(900)
   })
 })
 
@@ -46,7 +47,7 @@ describe('ensureTextObjectDefaults', () => {
       shadow: { color: '#222', blur: 4, offsetX: 1, offsetY: 1 },
       animation,
     }
-    expect(ensureTextObjectDefaults(obj)).toBe(obj)
+    expect(ensureTextObjectDefaults(stub(obj))).toBe(obj)
     expect(obj.letterSpacing).toBe(2)
     expect(obj.stroke.enabled).toBe(true)
     expect(obj.animation).toBe(animation)
@@ -54,7 +55,7 @@ describe('ensureTextObjectDefaults', () => {
 
   it('letterSpacing 0 bleibt 0', () => {
     const obj = { letterSpacing: 0 }
-    ensureTextObjectDefaults(obj)
+    ensureTextObjectDefaults(stub(obj))
     expect(obj.letterSpacing).toBe(0)
   })
 })
@@ -67,6 +68,6 @@ describe('textOrder', () => {
   })
 
   it('liefert eine leere Liste ohne Canvas-Manager', () => {
-    expect(textObjectsOf({ value: null })).toEqual([])
+    expect(textObjectsOf(stub({ value: null }))).toEqual([])
   })
 })

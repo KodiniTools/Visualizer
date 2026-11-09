@@ -20,9 +20,9 @@ import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
  */
 describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
   it('stellt das Objekt beim Import mit allen Feldern auf 0 bereit (ohne window-Global)', () => {
-    expect(window.audioAnalysisData).toBeUndefined()
+    expect((window as unknown as { audioAnalysisData?: unknown }).audioAnalysisData).toBeUndefined()
     const d = getAudioAnalysisData()
-    expect(Object.keys(d).sort()).toEqual(
+    expect(Object.keys(d!).sort()).toEqual(
       [
         'bass',
         'mid',
@@ -63,11 +63,13 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
     })
     const d = getAudioAnalysisData()
     expect(d).toBe(before)
-    expect([d.bass, d.mid, d.treble, d.volume]).toEqual([200, 100, 50, 150])
-    expect([d.smoothBass, d.smoothMid, d.smoothTreble, d.smoothVolume]).toEqual([180, 90, 40, 140])
-    expect([d.isBeat, d.beatIntensity, d.bpm, d.beatConfidence]).toEqual([true, 0.7, 120, 0.9])
-    for (const k of ['onsetBass', 'onsetMid', 'onsetTreble', 'onsetAll']) {
-      expect(typeof d[k]).toBe('number')
+    expect([d!.bass, d!.mid, d!.treble, d!.volume]).toEqual([200, 100, 50, 150])
+    expect([d!.smoothBass, d!.smoothMid, d!.smoothTreble, d!.smoothVolume]).toEqual([
+      180, 90, 40, 140,
+    ])
+    expect([d!.isBeat, d!.beatIntensity, d!.bpm, d!.beatConfidence]).toEqual([true, 0.7, 120, 0.9])
+    for (const k of ['onsetBass', 'onsetMid', 'onsetTreble', 'onsetAll'] as const) {
+      expect(typeof d![k]).toBe('number')
     }
   })
 
@@ -86,8 +88,10 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
     })
     applyAudioData({ bass: 100, mid: 50, treble: 200, volume: 80 })
     const d = getAudioAnalysisData()
-    expect([d.smoothBass, d.smoothMid, d.smoothTreble, d.smoothVolume]).toEqual([40, 20, 100, 32])
-    expect(d.isBeat).toBe(false)
+    expect([d!.smoothBass, d!.smoothMid, d!.smoothTreble, d!.smoothVolume]).toEqual([
+      40, 20, 100, 32,
+    ])
+    expect(d!.isBeat).toBe(false)
   })
 
   it('Fallback-Analyse (ohne Worker) füllt die Pegel aus dem Spektrum', () => {
@@ -95,9 +99,9 @@ describe('useGlobalAudioData – globaler Audio-Datensatz', () => {
     const arr = new Uint8Array(1024).fill(100)
     updateGlobalAudioData(arr, 1024)
     const d = getAudioAnalysisData()
-    expect(d.bass).toBe(150)
-    expect(d.mid).toBe(200)
-    expect(d.treble).toBe(255)
-    expect(d.volume).toBe(150)
+    expect(d!.bass).toBe(150)
+    expect(d!.mid).toBe(200)
+    expect(d!.treble).toBe(255)
+    expect(d!.volume).toBe(150)
   })
 })

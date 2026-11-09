@@ -1,18 +1,20 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { stub } from '../helpers/canvasStubs'
 
 /**
  * Form (1:1, 16:9, 2:3, Kreis): Der Visualizer wird im Format der Form
  * gerendert (angepasst statt beschnitten) – im Single- und im Layer-Modus.
  */
 
-const calls = []
+const calls: unknown[][] = []
 
 vi.mock('../../lib/visualizers/index', () => ({
   Visualizers: {
     beams: {
-      init: (w, h) => calls.push(['init', w, h]),
-      draw: (ctx, data, len, w, h) => calls.push(['draw', w, h]),
+      init: (w: number, h: number) => calls.push(['init', w, h]),
+      draw: (ctx: unknown, data: unknown, len: unknown, w: number, h: number) =>
+        calls.push(['draw', w, h]),
     },
   },
 }))
@@ -26,12 +28,19 @@ vi.mock('../../lib/workerManager', () => ({
 vi.mock('../../lib/visualizers/imageRegistry', () => ({ getVisualizerImageSource: () => null }))
 vi.mock('../../stores/historyStore', () => ({ useHistoryStore: () => ({}) }))
 vi.mock('../../lib/history/historyRecorder', () => ({
-  getHistoryRecorder: () => ({ absorb: (fn) => fn() }),
+  getHistoryRecorder: () => ({ absorb: (fn: () => void) => fn() }),
 }))
 vi.mock('../../composables/renderLoop/canvasCache', () => ({
-  ensureSizedCanvas: (entry, width, height) => {
+  ensureSizedCanvas: (
+    entry: { canvas: { width: number; height: number } } | null,
+    width: number,
+    height: number,
+  ) => {
     if (entry && entry.canvas.width === width && entry.canvas.height === height) return entry
-    const ctx = new Proxy({}, { get: (t, p) => (p in t ? t[p] : () => {}), set: () => true })
+    const ctx = new Proxy({} as Record<string | symbol, unknown>, {
+      get: (t, p) => (p in t ? t[p] : () => {}),
+      set: () => true,
+    })
     return { canvas: { width, height }, ctx }
   },
 }))
@@ -41,33 +50,32 @@ const { createSingleVisualizerRenderer } = await import(
 )
 const { createMultiLayerRenderer } = await import('../../composables/renderLoop/multiLayerRenderer')
 
-const analyser = { frequencyBinCount: 4 }
+const analyser = stub<AnalyserNode>({ frequencyBinCount: 4 })
 const audio = new Uint8Array(4)
-const canvas = { width: 1920, height: 1080 }
-const deps = (visualizerStore) => ({
-  visualizerStore,
-  getTimeDomainData: () => audio,
-  effectiveImageId: () => null,
-  currentQuality: () => 1,
-  ensureMainPostProcessor: () => null,
-  getMainPostProcessor: () => null,
-})
+const canvas = stub<HTMLCanvasElement>({ width: 1920, height: 1080 })
+const deps = (visualizerStore: object) =>
+  stub<Parameters<typeof createSingleVisualizerRenderer>[0]>({
+    visualizerStore,
+    getTimeDomainData: () => audio,
+    effectiveImageId: () => null,
+    currentQuality: () => 1,
+    ensureMainPostProcessor: () => null,
+    getMainPostProcessor: () => null,
+  })
 
 /** Ziel-Context, der nur drawImage protokolliert. */
 function target() {
-  const drawn = []
-  const ctx = new Proxy(
-    {},
-    {
-      get: (t, p) => (p === 'drawImage' ? (...a) => drawn.push(a) : p in t ? t[p] : () => {}),
-      set: (t, p, v) => ((t[p] = v), true),
-    },
-  )
-  return { ctx, drawn }
+  const drawn: unknown[][] = []
+  const ctx = new Proxy({} as Record<string | symbol, unknown>, {
+    get: (t, p) =>
+      p === 'drawImage' ? (...a: unknown[]) => drawn.push(a) : p in t ? t[p] : () => {},
+    set: (t, p, v) => ((t[p] = v), true),
+  })
+  return { ctx: stub<CanvasRenderingContext2D>(ctx), drawn }
 }
 
 describe('Single-Modus: Rendern im Format der Form', () => {
-  let store
+  let store: Record<string, unknown>
   beforeEach(() => {
     calls.length = 0
     store = {
@@ -98,8 +106,8 @@ describe('Single-Modus: Rendern im Format der Form', () => {
     expect(calls).toContainEqual(['draw', 1080, 1080])
 
     const { ctx, drawn } = target()
-    draw(ctx, 1920, 1080)
-    expect(drawn[0].slice(1)).toEqual([0, 0, 1080, 1080, 420, 0, 1080, 1080])
+    draw!(ctx, 1920, 1080)
+    expect(drawn[0]!.slice(1)).toEqual([0, 0, 1080, 1080, 420, 0, 1080, 1080])
   })
 
   it('initialisiert den Visualizer beim Formwechsel neu in der neuen Größe', () => {

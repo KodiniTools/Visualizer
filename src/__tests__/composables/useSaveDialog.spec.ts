@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useSaveDialog } from '../../composables/useSaveDialog'
+import { stub } from '../helpers/canvasStubs'
 
 const request = { url: 'blob:clip', suggestedName: 'visualizer_1.mp4', extension: 'mp4' }
 
-function domError(name) {
+function domError(name: string) {
   const error = new Error(name)
   error.name = name
   return error
@@ -27,7 +28,7 @@ describe('useSaveDialog', () => {
       body: null,
       blob: async () => new Blob(['v']),
     }))
-    const { dialog, requestSave } = useSaveDialog({ win })
+    const { dialog, requestSave } = useSaveDialog({ win: stub(win) })
     await expect(requestSave(request)).resolves.toBe('saved')
     expect(win.showSaveFilePicker).toHaveBeenCalledTimes(1)
     expect(dialog.open).toBe(false)
@@ -36,7 +37,7 @@ describe('useSaveDialog', () => {
 
   it('gibt cancelled zurück, wenn der Nutzer den Picker abbricht', async () => {
     const win = { document, showSaveFilePicker: async () => Promise.reject(domError('AbortError')) }
-    const { dialog, requestSave } = useSaveDialog({ win })
+    const { dialog, requestSave } = useSaveDialog({ win: stub(win) })
     await expect(requestSave(request)).resolves.toBe('cancelled')
     expect(dialog.open).toBe(false)
   })
@@ -57,7 +58,7 @@ describe('useSaveDialog', () => {
     await Promise.resolve()
     expect(confirm('Mein Clip?')).toBe(true)
     await expect(promise).resolves.toBe('downloaded')
-    expect(click.mock.contexts[0].download).toBe('Mein Clip.mp4')
+    expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe('Mein Clip.mp4')
     expect(dialog.open).toBe(false)
   })
 
@@ -88,7 +89,7 @@ describe('useSaveDialog', () => {
       document,
       showSaveFilePicker: async () => Promise.reject(domError('SecurityError')),
     }
-    const { dialog, requestSave, cancel } = useSaveDialog({ win })
+    const { dialog, requestSave, cancel } = useSaveDialog({ win: stub(win) })
     const promise = requestSave(request)
     await vi.waitFor(() => expect(dialog.open).toBe(true))
     cancel()
@@ -107,7 +108,7 @@ describe('useSaveDialog', () => {
 
   it('ignoriert Anfragen ohne URL', async () => {
     const { dialog, requestSave } = useSaveDialog({ win: fallbackWin() })
-    await expect(requestSave({ ...request, url: null })).resolves.toBe('cancelled')
+    await expect(requestSave(stub({ ...request, url: null }))).resolves.toBe('cancelled')
     expect(dialog.open).toBe(false)
   })
 })

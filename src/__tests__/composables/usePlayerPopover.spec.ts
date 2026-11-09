@@ -1,10 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { usePlayerPopover, isOutsidePopoverClick } from '../../composables/usePlayerPopover'
+import { stub } from '../helpers/canvasStubs'
 
 describe('usePlayerPopover – Klickverhalten der Sticky Bar', () => {
   it('Einfachklick aktiviert die Funktion und öffnet das Fenster mittig', () => {
     const p = usePlayerPopover()
-    p.onBarClick('gallery', { detail: 1 })
+    p.onBarClick('gallery', stub({ detail: 1 }))
     expect(p.isActive('gallery')).toBe(true)
     expect(p.isOpen('gallery')).toBe(true)
     expect(p.cascadeOffset('gallery')).toMatchObject({ center: true })
@@ -13,37 +14,37 @@ describe('usePlayerPopover – Klickverhalten der Sticky Bar', () => {
 
   it('Klick daneben blendet aus, Funktion bleibt aktiv; erneuter Klick öffnet wieder', () => {
     const p = usePlayerPopover()
-    p.onBarClick('gallery', { detail: 1 })
-    p.onBarClick('effects', { detail: 1 })
+    p.onBarClick('gallery', stub({ detail: 1 }))
+    p.onBarClick('effects', stub({ detail: 1 }))
     p.hideAllPopovers()
     expect(p.isOpen('gallery')).toBe(false)
     expect(p.isOpen('effects')).toBe(false)
     expect(p.isActive('gallery')).toBe(true)
     expect(p.isActive('effects')).toBe(true)
-    p.onBarClick('gallery', { detail: 1 })
+    p.onBarClick('gallery', stub({ detail: 1 }))
     expect(p.isOpen('gallery')).toBe(true)
     expect(p.isOpen('effects')).toBe(false)
   })
 
   it('Einfachklick auf ein offenes Fenster lässt es offen (Tastatur: detail 0)', () => {
     const p = usePlayerPopover()
-    p.onBarClick('presets', { detail: 0 })
-    p.onBarClick('presets', { detail: 0 })
+    p.onBarClick('presets', stub({ detail: 0 }))
+    p.onBarClick('presets', stub({ detail: 0 }))
     expect(p.isOpen('presets')).toBe(true)
   })
 
   it('Doppelklick deaktiviert; dessen zweiter Klick öffnet nicht erneut', () => {
     const p = usePlayerPopover()
     // Browser-Abfolge eines Doppelklicks: click(1), click(2), dblclick
-    p.onBarClick('video', { detail: 1 })
-    p.onBarClick('video', { detail: 2 })
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.onBarClick('video', stub({ detail: 2 }))
     p.onBarDblClick('video')
     expect(p.isOpen('video')).toBe(false)
     expect(p.isActive('video')).toBe(false)
     // auch eine ausgeblendete, aktive Funktion
-    p.onBarClick('video', { detail: 1 })
+    p.onBarClick('video', stub({ detail: 1 }))
     p.hidePopover('video')
-    p.onBarClick('video', { detail: 2 })
+    p.onBarClick('video', stub({ detail: 2 }))
     expect(p.isOpen('video')).toBe(false)
     p.onBarDblClick('video')
     expect(p.isActive('video')).toBe(false)

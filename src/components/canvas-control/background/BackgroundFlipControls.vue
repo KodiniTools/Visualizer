@@ -8,8 +8,8 @@
           type="button"
           class="flip-button"
           :class="{ active: bgFlipH }"
-          @click="toggleBgFlipH"
           :title="t('canvasControl.flipHorizontal')"
+          @click="toggleBgFlipH"
         >
           {{ t('canvasControl.horizontal') }}
         </button>
@@ -17,8 +17,8 @@
           type="button"
           class="flip-button"
           :class="{ active: bgFlipV }"
-          @click="toggleBgFlipV"
           :title="t('canvasControl.flipVertical')"
+          @click="toggleBgFlipV"
         >
           {{ t('canvasControl.vertical') }}
         </button>
@@ -33,8 +33,8 @@
           type="button"
           class="flip-button"
           :class="{ active: wsBgFlipH }"
-          @click="toggleWsBgFlipH"
           :title="t('canvasControl.flipHorizontal')"
+          @click="toggleWsBgFlipH"
         >
           {{ t('canvasControl.horizontal') }}
         </button>
@@ -42,8 +42,8 @@
           type="button"
           class="flip-button"
           :class="{ active: wsBgFlipV }"
-          @click="toggleWsBgFlipV"
           :title="t('canvasControl.flipVertical')"
+          @click="toggleWsBgFlipV"
         >
           {{ t('canvasControl.vertical') }}
         </button>

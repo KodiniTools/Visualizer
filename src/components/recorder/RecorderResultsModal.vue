@@ -10,9 +10,9 @@
         <div class="modal-header">
           <h2>{{ t('recorder.recordingPreview') }}</h2>
           <button
-            @click="$emit('close')"
             class="modal-close-btn"
             :title="t('common.close') + ' (ESC)'"
+            @click="$emit('close')"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -26,7 +26,7 @@
             <video id="preview" controls class="preview-video"></video>
           </div>
           <div class="modal-actions">
-            <button @click="$emit('close')" class="cancel-btn">
+            <button class="cancel-btn" @click="$emit('close')">
               {{ t('common.close') }}
             </button>
           </div>

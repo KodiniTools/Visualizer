@@ -56,7 +56,7 @@
           <!-- Tab: Workflow -->
           <div v-if="activeTab === 'workflow'" class="tab-content">
             <div class="workflow-steps">
-              <div class="workflow-step" v-for="(step, idx) in langContent.workflow" :key="idx">
+              <div v-for="(step, idx) in langContent.workflow" :key="idx" class="workflow-step">
                 <div class="step-number">{{ idx + 1 }}</div>
                 <div class="step-info">
                   <span class="step-title">{{ step.title }}</span>
@@ -70,7 +70,7 @@
           <!-- Tab: Features -->
           <div v-if="activeTab === 'features'" class="tab-content">
             <div class="feature-list">
-              <div class="feature-item" v-for="(f, idx) in langContent.features" :key="idx">
+              <div v-for="(f, idx) in langContent.features" :key="idx" class="feature-item">
                 <div class="feature-header">
                   <span class="feature-icon">{{ f.icon }}</span>
                   <span class="feature-title">{{ f.title }}</span>
@@ -84,10 +84,10 @@
 
           <!-- Tab: Shortcuts -->
           <div v-if="activeTab === 'shortcuts'" class="tab-content">
-            <div class="shortcut-group" v-for="(group, gidx) in langContent.shortcuts" :key="gidx">
+            <div v-for="(group, gidx) in langContent.shortcuts" :key="gidx" class="shortcut-group">
               <div class="shortcut-group-title">{{ group.title }}</div>
               <div class="shortcuts-grid">
-                <div class="shortcut-item" v-for="(sc, sidx) in group.items" :key="sidx">
+                <div v-for="(sc, sidx) in group.items" :key="sidx" class="shortcut-item">
                   <UiKbd class="shortcut-keys" :keys="sc.keys" />
                   <span class="shortcut-desc">{{ sc.desc }}</span>
                 </div>
@@ -98,10 +98,10 @@
           <!-- Tab: Tips -->
           <div v-if="activeTab === 'tips'" class="tab-content">
             <div class="tips-list">
-              <div class="tip-item" v-for="(tip, idx) in langContent.tips" :key="idx">
+              <div v-for="(tip, idx) in langContent.tips" :key="idx" class="tip-item">
                 <span class="tip-icon">{{ tip.icon }}</span>
                 <div class="tip-body">
-                  <span class="tip-title" v-if="tip.title">{{ tip.title }}</span>
+                  <span v-if="tip.title" class="tip-title">{{ tip.title }}</span>
                   <span class="tip-text">{{ tip.text }}</span>
                 </div>
               </div>

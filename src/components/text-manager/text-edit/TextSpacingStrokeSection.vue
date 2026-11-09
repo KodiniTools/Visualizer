@@ -15,11 +15,11 @@
         >
         <SliderField
           v-model="selectedText.letterSpacing"
-          @update:model-value="updateText"
           :min="-20"
           :max="50"
           :default-value="0"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
 
@@ -30,11 +30,11 @@
         >
         <SliderField
           v-model="selectedText.lineHeightMultiplier"
-          @update:model-value="updateText"
           :min="100"
           :max="300"
           :default-value="120"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
 
@@ -43,8 +43,8 @@
         <label>{{ t('textManager.layout.textOutline') }}:</label>
         <div class="button-group">
           <button
-            @click="toggleStroke"
             :class="['btn-small', { active: selectedText.stroke.enabled }]"
+            @click="toggleStroke"
           >
             {{
               selectedText.stroke.enabled
@@ -67,11 +67,11 @@
               @update:model-value="updateText"
             />
             <input
-              type="text"
               v-model="selectedText.stroke.color"
-              @input="updateText"
+              type="text"
               class="color-text-input"
               placeholder="#000000"
+              @input="updateText"
             />
           </div>
         </div>
@@ -81,11 +81,11 @@
           <label>{{ t('textManager.outlineWidth') }}: {{ selectedText.stroke.width }}px</label>
           <SliderField
             v-model="selectedText.stroke.width"
-            @update:model-value="updateText"
             :min="1"
             :max="100"
             :default-value="2"
             class="slider"
+            @update:model-value="updateText"
           />
         </div>
       </div>

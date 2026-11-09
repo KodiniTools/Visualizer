@@ -7,11 +7,11 @@
 
     <!-- Text-Verzeichnis: alle Texte auflisten & einzeln markieren -->
     <TextDirectoryPanel
+      v-model:global-duration-enabled="globalDurationEnabled"
+      v-model:global-duration="globalDuration"
       :items="textList"
       :active-id="selectedText?.id ?? null"
       :sequence-playing="sequencePlaying"
-      v-model:global-duration-enabled="globalDurationEnabled"
-      v-model:global-duration="globalDuration"
       @select="selectTextFromDirectory"
       @restart="restartTextFromDirectory"
       @return-to-canvas="returnTextToCanvas"
@@ -31,10 +31,10 @@
     <!-- Single edit mode -->
     <TextEditPanel
       v-else-if="selectedText"
+      ref="editPanelRef"
       :selected-text="selectedText"
       :canvas-width="canvasWidth"
       :canvas-height="canvasHeight"
-      ref="editPanelRef"
       @delete="deleteSelectedText"
     />
   </div>

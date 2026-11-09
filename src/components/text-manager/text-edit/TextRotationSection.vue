@@ -12,11 +12,11 @@
         <label>{{ t('textManager.rotation') }}: {{ selectedText.rotation }}°</label>
         <SliderField
           v-model="selectedText.rotation"
-          @update:model-value="updateText"
           :min="-180"
           :max="180"
           :default-value="0"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
     </div>

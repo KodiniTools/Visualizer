@@ -5,8 +5,8 @@
       <h5>{{ t('canvasControl.backgroundImage') || 'Hintergrundbild' }}</h5>
       <div
         class="background-thumb"
-        @dblclick="openBackgroundReplaceModal('background')"
         :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
+        @dblclick="openBackgroundReplaceModal('background')"
       >
         <img v-if="backgroundImageSrc" :src="backgroundImageSrc" alt="Background" />
         <span class="thumb-hint">{{
@@ -20,8 +20,8 @@
       <h5>{{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}</h5>
       <div
         class="background-thumb"
-        @dblclick="openBackgroundReplaceModal('workspace')"
         :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
+        @dblclick="openBackgroundReplaceModal('workspace')"
       >
         <img
           v-if="workspaceBackgroundImageSrc"

@@ -1,7 +1,7 @@
 <template>
   <div
-    class="blog-page"
     ref="pageRef"
+    class="blog-page"
     :class="{ 'light-theme': !isDark }"
     :data-locale="currentLocale"
   >

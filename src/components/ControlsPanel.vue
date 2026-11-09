@@ -67,8 +67,8 @@
           :key="key"
           class="preset-btn"
           :class="{ active: workspaceStore.selectedPresetKey === key }"
-          @click="workspaceStore.selectedPresetKey = key"
           :title="preset.name"
+          @click="workspaceStore.selectedPresetKey = key"
         >
           {{ getPresetShortName(preset.name) }}
         </button>

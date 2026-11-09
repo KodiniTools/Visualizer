@@ -9,12 +9,12 @@
           @update:model-value="updateFromColorPicker"
         />
         <input
-          type="text"
           v-model="colorDisplay"
-          @input="updateFromTextInput"
-          @blur="formatColorDisplay"
+          type="text"
           class="color-text-input"
           placeholder="rgba(0, 0, 0, 1)"
+          @input="updateFromTextInput"
+          @blur="formatColorDisplay"
         />
       </div>
     </div>

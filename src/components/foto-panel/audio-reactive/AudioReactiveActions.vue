@@ -1,12 +1,12 @@
 <template>
   <div class="audio-preset-actions">
-    <button class="btn-preset-action btn-save" @click="saveSettings" :disabled="!hasActiveImage">
+    <button class="btn-preset-action btn-save" :disabled="!hasActiveImage" @click="saveSettings">
       {{ t('foto.save') }}
     </button>
     <button
       class="btn-preset-action btn-apply"
-      @click="applySettings"
       :disabled="!hasSavedSettings"
+      @click="applySettings"
     >
       {{ t('foto.apply') }}
     </button>

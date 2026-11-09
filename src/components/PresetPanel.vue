@@ -19,10 +19,10 @@
               '--preset-color': preset.visualizer.color,
               '--preset-bg': preset.background.color,
             }"
-            @click="apply(preset)"
             :title="
               preset.needsImage ? `${preset.name} — ${t('presets.needsImageHint')}` : preset.name
             "
+            @click="apply(preset)"
           >
             <span class="preset-emoji">{{ preset.emoji }}</span>
             <span class="preset-name">{{ preset.name }}</span>
@@ -39,10 +39,10 @@
             v-model="newPresetName"
             class="preset-name-input"
             :placeholder="t('presets.namePlaceholder')"
-            @keydown.enter="saveCurrent"
             maxlength="30"
+            @keydown.enter="saveCurrent"
           />
-          <button class="btn-save" @click="saveCurrent" :disabled="!newPresetName.trim()">
+          <button class="btn-save" :disabled="!newPresetName.trim()" @click="saveCurrent">
             💾 {{ t('presets.save') }}
           </button>
         </div>
@@ -68,8 +68,8 @@
               </button>
               <button
                 class="btn-delete"
-                @click.stop="deletePreset(preset.id)"
                 :title="t('common.delete')"
+                @click.stop="deletePreset(preset.id)"
               >
                 ✕
               </button>

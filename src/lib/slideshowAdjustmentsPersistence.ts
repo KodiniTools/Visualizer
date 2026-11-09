@@ -2,12 +2,16 @@ import { slideshowStableKey } from '../components/foto-panel/slideshow/slideshow
 
 type Loose = Record<string, unknown>
 
-/** Benötigter Ausschnitt des SlideshowManagers */
-export interface AdjustmentsManager {
-  getImageAdjustments(obj: object): unknown
-  setImageAdjustments(obj: object, adjustments: object, audioMode?: string): unknown
-  getImageBounds(obj: object): unknown
-  setImageBounds(obj: object, bounds: object): unknown
+/**
+ * Benötigter Ausschnitt des SlideshowManagers. `Img` ist der Typ der
+ * Bild-Objekte (beim SlideshowManager HTMLImageElement); dieselben Objekte
+ * liefert `resolveImageObject`.
+ */
+export interface AdjustmentsManager<Img = object> {
+  getImageAdjustments(obj: Img): unknown
+  setImageAdjustments(obj: Img, adjustments: object, audioMode?: string): unknown
+  getImageBounds(obj: Img): unknown
+  setImageBounds(obj: Img, bounds: object): unknown
 }
 
 export interface StoredAdjustments {
@@ -24,14 +28,14 @@ export interface StoredAdjustments {
  * @param {{ resolveImageObject: (img:object) => object|null, getAdjustments: (key:string|null) => {adjustments:object, audioMode:string}|null }} deps
  * @returns {number} Anzahl übernommener Bilder
  */
-export function restorePersistedAdjustments(
-  manager: Pick<AdjustmentsManager, 'getImageAdjustments' | 'setImageAdjustments'> | null,
+export function restorePersistedAdjustments<Img>(
+  manager: Pick<AdjustmentsManager<Img>, 'getImageAdjustments' | 'setImageAdjustments'> | null,
   images: unknown,
   {
     resolveImageObject,
     getAdjustments,
   }: {
-    resolveImageObject: (img: Loose) => object | null
+    resolveImageObject: (img: Loose) => Img | null
     getAdjustments: (key: string | null) => StoredAdjustments | null | undefined
   },
 ): number {
@@ -87,14 +91,14 @@ export function diffAdjustments(
  * @param {{ resolveImageObject: (img:object) => object|null, getBounds: (key:string|null) => object|null }} deps
  * @returns {number} Anzahl übernommener Bilder
  */
-export function restorePersistedBounds(
-  manager: Pick<AdjustmentsManager, 'getImageBounds' | 'setImageBounds'> | null,
+export function restorePersistedBounds<Img>(
+  manager: Pick<AdjustmentsManager<Img>, 'getImageBounds' | 'setImageBounds'> | null,
   images: unknown,
   {
     resolveImageObject,
     getBounds,
   }: {
-    resolveImageObject: (img: Loose) => object | null
+    resolveImageObject: (img: Loose) => Img | null
     getBounds: (key: string | null) => object | null | undefined
   },
 ): number {

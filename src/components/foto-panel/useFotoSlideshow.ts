@@ -15,7 +15,6 @@ import {
   diffAdjustments,
   restorePersistedAdjustments as restorePersistedAdjustmentsInto,
   restorePersistedBounds as restorePersistedBoundsInto,
-  type AdjustmentsManager,
 } from '../../lib/slideshowAdjustmentsPersistence'
 import {
   buildSlideshowSourceImages,
@@ -410,7 +409,7 @@ export function useFotoSlideshow({
 
   // Dauerhaft gemerkte Größe/Position für Bilder ohne eigene Bounds in dieser Sitzung
   function restorePersistedBounds(images: SlideshowSourceImage[]) {
-    restorePersistedBoundsInto(slideshowManagerRef.value as AdjustmentsManager | null, images, {
+    restorePersistedBoundsInto(slideshowManagerRef.value, images, {
       resolveImageObject: slideshowImageObject,
       getBounds: (key) => imageSettingsStore.getImageSettings(key)?.bounds ?? null,
     })
@@ -418,14 +417,10 @@ export function useFotoSlideshow({
 
   // Dauerhaft gemerkte Anpassungen in den Sitzungsspeicher der Slideshow übernehmen
   function restorePersistedAdjustments(images: SlideshowSourceImage[]) {
-    restorePersistedAdjustmentsInto(
-      slideshowManagerRef.value as AdjustmentsManager | null,
-      images,
-      {
-        resolveImageObject: slideshowImageObject,
-        getAdjustments: (key) => adjustmentsStore.getAdjustments(key),
-      },
-    )
+    restorePersistedAdjustmentsInto(slideshowManagerRef.value, images, {
+      resolveImageObject: slideshowImageObject,
+      getAdjustments: (key) => adjustmentsStore.getAdjustments(key),
+    })
   }
 
   // Einstellungen des Slideshow-Panels (wirken auch während laufender Slideshow)

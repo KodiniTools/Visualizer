@@ -3,7 +3,6 @@ import { createPinia, setActivePinia } from 'pinia'
 import { BUILT_IN_PRESETS, usePresetStore } from '../../stores/presetStore'
 import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../../stores/visualizerStore'
 import { Visualizers } from '../../lib/visualizers/index'
-import { stub } from '../helpers/canvasStubs'
 
 /** Gemeinsame Sicht auf die eingebauten Presets (Einzel- und Multi-Layer) */
 interface PresetLayerView {
@@ -28,6 +27,13 @@ const multiPresets = (BUILT_IN_PRESETS as readonly PresetView[]).filter(
   (p): p is MultiPresetView => p.visualizer.mode === 'multi',
 )
 const blendIds = BLEND_MODES.map((m) => m.id)
+
+/** Das eingebaute Preset (VisualizerPreset) zu einer Sicht, z. B. für applyPreset */
+const original = (view: PresetView) => {
+  const preset = BUILT_IN_PRESETS.find((p) => p.id === view.id)
+  if (!preset) throw new Error(`Preset ${view.id} fehlt`)
+  return preset
+}
 
 let viz: ReturnType<typeof useVisualizerStore>
 let presets: ReturnType<typeof usePresetStore>
@@ -173,7 +179,7 @@ describe('Anwenden einer Multi-Layer-Vorlage', () => {
     viz.showVisualizer = false
     viz.multiLayerMode = false
 
-    presets.applyPreset(stub(preset), { value: null })
+    presets.applyPreset(original(preset!), { value: null })
 
     expect(viz.multiLayerMode).toBe(true)
     expect(viz.showVisualizer).toBe(true)
@@ -188,10 +194,10 @@ describe('Anwenden einer Multi-Layer-Vorlage', () => {
     const single = (BUILT_IN_PRESETS as readonly PresetView[]).find(
       (p) => p.visualizer.mode === 'single',
     )
-    presets.applyPreset(stub(multiPresets[0]!), { value: null })
+    presets.applyPreset(original(multiPresets[0]!), { value: null })
     expect(viz.multiLayerMode).toBe(true)
 
-    presets.applyPreset(stub(single!), { value: null })
+    presets.applyPreset(original(single!), { value: null })
     expect(viz.multiLayerMode).toBe(false)
     expect(viz.visualizerLayers).toHaveLength(0)
     expect(viz.selectedVisualizer).toBe(single!.visualizer.selectedVisualizer)

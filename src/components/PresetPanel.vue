@@ -101,7 +101,7 @@ const toastStore = useToastStore()
 
 const collapsed = ref(false)
 const newPresetName = ref('')
-const builtInPresets = BUILT_IN_PRESETS as VisualizerPreset[]
+const builtInPresets = BUILT_IN_PRESETS
 
 /**
  * Untertitel der Preset-Kachel: bei Multi-Layer-Vorlagen die Anzahl der

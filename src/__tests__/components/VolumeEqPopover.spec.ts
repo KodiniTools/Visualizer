@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 // Lautstärke-/EQ-Popover: Werte anzeigen, Stummschalten, Regler melden
 // Änderungen an usePlayerVolumeEq, Schließen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, ref, type Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import VolumeEqPopover from '../../components/sticky-player-bar/VolumeEqPopover.vue'
 import { usePlayerPopover } from '../../composables/usePlayerPopover'
@@ -11,10 +11,17 @@ import { usePlayerStore } from '../../stores/playerStore'
 import de from '../../lib/i18n/de'
 
 const P = de.player
-let wrapper
-let player
-let popover
-let volumeEq
+let wrapper: VueWrapper | null
+let player: ReturnType<typeof usePlayerStore>
+let popover: ReturnType<typeof usePlayerPopover>
+let volumeEq: {
+  volume: Ref<number>
+  bass: Ref<number>
+  treble: Ref<number>
+  updateVolume: Mock
+  updateBass: Mock
+  updateTreble: Mock
+}
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -44,12 +51,12 @@ async function mountPopover() {
   return wrapper
 }
 
-const ranges = () => wrapper.findAll('input[type="range"]')
+const ranges = () => wrapper!.findAll('input[type="range"]')
 
 describe('VolumeEqPopover', () => {
   it('zeigt Lautstärke, Bass und Höhen mit Vorzeichen', async () => {
     await mountPopover()
-    const text = wrapper.text()
+    const text = wrapper!.text()
     expect(text).toContain(`${P.volume}: 80%`)
     expect(text).toContain(`${P.bass}: +3 dB`)
     expect(text).toContain(`${P.treble}: -2 dB`)
@@ -61,20 +68,20 @@ describe('VolumeEqPopover', () => {
       player.isMuted = !player.isMuted
     })
     await mountPopover()
-    const btn = wrapper.find(`button[title="${P.mute}"]`)
+    const btn = wrapper!.find(`button[title="${P.mute}"]`)
     expect(btn.attributes('aria-pressed')).toBe('false')
     await btn.trigger('click')
     expect(toggle).toHaveBeenCalled()
-    expect(wrapper.text()).toContain(P.muted)
-    expect(wrapper.find(`button[title="${P.unmute}"]`).attributes('aria-pressed')).toBe('true')
+    expect(wrapper!.text()).toContain(P.muted)
+    expect(wrapper!.find(`button[title="${P.unmute}"]`).attributes('aria-pressed')).toBe('true')
   })
 
   it('Regler schreiben den Wert und melden ihn weiter', async () => {
     await mountPopover()
     const [vol, bass, treble] = ranges()
-    await vol.setValue('40')
-    await bass.setValue('-6')
-    await treble.setValue('9')
+    await vol!.setValue('40')
+    await bass!.setValue('-6')
+    await treble!.setValue('9')
     expect(volumeEq.volume.value).toBe(40)
     expect(volumeEq.bass.value).toBe(-6)
     expect(volumeEq.treble.value).toBe(9)
@@ -86,7 +93,7 @@ describe('VolumeEqPopover', () => {
   it('Schließen schließt nur dieses Popover', async () => {
     popover.openPopover('playlist')
     await mountPopover()
-    await wrapper.find(`button[title="${de.common.close}"]`).trigger('click')
+    await wrapper!.find(`button[title="${de.common.close}"]`).trigger('click')
     expect(popover.isOpen('volume')).toBe(false)
     expect(popover.isOpen('playlist')).toBe(true)
   })

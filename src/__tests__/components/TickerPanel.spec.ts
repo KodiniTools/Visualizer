@@ -3,7 +3,7 @@
 // Texte, Werte und Rollen statt CSS-Klassen, damit die Tests den Wechsel auf
 // die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -16,8 +16,8 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const T = de.ticker
-let wrapper
-let store
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useTickerStore>
 
 beforeEach(() => {
   localStorage.clear()
@@ -43,15 +43,15 @@ async function mountPanel(enabled = true) {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
 const ranges = () => [...root().querySelectorAll('input[type="range"]')]
 const rangeValues = () => ranges().map((r) => r.value)
 
 /** Ein-/Aus-Schalter über den sichtbaren Namen (Checkbox im Label oder Switch). */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) => i.closest('label')?.textContent.trim() === name,
   )
@@ -68,7 +68,7 @@ const enableControl = () =>
   )
 
 /** Select nach seinem Label (Text vor dem Doppelpunkt oder ui-select-Label). */
-function selectFor(name) {
+function selectFor(name: string) {
   const label = [...root().querySelectorAll('label')].find(
     (l) => l.textContent.trim().replace(/:$/, '') === name,
   )
@@ -108,7 +108,7 @@ describe('Lauftext – Unter-Sektionen', () => {
       'sectionBackground',
       'sectionMotion',
       'sectionAudio',
-    ]) {
+    ] as const) {
       expect(text()).toContain(T[k])
     }
     const spy = vi.spyOn(store, 'resetSection')

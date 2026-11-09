@@ -3,24 +3,26 @@
 // (Reaktions-Presets, Schwellenwert/Attack/Release, Blinken, Zurücksetzen).
 // Das gemeinsame AudioReactivePanel ist gestubbt; Zugriff über Beschriftungen
 // und Rollen, damit die Tests den Wechsel auf die Ui-Bausteine überstehen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, reactive, ref } from 'vue'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, reactive, ref, type Ref, type SetupContext } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import TextAudioReactivePanel from '../../components/text-manager/TextAudioReactivePanel.vue'
 import { createTextAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
+import type { TextObject } from '../../lib/textManager/types'
+import { stub } from '../helpers/canvasStubs'
 
 const T = de.textManager
-let wrapper
-let text
-let canvasManager
+let wrapper: VueWrapper | null
+let text: TextObject
+let canvasManager: Ref<{ redrawCallback: Mock }>
 
 const PanelStub = {
   template: '<div class="ar-panel-stub" />',
-  setup(_, { expose }) {
+  setup(_: unknown, { expose }: SetupContext) {
     expose({ loadSettings: vi.fn(), audioLevelBarRef: null })
   },
 }
@@ -29,7 +31,9 @@ beforeEach(() => {
   setActivePinia(createPinia())
   localStorage.clear()
   canvasManager = ref({ redrawCallback: vi.fn() })
-  text = reactive({ id: 't1', audioReactive: createTextAudioReactiveConfig({ enabled: true }) })
+  text = stub(
+    reactive({ id: 't1', audioReactive: createTextAudioReactiveConfig({ enabled: true }) }),
+  )
 })
 
 afterEach(() => {
@@ -48,18 +52,18 @@ async function mountPanel() {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const ar = () => text.audioReactive
 const buttons = () => [...root().querySelectorAll('button')]
-const buttonWithText = (part) => buttons().find((b) => b.textContent.includes(part))
+const buttonWithText = (part: string) => buttons().find((b) => b.textContent.includes(part))
 /** Range-Regler der Gruppe, deren Label mit `name` beginnt. */
-function range(name) {
+function range(name: string) {
   const group = [...root().querySelectorAll('.control-group')].find((g) =>
     g.textContent.trim().startsWith(name),
   )
   return group?.querySelector('input[type="range"]')
 }
-async function slide(name, value) {
+async function slide(name: string, value: number) {
   const el = range(name)
   el.value = String(value)
   el.dispatchEvent(new Event('input'))
@@ -80,7 +84,7 @@ function easeToggle() {
 describe('Text-Audio-Reaktiv – Reaktions-Presets', () => {
   it('vier Presets mit Titel, Klick übernimmt die Werte', async () => {
     await mountPanel()
-    for (const key of ['presetPunchy', 'presetSmooth', 'presetSubtle', 'presetExtreme']) {
+    for (const key of ['presetPunchy', 'presetSmooth', 'presetSubtle', 'presetExtreme'] as const) {
       expect(buttonWithText(T[key])?.title, key).toBe(T[`${key}Title`])
     }
     buttonWithText(T.presetExtreme).click()
@@ -108,17 +112,17 @@ describe('Text-Audio-Reaktiv – Regler', () => {
   it('Blinken: Minimum und Ease nur bei aktivem Blinken', async () => {
     await mountPanel()
     expect(root().textContent).not.toContain(T.easeCurve)
-    ar().effects.opacity.enabled = true
+    ar().effects.opacity!.enabled = true
     await nextTick()
     await slide(`${T.blink} – ${T.minimum}`, 30)
-    expect(ar().effects.opacity.minimum).toBe(30)
+    expect(ar().effects.opacity!.minimum).toBe(30)
     const ease = easeToggle()
     if (ease.type === 'checkbox') {
       ease.checked = true
       ease.dispatchEvent(new Event('change'))
     } else ease.click()
     await nextTick()
-    expect(ar().effects.opacity.ease).toBe(true)
+    expect(ar().effects.opacity!.ease).toBe(true)
   })
 })
 
@@ -126,14 +130,14 @@ describe('Text-Audio-Reaktiv – Zurücksetzen', () => {
   it('Einstellungen und alle Effekte zurücksetzen', async () => {
     await mountPanel()
     Object.assign(ar(), { threshold: 30, attack: 20 })
-    ar().effects.opacity.enabled = true
+    ar().effects.opacity!.enabled = true
     buttons()
       .find((b) => b.textContent.trim().endsWith(T.reset))
       .click()
     expect(ar().threshold).toBe(0)
     expect(ar().attack).toBe(90)
     buttonWithText(T.resetAllEffects).click()
-    expect(ar().effects.opacity.enabled).toBe(false)
+    expect(ar().effects.opacity!.enabled).toBe(false)
   })
 
   it('Texte folgen der Sprache', async () => {
@@ -151,7 +155,7 @@ describe('Text-Audio-Reaktiv – Zurücksetzen', () => {
 
 describe('Text-Audio-Reaktiv – Ui-Bausteine', () => {
   it('Ui-Buttons ohne Emoji, Regler mit Standardwert, Ease als Switch', async () => {
-    ar().effects.opacity.enabled = true
+    ar().effects.opacity!.enabled = true
     await mountPanel()
     const preset = buttonWithText(T.presetPunchy)
     expect(preset.classList.contains('ui-button')).toBe(true)

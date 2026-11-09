@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, ref, type Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import TextNewForm from '../../components/text-manager/TextNewForm.vue'
+import type { TextObject } from '../../lib/textManager/types'
 
 /**
  * Minimaler Canvas-Manager-Stub: addText liefert das erzeugte Text-Objekt,
@@ -12,7 +13,7 @@ import TextNewForm from '../../components/text-manager/TextNewForm.vue'
 function createCanvasManagerStub() {
   return {
     canvas: { width: 960, height: 540 },
-    addText: vi.fn((text, options) => ({ text, ...options })),
+    addText: vi.fn((text: string, options: Record<string, unknown>) => ({ text, ...options })),
     setTextPositionPreview: vi.fn(),
     clearTextPositionPreview: vi.fn(),
     startTextSelectionMode: vi.fn(),
@@ -43,8 +44,8 @@ const TypewriterSectionStub = {
 
 const EmptySectionStub = { template: '<div />' }
 
-let wrapper
-let canvasManager
+let wrapper: VueWrapper
+let canvasManager: Ref<ReturnType<typeof createCanvasManagerStub>>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -73,7 +74,7 @@ async function mountForm() {
   return wrapper
 }
 
-function plainAddButton(w) {
+function plainAddButton(w: VueWrapper) {
   return w.find('.add-plain-group button')
 }
 
@@ -95,13 +96,13 @@ describe('TextNewForm – Text ohne Effekt hinzufügen', () => {
     await plainAddButton(w).trigger('click')
 
     expect(canvasManager.value.addText).toHaveBeenCalledTimes(1)
-    const [text, options] = canvasManager.value.addText.mock.calls[0]
+    const [text, options] = canvasManager.value.addText.mock.calls[0]!
     expect(text).toBe('Hallo Welt')
     expect(options.fontFamily).toBe('Arial')
 
-    const created = w.emitted('created')
+    const created = w.emitted<[TextObject]>('created')
     expect(created).toHaveLength(1)
-    expect(created[0][0].animation).toBeUndefined()
+    expect(created![0]![0].animation).toBeUndefined()
     // Formular wird geschlossen
     expect(w.find('textarea').exists()).toBe(false)
   })
@@ -113,7 +114,7 @@ describe('TextNewForm – Text ohne Effekt hinzufügen', () => {
 
     // Einfach hinzufügen → keine Animation, obwohl Typewriter aktiviert ist
     await plainAddButton(w).trigger('click')
-    expect(w.emitted('created')[0][0].animation).toBeUndefined()
+    expect(w.emitted<[TextObject]>('created')![0]![0].animation).toBeUndefined()
 
     // Erneut: über den Effekt-Button → Typewriter-Animation gesetzt
     await w.find('.btn-start-text').trigger('click')
@@ -121,10 +122,10 @@ describe('TextNewForm – Text ohne Effekt hinzufügen', () => {
     await w.find('.tw-enable').trigger('click')
     await w.find('.tw-add').trigger('click')
 
-    const created = w.emitted('created')
+    const created = w.emitted<[TextObject]>('created')
     expect(created).toHaveLength(2)
-    expect(created[1][0].animation?.typewriter?.enabled).toBe(true)
-    expect(created[1][0].animation?.type).toBe('typewriter')
+    expect(created![1]![0].animation?.typewriter?.enabled).toBe(true)
+    expect(created![1]![0].animation?.type).toBe('typewriter')
   })
 })
 

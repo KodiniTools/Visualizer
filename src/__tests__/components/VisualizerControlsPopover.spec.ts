@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VisualizerControlsPopover from '../../components/sticky-player-bar/VisualizerControlsPopover.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 
 const stubs = { VisualizerImagePicker: true }
 
-let wrapper
-let store
-let closePopover
+let wrapper: VueWrapper
+let store: ReturnType<typeof useVisualizerStore>
+let closePopover: Mock
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -48,13 +48,13 @@ describe('VisualizerControlsPopover', () => {
   it('wählt die Form des Visualizers (frei, 1:1, 16:9, 2:3, Kreis)', async () => {
     const options = wrapper.findAll('.shape-control [role="radio"]')
     expect(options.map((o) => o.text())).toEqual(['Frei', '1:1', '16:9', '2:3', 'Kreis'])
-    expect(options[0].attributes('aria-checked')).toBe('true')
+    expect(options[0]!.attributes('aria-checked')).toBe('true')
 
-    await options[4].trigger('click')
+    await options[4]!.trigger('click')
     expect(store.visualizerShape).toBe('circle')
-    expect(options[4].attributes('aria-checked')).toBe('true')
+    expect(options[4]!.attributes('aria-checked')).toBe('true')
 
-    await options[2].trigger('click')
+    await options[2]!.trigger('click')
     expect(store.visualizerShape).toBe('16:9')
   })
 
@@ -79,9 +79,9 @@ describe('VisualizerControlsPopover', () => {
 
     const select = wrapper.find('.react-select')
     const other = select.findAll('option').find((o) => o.element.value !== 'spectrum')
-    await select.setValue(other.element.value)
+    await select.setValue(other!.element.value)
 
-    expect(store.reactSource).toBe(other.element.value)
+    expect(store.reactSource).toBe(other!.element.value)
     expect(wrapper.find('.react-slider').exists()).toBe(true)
   })
 

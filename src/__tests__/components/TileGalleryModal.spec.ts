@@ -3,15 +3,15 @@
 // Bildauswahl, Doppelklick übernimmt, Abbrechen/Escape schließt, Sprache.
 // Zustand und Aktionen kommen per inject('tileGallery') aus BackgroundTilesPanel.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, ref, type Ref } from 'vue'
 import TileGalleryModal from '../../components/background-tiles/TileGalleryModal.vue'
 import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const B = de.backgroundTiles
-let wrapper
+let wrapper: VueWrapper | null
 
 const categories = [
   { id: 1, name: 'Natur', name_en: 'Nature', icon: '🌿' },
@@ -22,20 +22,21 @@ const images = [
   { id: 'b', file: 'g/see.jpg', name: 'See' },
 ]
 
-function mountModal(state = {}) {
+function mountModal(state: Record<string, unknown> = {}) {
   const gallery = {
     showGalleryModal: ref(true),
     galleryCategories: ref(categories),
     galleryImages: ref(images),
     selectedGalleryCategory: ref(1),
-    selectedGalleryImage: ref(null),
+    selectedGalleryImage: ref<(typeof images)[number] | null>(null),
     galleryLoading: ref(false),
     closeGalleryModal: vi.fn(),
     selectGalleryCategory: vi.fn(),
     selectGalleryImage: vi.fn(),
     confirmGallerySelection: vi.fn(),
   }
-  for (const [key, value] of Object.entries(state)) gallery[key].value = value
+  for (const [key, value] of Object.entries(state))
+    (gallery[key as keyof typeof gallery] as Ref<unknown>).value = value
   wrapper = mount(TileGalleryModal, {
     attachTo: document.body,
     global: { provide: { tileGallery: gallery } },
@@ -51,11 +52,11 @@ afterEach(async () => {
 })
 
 const body = () => document.body
-const text = () => body().textContent.replace(/\s+/g, ' ')
-const button = (label) =>
-  [...body().querySelectorAll('button')].filter((b) => b.textContent.includes(label)).pop()
+const text = () => body().textContent!.replace(/\s+/g, ' ')
+const button = (label: string) =>
+  [...body().querySelectorAll('button')].filter((b) => b.textContent!.includes(label)).pop()
 /** Kachel, die das Bild mit dieser Datei zeigt. */
-const tile = (file) =>
+const tile = (file: string) =>
   [...body().querySelectorAll('img')].find((i) =>
     i.getAttribute('src')?.startsWith(file.replace('.jpg', '')),
   )?.parentElement
@@ -91,26 +92,26 @@ describe('Kachel-Galerie – Anzeige', () => {
 describe('Kachel-Galerie – Auswahl', () => {
   it('Kategorie wählen meldet die ID als Text', () => {
     const g = mountModal()
-    button('Muster').click()
+    button('Muster')!.click()
     expect(g.selectGalleryCategory).toHaveBeenCalledWith('2')
   })
 
   it('Klick wählt das Bild, Doppelklick übernimmt', () => {
     const g = mountModal()
-    tile('g/see.jpg').click()
+    tile('g/see.jpg')!.click()
     expect(g.selectGalleryImage).toHaveBeenCalledWith(images[1])
-    tile('g/see.jpg').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+    tile('g/see.jpg')!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
     expect(g.confirmGallerySelection).toHaveBeenCalledTimes(1)
   })
 
   it('„Auswählen“ erst mit Auswahl aktiv, markiert die Kachel', async () => {
     const g = mountModal()
-    expect(button(B.gallerySelect).disabled).toBe(true)
-    g.selectedGalleryImage.value = images[0]
+    expect(button(B.gallerySelect)!.disabled).toBe(true)
+    g.selectedGalleryImage.value = images[0]!
     await nextTick()
-    expect(tile('g/wald.jpg').classList).toContain('selected')
-    expect(button(B.gallerySelect).disabled).toBe(false)
-    button(B.gallerySelect).click()
+    expect(tile('g/wald.jpg')!.classList).toContain('selected')
+    expect(button(B.gallerySelect)!.disabled).toBe(false)
+    button(B.gallerySelect)!.click()
     expect(g.confirmGallerySelection).toHaveBeenCalledTimes(1)
   })
 })
@@ -118,9 +119,9 @@ describe('Kachel-Galerie – Auswahl', () => {
 describe('Kachel-Galerie – Schließen', () => {
   it('Abbrechen und Escape schließen', () => {
     const g = mountModal()
-    button(B.galleryCancel).click()
+    button(B.galleryCancel)!.click()
     body()
-      .querySelector('[role="dialog"]')
+      .querySelector('[role="dialog"]')!
       .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     expect(g.closeGalleryModal).toHaveBeenCalledTimes(2)
   })
@@ -148,10 +149,10 @@ describe('Kachel-Galerie – Bedienbarkeit', () => {
 
   it('Laden und leere Kategorie werden angesagt', () => {
     mountModal({ galleryLoading: true })
-    expect(body().querySelector('[role="status"]').getAttribute('aria-label')).toBe(
+    expect(body().querySelector('[role="status"]')!.getAttribute('aria-label')).toBe(
       de.common.loading,
     )
-    wrapper.unmount()
+    wrapper!.unmount()
     mountModal({ galleryImages: [] })
     expect(text()).toContain(de.common.noResults)
   })

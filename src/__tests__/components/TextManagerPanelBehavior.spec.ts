@@ -1,14 +1,16 @@
 // @vitest-environment jsdom
 /* eslint-disable vue/one-component-per-file -- Stubs der Unterkomponenten */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { ref, nextTick, toRaw, defineComponent, h } from 'vue'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { ref, nextTick, toRaw, defineComponent, h, type Ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TextManagerPanel from '../../components/TextManagerPanel.vue'
 import TextDirectoryPanel from '../../components/text-manager/TextDirectoryPanel.vue'
 import { TextManager } from '../../lib/textManager'
 import { TEXT_SEQUENCE_KEY } from '../../lib/textSequenceSettings'
 import { historyApplyRevision } from '../../lib/history/historyRecorder'
+import type { TextObject } from '../../lib/textManager/types'
+import { stub } from '../helpers/canvasStubs'
 
 // Verhalten des TextManagerPanels (Auswahl, Reihenwiedergabe, Tastatur-Text,
 // Canvas-Maße) – gilt unverändert vor und nach der Aufteilung in Composables.
@@ -39,23 +41,37 @@ const MultiStub = defineComponent({
   setup: () => () => h('div', { class: 'multi-stub' }),
 })
 
-function canvasManagerStub(tm) {
+/** Canvas-Manager-Attrappe (Auswahl, Mehrfachauswahl, Text anlegen) */
+interface FakeCm {
+  canvas: { width: number; height: number }
+  activeObject: unknown
+  selectedObjects: unknown[]
+  textManager: TextManager
+  onSelectionChanged: Mock
+  setActiveObject(obj: unknown): void
+  clearMultiSelection: Mock
+  isInMultiSelection(obj: unknown): boolean
+  addText: Mock
+  redrawCallback: Mock
+}
+
+function canvasManagerStub(tm: TextManager): FakeCm {
   return {
     canvas: { width: 960, height: 540 },
     activeObject: null,
     selectedObjects: [],
     textManager: tm,
     onSelectionChanged: vi.fn(),
-    setActiveObject(obj) {
+    setActiveObject(obj: unknown) {
       this.activeObject = obj
     },
-    clearMultiSelection: vi.fn(function () {
+    clearMultiSelection: vi.fn(function (this: FakeCm) {
       this.selectedObjects = []
     }),
-    isInMultiSelection(obj) {
+    isInMultiSelection(obj: unknown) {
       return this.selectedObjects.includes(obj)
     },
-    addText: vi.fn(function (text) {
+    addText: vi.fn(function (this: FakeCm, text: string) {
       const obj = tm.add(text)
       this.activeObject = obj
       return obj
@@ -64,7 +80,12 @@ function canvasManagerStub(tm) {
   }
 }
 
-let wrapper, tm, cm, a, b, fontManager
+let wrapper: VueWrapper | null,
+  tm: TextManager,
+  cm: Ref<FakeCm>,
+  a: TextObject,
+  b: TextObject,
+  fontManager: Ref<{ isInitialized: boolean }>
 
 function mountPanel() {
   wrapper = mount(TextManagerPanel, {
@@ -81,7 +102,7 @@ function mountPanel() {
   })
 }
 
-const directory = () => wrapper.findComponent(TextDirectoryPanel)
+const directory = () => wrapper!.findComponent(TextDirectoryPanel)
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -110,7 +131,7 @@ describe('TextManagerPanel – Mount', () => {
     expect(cm.value.onSelectionChanged).toHaveBeenCalledTimes(1)
     expect(
       directory()
-        .props('items')
+        .props('items')!
         .map((i) => i.content),
     ).toEqual(['Erster', 'Zweiter'])
   })
@@ -119,14 +140,14 @@ describe('TextManagerPanel – Mount', () => {
     cm.value.activeObject = a
     mountPanel()
     await nextTick()
-    expect(toRaw(wrapper.findComponent(EditStub).props('selectedText'))).toBe(a)
+    expect(toRaw(wrapper!.findComponent(EditStub).props('selectedText'))).toBe(a)
   })
 
   it('reicht die Canvas-Maße weiter und folgt einem neuen Canvas', async () => {
     cm.value.activeObject = a
     mountPanel()
     await nextTick()
-    const edit = () => wrapper.findComponent(EditStub)
+    const edit = () => wrapper!.findComponent(EditStub)
     expect(edit().props('canvasWidth')).toBe(960)
     expect(edit().props('canvasHeight')).toBe(540)
     cm.value.canvas = { width: 1080, height: 1920 }
@@ -151,7 +172,7 @@ describe('TextManagerPanel – Mount', () => {
 describe('TextManagerPanel – Auswahl', () => {
   it('ergänzt fehlende Eigenschaften älterer Text-Objekte', async () => {
     mountPanel()
-    const old = { id: 9, type: 'text', content: 'alt' }
+    const old = stub<TextObject>({ id: 9, type: 'text', content: 'alt' })
     cm.value.activeObject = old
     await nextTick()
     expect(old.letterSpacing).toBe(0)
@@ -159,10 +180,10 @@ describe('TextManagerPanel – Auswahl', () => {
     expect(old.stroke).toEqual({ enabled: false, color: '#000000', width: 2 })
     expect(old.shadow).toEqual({ color: '#000000', blur: 0, offsetX: 0, offsetY: 0 })
     expect(old.animation.type).toBe('none')
-    expect(old.animation.typewriter.enabled).toBe(false)
+    expect(old.animation.typewriter!.enabled).toBe(false)
     expect(old.animation._state).toEqual({ startTime: null, isPlaying: false, currentIndex: 0 })
     expect(old.audioReactive).toBeTruthy()
-    expect(wrapper.find('.edit-stub').exists()).toBe(true)
+    expect(wrapper!.find('.edit-stub').exists()).toBe(true)
   })
 
   it('lässt vorhandene Werte stehen und ergänzt stroke.enabled', async () => {
@@ -185,10 +206,10 @@ describe('TextManagerPanel – Auswahl', () => {
     mountPanel()
     cm.value.activeObject = a
     await nextTick()
-    expect(wrapper.find('.edit-stub').exists()).toBe(true)
+    expect(wrapper!.find('.edit-stub').exists()).toBe(true)
     cm.value.activeObject = { type: 'image' }
     await nextTick()
-    expect(wrapper.find('.edit-stub').exists()).toBe(false)
+    expect(wrapper!.find('.edit-stub').exists()).toBe(false)
   })
 
   it('zeigt bei Mehrfachauswahl das Multi-Edit-Panel, Leeren hebt alles auf', async () => {
@@ -196,27 +217,27 @@ describe('TextManagerPanel – Auswahl', () => {
     cm.value.activeObject = a
     cm.value.selectedObjects = [a, b]
     await nextTick()
-    const multi = wrapper.findComponent(MultiStub)
+    const multi = wrapper!.findComponent(MultiStub)
     expect(multi.exists()).toBe(true)
-    expect(multi.props('texts').map(toRaw)).toEqual([a, b])
+    expect(multi.props('texts')!.map(toRaw)).toEqual([a, b])
     expect(toRaw(multi.props('activeText'))).toBe(a)
 
     multi.vm.$emit('clear')
     await nextTick()
     expect(cm.value.clearMultiSelection).toHaveBeenCalled()
     expect(cm.value.activeObject).toBeNull()
-    expect(wrapper.find('.multi-stub').exists()).toBe(false)
-    expect(wrapper.find('.edit-stub').exists()).toBe(false)
+    expect(wrapper!.find('.multi-stub').exists()).toBe(false)
+    expect(wrapper!.find('.edit-stub').exists()).toBe(false)
   })
 
   it('aktualisiert die Verzeichnis-Vorschau beim Bearbeiten des Inhalts', async () => {
     mountPanel()
     cm.value.activeObject = a
     await nextTick()
-    wrapper.findComponent(EditStub).props('selectedText').content = 'Neu  getippt'
+    wrapper!.findComponent(EditStub).props('selectedText')!.content = 'Neu  getippt'
     await nextTick()
     await nextTick()
-    expect(directory().props('items')[0].content).toBe('Neu getippt')
+    expect(directory().props('items')![0]!.content).toBe('Neu getippt')
   })
 
   it('liest das Verzeichnis nach Undo/Redo neu ein', async () => {
@@ -285,7 +306,7 @@ describe('TextManagerPanel – Reihenwiedergabe', () => {
     directory().vm.$emit('update:globalDurationEnabled', true)
     directory().vm.$emit('update:globalDuration', 1000)
     await nextTick()
-    expect(JSON.parse(localStorage.getItem(TEXT_SEQUENCE_KEY))).toEqual({
+    expect(JSON.parse(localStorage.getItem(TEXT_SEQUENCE_KEY)!)).toEqual({
       enabled: true,
       duration: 1000,
     })
@@ -326,7 +347,7 @@ describe('TextManagerPanel – Reihenwiedergabe', () => {
     const before = vi.getTimerCount()
     directory().vm.$emit('play-all')
     expect(vi.getTimerCount()).toBe(before + 1)
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = null
     expect(vi.getTimerCount()).toBe(before)
   })
@@ -339,14 +360,14 @@ describe('TextManagerPanel – Text per Tastatur', () => {
     expect(cm.value.addText).toHaveBeenCalledWith('H', expect.objectContaining({ fontSize: 48 }))
     await nextTick()
     await nextTick()
-    expect(wrapper.find('.edit-stub').exists()).toBe(true)
+    expect(wrapper!.find('.edit-stub').exists()).toBe(true)
     expect(focus).toHaveBeenCalled()
   })
 
   it('ignoriert Ereignisse ohne Zeichen und nach dem Unmount', () => {
     mountPanel()
     window.dispatchEvent(new CustomEvent('openTextEditorWithChar', { detail: {} }))
-    wrapper.unmount()
+    wrapper!.unmount()
     wrapper = null
     window.dispatchEvent(new CustomEvent('openTextEditorWithChar', { detail: { char: 'x' } }))
     expect(cm.value.addText).not.toHaveBeenCalled()

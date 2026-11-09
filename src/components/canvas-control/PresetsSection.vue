@@ -3,7 +3,7 @@
     <h4>{{ t('canvasControl.presets') }}</h4>
 
     <div class="control-group">
-      <button @click="saveCurrentAsPreset" class="btn-primary full-width">
+      <button class="btn-primary full-width" @click="saveCurrentAsPreset">
         {{ t('canvasControl.saveAsPreset') }}
       </button>
     </div>
@@ -17,16 +17,16 @@
         </div>
         <div class="preset-actions">
           <button
-            @click="loadPreset(preset)"
             class="btn-small btn-load"
             :title="t('canvasControl.load')"
+            @click="loadPreset(preset)"
           >
             {{ t('canvasControl.load') }}
           </button>
           <button
-            @click="deletePreset(preset.id)"
             class="btn-small btn-delete"
             :title="t('common.delete')"
+            @click="deletePreset(preset.id)"
           >
             {{ t('common.delete') }}
           </button>

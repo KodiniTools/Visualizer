@@ -4,7 +4,7 @@
       <h3>{{ t('canvasControl.title') }}</h3>
       <span class="chevron" :class="{ open: isExpanded }" aria-hidden="true"></span>
     </div>
-    <div class="panel-content" v-show="isExpanded">
+    <div v-show="isExpanded" class="panel-content">
       <BackgroundColorSection />
 
       <div class="divider"></div>

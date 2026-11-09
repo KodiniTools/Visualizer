@@ -2,7 +2,7 @@
   <div class="foto-panel-wrapper">
     <!-- Bild-Vorschau Overlay -->
     <ImagePreviewOverlay
-      :previewImage="previewImage"
+      :preview-image="previewImage"
       @close="closePreview"
       @add-to-canvas="addPreviewToCanvas"
       @set-as-background="setPreviewAsBackground"
@@ -10,15 +10,15 @@
 
     <!-- Upload-Bereich für eigene Bilder -->
     <ImageUploadSection
-      :imageGallery="imageGallery"
-      :selectedImageIndices="selectedImageIndices"
-      :selectedImageCount="selectedImageCount"
-      :selectedAnimation="selectedAnimation"
-      :animationDuration="animationDuration"
-      :imageScale="imageScale"
-      :imageOffsetX="imageOffsetX"
-      :imageOffsetY="imageOffsetY"
-      :isInRangeSelectionMode="isInRangeSelectionMode"
+      :image-gallery="imageGallery"
+      :selected-image-indices="selectedImageIndices"
+      :selected-image-count="selectedImageCount"
+      :selected-animation="selectedAnimation"
+      :animation-duration="animationDuration"
+      :image-scale="imageScale"
+      :image-offset-x="imageOffsetX"
+      :image-offset-y="imageOffsetY"
+      :is-in-range-selection-mode="isInRangeSelectionMode"
       :new-image-animation="newImageAnimation"
       @upload="handleImageUpload"
       @select-image="selectImage"
@@ -42,12 +42,12 @@
     <Teleport :to="slideshowTeleportTarget || 'body'" :disabled="!slideshowTeleportTarget">
       <SlideshowPanel
         :images="slideshowImages"
-        :hasSavedSettings="hasSavedAudioSettings"
-        :isActive="slideshowIsActive"
-        :isPaused="slideshowIsPaused"
-        :currentImageIndex="slideshowCurrentIndex"
-        :totalImages="slideshowTotalImages"
-        :currentPhase="slideshowCurrentPhase"
+        :has-saved-settings="hasSavedAudioSettings"
+        :is-active="slideshowIsActive"
+        :is-paused="slideshowIsPaused"
+        :current-image-index="slideshowCurrentIndex"
+        :total-images="slideshowTotalImages"
+        :current-phase="slideshowCurrentPhase"
         :has-workspace="hasWorkspace"
         :adjustments-api="slideshowAdjustmentsApi"
         :external-transform="slideshowExternalTransform"
@@ -76,11 +76,11 @@
     <!-- Filter-Bereich -->
     <ImageFiltersPanel
       ref="imageFiltersPanelRef"
-      :currentActiveImage="currentActiveImage"
+      :current-active-image="currentActiveImage"
       :presets="presets"
-      :canMoveUp="canMoveUp"
-      :canMoveDown="canMoveDown"
-      :currentLayerInfo="currentLayerInfo"
+      :can-move-up="canMoveUp"
+      :can-move-down="canMoveDown"
+      :current-layer-info="currentLayerInfo"
       :bounds-api="imageBoundsApi"
       @bring-to-front="onBringToFront"
       @move-up="onMoveUp"

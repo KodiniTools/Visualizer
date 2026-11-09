@@ -79,9 +79,9 @@
       <div class="hero-background">
         <div class="wave-container">
           <div
-            class="wave-bar"
             v-for="n in 24"
             :key="n"
+            class="wave-bar"
             :style="{ animationDelay: `${n * 0.08}s` }"
           ></div>
         </div>

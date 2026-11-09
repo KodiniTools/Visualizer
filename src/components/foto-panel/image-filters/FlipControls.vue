@@ -5,18 +5,18 @@
     </div>
     <div class="flip-buttons">
       <button
-        @pointerdown="onSliderStart"
-        @click="onFlipHorizontal"
         class="flip-button"
         :class="{ active: flipHRef }"
+        @pointerdown="onSliderStart"
+        @click="onFlipHorizontal"
       >
         ↔ {{ t('foto.flipH') }}
       </button>
       <button
-        @pointerdown="onSliderStart"
-        @click="onFlipVertical"
         class="flip-button"
         :class="{ active: flipVRef }"
+        @pointerdown="onSliderStart"
+        @click="onFlipVertical"
       >
         ↕ {{ t('foto.flipV') }}
       </button>

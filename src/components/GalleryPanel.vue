@@ -2,7 +2,7 @@
   <div class="gallery-panel-wrapper">
     <!-- Bild-Vorschau Overlay -->
     <ImagePreviewOverlay
-      :previewImage="previewImage"
+      :preview-image="previewImage"
       @close="closePreview"
       @add-to-canvas="addPreviewToCanvas"
       @set-as-background="setPreviewAsBackground"
@@ -10,19 +10,19 @@
 
     <!-- Stock-Galerie Sektion -->
     <StockGallerySection
-      :stockCategories="stockCategories"
-      :filteredStockImages="filteredStockImages"
-      :selectedStockCategory="selectedStockCategory"
-      :selectedStockImages="selectedStockImages"
-      :selectedStockCount="selectedStockCount"
-      :stockImagesLoading="stockImagesLoading"
-      :categoryLoading="categoryLoading"
-      :selectedAnimation="selectedAnimation"
-      :animationDuration="animationDuration"
-      :imageScale="imageScale"
-      :imageOffsetX="imageOffsetX"
-      :imageOffsetY="imageOffsetY"
-      :isInRangeSelectionMode="isInRangeSelectionMode"
+      :stock-categories="stockCategories"
+      :filtered-stock-images="filteredStockImages"
+      :selected-stock-category="selectedStockCategory"
+      :selected-stock-images="selectedStockImages"
+      :selected-stock-count="selectedStockCount"
+      :stock-images-loading="stockImagesLoading"
+      :category-loading="categoryLoading"
+      :selected-animation="selectedAnimation"
+      :animation-duration="animationDuration"
+      :image-scale="imageScale"
+      :image-offset-x="imageOffsetX"
+      :image-offset-y="imageOffsetY"
+      :is-in-range-selection-mode="isInRangeSelectionMode"
       @select-category="selectStockCategory"
       @select-image="selectStockImage"
       @open-preview="openStockPreview"

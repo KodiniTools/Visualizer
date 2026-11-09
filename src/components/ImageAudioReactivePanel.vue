@@ -1,9 +1,9 @@
 <template>
   <AudioReactivePanel
     ref="audioReactivePanelRef"
-    :hasActiveImage="!!currentActiveImage"
-    :hasSavedSettings="hasSavedAudioSettings"
-    :activeAudioPreset="activeAudioPreset"
+    :has-active-image="!!currentActiveImage"
+    :has-saved-settings="hasSavedAudioSettings"
+    :active-audio-preset="activeAudioPreset"
     @audio-reactive-toggle="onAudioReactiveToggle"
     @source-change="onAudioReactiveSourceChange"
     @smoothing-change="onAudioReactiveSmoothingChange"

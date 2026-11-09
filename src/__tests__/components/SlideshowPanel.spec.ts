@@ -33,17 +33,29 @@ type PanelEvents = {
   stop: []
 }
 
-// Dauerhafte Bildablage (IndexedDB) im Panel-Test ersetzen
+// Dauerhafte Bildablage (IndexedDB) im Panel-Test ersetzen. Wie die echte
+// Funktion liefert persistUploadImage immer einen Verweis und wirft bei Fehlern.
 vi.mock('../../lib/slideshowImagePersistence', () => ({
-  persistUploadImage: vi.fn(async () => null),
+  persistUploadImage: vi.fn(async (entry?: { id?: string; name?: string }) => ({
+    key: `key:${entry?.id ?? entry?.name ?? ''}`,
+    name: entry?.name ?? '',
+  })),
   restoreUploadImage: vi.fn(async () => null),
   loadPersistedImage: vi.fn(async () => null),
 }))
 
-/** Typisierte Sicht auf die Attrappen: Einträge tragen im Test eine id, Ergebnisse dürfen null sein */
+/** Typisierte Sicht auf die Attrappen: Einträge tragen im Test eine id */
 const persistUploadMock = persistence.persistUploadImage as unknown as Mock<
-  (entry: { id?: string }) => Promise<{ key: string; name: string } | null>
+  (entry: { id?: string; name?: string }) => Promise<{ key: string; name: string }>
 >
+/** Standardverhalten der Attrappe (siehe vi.mock oben) */
+const persistOk = async (entry: { id?: string; name?: string }) => ({
+  key: `key:${entry?.id ?? entry?.name ?? ''}`,
+  name: entry?.name ?? '',
+})
+const persistFails = async (): Promise<never> => {
+  throw new Error('IndexedDB nicht verfügbar')
+}
 const restoreUploadMock = persistence.restoreUploadImage as unknown as Mock<
   (key: string) => Promise<{ imageObject: unknown; name: string } | null>
 >
@@ -808,9 +820,10 @@ describe('SlideshowPanel (aufgeteilt)', () => {
 
   it('uploaded images are persisted and restored after reload (IndexedDB)', async () => {
     const keyA = 'a'.repeat(64)
-    persistUploadMock.mockImplementation(async (img) =>
-      img.id === 'a' ? { key: keyA, name: 'Eins' } : null,
-    )
+    persistUploadMock.mockImplementation(async (img) => {
+      if (img.id === 'a') return { key: keyA, name: 'Eins' }
+      throw new Error('nicht gespeichert')
+    })
     const restoredObj = { restored: true }
     restoreUploadMock.mockImplementation(async (key) =>
       key === keyA ? { imageObject: restoredObj, name: 'Eins' } : null,
@@ -841,7 +854,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const started = w.emitted<PanelEvents['start']>('start')![0]![0].images
     expect(started[0]).toMatchObject({ id: `preset:${keyA}`, imageObject: restoredObj })
     persistUploadMock.mockReset()
-    persistUploadMock.mockImplementation(async () => null)
+    persistUploadMock.mockImplementation(persistOk)
     restoreUploadMock.mockImplementation(async () => null)
   })
 
@@ -866,7 +879,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const quota = Object.assign(new Error('full'), { name: 'QuotaExceededError' })
     let attemptsA = 0
     persistUploadMock.mockImplementation(async (img) => {
-      if (img.id !== 'a') return null
+      if (img.id !== 'a') return persistFails()
       attemptsA++
       if (attemptsA === 1) throw quota
       return { key: 'c'.repeat(64), name: 'Eins' }
@@ -881,7 +894,7 @@ describe('SlideshowPanel (aufgeteilt)', () => {
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored[0].slots[0].upload).toEqual({ key: 'c'.repeat(64), name: 'Eins' })
     expect(attemptsA).toBe(2)
-    persistUploadMock.mockImplementation(async () => null)
+    persistUploadMock.mockImplementation(persistOk)
   })
 
   it('„Jetzt aufräumen“ entfernt ungenutzte Bilder und meldet den freigegebenen Platz', async () => {
@@ -915,15 +928,14 @@ describe('SlideshowPanel (aufgeteilt)', () => {
   })
 
   it('saves the preset even if persisting an image fails', async () => {
-    persistUploadMock.mockImplementationOnce(async () => {
-      throw new Error('QuotaExceeded')
-    })
+    persistUploadMock.mockImplementation(persistFails)
     const w = mountPanel()
     await w.find('.btn-save-preset').trigger('click')
     await flushPromises()
     const stored = JSON.parse(localStorage.getItem('visualizer-slideshow-presets')!)
     expect(stored).toHaveLength(1)
     expect(stored[0].slots.every((slot: { upload: unknown }) => slot.upload === null)).toBe(true)
+    persistUploadMock.mockImplementation(persistOk)
   })
 
   it('transition: global select + per-image override go into payload and presets', async () => {

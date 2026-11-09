@@ -41,7 +41,7 @@
   <!-- Cursor-Zeichen (nur wenn Cursor aktiv) -->
   <div v-if="effect.showCursor" class="control-group">
     <UiSelect
-      :model-value="effect.cursorChar"
+      :model-value="effect.cursorChar as string"
       :options="cursorOptions"
       :label="t('textManager.cursorChar')"
       size="sm"
@@ -52,7 +52,7 @@
   <AnimationDisplayControls :effect="effect" @change="emit('change')" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Einstellungen des Schreibmaschinen-Effekts (Edit-Panel und Neu-Formular). */
 import { computed } from 'vue'
 import SliderField from '../../ui/SliderField.vue'
@@ -60,11 +60,12 @@ import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import AnimationLoopControls from './AnimationLoopControls.vue'
 import AnimationDisplayControls from './AnimationDisplayControls.vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { useEffectField } from './useEffectField.js'
+import { useI18n } from '../../../lib/i18n'
+import { useEffectField } from './useEffectField'
+import type { TypewriterAnimation } from '../../../lib/textManager/types'
 
-const effect = defineModel('effect', { type: Object, required: true })
-const emit = defineEmits(['change'])
+const effect = defineModel<TypewriterAnimation>('effect', { required: true })
+const emit = defineEmits<{ change: [] }>()
 const set = useEffectField(effect, emit)
 const { t } = useI18n()
 

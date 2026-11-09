@@ -119,9 +119,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import type { VideoPanelApi } from '../../composables/useVideoPanel'
+import { useI18n } from '../../lib/i18n'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 
@@ -142,7 +143,7 @@ const {
   addVideoToCanvas,
   setVideoAsBackground,
   setVideoAsWorkspaceBackground,
-} = inject('videoPanel')
+} = inject('videoPanel') as VideoPanelApi
 </script>
 
 <style scoped>

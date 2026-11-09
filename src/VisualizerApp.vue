@@ -87,52 +87,61 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 // Explicit name so <keep-alive include="['VisualizerApp']"> in App.vue matches
 // this component and preserves its state across route changes.
 export default { name: 'VisualizerApp' }
 </script>
 
-<script setup>
-import { ref, onMounted, onUnmounted, onActivated, onDeactivated, provide, watch } from 'vue'
+<script setup lang="ts">
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  onActivated,
+  onDeactivated,
+  provide,
+  watch,
+  type Ref,
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from './lib/i18n.js'
-import { usePlayerStore } from './stores/playerStore.js'
-import { useRecorderStore } from './stores/recorderStore.js'
-import { useTextStore } from './stores/textStore.js'
-import { useVisualizerStore } from './stores/visualizerStore.js'
-import { useGridStore } from './stores/gridStore.js'
-import { useWorkspaceStore } from './stores/workspaceStore.js'
-import { useBackgroundTilesStore } from './stores/backgroundTilesStore.js'
-import { useAudioSourceStore } from './stores/audioSourceStore.js'
-import { useBeatDropStore } from './stores/beatDropStore.js'
-import { useMarkerTransitionStore } from './stores/markerTransitionStore.js'
-import { useAudioFxStore } from './stores/audioFxStore.js'
-import { useTickerStore } from './stores/tickerStore.js'
-import { useToastStore } from './stores/toastStore.js'
-import { useHistoryStore } from './stores/historyStore.js'
-import { useBeatMarkerStore } from './stores/beatMarkerStore.js'
-import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer.js'
-import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer.js'
-import { TickerRenderer } from './lib/canvasManager/rendering/TickerRenderer.js'
-import { MarkerTransitionRenderer } from './lib/canvasManager/rendering/MarkerTransitionRenderer.js'
-import { useFrameCapture } from './composables/useFrameCapture.js'
-import { useCanvasImages } from './composables/useCanvasImages.js'
-import { useGlobalAudioData } from './composables/useGlobalAudioData.js'
-import { useVisualizerLoop } from './composables/useVisualizerLoop.js'
-import { useAudioEngine } from './composables/useAudioEngine.js'
-import { useRenderLoop } from './composables/useRenderLoop.js'
-import { useImageGallery } from './composables/useImageGallery.js'
-import { useCanvasSetup } from './composables/useCanvasSetup.js'
-import { useRecorderSetup } from './composables/useRecorderSetup.js'
-import { useStatusBanner } from './composables/useStatusBanner.js'
-import { useSharedFiles } from './composables/useSharedFiles.js'
-import { useHandoff } from './composables/useHandoff.js'
-import { useHistorySetup } from './composables/useHistorySetup.js'
-import { useShapeLayer } from './composables/useShapeLayer.js'
-import { useShapeStore } from './stores/shapeStore.js'
-import { setupVisualizerPersistence } from './lib/visualizerPersistence.js'
-import { setupAudioSettingsPersistence } from './lib/audioSettingsPersistence.js'
+import { useI18n } from './lib/i18n'
+import { usePlayerStore } from './stores/playerStore'
+import { useRecorderStore } from './stores/recorderStore'
+import { useTextStore } from './stores/textStore'
+import { useVisualizerStore } from './stores/visualizerStore'
+import { useGridStore } from './stores/gridStore'
+import { useWorkspaceStore } from './stores/workspaceStore'
+import { useBackgroundTilesStore } from './stores/backgroundTilesStore'
+import { useAudioSourceStore } from './stores/audioSourceStore'
+import { useBeatDropStore } from './stores/beatDropStore'
+import { useMarkerTransitionStore } from './stores/markerTransitionStore'
+import { useAudioFxStore } from './stores/audioFxStore'
+import { useTickerStore } from './stores/tickerStore'
+import { useToastStore } from './stores/toastStore'
+import { useHistoryStore } from './stores/historyStore'
+import { useBeatMarkerStore } from './stores/beatMarkerStore'
+import { BeatDropRenderer } from './lib/canvasManager/rendering/BeatDropRenderer'
+import { AudioFxRenderer } from './lib/canvasManager/rendering/AudioFxRenderer'
+import { TickerRenderer } from './lib/canvasManager/rendering/TickerRenderer'
+import { MarkerTransitionRenderer } from './lib/canvasManager/rendering/MarkerTransitionRenderer'
+import { useFrameCapture } from './composables/useFrameCapture'
+import { useCanvasImages } from './composables/useCanvasImages'
+import { useGlobalAudioData } from './composables/useGlobalAudioData'
+import { useVisualizerLoop } from './composables/useVisualizerLoop'
+import { useAudioEngine } from './composables/useAudioEngine'
+import { useRenderLoop } from './composables/useRenderLoop'
+import { useImageGallery } from './composables/useImageGallery'
+import { useCanvasSetup } from './composables/useCanvasSetup'
+import { useRecorderSetup } from './composables/useRecorderSetup'
+import { useStatusBanner } from './composables/useStatusBanner'
+import { useSharedFiles } from './composables/useSharedFiles'
+import { useHandoff } from './composables/useHandoff'
+import { useHistorySetup } from './composables/useHistorySetup'
+import { useShapeLayer } from './composables/useShapeLayer'
+import { useShapeStore } from './stores/shapeStore'
+import { setupVisualizerPersistence } from './lib/visualizerPersistence'
+import { setupAudioSettingsPersistence } from './lib/audioSettingsPersistence'
 
 import FileUploadPanel from './components/FileUploadPanel.vue'
 import StickyPlayerBar from './components/StickyPlayerBar.vue'
@@ -148,19 +157,28 @@ import ImageThumbnailBar from './components/canvas-bar/ImageThumbnailBar.vue'
 import ImagePreviewModal from './components/canvas-bar/ImagePreviewModal.vue'
 import ReplaceGalleryModal from './components/canvas-bar/ReplaceGalleryModal.vue'
 
-import { CUSTOM_FONTS } from './lib/fonts.js'
-import { FontManager } from './lib/fontManager.js'
-import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts.js'
-import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents.js'
+import { CUSTOM_FONTS } from './lib/fonts'
+import { FontManager } from './lib/fontManager'
+import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts'
+import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents'
 import {
   watchGridSettings,
   watchWorkspacePreset,
   watchRecordingCanvasSize,
-} from './composables/visualizerApp/canvasSync.js'
-import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup.js'
-import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents.js'
+} from './composables/visualizerApp/canvasSync'
+import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup'
+import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents'
+
+import type { CanvasManager } from './lib/canvasManager'
+import type { FotoManager } from './lib/fotoManager'
+import type { GridManager } from './lib/gridManager'
+import type { MultiImageManager } from './lib/multiImageManager'
+import type { VideoManager } from './lib/videoManager'
+import type { KeyboardShortcuts } from './lib/keyboardShortcuts'
 
 import './styles/visualizer-app.css'
+
+type ShortcutsDeps = Parameters<typeof setupKeyboardShortcuts>[0]
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()
@@ -185,19 +203,24 @@ const router = useRouter()
 
 const { start: startCapture, stop: stopCapture } = useFrameCapture()
 
-const audioRef = ref(null)
-const canvasRef = ref(null)
+const audioRef = ref<HTMLAudioElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
 const mobilePanel = ref('canvas')
-const quickStartGuideRef = ref(null)
+const quickStartGuideRef = ref<InstanceType<typeof QuickStartGuide> | null>(null)
 
 // ── Manager instances ─────────────────────────────────────────────────────────
-const canvasManagerInstance = ref(null)
-const fotoManagerInstance = ref(null)
-const gridManagerInstance = ref(null)
-const multiImageManagerInstance = ref(null)
-const videoManagerInstance = ref(null)
-const fontManagerInstance = ref(null)
-const keyboardShortcutsInstance = ref(null)
+// Klasseninstanzen: wie bisher als ref() (tiefe Reaktivität unverändert)
+const canvasManagerInstance = ref<CanvasManager | null>(null) as Ref<CanvasManager | null>
+const fotoManagerInstance = ref<FotoManager | null>(null) as Ref<FotoManager | null>
+const gridManagerInstance = ref<GridManager | null>(null) as Ref<GridManager | null>
+const multiImageManagerInstance = ref<MultiImageManager | null>(
+  null,
+) as Ref<MultiImageManager | null>
+const videoManagerInstance = ref<VideoManager | null>(null) as Ref<VideoManager | null>
+const fontManagerInstance = ref<FontManager | null>(null) as Ref<FontManager | null>
+const keyboardShortcutsInstance = ref<KeyboardShortcuts | null>(
+  null,
+) as Ref<KeyboardShortcuts | null>
 
 provide('fontManager', fontManagerInstance)
 provide('canvasManager', canvasManagerInstance)
@@ -207,13 +230,13 @@ provide('videoManager', videoManagerInstance)
 
 // ── Shared recording infrastructure (used by render loop + recorder setup) ──────
 let recordingCanvas = document.createElement('canvas')
-let recordingCanvasStream = null
+let recordingCanvasStream: MediaStream | null = null
 const getRecordingCanvas = () => recordingCanvas
-const setRecordingCanvas = (c) => {
+const setRecordingCanvas = (c: HTMLCanvasElement) => {
   recordingCanvas = c
 }
 const getRecordingCanvasStream = () => recordingCanvasStream
-const setRecordingCanvasStream = (s) => {
+const setRecordingCanvasStream = (s: MediaStream | null) => {
   recordingCanvasStream = s
 }
 
@@ -414,7 +437,7 @@ onMounted(async () => {
   audioEngine.registerEngine()
 
   // Recording redraw listener
-  renderLoop.setupRecordingRedrawListener(gridManagerInstance)
+  renderLoop.setupRecordingRedrawListener()
   renderLoop.registerScreenshot(canvasManagerInstance)
 
   // HQ Frame Capture
@@ -435,8 +458,12 @@ onMounted(async () => {
   // Keyboard shortcuts (warten ggf. auf Canvas- und MultiImageManager)
   setupKeyboardShortcuts({
     instanceRef: keyboardShortcutsInstance,
-    canvasManagerInstance,
-    multiImageManagerInstance,
+    // Die Shortcut-Typen beschreiben nur den genutzten Ausschnitt (z. B. hat
+    // VideoObject.imageObject keinen width/height-Typ), daher der Cast
+    canvasManagerInstance:
+      canvasManagerInstance as unknown as ShortcutsDeps['canvasManagerInstance'],
+    multiImageManagerInstance:
+      multiImageManagerInstance as unknown as ShortcutsDeps['multiImageManagerInstance'],
     stores: { playerStore, recorderStore, gridStore, historyStore },
   })
 

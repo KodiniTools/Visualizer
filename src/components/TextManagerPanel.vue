@@ -7,11 +7,11 @@
 
     <!-- Text-Verzeichnis: alle Texte auflisten & einzeln markieren -->
     <TextDirectoryPanel
+      v-model:global-duration-enabled="globalDurationEnabled"
+      v-model:global-duration="globalDuration"
       :items="textList"
       :active-id="selectedText?.id ?? null"
       :sequence-playing="sequencePlaying"
-      v-model:global-duration-enabled="globalDurationEnabled"
-      v-model:global-duration="globalDuration"
       @select="selectTextFromDirectory"
       @restart="restartTextFromDirectory"
       @return-to-canvas="returnTextToCanvas"
@@ -31,38 +31,41 @@
     <!-- Single edit mode -->
     <TextEditPanel
       v-else-if="selectedText"
+      ref="editPanelRef"
       :selected-text="selectedText"
       :canvas-width="canvasWidth"
       :canvas-height="canvasHeight"
-      ref="editPanelRef"
       @delete="deleteSelectedText"
     />
   </div>
 </template>
 
-<script setup>
-import { ref, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+<script setup lang="ts">
+import { ref, inject, type Ref } from 'vue'
+import type { CanvasManagerRef } from '../composables/types'
+import type { FontManager } from '../lib/fontManager'
+import type { TextObject } from '../lib/textManager/types'
+import { useI18n } from '../lib/i18n'
 import TextNewForm from './text-manager/TextNewForm.vue'
 import TextEditPanel from './text-manager/TextEditPanel.vue'
 import TextMultiEditPanel from './text-manager/TextMultiEditPanel.vue'
 import TextDirectoryPanel from './text-manager/TextDirectoryPanel.vue'
-import { useHistoryStore } from '../stores/historyStore.js'
-import { useBeatMarkerStore } from '../stores/beatMarkerStore.js'
-import { getHistoryRecorder } from '../lib/history/historyRecorder.js'
-import { useTextDirectory } from '../composables/textManager/useTextDirectory.js'
-import { useTextSequence } from '../composables/textManager/useTextSequence.js'
-import { useTextSelectionSync } from '../composables/textManager/useTextSelectionSync.js'
-import { useCanvasSize } from '../composables/textManager/useCanvasSize.js'
-import { useTextEditorWithChar } from '../composables/textManager/useTextEditorWithChar.js'
+import { useHistoryStore } from '../stores/historyStore'
+import { useBeatMarkerStore } from '../stores/beatMarkerStore'
+import { getHistoryRecorder } from '../lib/history/historyRecorder'
+import { useTextDirectory } from '../composables/textManager/useTextDirectory'
+import { useTextSequence } from '../composables/textManager/useTextSequence'
+import { useTextSelectionSync } from '../composables/textManager/useTextSelectionSync'
+import { useCanvasSize } from '../composables/textManager/useCanvasSize'
+import { useTextEditorWithChar } from '../composables/textManager/useTextEditorWithChar'
 
 const { t } = useI18n()
-const canvasManager = inject('canvasManager')
-const fontManager = inject('fontManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
+const fontManager = inject('fontManager') as Ref<FontManager | null> | undefined
 
-const selectedText = ref(null)
-const multiSelectedTexts = ref([])
-const editPanelRef = ref(null)
+const selectedText = ref<TextObject | null>(null)
+const multiSelectedTexts = ref<TextObject[]>([])
+const editPanelRef = ref<InstanceType<typeof TextEditPanel> | null>(null)
 
 const historyRecorder = getHistoryRecorder(useHistoryStore())
 const beatMarkerStore = useBeatMarkerStore()
@@ -103,7 +106,7 @@ useTextSelectionSync({
 
 const { canvasWidth, canvasHeight } = useCanvasSize(canvasManager)
 
-function onTextCreated(newTextObj) {
+function onTextCreated(newTextObj: TextObject | null | undefined) {
   if (newTextObj) {
     selectedText.value = newTextObj
   }

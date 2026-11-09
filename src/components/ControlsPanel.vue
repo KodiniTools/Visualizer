@@ -67,8 +67,8 @@
           :key="key"
           class="preset-btn"
           :class="{ active: workspaceStore.selectedPresetKey === key }"
-          @click="workspaceStore.selectedPresetKey = key"
           :title="preset.name"
+          @click="workspaceStore.selectedPresetKey = key"
         >
           {{ getPresetShortName(preset.name) }}
         </button>
@@ -77,21 +77,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ColorField from './ui/ColorField.vue'
 import SliderField from './ui/SliderField.vue'
 import UiSwitch from './ui/UiSwitch.vue'
-import { useI18n } from '../lib/i18n.js'
-import { useGridStore } from '../stores/gridStore.js'
-import { useWorkspaceStore } from '../stores/workspaceStore.js'
+import { useI18n } from '../lib/i18n'
+import { useGridStore } from '../stores/gridStore'
+import { useWorkspaceStore } from '../stores/workspaceStore'
 
 const { t } = useI18n()
 const gridStore = useGridStore()
 const workspaceStore = useWorkspaceStore()
 
 // Funktion für Kurzbezeichnungen der Presets
-function getPresetShortName(name) {
-  const mapping = {
+function getPresetShortName(name: string): string {
+  const mapping: Record<string, string> = {
     'TikTok (9:16)': 'TikTok',
     'Instagram Story (9:16)': 'IG Story',
     'Instagram Post (1:1)': 'IG Post',

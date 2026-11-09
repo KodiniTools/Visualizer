@@ -11,12 +11,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Leerzustand für Listen und Vorschau: Icon, Titel, Erklärung, eine Aktion. */
-defineProps({
-  title: { type: String, required: true },
-  text: { type: String, default: undefined },
-})
+withDefaults(defineProps<{ title: string; text?: string }>(), { text: undefined })
 </script>
 
 <style scoped>

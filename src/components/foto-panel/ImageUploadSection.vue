@@ -162,77 +162,84 @@
       @place-directly="$emit('add-directly')"
     />
 
+    <!-- Animationen wie bei Texten für neu hinzugefügte Bilder -->
+    <ImageAnimationPanel
+      v-if="selectedImageCount > 0 && newImageAnimation"
+      class="new-image-animation"
+      :title="t('foto.newImageAnimation')"
+      :hint="t('foto.newImageAnimationHint')"
+      :animation="newImageAnimation"
+      :restartable="false"
+    />
+
     <p v-if="imageGallery.length === 0" class="empty-state">{{ t('foto.noImagesUploaded') }}</p>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import PlacementSettings from './PlacementSettings.vue'
+import ImageAnimationPanel from './image-animation/ImageAnimationPanel.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
+import type { GalleryImage } from '../../composables/useImageGallery'
+import type { ImageTimedAnimation } from '../../lib/canvasObjects/imageAnimation'
+import type { PlacementSettings as PlacementSettingsValue } from '../../lib/imagePlacementSettings'
+import type { GalleryDragPayload, UploadEvent } from './useImagePlacement'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  imageGallery: {
-    type: Array,
-    default: () => [],
+const props = withDefaults(
+  defineProps<{
+    imageGallery?: GalleryImage[]
+    selectedImageIndices?: Set<number>
+    selectedImageCount?: number
+    selectedAnimation?: string
+    animationDuration?: number
+    imageScale?: number
+    imageOffsetX?: number
+    imageOffsetY?: number
+    isInRangeSelectionMode?: boolean
+    /** Animationen für neue Bilder ({ fade, scale, slide }); wird direkt bearbeitet */
+    newImageAnimation?: ImageTimedAnimation | null
+  }>(),
+  {
+    imageGallery: () => [],
+    selectedImageIndices: () => new Set(),
+    selectedImageCount: 0,
+    selectedAnimation: 'none',
+    animationDuration: 1000,
+    imageScale: 1,
+    imageOffsetX: 0,
+    imageOffsetY: 0,
+    isInRangeSelectionMode: false,
+    newImageAnimation: null,
   },
-  selectedImageIndices: {
-    type: Set,
-    default: () => new Set(),
-  },
-  selectedImageCount: {
-    type: Number,
-    default: 0,
-  },
-  selectedAnimation: {
-    type: String,
-    default: 'none',
-  },
-  animationDuration: {
-    type: Number,
-    default: 1000,
-  },
-  imageScale: {
-    type: Number,
-    default: 1,
-  },
-  imageOffsetX: {
-    type: Number,
-    default: 0,
-  },
-  imageOffsetY: {
-    type: Number,
-    default: 0,
-  },
-  isInRangeSelectionMode: {
-    type: Boolean,
-    default: false,
-  },
-})
+)
 
-const emit = defineEmits([
-  'upload',
-  'select-image',
-  'open-preview',
-  'delete-image',
-  'clear-all',
-  'select-all',
-  'deselect-all',
-  'add-to-canvas',
-  'set-as-background',
-  'set-as-workspace-background',
-  'start-range-selection',
-  'add-directly',
-  'update:placement-settings',
-  'image-dragstart',
-  'image-dragend',
-])
+const emit = defineEmits<{
+  upload: [event: UploadEvent]
+  'select-image': [
+    index: number,
+    event: Partial<Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'>>,
+  ]
+  'open-preview': [imgData: GalleryImage]
+  'delete-image': [index: number]
+  'clear-all': []
+  'select-all': []
+  'deselect-all': []
+  'add-to-canvas': []
+  'set-as-background': []
+  'set-as-workspace-background': []
+  'start-range-selection': []
+  'add-directly': []
+  'update:placement-settings': [settings: PlacementSettingsValue]
+  'image-dragstart': [payload: GalleryDragPayload]
+  'image-dragend': []
+}>()
 
-const fileInputRef = ref(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 /** Galerie-Titel mit Anzahl, z. B. „Galerie (3)“. */
 const galleryTitle = computed(() =>
@@ -247,7 +254,7 @@ const placeLabel = computed(() =>
 )
 
 /** Checkbox: schaltet additiv um (wie Strg+Klick). */
-function toggleSelection(index) {
+function toggleSelection(index: number) {
   emit('select-image', index, { ctrlKey: true })
 }
 
@@ -255,10 +262,10 @@ function triggerFileInput() {
   fileInputRef.value?.click()
 }
 
-function onPaste(event) {
+function onPaste(event: ClipboardEvent) {
   const items = event.clipboardData?.items
   if (!items) return
-  const imageFiles = []
+  const imageFiles: File[] = []
   for (const item of items) {
     if (item.kind === 'file' && item.type.startsWith('image/')) {
       const file = item.getAsFile()

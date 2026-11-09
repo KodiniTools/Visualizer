@@ -212,18 +212,18 @@
       v-if="editorImage"
       :key="slideshowImageKey(editorImage)"
       :image="editorImage"
-      :index="editorIndex"
+      :index="editorIndex as number"
       :total="orderedImages.length"
-      :transition="imageTransitions[slideshowImageKey(editorImage)] ?? null"
-      :duration="imageDurations[slideshowImageKey(editorImage)]"
-      :fade-in="imageFadeIns[slideshowImageKey(editorImage)]"
-      :fade-out="imageFadeOuts[slideshowImageKey(editorImage)]"
+      :transition="imageTransitions[editorKey] ?? null"
+      :duration="imageDurations[editorKey]"
+      :fade-in="imageFadeIns[editorKey]"
+      :fade-out="imageFadeOuts[editorKey]"
       :default-duration="displayDuration"
       :default-fade-in="fadeInDuration"
       :default-fade-out="fadeOutDuration"
       :default-transition="transition"
-      :audio-mode="imageAudioModes[slideshowImageKey(editorImage)] ?? 'default'"
-      :audio-source="imageAudioSources[slideshowImageKey(editorImage)] ?? null"
+      :audio-mode="imageAudioModes[editorKey] ?? 'default'"
+      :audio-source="imageAudioSources[editorKey] ?? null"
       :has-saved-settings="hasSavedSettings"
       :position="editorPosition"
       :size="editorSize"
@@ -254,7 +254,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Slideshow-Panel: hält den Einstellungs-Zustand und emittiert die Aktionen an
  * das FotoPanel. Die Sektionen liegen in `slideshow/` (Reihenfolge, Timing,
@@ -265,22 +265,22 @@ import { ref, computed, watch, toRaw } from 'vue'
 import SlideshowBaseGradient from './slideshow/SlideshowBaseGradient.vue'
 import SlideshowFillAudio from './slideshow/SlideshowFillAudio.vue'
 import SlideshowImageFill from './slideshow/SlideshowImageFill.vue'
-import { useSlideshowImageFills } from './slideshow/useSlideshowImageFills.js'
+import { useSlideshowImageFills } from './slideshow/useSlideshowImageFills'
 import {
   useSlideshowBaseFills,
   isDefaultFillAudio,
   isDefaultGradient,
-} from './slideshow/useSlideshowBaseFills.js'
-import { useSlideshowPerImageSettings } from './slideshow/useSlideshowPerImageSettings.js'
-import { useSlideshowImageEditor } from './slideshow/useSlideshowImageEditor.js'
+} from './slideshow/useSlideshowBaseFills'
+import { useSlideshowPerImageSettings } from './slideshow/useSlideshowPerImageSettings'
+import { useSlideshowImageEditor } from './slideshow/useSlideshowImageEditor'
 import {
   useSlideshowPanelPresets,
   persistImageWithCleanup,
-} from './slideshow/useSlideshowPanelPresets.js'
-import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill.js'
-import { useImageGallery } from '../../composables/useImageGallery.js'
-import { useStockGallery } from '../../composables/useStockGallery.js'
-import { useI18n } from '../../lib/i18n.js'
+} from './slideshow/useSlideshowPanelPresets'
+import { isSameSlideshowImageFill } from '../../lib/slideshowImageFill'
+import { useImageGallery } from '../../composables/useImageGallery'
+import { useStockGallery } from '../../composables/useStockGallery'
+import { useI18n } from '../../lib/i18n'
 import SlideshowOrderList from './slideshow/SlideshowOrderList.vue'
 import SlideshowTimingSettings from './slideshow/SlideshowTimingSettings.vue'
 import SlideshowTransformSettings from './slideshow/SlideshowTransformSettings.vue'
@@ -290,81 +290,97 @@ import SlideshowImageEditor from './slideshow/SlideshowImageEditor.vue'
 import SlideshowStatusBadge from './slideshow/SlideshowStatusBadge.vue'
 import ColorField from '../ui/ColorField.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
-import { slideshowImageKey } from './slideshow/slideshowImageKey.js'
-import { loadPersistedImage } from '../../lib/slideshowImagePersistence.js'
+import { slideshowImageKey } from './slideshow/slideshowImageKey'
+import { loadPersistedImage } from '../../lib/slideshowImagePersistence'
 import {
   useSlideshowPresetStore,
   SLIDESHOW_DEFAULT_SETTINGS,
-} from '../../stores/slideshowPresetStore.js'
-import { useToastStore } from '../../stores/toastStore.js'
+} from '../../stores/slideshowPresetStore'
+import { useToastStore } from '../../stores/toastStore'
+import type { SlideshowSourceImage } from '../../lib/slideshowSources'
+import type { SlideshowPreset } from '../../stores/slideshowPresetStore'
+import type { BaseFillSettings } from './slideshow/useSlideshowBaseFills'
+import type { ImageFillCandidateItem, ImageFillTarget } from './slideshow/useSlideshowImageFills'
+import type {
+  SlideshowPanelEmit,
+  SlideshowPanelProps,
+  SlideshowRunConfig,
+} from './slideshow/slideshowPanelTypes'
+import type { SlideshowImageFill as ImageFillSettings } from '../../lib/slideshowImageFill'
+import type { RelBounds } from '../../lib/slideshowTransitions'
+import type { SlideshowGradient } from '../../lib/slideshowBaseColor'
+import type { SlideshowFillAudio as FillAudioSettings } from '../../lib/slideshowFillAudio'
 
 const { t, locale } = useI18n()
 const presetStore = useSlideshowPresetStore()
 presetStore.loadPresets()
 const toastStore = useToastStore()
 
-const props = defineProps({
-  images: { type: Array, required: true },
-  hasSavedSettings: { type: Boolean, default: false },
-  isActive: { type: Boolean, default: false },
-  isPaused: { type: Boolean, default: false },
-  currentImageIndex: { type: Number, default: 0 },
-  totalImages: { type: Number, default: 0 },
-  currentPhase: { type: String, default: 'fadeIn' },
-  hasWorkspace: { type: Boolean, default: false },
-  // Gemerkte Bild-Anpassungen/-Größen: { get(img), set(img, settings|null, audioMode),
-  // getBounds(img), setBounds(img, bounds|null) }
-  adjustmentsApi: { type: Object, default: null },
-  // Gemeinsamer Bereich wurde per Maus verschoben ({ relX, relY, relWidth, relHeight })
-  externalTransform: { type: Object, default: null },
-  // Bild-Einstellungen öffnen: { index, nonce } (Klick auf ein Bild der Leiste, pausiert)
-  editImageRequest: { type: Object, default: null },
-  // Erhöht sich bei jeder Änderung eigener Bild-Bounds (Maus, Positionsregler)
-  boundsRevision: { type: Number, default: 0 },
+// Props-Typ siehe SlideshowPanelProps (slideshowPanelTypes.ts); Gemerkte Bild-Anpassungen/
+// -Größen: adjustmentsApi, per Maus verschobener Bereich: externalTransform,
+// Bild-Einstellungen öffnen: editImageRequest ({ index, nonce })
+const props = withDefaults(defineProps<SlideshowPanelProps>(), {
+  hasSavedSettings: false,
+  isActive: false,
+  isPaused: false,
+  currentImageIndex: 0,
+  totalImages: 0,
+  currentPhase: 'fadeIn',
+  hasWorkspace: false,
+  adjustmentsApi: null,
+  externalTransform: null,
+  editImageRequest: null,
+  boundsRevision: 0,
 })
 
-const emit = defineEmits([
-  'start',
-  'pause',
-  'resume',
-  'stop',
-  'order-changed',
-  'render-layer-change',
-  'transform-change',
-  'background-mode-change',
-  'background-color-change',
-  'workspace-color-change',
-  'base-gradient-change',
-  'base-fill-audio-change',
-  'base-image-change',
-  'reset-image-adjustments',
-  'live-update',
-  'move-mode-change',
-  'visibility-change',
-])
+const emit = defineEmits<{
+  start: [config: SlideshowRunConfig]
+  pause: []
+  resume: []
+  stop: []
+  'order-changed': [images: SlideshowSourceImage[]]
+  'render-layer-change': [renderBehindVisualizer: boolean]
+  'transform-change': [transform: RelBounds]
+  'background-mode-change': [mode: string]
+  'background-color-change': [color: string]
+  'workspace-color-change': [color: string]
+  'base-gradient-change': [target: ImageFillTarget, gradient: SlideshowGradient]
+  'base-fill-audio-change': [target: ImageFillTarget, audio: FillAudioSettings]
+  'base-image-change': [
+    target: ImageFillTarget,
+    fill: ImageFillSettings,
+    image: HTMLImageElement | null,
+  ]
+  'reset-image-adjustments': []
+  'live-update': [config: SlideshowRunConfig]
+  'move-mode-change': [value: boolean]
+  'visibility-change': [visible: boolean]
+}>()
+// Für die Composables (Ereignisname + Argumente, siehe slideshowPanelTypes.ts)
+const emitPanel = emit as SlideshowPanelEmit
 
 const D = SLIDESHOW_DEFAULT_SETTINGS
 
 // Timing-Einstellungen
-const fadeInDuration = ref(D.fadeInDuration)
-const displayDuration = ref(D.displayDuration)
-const fadeOutDuration = ref(D.fadeOutDuration)
-const applyAudioReactive = ref(D.applyAudioReactive)
-const loopSlideshow = ref(D.loop)
+const fadeInDuration = ref<number>(D.fadeInDuration)
+const displayDuration = ref<number>(D.displayDuration)
+const fadeOutDuration = ref<number>(D.fadeOutDuration)
+const applyAudioReactive = ref<boolean>(D.applyAudioReactive)
+const loopSlideshow = ref<boolean>(D.loop)
 // Übergangsanimation für alle Bilder
-const transition = ref(D.transition)
+const transition = ref<string>(D.transition)
 
 // Render Layer
-const renderBehindVisualizer = ref(D.renderBehindVisualizer)
+const renderBehindVisualizer = ref<boolean>(D.renderBehindVisualizer)
 
 // Maus verschiebt die ganze Slideshow statt eines einzelnen Bildes (Shift kehrt um)
-const moveWholeSlideshow = ref(D.moveWholeSlideshow)
+const moveWholeSlideshow = ref<boolean>(D.moveWholeSlideshow)
 
 // Slideshow als Hintergrund: 'none' | 'canvas' | 'workspace'
-const backgroundMode = ref(D.backgroundMode)
+const backgroundMode = ref<string>(D.backgroundMode)
 
 // Flächen unter der Slideshow: Farbe, Verlauf, Audio-Farbe (dauerhaft gemerkt)
-const baseFills = useSlideshowBaseFills(emit)
+const baseFills = useSlideshowBaseFills(emitPanel)
 const {
   backgroundColor,
   workspaceColor,
@@ -387,11 +403,11 @@ const imageFills = useSlideshowImageFills({
   onMissing: (name) => toastStore.warning(`${t('slideshow.imageFillMissing')}: ${name}`),
   onError: () => toastStore.error(t('slideshow.imageFillError')),
 })
-const imageFillTarget = computed(() =>
-  backgroundMode.value === 'workspace' ? 'workspace' : 'canvas',
+const imageFillTarget = computed(
+  (): ImageFillTarget => (backgroundMode.value === 'workspace' ? 'workspace' : 'canvas'),
 )
 // Wählbar: alle hochgeladenen Bilder + die geöffnete Stock-Kategorie
-const imageFillCandidates = computed(() => [
+const imageFillCandidates = computed((): ImageFillCandidateItem[] => [
   ...imageGallery.value.map((g) => ({
     id: `upload:${g.id}`,
     name: g.name,
@@ -419,13 +435,13 @@ const effectiveBackgroundMode = computed(() =>
 const fitsWorkspace = computed(() => effectiveBackgroundMode.value !== 'none')
 
 // Transform-Einstellungen (in Prozent für UI)
-const transformX = ref(D.transform.x)
-const transformY = ref(D.transform.y)
-const transformWidth = ref(D.transform.width)
-const transformHeight = ref(D.transform.height)
+const transformX = ref<number>(D.transform.x)
+const transformY = ref<number>(D.transform.y)
+const transformWidth = ref<number>(D.transform.width)
+const transformHeight = ref<number>(D.transform.height)
 
 // Geordnete Bilder-Liste (Reihenfolge per Drag & Drop in SlideshowOrderList)
-const orderedImages = ref([])
+const orderedImages = ref<SlideshowSourceImage[]>([])
 
 watch(
   () => props.images,
@@ -450,7 +466,7 @@ watch(
   },
 )
 
-function sameImageKeys(a, b) {
+function sameImageKeys(a: SlideshowSourceImage[], b: SlideshowSourceImage[]): boolean {
   return (
     a.length === b.length && a.every((img, i) => slideshowImageKey(img) === slideshowImageKey(b[i]))
   )
@@ -497,10 +513,12 @@ const {
   setForImage: perImage.setForImage,
   onLiveChange: () => emit('live-update', { ...buildPayload(), preserveLive: true }),
 })
+// Schlüssel des bearbeiteten Bildes (nur bei geöffnetem Editor genutzt)
+const editorKey = computed(() => slideshowImageKey(editorImage.value) as string | number)
 
 // ─── Start-Konfiguration ───────────────────────────────────────────────────
 
-function transformPayload() {
+function transformPayload(): RelBounds {
   return {
     relX: transformX.value / 100,
     relY: transformY.value / 100,
@@ -514,7 +532,7 @@ function startSlideshow() {
 }
 
 /** Aktuelle Panel-Einstellungen als Start-/Live-Update-Konfiguration. */
-function buildPayload() {
+function buildPayload(): SlideshowRunConfig {
   const fills = baseFills.snapshot()
   return {
     images: orderedImages.value.map(perImage.payloadFor),
@@ -562,7 +580,7 @@ function captureSettings() {
 }
 
 /** Globale Einstellungen aus einem Preset übernehmen (Änderungen melden). */
-function applySettings(s) {
+function applySettings(s: SlideshowPreset['settings']) {
   fadeInDuration.value = s.fadeInDuration
   displayDuration.value = s.displayDuration
   fadeOutDuration.value = s.fadeOutDuration
@@ -581,7 +599,7 @@ function applySettings(s) {
     backgroundMode.value = s.backgroundMode
     onBackgroundModeChange()
   }
-  baseFills.applySettings(s)
+  baseFills.applySettings(s as BaseFillSettings)
   // Flächenbilder (werden bei Bedarf nachgeladen)
   if (!isSameSlideshowImageFill(imageFills.fills.canvas.value, s.backgroundImageFill)) {
     imageFills.apply('canvas', s.backgroundImageFill)
@@ -597,7 +615,7 @@ function applySettings(s) {
 
 const { cleaningImages, cleanupPresetImages, savePreset, loadPreset } = useSlideshowPanelPresets({
   props,
-  emit,
+  emit: emitPanel,
   presetStore,
   toastStore,
   t,

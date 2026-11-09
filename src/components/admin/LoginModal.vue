@@ -20,21 +20,21 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import UiDialog from '../ui/UiDialog.vue'
 import UiTextField from '../ui/UiTextField.vue'
 import UiButton from '../ui/UiButton.vue'
 
-const emit = defineEmits(['close', 'success'])
+const emit = defineEmits<{ close: []; success: [] }>()
 
 const authStore = useAuthStore()
 
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
-const formEl = ref(null)
+const formEl = ref<HTMLFormElement | null>(null)
 
 onMounted(async () => {
   // Nach dem Fokus, den UiDialog beim Öffnen auf den Dialog setzt, ins Passwortfeld.

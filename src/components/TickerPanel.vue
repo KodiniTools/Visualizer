@@ -214,8 +214,8 @@
   </details>
 </template>
 
-<script setup>
-import { computed, h, inject } from 'vue'
+<script setup lang="ts">
+import { computed, h, inject, type Ref } from 'vue'
 import TickerAudioReactive from './ticker/TickerAudioReactive.vue'
 import ColorField from './ui/ColorField.vue'
 import SliderControl from './ui/SliderControl.vue'
@@ -224,15 +224,16 @@ import UiIconButton from './ui/UiIconButton.vue'
 import UiSelect from './ui/UiSelect.vue'
 import UiSwitch from './ui/UiSwitch.vue'
 import UiTextField from './ui/UiTextField.vue'
-import { useI18n } from '../lib/i18n.js'
-import { useTickerStore } from '../stores/tickerStore.js'
+import { useI18n } from '../lib/i18n'
+import { useTickerStore } from '../stores/tickerStore'
+import type { FontManager } from '../lib/fontManager'
 
 const { t } = useI18n()
 const ticker = useTickerStore()
 
 // Gleiche Font-Quelle wie der normale Text: der per provide/inject
 // bereitgestellte FontManager (siehe useTextFonts.js).
-const fontManager = inject('fontManager', null)
+const fontManager = inject<Ref<FontManager | null> | null>('fontManager', null)
 
 // Identische System-Font-Liste wie im Text-Manager
 const SYSTEM_FONT_NAMES = [
@@ -273,7 +274,7 @@ const missingFont = computed(() => {
 })
 
 /** Optionen mit Vorschau in der jeweiligen Schrift */
-const fontOption = (font) => ({ value: font, label: font, style: { fontFamily: font } })
+const fontOption = (font: string) => ({ value: font, label: font, style: { fontFamily: font } })
 
 const fontOptions = computed(() => [
   ...(missingFont.value ? [{ value: missingFont.value, label: missingFont.value }] : []),

@@ -59,7 +59,11 @@
               :aria-label="localizedName(image) || image.file"
               @click="selectBgGalleryImage(image)"
             >
-              <img :src="image.thumb || image.file" :alt="localizedName(image)" loading="lazy" />
+              <img
+                :src="(image.thumb as string | undefined) || image.file"
+                :alt="localizedName(image)"
+                loading="lazy"
+              />
             </button>
           </div>
         </div>
@@ -98,17 +102,19 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { localizedName as nameFor } from '../../../lib/localizedName.js'
+import type { BgSettingsApi } from '../../../composables/useBgSettings'
+import { useI18n } from '../../../lib/i18n'
+import { localizedName as nameFor } from '../../../lib/localizedName'
+import type { LocalizedEntry } from '../../../lib/localizedName'
 import UiButton from '../../ui/UiButton.vue'
 import UiDialog from '../../ui/UiDialog.vue'
 import UiSegmentedControl from '../../ui/UiSegmentedControl.vue'
 
 const { t, locale } = useI18n()
-const bg = inject('bgSettings')
-const bgReplaceFileInput = ref(null)
+const bg = inject('bgSettings') as BgSettingsApi
+const bgReplaceFileInput = ref<HTMLInputElement | null>(null)
 
 const {
   showBackgroundReplaceModal,
@@ -133,7 +139,7 @@ const {
 } = bg
 
 /** Name aus der Galerie in der aktuellen Sprache (`name` = DE, `name_en` = EN) */
-const localizedName = (entry) => nameFor(entry, locale.value)
+const localizedName = (entry: LocalizedEntry) => nameFor(entry, locale.value)
 
 const categoryOptions = computed(() =>
   bgGalleryCategories.value.map((category) => ({
@@ -143,7 +149,7 @@ const categoryOptions = computed(() =>
 )
 
 // Segmented Control liefert Strings; die Galerie vergleicht mit der Original-ID
-function onCategoryChange(value) {
+function onCategoryChange(value: string) {
   const category = bgGalleryCategories.value.find((c) => String(c.id) === value)
   if (category) selectBgGalleryCategory(category.id)
 }

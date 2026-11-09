@@ -42,14 +42,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import type { VideoPanelApi } from '../../composables/useVideoPanel'
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
-import { placementAnimationOptions } from '../../lib/placementAnimations.js'
+import { placementAnimationOptions } from '../../lib/placementAnimations'
 
 const { t } = useI18n()
 
@@ -61,7 +62,7 @@ const {
   videoLoop,
   videoMuted,
   addVideoDirectly,
-} = inject('videoPanel')
+} = inject('videoPanel') as VideoPanelApi
 
 const animationOptions = computed(() => placementAnimationOptions(t))
 </script>

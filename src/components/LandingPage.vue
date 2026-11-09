@@ -220,17 +220,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, h, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useI18n } from '../lib/i18n.js'
-import { useTheme } from '../lib/theme.js'
+import { useI18n } from '../lib/i18n'
+import { useTheme } from '../lib/theme'
 import { useAuthStore } from '../stores/auth'
 import { useLandingContentStore } from '../stores/landingContent'
 import AdminPanel from './admin/AdminPanel.vue'
 import LoginModal from './admin/LoginModal.vue'
 import { UiIconButton } from './ui'
-import { getBlogArticlesNewestFirst } from '../data/blogArticles.js'
+import { getBlogArticlesNewestFirst } from '../data/blogArticles'
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()
@@ -245,8 +245,8 @@ const showLogin = ref(false)
 const showAdmin = ref(false)
 
 // Polling: nicht eingeloggte Besucher übernehmen Admin-Änderungen (Broadcast).
-let contentPollInterval = null
-let lastContentUpdate = null
+let contentPollInterval: ReturnType<typeof setInterval> | null = null
+let lastContentUpdate: string | null = null
 async function checkContentChanges() {
   if (authStore.isAuthenticated) return // Admin-Bearbeitung nicht überschreiben
   const updatedAt = await contentStore.fetchVersion()
@@ -261,7 +261,7 @@ async function checkContentChanges() {
 // in the deployed web root (/<base>/gallery/videos/podcast.gif), not in the repo.
 const baseUrl = import.meta.env.BASE_URL
 
-const activeFaq = ref(null)
+const activeFaq = ref<number | null>(null)
 const isScrolled = ref(false)
 
 /**
@@ -269,7 +269,7 @@ const isScrolled = ref(false)
  * den Bearbeitungs-Drawer um, wenn bereits eingeloggt. `code` statt `key`,
  * weil Alt/Option das Zeichen je nach Layout verändert (z. B. macOS).
  */
-function handleAdminShortcut(e) {
+function handleAdminShortcut(e: KeyboardEvent) {
   if (e.repeat || e.code !== 'KeyV' || !e.ctrlKey || !e.altKey || !e.shiftKey || e.metaKey) return
   e.preventDefault()
   if (authStore.isAuthenticated) {
@@ -418,9 +418,9 @@ const faqItems = computed(() => content.value.faq.items)
 // Blog-Karten: Beiträge aus src/data/blogArticles.js in der aktiven Sprache,
 // neuester zuerst. Datum wird sprachabhängig formatiert (de: 21. September 2026,
 // en: September 21, 2026); fehlt eine Übersetzung, fällt der Text auf Deutsch zurück.
-const BLOG_DATE_LOCALES = { de: 'de-CH', en: 'en-US' }
+const BLOG_DATE_LOCALES: Record<string, string> = { de: 'de-CH', en: 'en-US' }
 
-function formatBlogDate(isoDate, lang) {
+function formatBlogDate(isoDate: string, lang: string): string {
   const date = new Date(`${isoDate}T00:00:00`)
   if (Number.isNaN(date.getTime())) return isoDate
   return date.toLocaleDateString(BLOG_DATE_LOCALES[lang] || BLOG_DATE_LOCALES.de, {
@@ -432,7 +432,8 @@ function formatBlogDate(isoDate, lang) {
 
 const blogCards = computed(() => {
   const lang = locale.value
-  const pick = (field) => field?.[lang] ?? field?.de ?? ''
+  const pick = (field: Partial<Record<string, string>> | undefined): string =>
+    field?.[lang] ?? field?.de ?? ''
   return getBlogArticlesNewestFirst().map((article) => ({
     id: article.id,
     url: pick(article.url),
@@ -444,7 +445,7 @@ const blogCards = computed(() => {
   }))
 })
 
-function toggleFaq(index) {
+function toggleFaq(index: number) {
   activeFaq.value = activeFaq.value === index ? null : index
 }
 </script>

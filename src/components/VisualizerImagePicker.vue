@@ -20,29 +20,39 @@
   </div>
 </template>
 
-<script setup>
-import { computed, inject, ref } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+<script setup lang="ts">
+import { computed, inject, ref, type Ref } from 'vue'
+import { useI18n } from '../lib/i18n'
 import {
   visualizerImages,
   registerImageFile,
   registerCanvasImage,
   registerGalleryImage,
-} from '../lib/visualizers/imageRegistry.js'
-import { useImageGallery } from '../composables/useImageGallery.js'
-import { UiButton, UiSelect } from './ui/index.js'
+} from '../lib/visualizers/imageRegistry'
+import { useImageGallery } from '../composables/useImageGallery'
+import { UiButton, UiSelect } from './ui'
+import type { UiSelectEntry } from './ui/UiSelect.vue'
+import type { MultiImageManager } from '../lib/multiImageManager'
 
-const props = defineProps({ modelValue: { type: String, default: null } })
-const emit = defineEmits(['update:modelValue'])
+interface ImageChoice {
+  id: string
+  name: string
+}
+
+const props = withDefaults(defineProps<{ modelValue?: string | null }>(), { modelValue: null })
+const emit = defineEmits<{ 'update:modelValue': [id: string | null] }>()
 const { t } = useI18n()
-const fileInput = ref(null)
-const multiImageManagerRef = inject('multiImageManager', null)
+const fileInput = ref<HTMLInputElement | null>(null)
+const multiImageManagerRef = inject<Ref<MultiImageManager | null | undefined> | null>(
+  'multiImageManager',
+  null,
+)
 const gallery = useImageGallery()
 
 const uploads = computed(() => visualizerImages.value.filter((img) => img.kind === 'upload'))
 
 // Canvas images are registered on demand so the registry mirrors the canvas.
-const canvasImages = computed(() => {
+const canvasImages = computed((): ImageChoice[] => {
   const manager = multiImageManagerRef?.value
   const list = manager?.getAllImages?.() || []
   return list
@@ -53,21 +63,21 @@ const canvasImages = computed(() => {
       })
       return id ? { id, name: `${t('visualizer.image.fromCanvas')} ${i + 1}` } : null
     })
-    .filter(Boolean)
+    .filter((c): c is ImageChoice => c !== null)
 })
 
-const galleryImages = computed(() =>
+const galleryImages = computed((): ImageChoice[] =>
   (gallery.imageGallery.value || [])
     .map((img) => {
       const id = registerGalleryImage(img)
       return id ? { id, name: img.name } : null
     })
-    .filter(Boolean),
+    .filter((c): c is ImageChoice => c !== null),
 )
 
 /** Optionen für UiSelect: „Automatisch“ plus je Quelle eine Gruppe (nur wenn befüllt). */
-const options = computed(() => {
-  const group = (label, list) =>
+const options = computed((): UiSelectEntry[] => {
+  const group = (label: string, list: ImageChoice[]): UiSelectEntry[] =>
     list.length
       ? [{ label, options: list.map(({ id, name }) => ({ value: id, label: name })) }]
       : []
@@ -81,15 +91,16 @@ const options = computed(() => {
 
 const selected = computed({
   get: () => props.modelValue || '',
-  set: (id) => onSelect(id),
+  set: (id: string) => onSelect(id),
 })
 
-function onSelect(id) {
+function onSelect(id: string | null) {
   emit('update:modelValue', id || null)
 }
 
-async function onFile(event) {
-  const file = event.target?.files?.[0]
+async function onFile(event: Event) {
+  const input = event.target as HTMLInputElement | null
+  const file = input?.files?.[0]
   if (!file) return
   try {
     const id = await registerImageFile(file)
@@ -97,7 +108,7 @@ async function onFile(event) {
   } catch (err) {
     console.error('[VisualizerImagePicker] Bild konnte nicht geladen werden:', err)
   } finally {
-    if (event.target) event.target.value = ''
+    if (input) input.value = ''
   }
 }
 </script>

@@ -77,7 +77,7 @@
               {{ selectedText.audioReactive.effects.opacity.minimum || 0 }}%
             </label>
             <SliderField
-              :model-value="selectedText.audioReactive.effects.opacity.minimum || 0"
+              :model-value="(selectedText.audioReactive.effects.opacity.minimum as number) || 0"
               :min="0"
               :max="90"
               :default-value="0"
@@ -111,30 +111,28 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, toRef, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useToastStore } from '../../stores/toastStore.js'
-import { useAudioReactiveText } from '../../composables/useAudioReactiveText.js'
+import { useI18n } from '../../lib/i18n'
+import { useToastStore } from '../../stores/toastStore'
+import { useAudioReactiveText } from '../../composables/useAudioReactiveText'
 import {
   TEXT_REACTION_DEFAULTS,
   TEXT_SHARED_EFFECT_NAMES,
-} from '../../lib/audio/audioReactiveConfig.js'
+} from '../../lib/audio/audioReactiveConfig'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
-import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData, type AudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import type { CanvasManagerRef } from '../../composables/types'
+import type { AudioReactivePanelApi } from '../../composables/audioReactive/useAudioReactiveTarget'
+import type { TextObject } from '../../lib/textManager/types'
 import SliderField from '../ui/SliderField.vue'
-import { UiButton, UiSwitch } from '../ui/index.js'
+import { UiButton, UiSwitch } from '../ui'
 
-const props = defineProps({
-  selectedText: {
-    type: Object,
-    required: true,
-  },
-})
+const props = defineProps<{ selectedText: TextObject }>()
 
 const { t } = useI18n()
 const toastStore = useToastStore()
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 
 // Reaktive Referenz auf den aktuell markierten Text (siehe TextAnimationsPanel)
 const selectedTextRef = toRef(props, 'selectedText')
@@ -158,7 +156,7 @@ const {
   loadAudioEffectsPreset,
 } = useAudioReactiveText(selectedTextRef, canvasManager, toastStore)
 
-const panelRef = ref(null)
+const panelRef = ref<AudioReactivePanelApi | null>(null)
 
 // Bild-Effekte mit Text-Pendant/Wirkung; Text-eigene Effekte als eigene Kategorie
 const allowedEffects = [...TEXT_SHARED_EFFECT_NAMES]
@@ -189,7 +187,15 @@ const REACTION_PRESETS = [
 ]
 
 // Schwellenwert/Attack/Release: Bereich, Standard (Reset-Knopf) und Hinweis
-const REACTION_FIELDS = [
+type ReactionKey = keyof typeof TEXT_REACTION_DEFAULTS
+
+const REACTION_FIELD_DEFS: {
+  key: ReactionKey
+  min: number
+  max: number
+  label: string
+  hint: string
+}[] = [
   {
     key: 'threshold',
     min: 0,
@@ -205,13 +211,17 @@ const REACTION_FIELDS = [
     label: 'textManager.release',
     hint: 'textManager.releaseHint',
   },
-].map((field) => ({ ...field, fallback: TEXT_REACTION_DEFAULTS[field.key] }))
+]
+const REACTION_FIELDS = REACTION_FIELD_DEFS.map((field) => ({
+  ...field,
+  fallback: TEXT_REACTION_DEFAULTS[field.key] as number,
+}))
 
-function reactionValue(field) {
+function reactionValue(field: { key: ReactionKey; fallback: number }) {
   return props.selectedText.audioReactive?.[field.key] ?? field.fallback
 }
 
-function setOpacityOption(key, value) {
+function setOpacityOption(key: string, value: unknown) {
   const cfg = ensureConfig()
   if (!cfg?.effects?.opacity) return
   cfg.effects.opacity[key] = value
@@ -229,9 +239,9 @@ watch([() => props.selectedText?.id, revision], async () => {
 })
 
 // ── Audio-Pegel-Anzeige für die Quelle des Textes ──
-let levelAnimationId = null
+let levelAnimationId: number | null = null
 
-function levelFor(audioData, source) {
+function levelFor(audioData: AudioAnalysisData, source: string | undefined) {
   switch (source) {
     case 'mid':
       return audioData.smoothMid ?? 0

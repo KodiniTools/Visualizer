@@ -21,7 +21,7 @@
           {{
             t('textManager.layout.lineCount').replace(
               '{n}',
-              selectedText.content.split('\n').length,
+              String(selectedText.content.split('\n').length),
             )
           }}
         </div>
@@ -118,22 +118,26 @@
           :options="alignOptions"
           :label="t('textManager.alignment')"
           size="sm"
-          @update:model-value="setTextAlign"
+          @update:model-value="(v) => setTextAlign(v as CanvasTextAlign)"
         />
       </div>
     </div>
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { computed, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { UiIconButton, UiSegmentedControl, UiSelect, UiTextArea } from '../../ui/index.js'
+import type { TextEditControls } from './textEditControls'
+import { useI18n } from '../../../lib/i18n'
+import { UiIconButton, UiSegmentedControl, UiSelect, UiTextArea } from '../../ui'
+
+/** UiTextArea-Instanz mit ihrem <textarea> */
+type TextAreaHost = { textarea?: HTMLTextAreaElement | null }
 
 const { t } = useI18n()
-const tec = inject('textEditControls')
+const tec = inject('textEditControls') as TextEditControls
 const {
   selectedText,
   updateText,
@@ -145,8 +149,8 @@ const {
 } = tec
 
 // Fokus/Cursor setzt useTextEditorWithChar direkt am <textarea>
-function bindEditInput(component) {
-  tec.editTextInput.value = component?.textarea ?? null
+function bindEditInput(component: unknown) {
+  tec.editTextInput.value = (component as TextAreaHost | null)?.textarea ?? null
 }
 
 const alignOptions = computed(() =>

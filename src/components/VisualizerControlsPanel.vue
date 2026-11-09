@@ -37,17 +37,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useVisualizerStore } from '../stores/visualizerStore.js'
-import { Visualizers } from '../lib/visualizers/index.js'
+import { useI18n } from '../lib/i18n'
+import { useVisualizerStore } from '../stores/visualizerStore'
+import { Visualizers } from '../lib/visualizers/index'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerBasicsSection from './visualizer-panel/VisualizerBasicsSection.vue'
 import VisualizerReactSourceSection from './visualizer-panel/VisualizerReactSourceSection.vue'
 import VisualizerTransformSection from './visualizer-panel/VisualizerTransformSection.vue'
 import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSection.vue'
-import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
+import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings'
 
 const { t } = useI18n()
 const store = useVisualizerStore()

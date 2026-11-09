@@ -2,7 +2,7 @@
   <!-- Richtung -->
   <div class="control-group">
     <UiSelect
-      :model-value="effect.direction"
+      :model-value="effect.direction as string"
       :options="directionOptions"
       :label="t('textManager.direction')"
       size="sm"
@@ -12,7 +12,10 @@
 
   <!-- Start-Skalierung -->
   <div class="control-group">
-    <label>{{ t('textManager.startSize') }}: {{ Math.round(effect.startScale * 100) }}%</label>
+    <label
+      >{{ t('textManager.startSize') }}:
+      {{ Math.round((effect.startScale as number) * 100) }}%</label
+    >
     <SliderField
       :model-value="effect.startScale"
       :min="0"
@@ -27,7 +30,9 @@
 
   <!-- End-Skalierung -->
   <div class="control-group">
-    <label>{{ t('textManager.endSize') }}: {{ Math.round(effect.endScale * 100) }}%</label>
+    <label
+      >{{ t('textManager.endSize') }}: {{ Math.round((effect.endScale as number) * 100) }}%</label
+    >
     <SliderField
       :model-value="effect.endScale"
       :min="0"
@@ -44,7 +49,7 @@
   <AnimationDisplayControls :effect="effect" @change="emit('change')" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Einstellungen des Scale-Effekts (Edit-Panel und Neu-Formular). */
 import { computed } from 'vue'
 import SliderField from '../../ui/SliderField.vue'
@@ -52,11 +57,12 @@ import UiSelect from '../../ui/UiSelect.vue'
 import AnimationTimingControls from './AnimationTimingControls.vue'
 import AnimationLoopControls from './AnimationLoopControls.vue'
 import AnimationDisplayControls from './AnimationDisplayControls.vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { useEffectField } from './useEffectField.js'
+import { useI18n } from '../../../lib/i18n'
+import { useEffectField } from './useEffectField'
+import type { ScaleAnimation } from '../../../lib/textManager/types'
 
-const effect = defineModel('effect', { type: Object, required: true })
-const emit = defineEmits(['change'])
+const effect = defineModel<ScaleAnimation>('effect', { required: true })
+const emit = defineEmits<{ change: [] }>()
 const set = useEffectField(effect, emit)
 const { t } = useI18n()
 

@@ -1,0 +1,151 @@
+// canvasManager/methods/selectionMethods.js
+/**
+ * Auswahl: Listener, Mehrfachauswahl (Texte) sowie Hit-Tests,
+ * Objekt-Bounds und Handles (delegiert an SelectionManager).
+ *
+ * `this` ist die CanvasManager-Instanz (Methoden werden per applyMethods()
+ * auf CanvasManager.prototype übertragen).
+ */
+
+import { getSlideshowManager } from '../../slideshowManagerBridge'
+import type { CanvasManager, CanvasObject, SelectionListener } from '../../canvasManager'
+import type { Rect } from '../../canvasObjects/geometry'
+
+export class SelectionMethods {
+  /**
+   * Selection Listener registrieren
+   */
+  onSelectionChanged(this: CanvasManager, callback: SelectionListener): void {
+    this._selectionListeners.push(callback)
+  }
+
+  _notifySelectionListeners(this: CanvasManager, obj: CanvasObject | null): void {
+    this._selectionListeners.forEach((listener) => listener(obj))
+  }
+
+  // ───────── Multi-selection helpers ─────────
+
+  toggleMultiSelect(this: CanvasManager, obj: CanvasObject | null | undefined): void {
+    if (!obj || obj.type !== 'text') return
+
+    // On first shift+click ensure activeObject is part of the set
+    if (this.activeObject && !this.selectedObjects.includes(this.activeObject)) {
+      this.selectedObjects.unshift(this.activeObject)
+    }
+
+    const idx = this.selectedObjects.indexOf(obj)
+    if (idx >= 0) {
+      this.selectedObjects.splice(idx, 1)
+      // If we removed the activeObject, promote the next one
+      if (obj === this.activeObject && this.selectedObjects.length > 0) {
+        this.activeObject = this.selectedObjects[this.selectedObjects.length - 1] as CanvasObject
+      } else if (obj === this.activeObject) {
+        this.activeObject = null
+      }
+    } else {
+      this.selectedObjects.push(obj)
+    }
+
+    // Notify listeners with array so TextManagerPanel can show multi-edit
+    this._selectionListeners.forEach((listener) =>
+      listener(this.activeObject, this.selectedObjects),
+    )
+    this.redrawCallback()
+  }
+
+  clearMultiSelection(this: CanvasManager): void {
+    this.selectedObjects = []
+  }
+
+  isInMultiSelection(this: CanvasManager, obj: CanvasObject): boolean {
+    return this.selectedObjects.includes(obj)
+  }
+
+  selectAllTexts(this: CanvasManager): void {
+    if (!this.textManager) return
+    const texts = this.textManager.textObjects.filter((t) => !t.offCanvas)
+    if (!texts || texts.length === 0) return
+    this.activeObject = texts[texts.length - 1] as CanvasObject // texts ist nicht leer
+    this.selectedObjects = [...texts]
+    this._selectionListeners.forEach((listener) =>
+      listener(this.activeObject, this.selectedObjects),
+    )
+    this.redrawCallback()
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SELECTION (delegiert an SelectionManager)
+  // ═══════════════════════════════════════════════════════════════════
+
+  setActiveObject(this: CanvasManager, obj: CanvasObject | null): void {
+    this.selectionManager.setActiveObject(obj)
+  }
+
+  getObjectAtPos(this: CanvasManager, x: number, y: number): CanvasObject | null {
+    return this.selectionManager.getObjectAtPos(x, y)
+  }
+
+  getTextAtPos(this: CanvasManager, x: number, y: number): CanvasObject | null {
+    return this.selectionManager.getTextAtPos(x, y)
+  }
+
+  getObjectBounds(this: CanvasManager, obj: CanvasObject | null | undefined): Rect | null {
+    if (!obj) return null
+
+    if (obj.type === 'text') {
+      if (this.textManager && this.textManager.getObjectBounds) {
+        return this.textManager.getObjectBounds(obj, this.canvas)
+      }
+      return null
+    }
+
+    if (obj.type === 'image') {
+      // Slideshow-Bilder: sichtbarer Bereich inkl. Übergang (siehe getDisplayBounds)
+      const sm = obj.isSlideshowImage ? getSlideshowManager() : null
+      if (sm) {
+        const transform = sm.getDisplayBounds
+          ? sm.getDisplayBounds(obj)
+          : sm.getSelectionBounds(obj)
+        return {
+          x: transform.relX * this.canvas.width,
+          y: transform.relY * this.canvas.height,
+          width: transform.relWidth * this.canvas.width,
+          height: transform.relHeight * this.canvas.height,
+        }
+      }
+      return {
+        x: obj.relX * this.canvas.width,
+        y: obj.relY * this.canvas.height,
+        width: obj.relWidth * this.canvas.width,
+        height: obj.relHeight * this.canvas.height,
+      }
+    }
+
+    if (obj.type === 'video') {
+      return {
+        x: obj.relX * this.canvas.width,
+        y: obj.relY * this.canvas.height,
+        width: obj.relWidth * this.canvas.width,
+        height: obj.relHeight * this.canvas.height,
+      }
+    }
+
+    return null
+  }
+
+  isPointInRect(this: CanvasManager, x: number, y: number, rect: Rect): boolean {
+    return this.selectionManager.isPointInRect(x, y, rect)
+  }
+
+  getResizeHandles(this: CanvasManager, bounds: Rect) {
+    return this.selectionManager.getResizeHandles(bounds)
+  }
+
+  getHandleAtPos(this: CanvasManager, bounds: Rect, x: number, y: number) {
+    return this.selectionManager.getHandleAtPos(bounds, x, y)
+  }
+
+  getDeleteButtonBounds(this: CanvasManager, objectBounds: Rect): Rect {
+    return this.selectionManager.getDeleteButtonBounds(objectBounds)
+  }
+}

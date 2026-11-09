@@ -30,14 +30,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import type { BgSettingsApi } from '../../../composables/useBgSettings'
+import { useI18n } from '../../../lib/i18n'
 import AudioReactivePanel from '../../foto-panel/AudioReactivePanel.vue'
-import { getAudioAnalysisData } from '../../../lib/audio/audioAnalysisData.js'
+import { getAudioAnalysisData, type AudioAnalysisData } from '../../../lib/audio/audioAnalysisData'
+import type { AudioReactivePanelApi } from '../../../composables/audioReactive/useAudioReactiveTarget'
 
 const { t } = useI18n()
-const bg = inject('bgSettings')
+const bg = inject('bgSettings') as BgSettingsApi
 const {
   gradientEnabled,
   bgAudioReactive,
@@ -55,7 +57,7 @@ const {
   applyBgAudioSettings,
 } = bg
 
-const panelRef = ref(null)
+const panelRef = ref<AudioReactivePanelApi | null>(null)
 
 // Gradient-Effekte nur anbieten, wenn der Gradient aktiv ist
 const extraCategories = computed(() =>
@@ -85,9 +87,9 @@ watch([bgAudioRevision, extraCategories], async () => {
 })
 
 // ── Audio-Pegel-Anzeige (wie beim Bild-Panel, aber für die Hintergrund-Quelle) ──
-let levelAnimationId = null
+let levelAnimationId: number | null = null
 
-function levelFor(audioData, source) {
+function levelFor(audioData: AudioAnalysisData, source: string | undefined) {
   switch (source) {
     case 'mid':
       return audioData.smoothMid ?? 0

@@ -24,14 +24,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import type { PlayerBarContext } from './playerBarContext'
+import type { CanvasManagerRef } from '../../composables/types'
+import { useI18n } from '../../lib/i18n'
 import TextAudioReactivePanel from '../text-manager/TextAudioReactivePanel.vue'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 
 const { t } = useI18n()
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef | undefined
 
 // Direkt am aktiven Canvas-Objekt hängen statt am Text-Manager-Panel links:
 // So funktioniert das Popover unabhängig davon, ob jenes Panel sichtbar ist.
@@ -40,7 +42,7 @@ const selectedText = computed(() => {
   return active?.type === 'text' ? active : null
 })
 
-const { popover } = inject('playerBar')
+const { popover } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('textAudioReactive')
 const initOffset = cascadeOffset('textAudioReactive')

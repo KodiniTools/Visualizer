@@ -1,0 +1,332 @@
+/**
+ * useImageGallery Composable
+ * Verwaltet hochgeladene Bilder: Upload, Auswahl, Löschen
+ *
+ * Der State liegt auf Modulebene, damit die Galerie ein einziger, geteilter
+ * Speicher ist. So können sowohl das FotoPanel als auch die App-Shell
+ * (z. B. für per Handoff übernommene Bilder) dieselbe Galerie befüllen.
+ */
+import { ref, computed, toRaw } from 'vue'
+
+/** Eintrag der Upload-Galerie */
+export interface GalleryImage {
+  id: number
+  img: HTMLImageElement
+  /** für die Galerie-Anzeige gekürzt (max. 20 Zeichen) */
+  name: string
+  /** voller Dateiname (z. B. für die Bildvorschau der Canvas-Bilder) */
+  fileName?: string
+  /** z. B. '1920×1080' */
+  dimensions: string
+  /** formatiert, z. B. '1.2 MB' ('' wenn unbekannt) */
+  size: string
+}
+
+/** Bild aus einer Data-URL (z. B. per Handoff übernommen) */
+export interface GalleryImageData {
+  name?: string
+  dataUrl: string
+}
+
+// ── Geteilter State (Singleton) ────────────────────────────────────────────────
+const imageGallery = ref<GalleryImage[]>([])
+const selectedImageIndex = ref<number | null>(null)
+const selectedImageIndices = ref(new Set<number>())
+const lastSelectedImageIndex = ref<number | null>(null)
+
+// Computed
+const selectedImage = computed<GalleryImage | null>(() => {
+  if (selectedImageIndex.value !== null && imageGallery.value[selectedImageIndex.value]) {
+    return imageGallery.value[selectedImageIndex.value] as GalleryImage
+  }
+  return null
+})
+
+const selectedImages = computed(() => {
+  return Array.from(selectedImageIndices.value)
+    .sort((a, b) => a - b)
+    .map((index) => imageGallery.value[index])
+    .filter((img): img is GalleryImage => img !== undefined)
+})
+
+const selectedImageCount = computed(() => selectedImageIndices.value.size)
+
+// Prüfen ob ein hochgeladenes Bild ausgewählt ist
+const isImageSelected = (index: number) => {
+  return selectedImageIndices.value.has(index)
+}
+
+// Formatiere Dateigröße
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
+// Kürzt lange Dateinamen für die Galerie-Anzeige
+function shortenName(name: string): string {
+  return name.length > 20 ? name.substring(0, 17) + '...' : name
+}
+
+// Fügt ein bereits geladenes Image-Element als Galerie-Eintrag hinzu
+function pushGalleryImage(img: HTMLImageElement, name: string, size: string): GalleryImage {
+  const imageData: GalleryImage = {
+    id: Date.now() + Math.random(),
+    img,
+    name: shortenName(name),
+    fileName: name,
+    dimensions: `${img.width}×${img.height}`,
+    size,
+  }
+
+  imageGallery.value.push(imageData)
+
+  if (imageGallery.value.length === 1) {
+    selectedImageIndex.value = 0
+    selectedImageIndices.value = new Set([0])
+    lastSelectedImageIndex.value = 0
+  }
+
+  return imageData
+}
+
+/**
+ * Legt ein (z. B. aus einem Slideshow-Preset wiederhergestelltes) Bild in die
+ * Galerie, ohne die Auswahl zu verändern. Ist dasselbe Bild schon vorhanden
+ * (gleiches Objekt oder gleicher Name + gleiche Maße), wird dieser Eintrag
+ * zurückgegeben.
+ */
+function ensureGalleryImage(img: HTMLImageElement, name: string | null | undefined): GalleryImage {
+  const shortName = shortenName(name || 'Bild')
+  const dims = `${img.width}×${img.height}`
+  const rawImg = toRaw(img)
+  const existing = imageGallery.value.find(
+    (entry) =>
+      toRaw(entry.img) === rawImg || (entry.name === shortName && entry.dimensions === dims),
+  )
+  if (existing) return existing
+
+  const src = typeof img.src === 'string' ? img.src : ''
+  const size = src.startsWith('data:') ? formatFileSize(estimateDataUrlBytes(src)) : ''
+  const imageData: GalleryImage = {
+    id: Date.now() + Math.random(),
+    img,
+    name: shortName,
+    fileName: name || 'Bild',
+    dimensions: dims,
+    size,
+  }
+  imageGallery.value.push(imageData)
+  // Reaktiver Eintrag (nicht das Rohobjekt), wie bisher
+  return imageGallery.value[imageGallery.value.length - 1] as GalleryImage
+}
+
+// Schätzt die Bytegröße einer Data-URL (base64) ab
+function estimateDataUrlBytes(dataUrl: string): number {
+  const comma = dataUrl.indexOf(',')
+  const b64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl
+  const padding = b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0
+  return Math.max(0, Math.floor((b64.length * 3) / 4) - padding)
+}
+
+// Handle Image Upload (mit Multi-Upload)
+function handleImageUpload(
+  event: Event,
+  onSuccess?: ((image: GalleryImage) => void) | null,
+  onError?: ((fileName: string) => void) | null,
+) {
+  const input = event.target as HTMLInputElement
+  const files = input.files
+  if (!files || files.length === 0) return
+
+  Array.from(files).forEach((file) => {
+    if (!file.type.startsWith('image/')) {
+      console.warn('Überspringe Nicht-Bild-Datei:', file.name)
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const imageData = pushGalleryImage(img, file.name, formatFileSize(file.size))
+        console.log('✅ Bild zur Galerie hinzugefügt:', imageData.name, imageData.dimensions)
+        if (onSuccess) onSuccess(imageData)
+      }
+      img.onerror = () => {
+        console.error('❌ Bild konnte nicht geladen werden:', file.name)
+        if (onError) onError(file.name)
+      }
+      img.src = (e.target as FileReader).result as string
+    }
+    reader.readAsDataURL(file)
+  })
+
+  input.value = ''
+}
+
+/**
+ * Fügt Bilder aus Data-URLs zur Galerie hinzu – exakt so, als wären sie
+ * normal hochgeladen worden. Genutzt für per Handoff übernommene Bilder.
+ *
+ * @returns Anzahl erfolgreich hinzugefügter Bilder
+ */
+function addImagesFromData(images: GalleryImageData[] | null | undefined): Promise<number> {
+  if (!Array.isArray(images) || images.length === 0) return Promise.resolve(0)
+
+  const tasks = images.map(
+    ({ name, dataUrl }) =>
+      new Promise<boolean>((resolve) => {
+        if (!dataUrl) return resolve(false)
+        const img = new Image()
+        img.onload = () => {
+          const imageData = pushGalleryImage(
+            img,
+            name || 'Bild',
+            formatFileSize(estimateDataUrlBytes(dataUrl)),
+          )
+          console.log(
+            '✅ Bild (Handoff) zur Galerie hinzugefügt:',
+            imageData.name,
+            imageData.dimensions,
+          )
+          resolve(true)
+        }
+        img.onerror = () => {
+          console.error('❌ Handoff-Bild konnte nicht geladen werden:', name)
+          resolve(false)
+        }
+        img.src = dataUrl
+      }),
+  )
+
+  return Promise.all(tasks).then((results) => results.filter(Boolean).length)
+}
+
+// Bild aus Galerie auswählen (mit Mehrfachauswahl-Unterstützung)
+function selectImage(
+  index: number,
+  event: Partial<Pick<MouseEvent, 'shiftKey' | 'ctrlKey' | 'metaKey'>> | null = null,
+) {
+  const shiftKey = event?.shiftKey || false
+  const ctrlKey = event?.ctrlKey || event?.metaKey || false
+
+  if (shiftKey && lastSelectedImageIndex.value !== null) {
+    const start = Math.min(lastSelectedImageIndex.value, index)
+    const end = Math.max(lastSelectedImageIndex.value, index)
+
+    if (!ctrlKey) {
+      selectedImageIndices.value.clear()
+    }
+
+    for (let i = start; i <= end; i++) {
+      selectedImageIndices.value.add(i)
+    }
+    selectedImageIndices.value = new Set(selectedImageIndices.value)
+    console.log(`📌 ${end - start + 1} Bilder ausgewählt (Range)`)
+  } else if (ctrlKey) {
+    if (selectedImageIndices.value.has(index)) {
+      selectedImageIndices.value.delete(index)
+    } else {
+      selectedImageIndices.value.add(index)
+    }
+    selectedImageIndices.value = new Set(selectedImageIndices.value)
+    lastSelectedImageIndex.value = index
+    console.log('📌 Bild getoggelt:', (imageGallery.value[index] as GalleryImage).name)
+  } else {
+    selectedImageIndices.value = new Set([index])
+    lastSelectedImageIndex.value = index
+    console.log('📌 Bild ausgewählt:', (imageGallery.value[index] as GalleryImage).name)
+  }
+
+  selectedImageIndex.value = index
+}
+
+// Alle hochgeladenen Bilder auswählen
+function selectAllImages() {
+  const indices = imageGallery.value.map((_, index) => index)
+  selectedImageIndices.value = new Set(indices)
+  if (indices.length > 0) {
+    selectedImageIndex.value = indices[0] as number
+    lastSelectedImageIndex.value = indices[0] as number
+  }
+  console.log(`📌 Alle ${indices.length} Bilder ausgewählt`)
+}
+
+// Auswahl aller hochgeladenen Bilder aufheben
+function deselectAllImages() {
+  selectedImageIndices.value = new Set()
+  selectedImageIndex.value = null
+  lastSelectedImageIndex.value = null
+  console.log('📌 Bildauswahl aufgehoben')
+}
+
+// Einzelnes Bild aus Galerie löschen
+function deleteImage(index: number): GalleryImage {
+  const deletedImage = imageGallery.value[index] as GalleryImage
+  imageGallery.value.splice(index, 1)
+
+  const newSelectedIndices = new Set<number>()
+  selectedImageIndices.value.forEach((i) => {
+    if (i < index) {
+      newSelectedIndices.add(i)
+    } else if (i > index) {
+      newSelectedIndices.add(i - 1)
+    }
+  })
+  selectedImageIndices.value = newSelectedIndices
+
+  if (selectedImageIndex.value === index) {
+    selectedImageIndex.value = imageGallery.value.length > 0 ? 0 : null
+  } else if (selectedImageIndex.value !== null && selectedImageIndex.value > index) {
+    selectedImageIndex.value--
+  }
+
+  if (lastSelectedImageIndex.value === index) {
+    lastSelectedImageIndex.value = null
+  } else if (lastSelectedImageIndex.value !== null && lastSelectedImageIndex.value > index) {
+    lastSelectedImageIndex.value--
+  }
+
+  console.log('🗑️ Bild gelöscht:', deletedImage.name)
+  return deletedImage
+}
+
+// Alle Bilder löschen
+function clearAllImages() {
+  const count = imageGallery.value.length
+  imageGallery.value = []
+  selectedImageIndex.value = null
+  selectedImageIndices.value = new Set()
+  lastSelectedImageIndex.value = null
+  console.log('🗑️ Galerie geleert')
+  return count
+}
+
+export function useImageGallery() {
+  return {
+    // State
+    imageGallery,
+    selectedImageIndex,
+    selectedImageIndices,
+
+    // Computed
+    selectedImage,
+    selectedImages,
+    selectedImageCount,
+
+    // Methods
+    isImageSelected,
+    formatFileSize,
+    handleImageUpload,
+    addImagesFromData,
+    ensureGalleryImage,
+    selectImage,
+    selectAllImages,
+    deselectAllImages,
+    deleteImage,
+    clearAllImages,
+  }
+}

@@ -62,13 +62,15 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { localizedName as nameFor } from '../../lib/localizedName.js'
+import { useI18n } from '../../lib/i18n'
+import { localizedName as nameFor } from '../../lib/localizedName'
 import UiButton from '../ui/UiButton.vue'
 import UiDialog from '../ui/UiDialog.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
+import type { TileGalleryApi } from '../../composables/useTileGallery'
+import type { LocalizedEntry } from '../../lib/localizedName'
 
 const { t, locale } = useI18n()
 const {
@@ -82,10 +84,10 @@ const {
   selectGalleryCategory,
   selectGalleryImage,
   confirmGallerySelection,
-} = inject('tileGallery')
+} = inject('tileGallery') as TileGalleryApi
 
 /** Name aus gallery.json in der aktuellen Sprache (`name` = DE, `name_en` = EN) */
-const localizedName = (entry) => nameFor(entry, locale.value)
+const localizedName = (entry: LocalizedEntry) => nameFor(entry, locale.value)
 
 const categoryOptions = computed(() =>
   galleryCategories.value.map((category) => ({

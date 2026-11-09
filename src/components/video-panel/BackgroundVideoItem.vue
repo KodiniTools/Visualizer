@@ -86,31 +86,42 @@
   </section>
 </template>
 
-<script setup>
-import { useI18n } from '../../lib/i18n.js'
+<script setup lang="ts">
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import SliderField from '../ui/SliderField.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import VideoAudioReactive from './VideoAudioReactive.vue'
+import type { FotoImageObject } from '../../lib/fotoManager'
 
 /**
  * Ein Hintergrund-Video (normal oder Workspace) mit Abspielen, Spulen,
  * Entfernen, Zeit, Lautstärke und Audio-Reaktiv. Rein darstellend:
  * Aktionen gehen als Events an BackgroundVideoControls.
  */
-defineProps({
-  label: { type: String, required: true },
-  video: { type: Object, required: true },
-  playing: { type: Boolean, default: false },
-  time: { type: Number, default: 0 },
-  duration: { type: Number, default: 0 },
-  volume: { type: Number, default: 1 },
-  /** Workspace-Hintergrund: andere Akzentfarbe */
-  workspace: { type: Boolean, default: false },
-  formatTime: { type: Function, required: true },
-})
+withDefaults(
+  defineProps<{
+    label: string
+    video: FotoImageObject
+    playing?: boolean
+    time?: number
+    duration?: number
+    volume?: number
+    /** Workspace-Hintergrund: andere Akzentfarbe */
+    workspace?: boolean
+    formatTime: (seconds: number) => string
+  }>(),
+  { playing: false, time: 0, duration: 0, volume: 1, workspace: false },
+)
 
-const emit = defineEmits(['toggle', 'seek-back', 'seek-forward', 'remove', 'seek', 'volume'])
+const emit = defineEmits<{
+  toggle: []
+  'seek-back': [seconds: number]
+  'seek-forward': [seconds: number]
+  remove: []
+  seek: [time: number]
+  volume: [volume: number]
+}>()
 
 const { t } = useI18n()
 </script>

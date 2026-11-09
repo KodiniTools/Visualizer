@@ -1,7 +1,7 @@
 <template>
   <div
-    class="blog-page"
     ref="pageRef"
+    class="blog-page"
     :class="{ 'light-theme': !isDark }"
     :data-locale="currentLocale"
   >
@@ -49,7 +49,7 @@
       <h1 class="blog-title">{{ t('blog.hero.title') }}</h1>
       <p class="blog-subtitle">{{ t('blog.hero.subtitle') }}</p>
       <div class="hero-stats">
-        <template v-for="(stat, i) in t('blog.stats')" :key="stat.label">
+        <template v-for="(stat, i) in heroStats" :key="stat.label">
           <div v-if="i > 0" class="stat-divider"></div>
           <div class="stat-item">
             <span class="stat-number">{{ stat.value }}</span>
@@ -69,6 +69,7 @@
           class="overview-card"
           @click.prevent="scrollToSection(card.id)"
         >
+          <!-- eslint-disable-next-line vue/no-v-html -- statisches SVG aus icon(), keine Nutzereingabe -->
           <div class="overview-icon" v-html="icon(card.id, 28)"></div>
           <div class="overview-card-content">
             <h3 class="overview-card-title">{{ card.title }}</h3>
@@ -94,6 +95,7 @@
                 :class="{ active: activeSection === section.id }"
                 @click.prevent="scrollToSection(section.id)"
               >
+                <!-- eslint-disable-next-line vue/no-v-html -- statisches SVG aus icon(), keine Nutzereingabe -->
                 <span class="toc-icon" v-html="icon(section.id, 14)"></span>
                 {{ section.nav }}
               </a>
@@ -118,6 +120,7 @@
             :class="{ 'unique-section': section.variant === 'unique' }"
           >
             <div class="section-header">
+              <!-- eslint-disable-next-line vue/no-v-html -- statisches SVG aus icon(), keine Nutzereingabe -->
               <div class="section-icon" v-html="icon(section.id, 22)"></div>
               <h2 class="section-title">{{ section.title }}</h2>
               <span v-if="section.isNew" class="new-badge">{{ t('blog.newBadge') }}</span>
@@ -233,10 +236,50 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useTheme } from '../lib/theme.js'
+import { useI18n } from '../lib/i18n'
+import { useTheme } from '../lib/theme'
+
+/** Aufbau der Blog-Inhalte in i18n (blog.stats / blog.overview / blog.sections) */
+interface BlogStat {
+  value: string
+  label: string
+}
+interface BlogOverviewCard {
+  id: string
+  title: string
+  desc: string
+}
+interface BlogList {
+  title: string
+  intro?: string
+  items: string[]
+}
+interface BlogCategory {
+  name: string
+  items: string[]
+}
+interface BlogShortcut {
+  key: string
+  action: string
+}
+interface BlogSection {
+  id: string
+  nav: string
+  title: string
+  variant?: string
+  isNew?: boolean
+  intro?: string
+  tags?: BlogList
+  categories?: BlogCategory[]
+  groups?: BlogList[]
+  columns?: number
+  highlight?: BlogList
+  reactive?: BlogList
+  shortcuts?: BlogShortcut[]
+  items?: string[]
+}
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()
@@ -244,10 +287,10 @@ const { isDark } = useTheme()
 const currentLocale = computed(() => locale.value)
 const isScrolled = ref(false)
 const activeSection = ref('')
-const pageRef = ref(null)
+const pageRef = ref<HTMLElement | null>(null)
 
 // Icon-Pfade pro Abschnitt (Lucide-Stil); Größe je nach Einsatz (Karte, TOC, Abschnitt)
-const ICON_PATHS = {
+const ICON_PATHS: Record<string, string> = {
   audio: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
   visualizers: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
   text: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
@@ -279,18 +322,20 @@ const ICON_PATHS = {
 }
 
 /** SVG-Markup des Abschnitts-Icons (nur feste, eigene Pfade – kein Nutzerinhalt). */
-function icon(id, size) {
+function icon(id: string, size: number): string {
   const paths = ICON_PATHS[id] ?? ICON_PATHS.unique
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
 }
 
 // Inhalte kommen vollständig aus i18n (blog.sections / blog.overview), damit DE und EN gleich aufgebaut sind
-const tocSections = computed(() => {
-  const sections = t('blog.sections')
+// Listen-Schlüssel: t() liefert hier Arrays aus den Übersetzungen
+const heroStats = computed(() => t('blog.stats') as unknown as BlogStat[])
+const tocSections = computed((): BlogSection[] => {
+  const sections: unknown = t('blog.sections')
   return Array.isArray(sections) ? sections : []
 })
-const overviewCards = computed(() => {
-  const cards = t('blog.overview')
+const overviewCards = computed((): BlogOverviewCard[] => {
+  const cards: unknown = t('blog.overview')
   return Array.isArray(cards) ? cards : []
 })
 
@@ -299,7 +344,7 @@ const overviewCards = computed(() => {
  * (overflow-x: hidden), als eigenständige Seite das Fenster.
  * @returns {HTMLElement|null} null = Fenster
  */
-function scrollContainer() {
+function scrollContainer(): HTMLElement | null {
   const el = pageRef.value
   return el && el.scrollHeight > el.clientHeight + 1 ? el : null
 }
@@ -315,16 +360,17 @@ function handleScroll() {
   // Aktiven Abschnitt im Inhaltsverzeichnis bestimmen
   const sectionIds = tocSections.value.map((s) => s.id)
   for (let i = sectionIds.length - 1; i >= 0; i--) {
-    const el = document.getElementById(sectionIds[i])
+    const id = sectionIds[i] as string
+    const el = document.getElementById(id)
     if (el && el.getBoundingClientRect().top <= 140) {
-      activeSection.value = sectionIds[i]
+      activeSection.value = id
       return
     }
   }
   activeSection.value = ''
 }
 
-function scrollToSection(id) {
+function scrollToSection(id: string) {
   const el = document.getElementById(id)
   if (!el) return
   const top = currentScrollTop() + el.getBoundingClientRect().top - 110

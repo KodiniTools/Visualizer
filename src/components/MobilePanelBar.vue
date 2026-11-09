@@ -72,12 +72,11 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  modelValue: { type: String, required: true },
-  t: { type: Function, required: true },
-})
-defineEmits(['update:modelValue'])
+<script setup lang="ts">
+import type { TranslateFn } from '../composables/types'
+
+defineProps<{ modelValue: string; t: TranslateFn }>()
+defineEmits<{ 'update:modelValue': [panel: string] }>()
 </script>
 
 <style scoped>

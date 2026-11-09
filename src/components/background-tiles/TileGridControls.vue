@@ -54,17 +54,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import SliderControl from '../ui/SliderControl.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
+import type { BackgroundTilesApi } from '../../composables/useBackgroundTiles'
 
 const TILE_COUNT_OPTIONS = [3, 6, 9, 12].map((n) => ({ value: String(n), label: String(n) }))
 
 const { t } = useI18n()
-const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTile } =
-  inject('tileControls')
+const { tilesStore, gridStyle, getTileStyle, setTileCount, setTileGap, selectTile } = inject(
+  'tileControls',
+) as BackgroundTilesApi
 </script>
 
 <style scoped>

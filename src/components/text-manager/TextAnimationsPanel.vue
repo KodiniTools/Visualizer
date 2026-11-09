@@ -14,13 +14,13 @@
         <AnimationEditSection
           :label="`${t(section.label)}:`"
           :effect="selectedText.animation?.[section.key] ?? null"
-          @toggle="section.toggle"
-          @restart="section.restart"
+          @toggle="onToggle(section)"
+          @restart="onRestart(section)"
         >
           <component
             :is="section.controls"
             :effect="selectedText.animation[section.key]"
-            @change="updateText"
+            @change="onChange"
           />
         </AnimationEditSection>
       </template>
@@ -28,7 +28,7 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Text-Animationen des markierten Textes (Typewriter, Fade, Scale, Slide).
  *
@@ -38,27 +38,29 @@
  * jeder Änderung (`change`) den Canvas neu.
  */
 import { computed, inject, toRef, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useTextAnimations } from '../../composables/useTextAnimations.js'
+import { notifyMarkerTargetEdited } from '../../lib/markerTargetEdits'
+import type { Component } from 'vue'
+import type { CanvasManagerRef } from '../../composables/types'
+import type { TextObject } from '../../lib/textManager/types'
+import { useI18n } from '../../lib/i18n'
+import { useTextAnimations } from '../../composables/useTextAnimations'
 import AnimationEditSection from './text-animations/AnimationEditSection.vue'
 import TypewriterControls from './text-animations/TypewriterControls.vue'
 import FadeControls from './text-animations/FadeControls.vue'
 import ScaleControls from './text-animations/ScaleControls.vue'
 import SlideControls from './text-animations/SlideControls.vue'
 
-const props = defineProps({
-  selectedText: {
-    type: Object,
-    required: true,
-  },
-})
+const props = defineProps<{ selectedText: TextObject }>()
+
+type AnimationKey = 'typewriter' | 'fade' | 'scale' | 'slide'
+const ANIMATION_KEYS: AnimationKey[] = ['typewriter', 'fade', 'scale', 'slide']
 
 // ✨ Backfill: Ältere Text-Objekte kennen die neuen Felder (permanent / displayDuration)
 // noch nicht. Standard = permanent anzeigen, damit sich das Verhalten nicht ändert.
-function ensureDisplayDefaults(text) {
+function ensureDisplayDefaults(text: TextObject | null | undefined) {
   const anim = text?.animation
   if (!anim) return
-  for (const key of ['typewriter', 'fade', 'scale', 'slide']) {
+  for (const key of ANIMATION_KEYS) {
     const eff = anim[key]
     if (!eff) continue
     if (eff.permanent === undefined) eff.permanent = true
@@ -68,7 +70,7 @@ function ensureDisplayDefaults(text) {
 
 watch(() => props.selectedText, ensureDisplayDefaults, { immediate: true })
 
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 
 // Reaktive Referenz auf den aktuell markierten Text, damit alle Aktionen
 // (Toggles, "Neu Starten") sich ausschließlich auf diesen Text beziehen.
@@ -84,7 +86,42 @@ function updateText() {
 
 const { t } = useI18n()
 
-const SECTIONS = [
+/** Section-Eintrag (siehe SECTIONS) */
+type Section = (typeof SECTIONS)[number]
+
+/**
+ * Bearbeitung an Beat-Marker melden: Ein vom Marker bis zu seinem Zeitpunkt
+ * ausgeblendeter Text wird sichtbar, damit man die Änderung sieht.
+ */
+function notifyEdit() {
+  const id = selectedText.value?.id
+  if (id !== undefined && id !== null) notifyMarkerTargetEdited({ kind: 'text', id })
+}
+
+function onToggle(section: Section) {
+  section.toggle()
+  notifyEdit()
+}
+
+function onRestart(section: Section) {
+  section.restart()
+  notifyEdit()
+}
+
+// Regler-Änderungen gelten sofort, ohne den Effekt neu zu starten: Wer
+// bearbeitet, soll nicht auf das Durchlaufen der Animation warten müssen.
+function onChange() {
+  updateText()
+  notifyEdit()
+}
+
+const SECTIONS: {
+  key: AnimationKey
+  label: string
+  controls: Component
+  toggle: () => void
+  restart: () => void
+}[] = [
   {
     key: 'typewriter',
     label: 'textManager.typewriterEffect',
@@ -115,7 +152,7 @@ const SECTIONS = [
   },
 ]
 
-const BADGES = [
+const BADGES: [AnimationKey, string][] = [
   ['typewriter', 'Typewriter'],
   ['fade', 'Fade'],
   ['scale', 'Scale'],

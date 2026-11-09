@@ -1,9 +1,9 @@
 <template>
   <AudioReactivePanel
     ref="audioReactivePanelRef"
-    :hasActiveImage="!!currentActiveImage"
-    :hasSavedSettings="hasSavedAudioSettings"
-    :activeAudioPreset="activeAudioPreset"
+    :has-active-image="!!currentActiveImage"
+    :has-saved-settings="hasSavedAudioSettings"
+    :active-audio-preset="activeAudioPreset"
     @audio-reactive-toggle="onAudioReactiveToggle"
     @source-change="onAudioReactiveSourceChange"
     @smoothing-change="onAudioReactiveSmoothingChange"
@@ -21,15 +21,16 @@
   />
 </template>
 
-<script setup>
-import { ref, inject, watch, onMounted, nextTick } from 'vue'
+<script setup lang="ts">
+import { ref, inject, watch, onMounted, nextTick, type Ref } from 'vue'
 import AudioReactivePanel from './foto-panel/AudioReactivePanel.vue'
-import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
-import { historyApplyRevision } from '../lib/history/historyRecorder.js'
+import { useImageAudioReactive } from '../composables/useImageAudioReactive'
+import { historyApplyRevision } from '../lib/history/historyRecorder'
+import type { FotoManager } from '../lib/fotoManager'
 
-const fotoManagerRef = inject('fotoManager')
+const fotoManagerRef = inject('fotoManager') as Ref<FotoManager | null | undefined> | undefined
 
-const audioReactivePanelRef = ref(null)
+const audioReactivePanelRef = ref<InstanceType<typeof AudioReactivePanel> | null>(null)
 
 const {
   currentActiveImage,

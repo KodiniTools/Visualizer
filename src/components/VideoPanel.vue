@@ -7,9 +7,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { provide, inject } from 'vue'
-import { useVideoPanel } from '../composables/useVideoPanel.js'
+import { useVideoPanel } from '../composables/useVideoPanel'
 import VideoUploadSection from './video-panel/VideoUploadSection.vue'
 import VideoPlacementControls from './video-panel/VideoPlacementControls.vue'
 import CanvasVideosList from './video-panel/CanvasVideosList.vue'

@@ -16,7 +16,7 @@
         spellcheck="false"
         :value="cfg.ledText"
         :aria-label="t('visualizer.led.text')"
-        @input="emit('update', 'ledText', $event.target.value)"
+        @input="emit('update', 'ledText', ($event.target as HTMLTextAreaElement).value)"
       ></textarea>
       <span class="led-text__hint">{{ t('visualizer.led.textHint') }}</span>
     </template>
@@ -47,7 +47,7 @@
           spellcheck="false"
           :value="cfg.ledNumberText"
           :aria-label="t('visualizer.led.number')"
-          @input="emit('update', 'ledNumberText', $event.target.value)"
+          @input="emit('update', 'ledNumberText', ($event.target as HTMLTextAreaElement).value)"
         ></textarea>
         <span class="led-text__hint">{{ t('visualizer.led.numberHint') }}</span>
       </template>
@@ -60,7 +60,7 @@
             class="led-text__input"
             :value="toLocalInput(cfg.ledCountdownTarget)"
             :aria-label="t('visualizer.led.countdownTarget')"
-            @change="setTarget($event.target.value)"
+            @change="setTarget(($event.target as HTMLInputElement).value)"
           />
         </template>
         <template v-else>
@@ -92,9 +92,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import {
@@ -103,18 +103,21 @@ import {
   LED_TIME_ZONES,
   normalizeLedConfig,
   ledDisplayText,
-} from '../../lib/visualizers/gl/ledTextSettings.js'
+} from '../../lib/visualizers/gl/ledTextSettings'
 
-const props = defineProps({
-  /** glLedText oder glLedNumber */
-  visualizerId: { type: String, required: true },
-  /** Objekt mit den LED-Feldern (Store-Konfiguration oder Layer). */
-  config: { type: Object, required: true },
-  /** Kompakte Darstellung (Layer-Popover). */
-  compact: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    /** glLedText oder glLedNumber */
+    visualizerId: string
+    /** Objekt mit den LED-Feldern (Store-Konfiguration oder Layer). */
+    config: object
+    /** Kompakte Darstellung (Layer-Popover). */
+    compact?: boolean
+  }>(),
+  { compact: false },
+)
 
-const emit = defineEmits(['update'])
+const emit = defineEmits<{ update: [field: string, value: unknown] }>()
 
 const { t } = useI18n()
 
@@ -124,7 +127,7 @@ const cfg = computed(() => normalizeLedConfig(props.config))
 
 // Vorschau des aktuellen Werts (Uhrzeit/Countdown), jede Sekunde aktualisiert
 const now = ref(new Date())
-let timer = null
+let timer: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
   timer = setInterval(() => {
     now.value = new Date()
@@ -141,15 +144,15 @@ const timeZoneOptions = computed(() =>
 const preview = computed(() => ledDisplayText(LED_NUMBER_ID, cfg.value, now.value))
 
 // ISO (UTC) <-> datetime-local (Ortszeit dieses Browsers)
-function toLocalInput(iso) {
+function toLocalInput(iso: string | null | undefined) {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const pad = (n) => String(n).padStart(2, '0')
+  const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function setTarget(local) {
+function setTarget(local: string) {
   const d = local ? new Date(local) : null
   emit('update', 'ledCountdownTarget', d && !Number.isNaN(d.getTime()) ? d.toISOString() : '')
 }

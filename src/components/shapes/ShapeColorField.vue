@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Farbfeld der Formen-Galerie: ColorField plus die zuletzt verwendeten Farben
  * (wie das ColorField im Bildkonverter). `update:modelValue` live,
@@ -28,25 +28,28 @@
  */
 import ColorField from '../ui/ColorField.vue'
 import UiColorSwatches from '../ui/UiColorSwatches.vue'
-import { useRecentColors } from '../../composables/useRecentColors.js'
+import { useRecentColors } from '../../composables/useRecentColors'
 
-defineProps({
-  modelValue: { type: String, default: '#000000' },
-  label: { type: String, required: true },
-  recentLabel: { type: String, required: true },
-  /** Label sichtbar neben dem Farbfeld */
-  showLabel: { type: Boolean, default: true },
-})
-const emit = defineEmits(['update:modelValue', 'commit'])
+withDefaults(
+  defineProps<{
+    modelValue?: string
+    label: string
+    recentLabel: string
+    /** Label sichtbar neben dem Farbfeld */
+    showLabel?: boolean
+  }>(),
+  { modelValue: '#000000', showLabel: true },
+)
+const emit = defineEmits<{ 'update:modelValue': [color: string]; commit: [color: string] }>()
 
 const { recentColors, addRecentColor } = useRecentColors()
 
-function commit(value) {
+function commit(value: string) {
   addRecentColor(value)
   emit('commit', value)
 }
 
-function pick(color) {
+function pick(color: string) {
   emit('update:modelValue', color)
   commit(color)
 }

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * FFmpeg Service
  *
@@ -13,6 +14,25 @@ import { spawn } from 'child_process'
 import path from 'path'
 import fs from 'fs/promises'
 import { createReadStream, createWriteStream } from 'fs'
+
+/**
+ * @typedef {Object} EncodingPreset
+ * @property {string} videoCodec
+ * @property {string} videoBitrate
+ * @property {string} crf
+ * @property {string} audioCodec
+ * @property {string} audioBitrate
+ * @property {string} audioSampleRate
+ */
+
+/**
+ * @typedef {Object} ConvertOptions
+ * @property {string} [quality] - Schlüssel aus ENCODING_PRESETS (Fallback: 'high')
+ * @property {number} [timeout] - Gesamt-Timeout in ms
+ * @property {number | string} [fps] - Ausgabe-Framerate (1–60, Standard 60; Text aus Formularen erlaubt)
+ * @property {(proc: import('child_process').ChildProcess) => void} [onProcess]
+ * @property {(time: string) => void} [onProgress] - Callback mit FFmpeg-Zeitstring
+ */
 
 // FFmpeg Pfad (Standard oder aus Umgebungsvariable)
 const FFMPEG_PATH = process.env.FFMPEG_PATH || 'ffmpeg'
@@ -51,6 +71,7 @@ export async function checkFFmpeg() {
 
 /**
  * Holt Video-Metadaten mit ffprobe
+ * @param {string} inputPath
  */
 export async function getVideoInfo(inputPath) {
   return new Promise((resolve, reject) => {
@@ -98,6 +119,7 @@ export async function getVideoInfo(inputPath) {
  * Verwendet ultrafast+zerolatency für Geschwindigkeit, CRF für Qualität
  * (gleiche Strategie wie Video Konverter App)
  */
+/** @type {Record<string, EncodingPreset>} */
 const ENCODING_PRESETS = {
   // Maximale Qualität (CRF 18 = sehr gut)
   highest: {
@@ -150,11 +172,31 @@ const ENCODING_PRESETS = {
   },
 }
 
+/** Standard-Framerate der MP4-Ausgabe (Visualizer-Aufnahmen) */
+export const DEFAULT_OUTPUT_FPS = 60
+
+/**
+ * Ausgabe-Framerate für convertToMP4: gültige Werte 1–60 (auch als Text aus
+ * einem Formular), sonst der Standard.
+ * @param {unknown} fps
+ * @returns {number}
+ */
+export function resolveOutputFps(fps) {
+  const value = typeof fps === 'string' && fps.trim() !== '' ? Number(fps) : fps
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_OUTPUT_FPS
+  if (value < 1 || value > 60) return DEFAULT_OUTPUT_FPS
+  return value
+}
+
 /**
  * Konvertiert WebM zu MP4 mit optimalen Einstellungen
+ * @param {string} inputPath
+ * @param {string} outputPath
+ * @param {ConvertOptions} [options]
  */
 export async function convertToMP4(inputPath, outputPath, options = {}) {
-  const preset = ENCODING_PRESETS[options.quality] || ENCODING_PRESETS.high
+  const preset = ENCODING_PRESETS[/** @type {string} */ (options.quality)] || ENCODING_PRESETS.high
+  const fps = resolveOutputFps(options.fps)
 
   // Timeout für FFmpeg: Standard 30 Minuten, mit Heartbeat-Überwachung
   // Große Dateien (100+ MB) brauchen länger für -movflags +faststart Finalisierung
@@ -179,7 +221,7 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
 
       // Framerate-Fix (verhindert Frame-Duplikation)
       '-r',
-      '60', // Output 60fps (für Visualizer)
+      String(fps), // Ausgabe-Framerate (Standard 60 für Visualizer)
       '-vsync',
       'cfr', // Constant framerate
 
@@ -225,6 +267,7 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
     let stderr = ''
     let lastOutputTime = Date.now()
     let isFinished = false
+    /** @type {string | null} */
     let lastTimeMatch = null
 
     // Heartbeat-Timer: Überwacht ob FFmpeg noch Ausgabe produziert
@@ -321,6 +364,8 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
 
 /**
  * Optimiert ein Video ohne Re-Encoding (nur Container-Konvertierung)
+ * @param {string} inputPath
+ * @param {string} outputPath
  */
 export async function remuxToMP4(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
@@ -358,6 +403,9 @@ export async function remuxToMP4(inputPath, outputPath) {
 
 /**
  * Generiert Thumbnail aus Video
+ * @param {string} inputPath
+ * @param {string} outputPath
+ * @param {{ timestamp?: string, width?: number }} [options]
  */
 export async function generateThumbnail(inputPath, outputPath, options = {}) {
   const timestamp = options.timestamp || '00:00:01'
@@ -402,6 +450,9 @@ export async function generateThumbnail(inputPath, outputPath, options = {}) {
 
 /**
  * Extrahiert Audio aus Video
+ * @param {string} inputPath
+ * @param {string} outputPath
+ * @param {{ format?: string, bitrate?: string }} [options]
  */
 export async function extractAudio(inputPath, outputPath, options = {}) {
   const format = options.format || 'mp3'
@@ -443,6 +494,10 @@ export async function extractAudio(inputPath, outputPath, options = {}) {
 
 /**
  * Fügt Audio zu Video hinzu (ersetzt oder mischt)
+ * @param {string} videoPath
+ * @param {string} audioPath
+ * @param {string} outputPath
+ * @param {{ mode?: 'replace' | 'mix' }} [options]
  */
 export async function addAudioToVideo(videoPath, audioPath, outputPath, options = {}) {
   const mode = options.mode || 'replace' // 'replace' oder 'mix'
@@ -522,6 +577,11 @@ export async function addAudioToVideo(videoPath, audioPath, outputPath, options 
 
 /**
  * Schneidet Video (ohne Re-Encoding wenn möglich)
+ * @param {string} inputPath
+ * @param {string} outputPath
+ * @param {string} startTime
+ * @param {string} endTime
+ * @param {{ accurate?: boolean }} [options]
  */
 export async function trimVideo(inputPath, outputPath, startTime, endTime, options = {}) {
   const accurate = options.accurate || false // Genaueres Schneiden erfordert Re-Encoding
@@ -597,7 +657,7 @@ export async function trimVideo(inputPath, outputPath, startTime, endTime, optio
  * Verwendet FFmpeg concat demuxer für verlustfreies Zusammenfügen
  * @param {string[]} inputPaths - Array von Pfaden zu den Segment-Dateien
  * @param {string} outputPath - Pfad für die Ausgabedatei
- * @param {object} options - Optionen (quality, onProgress)
+ * @param {ConvertOptions} [options] - Optionen (quality, onProgress)
  */
 export async function concatenateSegments(inputPaths, outputPath, options = {}) {
   if (!inputPaths || inputPaths.length === 0) {
@@ -618,7 +678,8 @@ export async function concatenateSegments(inputPaths, outputPath, options = {}) 
       await fs.writeFile(listFilePath, listContent, 'utf8')
       console.log(`📝 Concat-Liste erstellt: ${inputPaths.length} Segmente`)
 
-      const preset = ENCODING_PRESETS[options.quality] || ENCODING_PRESETS.high
+      const preset =
+        ENCODING_PRESETS[/** @type {string} */ (options.quality)] || ENCODING_PRESETS.high
 
       // FFmpeg concat mit Re-Encoding für nahtlose Übergänge
       const args = [
@@ -667,6 +728,7 @@ export async function concatenateSegments(inputPaths, outputPath, options = {}) 
 
       const proc = spawn(FFMPEG_PATH, args)
       let stderr = ''
+      /** @type {string | null} */
       let lastTimeMatch = null
 
       proc.stderr.on('data', (data) => {
@@ -720,11 +782,11 @@ export async function concatenateSegments(inputPaths, outputPath, options = {}) 
  *
  * @param {string} inputPath  - Pfad zur Eingabedatei (WebM)
  * @param {string} outputPath - Pfad für die GIF-Ausgabe
- * @param {object} options
- * @param {number} options.fps        - Frames pro Sekunde (default: 15)
- * @param {number} options.width      - Ausgabebreite in px (default: 480, -1 = auto)
- * @param {number} options.colors     - Anzahl Farben 2–256 (default: 256)
- * @param {function} options.onProgress - Callback mit FFmpeg-Zeitstring
+ * @param {object} [options]
+ * @param {number} [options.fps]        - Frames pro Sekunde (default: 15)
+ * @param {number} [options.width]      - Ausgabebreite in px (default: 480, -1 = auto)
+ * @param {number} [options.colors]     - Anzahl Farben 2–256 (default: 256)
+ * @param {(time: string) => void} [options.onProgress] - Callback mit FFmpeg-Zeitstring
  */
 export async function convertToGif(inputPath, outputPath, options = {}) {
   const fps = Math.min(30, Math.max(1, options.fps || 15))
@@ -735,7 +797,7 @@ export async function convertToGif(inputPath, outputPath, options = {}) {
   const scaleFilter = `fps=${fps},scale=${width}:-1:flags=lanczos`
 
   // ── Pass 1: Optimale Farbpalette extrahieren ────────────────────────
-  await new Promise((resolve, reject) => {
+  await new Promise((/** @type {(value?: unknown) => void} */ resolve, reject) => {
     const args = [
       '-y',
       '-i',
@@ -761,13 +823,14 @@ export async function convertToGif(inputPath, outputPath, options = {}) {
 
   // ── Pass 2: GIF mit Palette rendern ────────────────────────────────
   try {
-    await new Promise((resolve, reject) => {
+    await new Promise((/** @type {(value?: unknown) => void} */ resolve, reject) => {
       const lavfi = `${scaleFilter} [x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5`
       const args = ['-y', '-i', inputPath, '-i', palettePath, '-lavfi', lavfi, outputPath]
 
       console.log('🎞️ [GIF Pass 2] Render GIF:', `fps=${fps} width=${width} colors=${colors}`)
       const proc = spawn(FFMPEG_PATH, args)
       let stderr = ''
+      /** @type {string | null} */
       let lastTimeMatch = null
 
       proc.stderr.on('data', (d) => {

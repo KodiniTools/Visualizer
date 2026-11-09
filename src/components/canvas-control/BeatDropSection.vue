@@ -44,14 +44,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import ColorField from '../ui/ColorField.vue'
 import SliderControl from '../ui/SliderControl.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useBeatDropStore } from '../../stores/beatDropStore.js'
+import { useI18n } from '../../lib/i18n'
+import { useBeatDropStore } from '../../stores/beatDropStore'
 
 const { t } = useI18n()
 const beatDropStore = useBeatDropStore()
@@ -67,7 +67,32 @@ const sourceOptions = computed(() => [
   },
 ])
 
-const percent = (storeKey, defaultValue, label = 'intensity', min = 0) => ({
+type BeatDropStore = ReturnType<typeof useBeatDropStore>
+type KeysOfType<T, V> = { [K in keyof T]: T[K] extends V ? K : never }[keyof T]
+type NumberKey = KeysOfType<BeatDropStore, number>
+
+interface BeatDropSlider {
+  storeKey: NumberKey
+  label: string
+  min: number
+  max: number
+  defaultValue: number
+  unit: string
+}
+
+interface BeatDropEffect {
+  key: string
+  enabledKey: KeysOfType<BeatDropStore, boolean>
+  colorKey: Extract<keyof BeatDropStore, `${string}Color`> | null
+  sliders: BeatDropSlider[]
+}
+
+const percent = (
+  storeKey: NumberKey,
+  defaultValue: number,
+  label = 'intensity',
+  min = 0,
+): BeatDropSlider => ({
   storeKey,
   label,
   min,
@@ -77,7 +102,7 @@ const percent = (storeKey, defaultValue, label = 'intensity', min = 0) => ({
 })
 
 /** Effekte in Anzeige-Reihenfolge; Schlüssel = Felder im beatDropStore. */
-const BEAT_DROP_EFFECTS = [
+const BEAT_DROP_EFFECTS: BeatDropEffect[] = [
   {
     key: 'flash',
     enabledKey: 'flashEnabled',

@@ -70,44 +70,43 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { placementAnimationOptions } from '../../lib/placementAnimations.js'
+<script setup lang="ts">
+import { computed, ref, watch, type Ref } from 'vue'
+import { useI18n } from '../../lib/i18n'
+import { placementAnimationOptions } from '../../lib/placementAnimations'
 import SliderControl from '../ui/SliderControl.vue'
 import UiButton from '../ui/UiButton.vue'
 import UiSelect from '../ui/UiSelect.vue'
+import type { PlacementSettings } from '../../lib/imagePlacementSettings'
+
+type LocalKey = 'Animation' | 'Duration' | 'Scale' | 'OffsetX' | 'OffsetY'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  selectedAnimation: {
-    type: String,
-    default: 'none',
+const props = withDefaults(
+  defineProps<{
+    selectedAnimation?: string
+    animationDuration?: number
+    imageScale?: number
+    imageOffsetX?: number
+    imageOffsetY?: number
+    isInRangeSelectionMode?: boolean
+  }>(),
+  {
+    selectedAnimation: 'none',
+    animationDuration: 1000,
+    imageScale: 1,
+    imageOffsetX: 0,
+    imageOffsetY: 0,
+    isInRangeSelectionMode: false,
   },
-  animationDuration: {
-    type: Number,
-    default: 1000,
-  },
-  imageScale: {
-    type: Number,
-    default: 1,
-  },
-  imageOffsetX: {
-    type: Number,
-    default: 0,
-  },
-  imageOffsetY: {
-    type: Number,
-    default: 0,
-  },
-  isInRangeSelectionMode: {
-    type: Boolean,
-    default: false,
-  },
-})
+)
 
-const emit = defineEmits(['update:settings', 'start-draw', 'place-directly'])
+const emit = defineEmits<{
+  'update:settings': [settings: PlacementSettings]
+  'start-draw': []
+  'place-directly': []
+}>()
 
 const localAnimation = ref(props.selectedAnimation)
 const localDuration = ref(props.animationDuration)
@@ -138,7 +137,7 @@ watch(
 
 const animationOptions = computed(() => placementAnimationOptions(t))
 
-const locals = {
+const locals: Record<LocalKey, Ref<string | number>> = {
   Animation: localAnimation,
   Duration: localDuration,
   Scale: localScale,
@@ -147,7 +146,7 @@ const locals = {
 }
 
 /** Lokalen Wert setzen und alle Einstellungen melden (Schnittstelle wie bisher). */
-function update(key, value) {
+function update(key: LocalKey, value: string | number) {
   locals[key].value = value
   emitUpdate()
 }

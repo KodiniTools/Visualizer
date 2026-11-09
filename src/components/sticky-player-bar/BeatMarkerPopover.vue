@@ -156,15 +156,43 @@
       />
 
       <UiSelect
-        v-model="newMarkerBgImageId"
+        :model-value="newMarkerBgImageId as SelectValue"
         :label="t('player.backgroundImage')"
         :options="bgImageOptions"
         :title="t('player.backgroundImageHint')"
         size="sm"
+        @update:model-value="newMarkerBgImageId = $event"
       />
       <p v-if="newMarkerBgImageId !== ''" class="form-hint marker-form-hint">
         {{ t('player.backgroundImageHint') }}
       </p>
+      <ImageAnimationPanel
+        v-if="newMarkerBgImageId !== ''"
+        class="marker-bg-animation"
+        :title="t('player.markerImageAnimation')"
+        :hint="t('player.markerImageAnimationHint')"
+        :animation="newMarkerBgImageAnimation"
+        :restartable="false"
+        :reset-key="editingMarkerId ?? 'new'"
+      />
+
+      <UiSelect
+        :model-value="newMarkerVideoId as SelectValue"
+        :label="t('player.markerVideo')"
+        :options="videoSelectOptions"
+        :title="t('player.markerVideoHint')"
+        size="sm"
+        @update:model-value="newMarkerVideoId = $event"
+      />
+      <template v-if="newMarkerVideoId !== ''">
+        <span class="form-switch" :title="t('player.markerVideoLoopHint')">
+          <UiSwitch v-model="newMarkerVideoLoop" :label="t('player.markerVideoLoop')" />
+        </span>
+        <p class="form-hint marker-form-hint">
+          {{ t('player.markerVideoHint') }}
+          {{ newMarkerVideoLoop ? '' : t('player.markerVideoLoopHint') }}
+        </p>
+      </template>
 
       <UiSelect
         v-model="newMarkerTextId"
@@ -175,15 +203,51 @@
       />
 
       <UiSelect
-        v-model="newMarkerShapeId"
+        :model-value="newMarkerShapeId as string"
         :label="t('player.shape')"
         :options="shapeSelectOptions"
         :title="t('player.shapeAppears')"
         size="sm"
+        @update:model-value="newMarkerShapeId = $event as string"
       />
       <p v-if="String(newMarkerShapeId).startsWith('gallery:')" class="form-hint marker-form-hint">
         {{ t('player.newShapeHint') }}
       </p>
+
+      <UiSelect
+        :model-value="newMarkerImageId as SelectValue"
+        :label="t('player.placedImage')"
+        :options="placedImageSelectOptions"
+        :title="t('player.placedImageAppears')"
+        size="sm"
+        class="marker-placed-image"
+        @update:model-value="newMarkerImageId = $event"
+      />
+      <p v-if="newMarkerImageId !== ''" class="form-hint marker-form-hint">
+        {{
+          String(newMarkerImageId).startsWith('gallery:')
+            ? t('player.newPlacedImageHint')
+            : t('player.placedImageAppears')
+        }}
+      </p>
+      <!-- Animation des platzierten Bildes: dieselben Einstellungen wie im Foto-Panel -->
+      <ImageAnimationControls
+        v-if="selectedPlacedImage"
+        :key="`placed-${selectedPlacedImage.id}`"
+        class="marker-bg-animation marker-placed-animation"
+        :image="selectedPlacedImage"
+        :title="t('player.markerImageAnimation')"
+        :hint="t('player.placedImageAnimationHint')"
+      />
+      <ImageAnimationPanel
+        v-else-if="String(newMarkerImageId).startsWith('gallery:')"
+        class="marker-bg-animation marker-placed-animation"
+        :title="t('player.markerImageAnimation')"
+        :hint="t('player.newPlacedImageAnimationHint')"
+        :animation="newMarkerPlacedImageAnimation"
+        :restartable="false"
+        :reset-key="editingMarkerId ?? 'new'"
+      />
 
       <UiTextField
         v-model="newMarkerLabel"
@@ -204,7 +268,7 @@
     <!-- Marker-Liste -->
     <ul v-if="beatMarkerStore.markerCount > 0" class="marker-list">
       <li
-        v-for="marker in beatMarkerStore.sortedMarkers"
+        v-for="marker in sortedMarkers"
         :key="marker.id"
         class="marker-item"
         :class="{ triggered: marker.triggered, editing: editingMarkerId === marker.id }"
@@ -242,7 +306,15 @@
           v-if="marker.action.backgroundImage"
           class="marker-action marker-action-bgimage"
           :title="t('player.backgroundImageHint')"
-          >🖼️ {{ marker.action.backgroundImage.name }}</span
+          >🖼️ {{ marker.action.backgroundImage.name
+          }}{{ hasImageAnimation(marker.action.backgroundImage.timedAnimation) ? ' ✨' : '' }}</span
+        >
+        <span
+          v-if="marker.action.video"
+          class="marker-action marker-action-video"
+          :title="t('player.markerVideoHint')"
+          >🎬 {{ marker.action.video.name
+          }}{{ marker.action.video.loop === false ? ` ${t('player.markerVideoOnce')}` : '' }}</span
         >
         <span
           v-if="
@@ -252,7 +324,10 @@
           "
           class="marker-action marker-action-text"
           :title="t('player.textAppears')"
-          >📝 {{ marker.action.textLabel || t('player.text') }}</span
+          >📝
+          {{
+            getMarkerTextLabel(marker.action.textId) || marker.action.textLabel || t('player.text')
+          }}</span
         >
         <span
           v-if="
@@ -263,6 +338,21 @@
           class="marker-action marker-action-shape"
           :title="t('player.shapeAppears')"
           >◆ {{ marker.action.shapeLabel || t('player.shape') }}</span
+        >
+        <span
+          v-if="
+            marker.action.imageId !== undefined &&
+            marker.action.imageId !== null &&
+            marker.action.imageId !== ''
+          "
+          class="marker-action marker-action-image"
+          :title="t('player.placedImageAppears')"
+          >📷
+          {{
+            (marker.action.imageId != null && getMarkerImageLabel(marker.action.imageId)) ||
+            marker.action.imageLabel ||
+            t('player.placedImage')
+          }}</span
         >
         <div class="marker-buttons">
           <UiIconButton
@@ -296,7 +386,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ColorField from '../ui/ColorField.vue'
 import SliderField from '../ui/SliderField.vue'
 import UiButton from '../ui/UiButton.vue'
@@ -305,16 +395,24 @@ import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import UiTextField from '../ui/UiTextField.vue'
+import ImageAnimationPanel from '../foto-panel/image-animation/ImageAnimationPanel.vue'
+import ImageAnimationControls from '../foto-panel/image-animation/ImageAnimationControls.vue'
+import { hasImageAnimation } from '../../lib/canvasObjects/imageAnimation'
 import { inject, computed, onUnmounted, useId } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { useMarkerTransitionStore } from '../../stores/markerTransitionStore.js'
-import { useLayerPresetStore, toLayerPresetRef } from '../../stores/layerPresetStore.js'
-import { formatTimePrecise } from '../../utils/formatTime.js'
-import { getBackgroundPresetOptions } from '../../utils/backgroundPresets.js'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import type { PlayerBarContext } from './playerBarContext'
+import type { UiSelectGroup, UiSelectOption } from '../ui/UiSelect.vue'
+import type { MarkerAction } from '../../composables/useBeatMarkers'
+import type { BeatMarker } from '../../stores/beatMarkerStore'
+import type { BackgroundPresetOption } from '../../utils/backgroundPresets'
+import { useI18n } from '../../lib/i18n'
+import { usePlayerStore } from '../../stores/playerStore'
+import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
+import { useLayerPresetStore, toLayerPresetRef } from '../../stores/layerPresetStore'
+import { formatTimePrecise } from '../../utils/formatTime'
+import { getBackgroundPresetOptions } from '../../utils/backgroundPresets'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()
@@ -323,7 +421,7 @@ const visualizerStore = useVisualizerStore()
 const markerTransition = useMarkerTransitionStore()
 const layerPresetStore = useLayerPresetStore()
 
-const { popover, markers } = inject('playerBar')
+const { popover, markers } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('markers')
 const initOffset = cascadeOffset('markers')
@@ -339,12 +437,23 @@ const {
   newMarkerBackgroundKey,
   newMarkerTextId,
   newMarkerShapeId,
+  newMarkerImageId,
   newMarkerBgImageId,
+  newMarkerVideoId,
+  newMarkerVideoLoop,
+  newMarkerBgImageAnimation,
+  newMarkerPlacedImageAnimation,
+  getMarkerCanvasImage,
+  getMarkerTextLabel,
+  getMarkerImageLabel,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,
   getMarkerShapeGallery,
+  getMarkerCanvasImages,
+  getMarkerImageGallery,
   getMarkerGalleryImages,
+  getMarkerGalleryVideos,
   updateMarkerTimeFromInput,
   stepMarkerTime,
   addMarkerAtCurrentTime,
@@ -357,13 +466,21 @@ const {
   getVisualizerName,
 } = markers
 
+/** Wert eines UiSelect */
+type SelectValue = string | number
+
+/** Marker mit den Aktionsfeldern aus useBeatMarkers (Bild, Video, Form, …) */
+const sortedMarkers = computed(
+  () => beatMarkerStore.sortedMarkers as (BeatMarker & { action: MarkerAction })[],
+)
+
 const timeInputId = `marker-time-${useId()}`
 const timeHintId = `${timeInputId}-hint`
 
 // Marker an/aus über den Store (Schalter in der Kopfzeile)
 const markersEnabled = computed({
   get: () => beatMarkerStore.markersEnabled,
-  set: (enabled) => {
+  set: (enabled: boolean) => {
     if (enabled !== beatMarkerStore.markersEnabled) beatMarkerStore.toggleEnabled()
   },
 })
@@ -373,7 +490,7 @@ const markersEnabled = computed({
 const stepOptions = ['0.01', '0.1', '1'].map((value) => ({ value, label: `${value}s` }))
 const timeStepModel = computed({
   get: () => String(markerTimeStep.value),
-  set: (value) => {
+  set: (value: string) => {
     markerTimeStep.value = Number(value)
   },
 })
@@ -381,8 +498,8 @@ const timeStepModel = computed({
 // Halten der +/−-Buttons wiederholt den Schritt (kurze Verzögerung, dann zügig)
 const STEP_REPEAT_DELAY_MS = 400
 const STEP_REPEAT_INTERVAL_MS = 60
-let stepRepeatTimeout = null
-let stepRepeatInterval = null
+let stepRepeatTimeout: ReturnType<typeof setTimeout> | null = null
+let stepRepeatInterval: ReturnType<typeof setInterval> | null = null
 
 function stopStepRepeat() {
   if (stepRepeatTimeout !== null) {
@@ -395,7 +512,7 @@ function stopStepRepeat() {
   }
 }
 
-function startStepRepeat(direction) {
+function startStepRepeat(direction: number) {
   stopStepRepeat()
   stepMarkerTime(direction)
   stepRepeatTimeout = setTimeout(() => {
@@ -428,6 +545,25 @@ const galleryImageOptions = computed(() => {
   return getMarkerGalleryImages()
 })
 
+// Platzierte Canvas-Bilder; beim Öffnen des Formulars neu geladen, damit
+// gerade platzierte Bilder sofort erscheinen
+// Gewähltes platziertes Bild (für seine Animations-Regler im Formular)
+const selectedPlacedImage = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerCanvasImage(newMarkerImageId.value)
+})
+
+const placedImageOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerCanvasImages()
+})
+
+// Hochgeladene Videos aus dem Video-Panel (reaktiv auf die Video-Liste)
+const galleryVideoOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerGalleryVideos()
+})
+
 // Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
 // Formulars neu geladen, damit frisch gespeicherte Presets sofort erscheinen.
 const backgroundPresetOptions = computed(() => {
@@ -438,7 +574,8 @@ const backgroundPresetOptions = computed(() => {
 // ── Optionen für die Auswahlfelder (Gruppen werden zu <optgroup>) ──
 
 /** Gruppe nur anzeigen, wenn sie Einträge hat */
-const group = (label, options) => (options.length ? [{ label, options }] : [])
+const group = (label: string, options: UiSelectOption[]): UiSelectGroup[] =>
+  options.length ? [{ label, options }] : []
 
 const visualizerOptions = computed(() => [
   { value: '', label: t('player.noChange') },
@@ -458,7 +595,7 @@ const visualizerOptions = computed(() => [
 ])
 
 const backgroundOptions = computed(() => {
-  const toOption = (bg) => ({ value: bg.key, label: bg.label })
+  const toOption = (bg: BackgroundPresetOption) => ({ value: bg.key, label: bg.label })
   const { user, builtin } = backgroundPresetOptions.value
   return [
     { value: '', label: t('player.noChange') },
@@ -477,6 +614,16 @@ const bgImageOptions = computed(() => [
       }))),
 ])
 
+const videoSelectOptions = computed(() => [
+  { value: '', label: t('player.noMarkerVideo') },
+  ...(galleryVideoOptions.value.length === 0
+    ? [{ value: '__empty-videos', label: t('player.emptyVideoGallery'), disabled: true }]
+    : galleryVideoOptions.value.map((video) => ({
+        value: video.id as string | number,
+        label: `${video.number}. ${video.name}`,
+      }))),
+])
+
 const textSelectOptions = computed(() => [
   { value: '', label: t('player.noText') },
   ...textOptions.value.map((txt) => ({
@@ -486,6 +633,27 @@ const textSelectOptions = computed(() => [
       (txt.content ? ` — ${txt.content}` : '') +
       (txt.offCanvas ? ` ${t('player.textOffCanvas')}` : ''),
   })),
+])
+
+const placedImageSelectOptions = computed(() => [
+  { value: '', label: t('player.noPlacedImage') },
+  ...group(
+    t('player.placedImages'),
+    placedImageOptions.value.map((img) => ({
+      value: img.id,
+      label:
+        `${t('common.layer')} ${img.layer}` +
+        (img.name ? ` — ${img.name}` : '') +
+        (img.animated ? ' ✨' : ''),
+    })),
+  ),
+  ...group(
+    t('player.placeFromGallery'),
+    getMarkerImageGallery().map((img) => ({
+      value: img.value,
+      label: `${img.number}. ${img.name}`,
+    })),
+  ),
 ])
 
 const shapeSelectOptions = computed(() => [
@@ -506,6 +674,14 @@ const shapeSelectOptions = computed(() => [
 
 <style scoped src="./popover-chrome.css"></style>
 <style scoped>
+/* Inhalt nicht stauchen: das Fenster scrollt, sonst überlappen Zeilen
+   (z. B. der Crossfade-Regler unter dem Marker-Formular) */
+.spb-popover-markers > * {
+  flex-shrink: 0;
+}
+.marker-bg-animation {
+  margin-top: calc(-1 * var(--ds-space-1));
+}
 .marker-controls :deep(.ui-icon-button svg) {
   width: var(--ds-icon-sm);
   height: var(--ds-icon-sm);
@@ -710,11 +886,16 @@ const shapeSelectOptions = computed(() => [
   border-radius: var(--ds-radius-sm);
 }
 .marker-action-bg,
-.marker-action-bgimage {
+.marker-action-bgimage,
+.marker-action-video {
   color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }
 .marker-action-text {
+  color: var(--ds-link);
+  background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
+}
+.marker-action-image {
   color: var(--ds-link);
   background-color: color-mix(in srgb, var(--ds-link) 14%, transparent);
 }

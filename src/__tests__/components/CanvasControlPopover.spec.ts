@@ -1,0 +1,122 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { defineComponent, ref, nextTick, isRef, type Ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import CanvasControlPopover from '../../components/sticky-player-bar/CanvasControlPopover.vue'
+import { useBgSettings } from '../../composables/useBgSettings'
+import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
+import type { StubTarget } from '../helpers/canvasStubs'
+
+// Canvas-Manager-Attrappe. Das Hintergrund-Composable ruft viele Methoden auf;
+// unbekannte Zugriffe liefern daher automatisch eine leere Mock-Funktion.
+function canvasManagerStub() {
+  const base = {
+    canvas: { width: 960, height: 540 },
+    background: 'rgba(255, 255, 255, 1)',
+    backgroundImage: null,
+    redrawCallback: vi.fn(),
+  }
+  return new Proxy<StubTarget>(base, {
+    get(target, prop) {
+      if (prop in target) return target[prop]
+      if (typeof prop === 'symbol') return undefined
+      // Vue-interne Flags (__v_raw, __v_isReactive …) nicht abfangen – sonst
+      // hält Vue das Objekt für einen fertigen Proxy und verliert die Reaktivität.
+      if (String(prop).startsWith('__v_')) return undefined
+      target[prop] = vi.fn()
+      return target[prop]
+    },
+  })
+}
+
+// Bildet die Sticky-Player-Bar nach: sie erzeugt den Hintergrund-Zustand und
+// zeigt das Popover nur bei Bedarf (v-if) – genau wie in der echten App.
+const BarStub = defineComponent({
+  components: { CanvasControlPopover },
+  provide() {
+    return {
+      bgSettings: this.bg,
+      playerBar: {
+        popover: { closePopover: this.closePopover, cascadeOffset: () => ({ x: 0, y: 0 }) },
+      },
+    }
+  },
+  props: { open: { type: Boolean, default: true } },
+  setup() {
+    return { bg: useBgSettings(), closePopover: vi.fn() }
+  },
+  template: '<div><CanvasControlPopover v-if="open" /></div>',
+})
+
+let wrapper: VueWrapper<InstanceType<typeof BarStub>>
+let canvasManager: Ref<StubTarget>
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+  localStorage.clear()
+  canvasManager = ref(canvasManagerStub())
+  wrapper = mount(BarStub, {
+    attachTo: document.body,
+    global: { provide: { canvasManager } },
+  })
+})
+
+afterEach(() => wrapper?.unmount())
+
+describe('CanvasControlPopover', () => {
+  it('zeigt die Canvas-Steuerung in einem verschieb- und größenveränderbaren Popover', () => {
+    const pop = wrapper.find('.spb-popover-canvascontrol')
+    expect(pop.exists()).toBe(true)
+    expect(pop.find('.panel').exists()).toBe(true)
+    expect(pop.element.querySelectorAll('.spb-resize-handle')).toHaveLength(5)
+    expect(pop.find('.spb-popover-header .section-label').text()).toBe('Canvas-Steuerung')
+  })
+
+  it('schließt sich über den Schließen-Knopf unter eigenem Namen', async () => {
+    await wrapper.find('.spb-popover-close').trigger('click')
+    expect(wrapper.vm.closePopover).toHaveBeenCalledWith('canvasControl')
+  })
+
+  it('hält die Hintergrund-Bridge auch bei geschlossenem Popover nutzbar', async () => {
+    const bridge = useBackgroundBridgeStore()
+    const snapshotWhileOpen = bridge.captureSnapshot()
+    expect(snapshotWhileOpen).toBeTruthy()
+
+    await wrapper.setProps({ open: false })
+    await nextTick()
+    expect(wrapper.find('.spb-popover-canvascontrol').exists()).toBe(false)
+
+    // Die Bridge gehört der Leiste, nicht dem Popover – sie liefert weiterhin.
+    expect(bridge.captureSnapshot()).toBeTruthy()
+  })
+
+  it('behält den Hintergrund-Zustand über Schließen und erneutes Öffnen', async () => {
+    const pop = () => wrapper.find('.spb-popover-canvascontrol')
+    const gradientSwitch = () => pop().find<HTMLButtonElement>('.gradient-section [role="switch"]')
+    const colorText = () => pop().find<HTMLInputElement>('.color-text-input')
+
+    // Über die Bedienelemente des Popovers ändern, nicht über die Refs
+    expect(gradientSwitch().attributes('aria-checked')).toBe('false')
+    await gradientSwitch().trigger('click')
+    await colorText().setValue('rgba(18, 52, 86, 1)')
+    await nextTick()
+    expect(pop().find('.gradient-controls').exists()).toBe(true)
+
+    // Der Zustand liegt in der Leiste (Refs bleiben Refs) ...
+    const bg = wrapper.vm.bg
+    expect(isRef(bg.backgroundColor)).toBe(true)
+    expect(bg.backgroundColor.value).toBe('#123456')
+    expect(bg.gradientEnabled.value).toBe(true)
+
+    await wrapper.setProps({ open: false })
+    expect(pop().exists()).toBe(false)
+    await wrapper.setProps({ open: true })
+    await nextTick()
+
+    // ... und das neu gemountete Popover zeigt ihn wieder an
+    expect(pop().find('.panel').exists()).toBe(true)
+    expect(gradientSwitch().attributes('aria-checked')).toBe('true')
+    expect(pop().find('.gradient-controls').exists()).toBe(true)
+    expect(colorText().element.value).toBe('rgba(18, 52, 86, 1)')
+  })
+})

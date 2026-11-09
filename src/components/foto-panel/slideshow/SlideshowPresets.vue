@@ -41,8 +41,8 @@
         <div class="storage-line storage-browser">
           <span>{{ t('slideshow.storageBrowser') }}</span>
           <span>
-            {{ formatBytes(storage.usage, locale) }} {{ t('slideshow.storageOf') }}
-            {{ formatBytes(storage.quota, locale) }} ({{ usagePercent }} %)
+            {{ formatBytes(storage.usage as number, locale) }} {{ t('slideshow.storageOf') }}
+            {{ formatBytes(storage.quota as number, locale) }} ({{ usagePercent }} %)
           </span>
         </div>
         <p v-if="nearlyFull" class="hint warning">{{ t('slideshow.storageNearlyFull') }}</p>
@@ -93,32 +93,47 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Liste der Slideshow-Presets. Rein darstellend: Speichern/Laden/Löschen
  * werden an das SlideshowPanel emittiert, das den Store bedient.
  */
 import { ref, computed } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { formatBytes } from '../../../utils/formatBytes.js'
+import { useI18n } from '../../../lib/i18n'
+import { formatBytes } from '../../../utils/formatBytes'
+import type {
+  SlideshowImageStats,
+  SlideshowPreset,
+  SlideshowSessionImage,
+} from '../../../stores/slideshowPresetStore'
 
-const props = defineProps({
-  presets: { type: Array, default: () => [] },
-  // presetId → Bilder dieser Sitzung (siehe slideshowPresetStore.sessionImages)
-  sessionImages: { type: Object, default: () => ({}) },
-  // Speicherbelegung: { available, count, bytes, usage, quota } (slideshowPresetStore.imageStats)
-  storage: { type: Object, default: null },
-  // Aufräumen läuft gerade (Knopf gesperrt)
-  cleaning: { type: Boolean, default: false },
-})
-const emit = defineEmits(['save', 'load', 'delete', 'cleanup'])
+const props = withDefaults(
+  defineProps<{
+    presets?: SlideshowPreset[]
+    // presetId → Bilder dieser Sitzung (siehe slideshowPresetStore.sessionImages)
+    sessionImages?: Record<string, SlideshowSessionImage[]>
+    // Speicherbelegung: { available, count, bytes, usage, quota } (slideshowPresetStore.imageStats)
+    storage?: SlideshowImageStats | null
+    // Aufräumen läuft gerade (Knopf gesperrt)
+    cleaning?: boolean
+  }>(),
+  { presets: () => [], sessionImages: () => ({}), storage: null, cleaning: false },
+)
+const emit = defineEmits<{
+  save: [name: string]
+  load: [preset: SlideshowPreset]
+  delete: [id: string]
+  cleanup: []
+}>()
 const { t, locale } = useI18n()
 
 const hasQuota = computed(
   () => Number.isFinite(props.storage?.usage) && Number(props.storage?.quota) > 0,
 )
 const usagePercent = computed(() =>
-  hasQuota.value ? Math.min(100, Math.round((props.storage.usage / props.storage.quota) * 100)) : 0,
+  hasQuota.value
+    ? Math.min(100, Math.round((Number(props.storage?.usage) / Number(props.storage?.quota)) * 100))
+    : 0,
 )
 // Ab 80 % Browser-Kontingent warnen
 const nearlyFull = computed(() => hasQuota.value && usagePercent.value >= 80)

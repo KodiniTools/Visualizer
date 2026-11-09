@@ -7,13 +7,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Status-Anzeige der Slideshow (Panel-Kopf bzw. Kopfzeile des Sticky-Bar-Fensters). */
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
-defineProps({
-  isActive: { type: Boolean, default: false },
-  isPaused: { type: Boolean, default: false },
+withDefaults(defineProps<{ isActive?: boolean; isPaused?: boolean }>(), {
+  isActive: false,
+  isPaused: false,
 })
 const { t } = useI18n()
 </script>

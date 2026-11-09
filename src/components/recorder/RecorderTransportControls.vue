@@ -7,7 +7,7 @@
       :variant="action.variant"
       size="sm"
       :disabled="disabled"
-      @click="emit(action.id)"
+      @click="emitAction(action.id)"
     >
       <template #icon>
         <svg
@@ -51,25 +51,38 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Steuerknöpfe des Recorders. Welche Knöpfe sichtbar sind, folgt dem Store;
 // die Aktionen selbst führt das RecorderPanel aus. Die Klassen btn-<aktion>
 // bleiben als Anker für Tests und das Panel.
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useRecorderStore } from '../../stores/recorderStore.js'
-import { UiButton } from '../ui/index.js'
+import { useI18n } from '../../lib/i18n'
+import { useRecorderStore } from '../../stores/recorderStore'
+import { UiButton } from '../ui'
 
-defineProps({
-  disabled: { type: Boolean, default: false },
-})
+withDefaults(defineProps<{ disabled?: boolean }>(), { disabled: false })
 
-const emit = defineEmits(['prepare', 'start', 'pause', 'resume', 'stop', 'reset'])
+type TransportAction = 'prepare' | 'start' | 'pause' | 'resume' | 'stop' | 'reset'
+interface TransportButton {
+  id: TransportAction
+  variant: 'primary' | 'secondary' | 'ghost' | 'danger'
+}
+
+const emit = defineEmits<{
+  prepare: []
+  start: []
+  pause: []
+  resume: []
+  stop: []
+  reset: []
+}>()
+// Alle Aktionen sind argumentlos; die Union der Namen kennt die Overload-Signatur nicht
+const emitAction = emit as (action: TransportAction) => void
 const { t } = useI18n()
 const recorderStore = useRecorderStore()
 
 /** Sichtbare Aktionen je Zustand, in Anzeige-Reihenfolge. */
-const actions = computed(() => {
+const actions = computed((): TransportButton[] => {
   const { isPrepared, isRecording, isPaused } = recorderStore
   if (isRecording) {
     return [

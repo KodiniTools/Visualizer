@@ -182,24 +182,24 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from './ui/SliderField.vue'
-import { UiSegmentedControl, UiSwitch } from './ui/index.js'
+import { UiSegmentedControl, UiSwitch } from './ui'
 import { computed } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useVisualizerStore } from '../stores/visualizerStore.js'
+import { useI18n } from '../lib/i18n'
+import { useVisualizerStore } from '../stores/visualizerStore'
 
-const props = defineProps({
-  /**
-   * Ohne layerId bedient das Panel die globalen Post-Processing-Einstellungen
-   * (bisheriges Verhalten). Mit layerId bearbeitet es die Effekte genau dieses
-   * Layers; sie wirken zusätzlich zu den globalen.
-   */
-  layerId: {
-    type: String,
-    default: null,
-  },
-})
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Ohne layerId bedient das Panel die globalen Post-Processing-Einstellungen
+     * (bisheriges Verhalten). Mit layerId bearbeitet es die Effekte genau dieses
+     * Layers; sie wirken zusätzlich zu den globalen.
+     */
+    layerId?: string | null
+  }>(),
+  { layerId: null },
+)
 
 const store = useVisualizerStore()
 const { t } = useI18n()
@@ -226,7 +226,7 @@ const fx = computed(() => {
   }
 })
 
-const SETTERS = {
+const SETTERS: Record<string, string> = {
   bloomEnabled: 'setBloomEnabled',
   bloomStrength: 'setBloomStrength',
   bloomThreshold: 'setBloomThreshold',
@@ -240,12 +240,14 @@ const SETTERS = {
   onsetFlourishStrength: 'setOnsetFlourishStrength',
 }
 
-function set(key, value) {
+function set(key: string, value: unknown) {
   if (props.layerId) {
     store.updateLayerEffect(props.layerId, key, value)
     return
   }
-  store[SETTERS[key]]?.(value)
+  const setter = SETTERS[key]
+  if (setter)
+    (store as unknown as Record<string, ((v: unknown) => void) | undefined>)[setter]?.(value)
 }
 
 // Quelle des Beat-Punch als Segmented Control

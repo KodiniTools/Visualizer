@@ -94,32 +94,46 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiDialog from '../ui/UiDialog.vue'
-import { splitFileName } from '../../lib/canvasObjects/imageName.js'
+import { splitFileName } from '../../lib/canvasObjects/imageName'
+import type { CanvasImage } from '../../lib/multiImageManager'
+import type { CanvasImagesApi } from '../../composables/useCanvasImages'
+import type { TranslateFn } from '../../composables/types'
 
-const props = defineProps({
-  showImagePreview: { type: Boolean, required: true },
-  previewImageData: { type: Object, default: null },
-  previewImageIndex: { type: Number, default: 0 },
-  canvasImagesCount: { type: Number, default: 0 },
-  pendingReplaceImageSrc: { type: String, default: null },
-  /**
-   * Ersatz-Galerie liegt gerade über der Vorschau. Escape oder Klick daneben
-   * schließen dann nicht die Vorschau, sonst liefe die Galerie-Auswahl ins Leere.
-   */
-  replaceGalleryOpen: { type: Boolean, default: false },
-  t: { type: Function, required: true },
-  closeImagePreview: { type: Function, required: true },
-  handleReplaceCanvasImage: { type: Function, required: true },
-  openReplaceGallery: { type: Function, required: true },
-  cancelPendingReplace: { type: Function, required: true },
-  confirmPendingReplace: { type: Function, required: true },
-})
+type Api = CanvasImagesApi
 
-const replaceCanvasImageInput = ref(null)
+const props = withDefaults(
+  defineProps<{
+    showImagePreview: boolean
+    previewImageData?: CanvasImage | null
+    previewImageIndex?: number
+    canvasImagesCount?: number
+    pendingReplaceImageSrc?: string | null
+    /**
+     * Ersatz-Galerie liegt gerade über der Vorschau. Escape oder Klick daneben
+     * schließen dann nicht die Vorschau, sonst liefe die Galerie-Auswahl ins Leere.
+     */
+    replaceGalleryOpen?: boolean
+    t: TranslateFn
+    closeImagePreview: Api['closeImagePreview']
+    handleReplaceCanvasImage: Api['handleReplaceCanvasImage']
+    openReplaceGallery: Api['openReplaceGallery']
+    cancelPendingReplace: Api['cancelPendingReplace']
+    confirmPendingReplace: Api['confirmPendingReplace']
+  }>(),
+  {
+    previewImageData: null,
+    previewImageIndex: 0,
+    canvasImagesCount: 0,
+    pendingReplaceImageSrc: null,
+    replaceGalleryOpen: false,
+  },
+)
+
+const replaceCanvasImageInput = ref<HTMLInputElement | null>(null)
 
 /** Gespeicherter Dateiname des Canvas-Bildes (leer, wenn unbekannt). */
 const fileName = computed(() => {

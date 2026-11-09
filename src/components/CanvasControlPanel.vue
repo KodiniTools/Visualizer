@@ -4,7 +4,7 @@
       <h3>{{ t('canvasControl.title') }}</h3>
       <span class="chevron" :class="{ open: isExpanded }" aria-hidden="true"></span>
     </div>
-    <div class="panel-content" v-show="isExpanded">
+    <div v-show="isExpanded" class="panel-content">
       <BackgroundColorSection />
 
       <div class="divider"></div>
@@ -18,10 +18,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, provide, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useBgSettings } from '../composables/useBgSettings.js'
+import { useI18n } from '../lib/i18n'
+import { useBgSettings } from '../composables/useBgSettings'
 import BackgroundColorSection from './canvas-control/BackgroundColorSection.vue'
 import PresetsSection from './canvas-control/PresetsSection.vue'
 import BeatDropSection from './canvas-control/BeatDropSection.vue'

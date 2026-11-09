@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Frame Export Service
  *
@@ -16,11 +17,11 @@ const FFMPEG_PATH = process.env.FFMPEG_PATH || 'ffmpeg'
  * Assembliert JPEG-Frames + Audio zu MP4
  *
  * @param {string} framesDir  - Verzeichnis mit frame_000001.jpg etc.
- * @param {string} audioPath  - Pfad zur Audio-Datei (WebM/WAV)
+ * @param {string | null | undefined} audioPath  - Pfad zur Audio-Datei (WebM/WAV)
  * @param {string} outputPath - Ziel-MP4-Pfad
- * @param {Object} options
- * @param {number} options.fps       - Frames per second (default 30)
- * @param {function} options.onProgress - Callback (0-100)
+ * @param {{ fps?: number, durationMs?: number, onProgress?: (percent: number) => void }} [options]
+ *   fps: Frames per second (default 30), durationMs: tatsächliche Aufnahmedauer,
+ *   onProgress: Callback (0-100)
  * @returns {Promise<void>}
  */
 export async function assembleFrames(framesDir, audioPath, outputPath, options = {}) {
@@ -131,7 +132,7 @@ export async function assembleFrames(framesDir, audioPath, outputPath, options =
  * Schreibt einen Frame-Batch in das Frames-Verzeichnis
  *
  * @param {string} framesDir   - Ziel-Verzeichnis
- * @param {Array}  frames      - Array von { index, buffer }
+ * @param {Array<{ index: number, buffer: Buffer }>} frames - Array von { index, buffer }
  */
 export async function writeFrames(framesDir, frames) {
   await Promise.all(

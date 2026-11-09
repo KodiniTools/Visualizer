@@ -1,0 +1,177 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { defineComponent } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { vPopoverDrag } from '../../directives/popoverDrag'
+import { stub } from '../helpers/canvasStubs'
+
+// Popover-Attrappe mit Header, wie sie die Sticky-Player-Bar rendert.
+const Popover = defineComponent({
+  directives: { popoverDrag: vPopoverDrag },
+  template: `
+    <div v-popover-drag class="spb-popover spb-popover-testpop" data-v-abc123="">
+      <div class="spb-popover-header"><span>Kopf</span></div>
+      <div class="body">Inhalt</div>
+    </div>`,
+})
+
+let wrapper: VueWrapper | null
+let el: HTMLElement
+
+function pointer(target: EventTarget, type: string, x: number, y: number) {
+  const ev = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    clientX: x,
+    clientY: y,
+    button: 0,
+  })
+  target.dispatchEvent(ev)
+}
+
+function drag(handle: Element | null, fromX: number, fromY: number, toX: number, toY: number) {
+  pointer(handle!, 'pointerdown', fromX, fromY)
+  pointer(window, 'pointermove', toX, toY)
+  pointer(window, 'pointerup', toX, toY)
+}
+
+beforeEach(() => {
+  localStorage.clear()
+  wrapper = mount(Popover, { attachTo: document.body })
+  el = wrapper.element
+})
+
+afterEach(() => wrapper?.unmount())
+
+// Popover, dessen Rahmen selbst scrollt (wie die kleinen Standard-Popover).
+const ScrollingPopover = defineComponent({
+  directives: { popoverDrag: vPopoverDrag },
+  template: `
+    <div v-popover-drag class="spb-popover spb-popover-scrolly" style="overflow-y: auto">
+      <div class="spb-popover-header"><span>Kopf</span></div>
+      <div class="body">Inhalt</div>
+    </div>`,
+})
+
+describe('v-popover-drag – Größe per Rand ziehen', () => {
+  it('erzeugt Griffe für linken, rechten, unteren Rand und untere Ecken mit Scope-Attribut', () => {
+    const handles = el.querySelectorAll('.spb-resize-handle')
+    expect(handles).toHaveLength(5)
+    const dirs = Array.from(handles).map((h) =>
+      h.className.replace('spb-resize-handle spb-resize-', ''),
+    )
+    expect(dirs.sort()).toEqual(['e', 's', 'se', 'sw', 'w'])
+    expect(handles[0]!.hasAttribute('data-v-abc123')).toBe(true)
+  })
+
+  it('vergrößert die Breite beim Ziehen des linken Rands nach links (jsdom: Basis 340px)', () => {
+    drag(el.querySelector('.spb-resize-w'), 100, 300, 20, 300)
+    expect(el.style.width).toBe('420px')
+    expect(el.style.height).toBe('')
+  })
+
+  it('vergrößert Breite und Höhe über die untere rechte Ecke', () => {
+    drag(el.querySelector('.spb-resize-se'), 400, 500, 460, 580)
+    expect(el.style.width).toBe('400px')
+    expect(el.style.height).toBe('480px')
+  })
+
+  it('hält Mindest- und Höchstgröße ein', () => {
+    drag(el.querySelector('.spb-resize-w'), 100, 300, 900, 300) // sehr schmal
+    expect(el.style.width).toBe('260px')
+    drag(el.querySelector('.spb-resize-e'), 100, 300, 5000, 300) // sehr breit
+    expect(parseInt(el.style.width, 10)).toBe(window.innerWidth - 16)
+    drag(el.querySelector('.spb-resize-s'), 100, 300, 100, -5000) // sehr niedrig
+    expect(el.style.height).toBe('160px')
+  })
+
+  it('speichert die Größe pro Popover und stellt sie beim nächsten Öffnen wieder her', () => {
+    drag(el.querySelector('.spb-resize-se'), 400, 500, 450, 560)
+    expect(JSON.parse(localStorage.getItem('spb-popover-size:testpop')!)).toEqual({
+      width: 390,
+      height: 460,
+    })
+
+    wrapper!.unmount()
+    wrapper = mount(Popover, { attachTo: document.body })
+    expect(wrapper.element.style.width).toBe('390px')
+    expect(wrapper.element.style.height).toBe('460px')
+  })
+
+  it('setzt die Größe per Doppelklick auf einen Griff zurück', () => {
+    drag(el.querySelector('.spb-resize-e'), 100, 300, 200, 300)
+    expect(el.style.width).toBe('440px')
+    el.querySelector('.spb-resize-e')!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+    expect(el.style.width).toBe('')
+    expect(localStorage.getItem('spb-popover-size:testpop')).toBeNull()
+  })
+
+  it('legt keine Griffe an, wenn der Popover-Rahmen selbst scrollt', () => {
+    // Sonst lägen die Griffe über dem Inhalt und fingen dort Klicks ab.
+    const w = mount(ScrollingPopover, { attachTo: document.body })
+    expect(w.element.querySelectorAll('.spb-resize-handle')).toHaveLength(0)
+    w.unmount()
+  })
+
+  it('räumt Griffe und Body-Styles beim Unmount auf', () => {
+    pointer(el.querySelector('.spb-resize-e')!, 'pointerdown', 100, 300)
+    expect(document.body.style.userSelect).toBe('none')
+    wrapper!.unmount()
+    expect(document.body.style.userSelect).toBe('')
+    expect(document.querySelectorAll('.spb-resize-handle')).toHaveLength(0)
+    wrapper = null
+  })
+})
+
+describe('v-popover-drag – mittig öffnen (center)', () => {
+  const CenteredPopover = defineComponent({
+    directives: { popoverDrag: vPopoverDrag },
+    props: { offset: { type: Object, default: () => ({ center: true }) } },
+    template: `
+      <div v-popover-drag="offset" class="spb-popover spb-popover-centered">
+        <div class="spb-popover-header"><span>Kopf</span></div>
+      </div>`,
+  })
+
+  // Box 300×200, unverschoben unten rechts bei (600|500); translate wird addiert.
+  function mockRect() {
+    return vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (!this.classList.contains('spb-popover-centered')) return new DOMRect(0, 0, 0, 0)
+      const m = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(this.style.transform)
+      const tx = m ? Number(m[1]) : 0
+      const ty = m ? Number(m[2]) : 0
+      return new DOMRect(600 + tx, 500 + ty, 300, 200)
+    })
+  }
+
+  afterEach(() => vi.restoreAllMocks())
+
+  it('platziert das Fenster in der Bildschirmmitte', () => {
+    mockRect()
+    const w = mount(CenteredPopover, { attachTo: document.body })
+    const left = (window.innerWidth - 300) / 2
+    const top = (window.innerHeight - 200) / 2
+    expect(w.element.style.transform).toBe(`translate(${left - 600}px, ${top - 500}px)`)
+    w.unmount()
+  })
+
+  it('addiert den Kaskaden-Versatz', () => {
+    mockRect()
+    const w = mount(CenteredPopover, {
+      attachTo: document.body,
+      props: { offset: { x: -34, y: -34, center: true } },
+    })
+    const left = (window.innerWidth - 300) / 2 - 34
+    const top = (window.innerHeight - 200) / 2 - 34
+    expect(w.element.style.transform).toBe(`translate(${left - 600}px, ${top - 500}px)`)
+    w.unmount()
+  })
+
+  it('ohne center bleibt die bisherige Verankerung', () => {
+    mockRect()
+    const w = mount(CenteredPopover, { attachTo: document.body, props: stub({ offset: null }) })
+    expect(w.element.style.transform).toBe('')
+    w.unmount()
+  })
+})

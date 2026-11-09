@@ -14,7 +14,7 @@
   </router-view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // App.vue serves as a simple wrapper with router-view.
 // All content is handled by LandingPage.vue and VisualizerApp.vue.
 </script>

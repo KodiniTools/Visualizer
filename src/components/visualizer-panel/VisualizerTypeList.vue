@@ -98,19 +98,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { useLayerPresetStore } from '../../stores/layerPresetStore.js'
+import { useI18n } from '../../lib/i18n'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { useLayerPresetStore } from '../../stores/layerPresetStore'
 
-const props = defineProps({
-  /** Aktueller Suchbegriff; nicht-leer schaltet von Kategorien auf Trefferliste um. */
-  searchQuery: {
-    type: String,
-    default: '',
-  },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Aktueller Suchbegriff; nicht-leer schaltet von Kategorien auf Trefferliste um. */
+    searchQuery?: string
+  }>(),
+  { searchQuery: '' },
+)
 
 const { t } = useI18n()
 const store = useVisualizerStore()
@@ -121,10 +121,10 @@ const USER_PRESETS_CATEGORY = 'Eigene Presets'
 
 // Akkordeon: es ist immer höchstens eine Kategorie aufgeklappt. Wird eine
 // geöffnet, klappen alle anderen zu; ein Klick auf die offene schließt sie.
-const openCategory = ref('GPU-Presets')
+const openCategory = ref<string | null>('GPU-Presets')
 
 // Map German category keys to i18n translation keys
-const categoryTranslationKeys = {
+const categoryTranslationKeys: Record<string, string> = {
   'GPU-Presets': 'visualizer.categories.gpu',
   Laser: 'visualizer.categories.laser',
   'LED-Ziffern': 'visualizer.categories.ledDigits',
@@ -134,21 +134,21 @@ const categoryTranslationKeys = {
   Klassisch: 'visualizer.categories.classic',
 }
 
-function getCategoryName(category) {
+function getCategoryName(category: string) {
   const key = categoryTranslationKeys[category]
   return key ? t(key) : category
 }
 
-function isCategoryOpen(category) {
+function isCategoryOpen(category: string) {
   return openCategory.value === category
 }
 
-function toggleCategory(category, event) {
+function toggleCategory(category: string, event?: Event) {
   const opening = !isCategoryOpen(category)
   openCategory.value = opening ? category : null
   // Klappt eine größere Kategorie darüber zu, rutscht die angeklickte
   // Überschrift nach oben – nach dem Rendern wieder in den sichtbaren Bereich holen.
-  const header = event?.currentTarget
+  const header = event?.currentTarget as HTMLElement | null | undefined
   if (opening && header) {
     nextTick(() => header.scrollIntoView?.({ block: 'nearest' }))
   }

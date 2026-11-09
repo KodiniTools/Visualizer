@@ -78,14 +78,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../ui/SliderField.vue'
 import ColorField from '../ui/ColorField.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
-import { visualizerShapeOptions } from '../../lib/visualizers/core/visualizerShape.js'
+import { useI18n } from '../../lib/i18n'
+import { useVisualizerStore } from '../../stores/visualizerStore'
+import { visualizerShapeOptions } from '../../lib/visualizers/core/visualizerShape'
 
 const { t } = useI18n()
 const store = useVisualizerStore()

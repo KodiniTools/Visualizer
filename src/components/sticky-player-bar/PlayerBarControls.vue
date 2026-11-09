@@ -4,10 +4,11 @@
     <div class="spb-track">
       <UiIconButton
         class="spb-icon-btn spb-source-btn"
-        :class="{ active: isOpen('audio'), listening: audioSourceStore.isMicrophoneActive }"
+        :class="{ active: isActive('audio'), listening: audioSourceStore.isMicrophoneActive }"
         v-bind="toggleProps('audio')"
         :label="t('player.openAudioSource')"
-        @click="togglePopover('audio')"
+        @click="onBarClick('audio', $event)"
+        @dblclick="onBarDblClick('audio')"
       >
         <PlayerIcon :icon="audioSourceStore.isMicrophoneSource ? ICONS.microphone : ICONS.note" />
       </UiIconButton>
@@ -109,11 +110,12 @@
 
       <UiIconButton
         class="spb-icon-btn spb-slideshow-btn"
-        :class="{ active: isOpen('slideshow') }"
+        :class="{ active: isActive('slideshow') }"
         v-bind="toggleProps('slideshow')"
         :label="t('player.openSlideshow')"
         data-testid="open-slideshow"
-        @click="togglePopover('slideshow')"
+        @click="onBarClick('slideshow', $event)"
+        @dblclick="onBarDblClick('slideshow')"
       >
         <PlayerIcon :icon="ICONS.slideshow" />
         <span v-if="slideshow.imageCount >= 2" class="spb-badge">{{ slideshow.imageCount }}</span>
@@ -121,10 +123,11 @@
 
       <UiIconButton
         class="spb-icon-btn"
-        :class="{ active: isOpen('markers') }"
+        :class="{ active: isActive('markers') }"
         v-bind="toggleProps('markers')"
         :label="t('player.openMarkers')"
-        @click="togglePopover('markers')"
+        @click="onBarClick('markers', $event)"
+        @dblclick="onBarDblClick('markers')"
       >
         <PlayerIcon :icon="ICONS.markers" />
         <span v-if="beatMarkerStore.markerCount > 0" class="spb-badge">{{
@@ -134,14 +137,15 @@
 
       <UiIconButton
         class="spb-icon-btn spb-volume-btn"
-        :class="{ active: isOpen('volume'), muted: playerStore.isMuted }"
+        :class="{ active: isActive('volume'), muted: playerStore.isMuted }"
         v-bind="toggleProps('volume')"
         :label="
           playerStore.isMuted
             ? `${t('player.openVolume')} (${t('player.muted')})`
             : t('player.openVolume')
         "
-        @click="togglePopover('volume')"
+        @click="onBarClick('volume', $event)"
+        @dblclick="onBarDblClick('volume')"
       >
         <PlayerIcon :icon="playerStore.isMuted ? ICONS.volumeMuted : ICONS.volume" />
       </UiIconButton>
@@ -150,11 +154,12 @@
         v-for="item in popoverButtons"
         :key="item.id"
         class="spb-icon-btn"
-        :class="{ active: isOpen(item.id) }"
+        :class="{ active: isActive(item.id) }"
         v-bind="toggleProps(item.id)"
         :label="t(item.label)"
         :data-popover="item.id"
-        @click="togglePopover(item.id)"
+        @click="onBarClick(item.id, $event)"
+        @dblclick="onBarDblClick(item.id)"
       >
         <PlayerIcon :icon="ICONS[item.id]" />
         <span v-if="item.badge" class="spb-badge">{{ item.badge }}</span>
@@ -162,10 +167,11 @@
 
       <UiIconButton
         class="spb-icon-btn spb-record-btn"
-        :class="{ active: isOpen('recorder'), recording: recorderStore.isRecording }"
+        :class="{ active: isActive('recorder'), recording: recorderStore.isRecording }"
         v-bind="toggleProps('recorder')"
         :label="t('player.openRecorder')"
-        @click="togglePopover('recorder')"
+        @click="onBarClick('recorder', $event)"
+        @dblclick="onBarDblClick('recorder')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <circle cx="12" cy="12" r="8" />
@@ -176,22 +182,25 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, h, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useHistoryStore } from '../../stores/historyStore.js'
-import { useSlideshowPopover } from '../../composables/useSlideshowPopover.js'
-import { historyStepLabel } from '../../lib/history/historyLabels.js'
-import { usePlayerStore } from '../../stores/playerStore.js'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore.js'
-import { useAudioSourceStore } from '../../stores/audioSourceStore.js'
-import { useRecorderStore } from '../../stores/recorderStore.js'
-import { formatTime, formatTimePrecise } from '../../utils/formatTime.js'
+import type { FunctionalComponent } from 'vue'
+import type { PlayerBarContext } from './playerBarContext'
+import { useI18n } from '../../lib/i18n'
+import { useHistoryStore } from '../../stores/historyStore'
+import { useSlideshowPopover } from '../../composables/useSlideshowPopover'
+import { historyStepLabel } from '../../lib/history/historyLabels'
+import { usePlayerStore } from '../../stores/playerStore'
+import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
+import { useAudioSourceStore } from '../../stores/audioSourceStore'
+import { useRecorderStore } from '../../stores/recorderStore'
+import { formatTime, formatTimePrecise } from '../../utils/formatTime'
 import UiIconButton from '../ui/UiIconButton.vue'
-import { PLAYER_ICONS as ICONS, PLAY_MODE_ICONS, iconPaths } from './playerBarIcons.js'
+import { PLAYER_ICONS as ICONS, PLAY_MODE_ICONS, iconPaths } from './playerBarIcons'
+import type { IconDef } from './playerBarIcons'
 
 /** Symbol aus einem oder mehreren SVG-Pfaden (24×24, currentColor). */
-const PlayerIcon = (props) =>
+const PlayerIcon: FunctionalComponent<{ icon: IconDef }> = (props) =>
   h(
     'svg',
     { viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': 'true' },
@@ -219,15 +228,18 @@ const redoTitle = computed(() => {
   return historyStore.canRedo && cmd ? `${base}: ${historyStepLabel(cmd, t)}` : base
 })
 
-const { popover, playMode, markers } = inject('playerBar')
-const { isOpen, togglePopover } = popover
+const { popover, playMode, markers } = inject('playerBar') as PlayerBarContext
+const { isActive, onBarClick, onBarDblClick } = popover
 const { cyclePlayMode, playModeLabel } = playMode
 const { getMarkerPosition, seekToMarker } = markers
 
-/** Popover-Umschalter: offen = Primärfläche mit aria-pressed. */
-const toggleProps = (id) => ({
-  variant: isOpen(id) ? 'primary' : 'secondary',
-  pressed: isOpen(id),
+/**
+ * Funktions-Umschalter: aktiv = Primärfläche mit aria-pressed – auch wenn das
+ * Fenster per Klick daneben ausgeblendet ist (siehe usePlayerPopover).
+ */
+const toggleProps = (id: string) => ({
+  variant: (isActive(id) ? 'primary' : 'secondary') as 'primary' | 'secondary',
+  pressed: isActive(id),
 })
 
 const transport = computed(() => [
@@ -243,8 +255,14 @@ const transport = computed(() => [
   { id: 'next', label: t('player.next'), icon: ICONS.next, action: () => playerStore.nextTrack() },
 ])
 
+interface PopoverButton {
+  id: keyof typeof ICONS
+  label: string
+  badge?: number
+}
+
 /** Popover-Knöpfe zwischen Lautstärke und Aufnahme, in Anzeigereihenfolge. */
-const popoverButtons = computed(() => [
+const popoverButtons = computed((): PopoverButton[] => [
   { id: 'playlist', label: 'player.openPlaylist', badge: playerStore.playlist.length },
   { id: 'gallery', label: 'player.openGallery' },
   { id: 'presets', label: 'player.openPresets' },
@@ -262,9 +280,9 @@ const popoverButtons = computed(() => [
   { id: 'screenshot', label: 'player.openScreenshot' },
 ])
 
-const seekToPosition = (event) => {
+const seekToPosition = (event: MouseEvent) => {
   if (!playerStore.audioRef || playerStore.duration === 0) return
-  const rect = event.currentTarget.getBoundingClientRect()
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   const clickX = event.clientX - rect.left
   const percentage = clickX / rect.width
   const newTime = percentage * playerStore.duration
@@ -275,11 +293,11 @@ const seekToPosition = (event) => {
 const SEEK_STEP = 5
 
 /** Tastatur auf dem Fortschrittsbalken: Pfeile ±5 s, Pos1/Ende springen an Anfang/Ende. */
-const onSeekKeydown = (event) => {
+const onSeekKeydown = (event: KeyboardEvent) => {
   const duration = playerStore.duration
   if (!playerStore.audioRef || !duration) return
   const now = playerStore.currentTime
-  const targets = {
+  const targets: Record<string, number> = {
     ArrowLeft: now - SEEK_STEP,
     ArrowDown: now - SEEK_STEP,
     ArrowRight: now + SEEK_STEP,
@@ -291,7 +309,7 @@ const onSeekKeydown = (event) => {
   // Nicht an die globalen Kürzel weiterreichen (← → wechseln dort den Titel)
   event.preventDefault()
   event.stopPropagation()
-  playerStore.seekTo(Math.min(duration, Math.max(0, targets[event.key])))
+  playerStore.seekTo(Math.min(duration, Math.max(0, targets[event.key] as number)))
 }
 </script>
 

@@ -5,8 +5,8 @@
       <h5>{{ t('canvasControl.backgroundImage') || 'Hintergrundbild' }}</h5>
       <div
         class="background-thumb"
-        @dblclick="openBackgroundReplaceModal('background')"
         :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
+        @dblclick="openBackgroundReplaceModal('background')"
       >
         <img v-if="backgroundImageSrc" :src="backgroundImageSrc" alt="Background" />
         <span class="thumb-hint">{{
@@ -20,8 +20,8 @@
       <h5>{{ t('canvasControl.workspaceBackgroundImage') || 'Workspace-Hintergrundbild' }}</h5>
       <div
         class="background-thumb"
-        @dblclick="openBackgroundReplaceModal('workspace')"
         :title="t('canvasControl.dblClickToReplace') || 'Doppelklick zum Ersetzen'"
+        @dblclick="openBackgroundReplaceModal('workspace')"
       >
         <img
           v-if="workspaceBackgroundImageSrc"
@@ -36,12 +36,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import type { BgSettingsApi } from '../../../composables/useBgSettings'
+import { useI18n } from '../../../lib/i18n'
 
 const { t } = useI18n()
-const bg = inject('bgSettings')
+const bg = inject('bgSettings') as BgSettingsApi
 const {
   hasImageBackground,
   hasWorkspaceBackground,

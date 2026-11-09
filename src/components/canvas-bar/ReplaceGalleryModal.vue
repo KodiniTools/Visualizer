@@ -57,32 +57,44 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { localizedName as nameFor } from '../../lib/localizedName.js'
+import { useI18n } from '../../lib/i18n'
+import { localizedName as nameFor } from '../../lib/localizedName'
 import UiButton from '../ui/UiButton.vue'
 import UiDialog from '../ui/UiDialog.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
+import type { LocalizedEntry } from '../../lib/localizedName'
+import type { CanvasImagesApi } from '../../composables/useCanvasImages'
+import type { StockCategory, StockImage } from '../../composables/useStockGallery'
+import type { TranslateFn } from '../../composables/types'
 
-const props = defineProps({
-  showReplaceGallery: { type: Boolean, required: true },
-  replaceGalleryCategories: { type: Array, required: true },
-  replaceGalleryImages: { type: Array, required: true },
-  selectedReplaceCategory: { type: String, default: null },
-  selectedReplaceImage: { type: Object, default: null },
-  replaceGalleryLoading: { type: Boolean, required: true },
-  t: { type: Function, required: true },
-  closeReplaceGallery: { type: Function, required: true },
-  selectReplaceGalleryCategory: { type: Function, required: true },
-  selectReplaceGalleryImage: { type: Function, required: true },
-  confirmReplaceFromGallery: { type: Function, required: true },
-})
+/** Galerie-Bild, wie es aus category.json kommt (`thumb` optional) */
+type ReplaceGalleryImage = StockImage & { name_en?: string; thumb?: string }
+
+type Api = CanvasImagesApi
+
+const props = withDefaults(
+  defineProps<{
+    showReplaceGallery: boolean
+    replaceGalleryCategories: StockCategory[]
+    replaceGalleryImages: ReplaceGalleryImage[]
+    selectedReplaceCategory?: string | null
+    selectedReplaceImage?: StockImage | null
+    replaceGalleryLoading: boolean
+    t: TranslateFn
+    closeReplaceGallery: Api['closeReplaceGallery']
+    selectReplaceGalleryCategory: Api['selectReplaceGalleryCategory']
+    selectReplaceGalleryImage: Api['selectReplaceGalleryImage']
+    confirmReplaceFromGallery: Api['confirmReplaceFromGallery']
+  }>(),
+  { selectedReplaceCategory: null, selectedReplaceImage: null },
+)
 
 const { locale } = useI18n()
 
 /** Name aus der Galerie in der aktuellen Sprache (`name` = DE, `name_en` = EN) */
-const localizedName = (entry) => nameFor(entry, locale.value)
+const localizedName = (entry: LocalizedEntry) => nameFor(entry, locale.value)
 
 const categoryOptions = computed(() =>
   props.replaceGalleryCategories.map((category) => ({
@@ -92,7 +104,7 @@ const categoryOptions = computed(() =>
 )
 
 // Segmented Control liefert Strings; die Galerie vergleicht mit der Original-ID
-function onCategoryChange(value) {
+function onCategoryChange(value: string) {
   const category = props.replaceGalleryCategories.find((c) => String(c.id) === value)
   if (category) props.selectReplaceGalleryCategory(category.id)
 }

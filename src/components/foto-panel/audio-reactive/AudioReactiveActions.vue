@@ -1,24 +1,25 @@
 <template>
   <div class="audio-preset-actions">
-    <button class="btn-preset-action btn-save" @click="saveSettings" :disabled="!hasActiveImage">
+    <button class="btn-preset-action btn-save" :disabled="!hasActiveImage" @click="saveSettings">
       {{ t('foto.save') }}
     </button>
     <button
       class="btn-preset-action btn-apply"
-      @click="applySettings"
       :disabled="!hasSavedSettings"
+      @click="applySettings"
     >
       {{ t('foto.apply') }}
     </button>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
+import type { AudioReactiveControls } from './audioReactiveControls'
 
 const { t } = useI18n()
-const arc = inject('audioReactiveControls')
+const arc = inject('audioReactiveControls') as AudioReactiveControls
 const { hasActiveImage, hasSavedSettings, saveSettings, applySettings } = arc
 </script>
 

@@ -23,7 +23,7 @@
           {{ t('fileUpload.selectFiles') }}
         </span>
         <span v-else class="upload-main">
-          {{ t('fileUpload.tracksLoaded').replace('{count}', playerStore.playlist.length) }}
+          {{ t('fileUpload.tracksLoaded').replace('{count}', String(playerStore.playlist.length)) }}
         </span>
         <span class="upload-sub">{{ t('fileUpload.dragHint') }}</span>
         <span class="upload-sub">{{ t('fileUpload.pasteHint') }}</span>
@@ -36,7 +36,7 @@
 
       <!-- Upload-Buttons innerhalb der Drop-Zone -->
       <div class="upload-buttons">
-        <UiButton variant="secondary" size="sm" @click.stop="fileInput.click()">
+        <UiButton variant="secondary" size="sm" @click.stop="fileInput?.click()">
           <template #icon>
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -46,7 +46,7 @@
           </template>
           {{ t('fileUpload.files') }}
         </UiButton>
-        <UiButton variant="secondary" size="sm" @click.stop="folderInput.click()">
+        <UiButton variant="secondary" size="sm" @click.stop="folderInput?.click()">
           <template #icon>
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path
@@ -88,18 +88,18 @@
           />
         </svg>
         <span class="info-text">{{
-          t('fileUpload.filesReady').replace('{count}', playerStore.playlist.length)
+          t('fileUpload.filesReady').replace('{count}', String(playerStore.playlist.length))
         }}</span>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { usePlayerStore } from '../stores/playerStore.js'
-import { useToastStore } from '../stores/toastStore.js'
+import { useI18n } from '../lib/i18n'
+import { usePlayerStore } from '../stores/playerStore'
+import { useToastStore } from '../stores/toastStore'
 import UiButton from './ui/UiButton.vue'
 
 const { t } = useI18n()
@@ -109,15 +109,15 @@ const FORMATS = ['MP3', 'WAV', 'OGG', 'M4A']
 
 const playerStore = usePlayerStore()
 const toastStore = useToastStore()
-const fileInput = ref(null)
-const folderInput = ref(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+const folderInput = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 
-function onPaste(event) {
+function onPaste(event: ClipboardEvent) {
   const items = event.clipboardData?.items
   if (!items) return
-  const audioFiles = []
-  for (const item of items) {
+  const audioFiles: File[] = []
+  for (const item of Array.from(items)) {
     if (
       item.kind === 'file' &&
       (item.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(item.type))
@@ -128,24 +128,25 @@ function onPaste(event) {
   }
   if (audioFiles.length > 0) {
     playerStore.addTracks(audioFiles)
-    toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length))
+    toastStore.success(t('toast.tracksAdded').replace('{count}', String(audioFiles.length)))
   }
 }
 
 onMounted(() => document.addEventListener('paste', onPaste))
 onUnmounted(() => document.removeEventListener('paste', onPaste))
 
-function onSelectFiles(event) {
-  const files = event.target.files
+function onSelectFiles(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = input.files
   if (files && files.length > 0) {
     const audioFiles = Array.from(files).filter(
       (f) => f.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(f.name),
     )
     if (audioFiles.length > 0) {
       playerStore.addTracks(audioFiles)
-      toastStore.success(t('toast.tracksAdded').replace('{count}', audioFiles.length))
+      toastStore.success(t('toast.tracksAdded').replace('{count}', String(audioFiles.length)))
     }
-    event.target.value = ''
+    input.value = ''
   }
 }
 
@@ -157,7 +158,7 @@ function onDragLeave() {
   isDragging.value = false
 }
 
-async function onDrop(event) {
+async function onDrop(event: DragEvent) {
   isDragging.value = false
 
   const items = event.dataTransfer?.items
@@ -165,28 +166,28 @@ async function onDrop(event) {
     const files = await collectFromItems(items)
     if (files.length > 0) {
       playerStore.addTracks(files)
-      toastStore.success(t('toast.tracksAdded').replace('{count}', files.length))
+      toastStore.success(t('toast.tracksAdded').replace('{count}', String(files.length)))
     }
     return
   }
 
   // Fallback: dataTransfer.files (kein Ordner-Traversal)
-  const rawFiles = Array.from(event.dataTransfer.files).filter(isAudio)
+  const rawFiles = Array.from(event.dataTransfer?.files ?? []).filter(isAudio)
   if (rawFiles.length > 0) {
     playerStore.addTracks(rawFiles)
-    toastStore.success(t('toast.tracksAdded').replace('{count}', rawFiles.length))
+    toastStore.success(t('toast.tracksAdded').replace('{count}', String(rawFiles.length)))
   }
 }
 
-function isAudio(file) {
+function isAudio(file: File): boolean {
   return file.type.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(file.name)
 }
 
-async function collectFromItems(items) {
-  const files = []
-  const promises = []
+async function collectFromItems(items: DataTransferItemList): Promise<File[]> {
+  const files: File[] = []
+  const promises: Promise<void>[] = []
 
-  for (const item of items) {
+  for (const item of Array.from(items)) {
     const entry = item.webkitGetAsEntry?.()
     if (entry) {
       promises.push(traverseEntry(entry, files))
@@ -200,28 +201,34 @@ async function collectFromItems(items) {
   return files
 }
 
-function traverseEntry(entry, files) {
+function traverseEntry(entry: FileSystemEntry, files: File[]): Promise<void> {
   if (entry.isFile) {
     return new Promise((resolve) => {
-      entry.file((f) => {
-        if (isAudio(f)) files.push(f)
-        resolve()
-      }, resolve)
+      ;(entry as FileSystemFileEntry).file(
+        (f) => {
+          if (isAudio(f)) files.push(f)
+          resolve()
+        },
+        () => resolve(),
+      )
     })
   }
 
   if (entry.isDirectory) {
-    const reader = entry.createReader()
+    const reader = (entry as FileSystemDirectoryEntry).createReader()
     return new Promise((resolve) => {
-      function readAll(accumulated) {
-        reader.readEntries(async (entries) => {
-          if (!entries.length) {
-            await Promise.all(accumulated.map((e) => traverseEntry(e, files)))
-            resolve()
-          } else {
-            readAll(accumulated.concat(Array.from(entries)))
-          }
-        }, resolve)
+      function readAll(accumulated: FileSystemEntry[]) {
+        reader.readEntries(
+          async (entries) => {
+            if (!entries.length) {
+              await Promise.all(accumulated.map((e) => traverseEntry(e, files)))
+              resolve()
+            } else {
+              readAll(accumulated.concat(Array.from(entries)))
+            }
+          },
+          () => resolve(),
+        )
       }
       readAll([])
     })

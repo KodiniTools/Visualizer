@@ -50,17 +50,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Ruhiger Hinweis im Textfluss: Fläche 2, Status nur im Icon, keine Rahmenfarbe. */
-defineProps({
-  /** 'info' | 'success' | 'warning' | 'danger' */
-  type: {
-    type: String,
-    default: 'info',
-    validator: (v) => ['info', 'success', 'warning', 'danger'].includes(v),
-  },
-  title: { type: String, default: undefined },
-})
+withDefaults(
+  defineProps<{
+    type?: 'info' | 'success' | 'warning' | 'danger'
+    title?: string
+  }>(),
+  { type: 'info', title: undefined },
+)
 </script>
 
 <style scoped>

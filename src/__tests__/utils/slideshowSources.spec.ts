@@ -1,0 +1,126 @@
+import { describe, it, expect, vi } from 'vitest'
+import {
+  fileBaseName,
+  buildSlideshowSourceImages,
+  resolveSlideshowImageObject,
+  ensureSlideshowImagesLoaded,
+  restorePresetImages,
+  stockEntryFromRef,
+  type PresetImageSlot,
+  type SlideshowSourceImage,
+} from '../../lib/slideshowSources'
+import { fakeImage } from '../helpers/canvasStubs'
+
+const up = (id: string, name: string) => ({ id, name, img: fakeImage({ src: `data:${id}` }) })
+const st = (id: string, file: string, name = id) => ({
+  id,
+  name,
+  file,
+  thumbnail: `${file}.thumb`,
+})
+/** Eintrag im Test nur mit den relevanten Feldern */
+const entry = (value: object) => value as SlideshowSourceImage
+
+describe('slideshowSources', () => {
+  it('fileBaseName', () => {
+    expect(fileBaseName('gallery/backgrounds/Wald.WEBP?v=2')).toBe('wald.webp')
+    expect(fileBaseName('brücke-1.webp')).toBe('brücke-1.webp')
+    expect(fileBaseName(undefined)).toBe('')
+  })
+
+  it('führt Uploads + Stock zusammen, gleiches Motiv nur einmal (Upload hat Vorrang)', () => {
+    const list = buildSlideshowSourceImages(
+      [up('u1', 'wald.webp'), up('u2', 'see.png')],
+      [st('s1', 'gallery/bg/wald.webp'), st('s2', 'gallery/bg/berg.svg'), st('s2', 'x/berg.svg')],
+      (id) => (id === 's2' ? fakeImage({ loaded: id }) : null),
+    )
+    expect(list.map((i) => i.id)).toEqual(['u1', 'u2', 'stock:s2'])
+    const stock = list[2]
+    expect(stock!.source).toBe('stock')
+    expect(stock!.thumbnail).toBe('gallery/bg/berg.svg.thumb')
+    expect(stock!.imageObject).toEqual({ loaded: 's2' })
+    expect(list[0]).toMatchObject({ source: 'upload', imageObject: { src: 'data:u1' } })
+  })
+
+  it('resolveSlideshowImageObject nutzt Cache für Stock-Bilder', () => {
+    const cache: Record<string, HTMLImageElement> = { s1: fakeImage({ cached: true }) }
+    const get = (id: string) => cache[id] ?? null
+    expect(resolveSlideshowImageObject(entry({ stockImage: { id: 's1' } }), get)).toEqual({
+      cached: true,
+    })
+    expect(resolveSlideshowImageObject(entry({ img: 'x' }), get)).toBe('x')
+    expect(resolveSlideshowImageObject(null, get)).toBeNull()
+  })
+
+  it('ensureSlideshowImagesLoaded lädt fehlende Stock-Bilder, lässt defekte aus', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const loadStock = vi.fn(async (s) => {
+      if (s.id === 'bad') throw new Error('404')
+      return fakeImage({ loaded: s.id })
+    })
+    const { images, failed } = await ensureSlideshowImagesLoaded(
+      [
+        entry({ id: 'u1', name: 'A', imageObject: { a: 1 } }),
+        entry({ id: 'stock:s1', name: 'B', stockImage: { id: 's1' } }),
+        entry({ id: 'stock:bad', name: 'C', stockImage: { id: 'bad' } }),
+      ],
+      loadStock,
+    )
+    expect(images.map((i) => i.imageObject)).toEqual([{ a: 1 }, { loaded: 's1' }])
+    expect(failed).toEqual(['C'])
+    expect(loadStock).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('restorePresetImages', () => {
+  const ref = { id: 's1', name: 'Wald', file: 'gallery/bg/wald.png' } as Parameters<
+    typeof stockEntryFromRef
+  >[0] & { file: string }
+
+  it('ohne Bild-Verweise → null (bisheriges Verhalten)', async () => {
+    expect(await restorePresetImages([{ stock: null }, {}], [])).toBeNull()
+  })
+
+  it('Stock aus Verweis, Uploads aus IndexedDB, fehlende aus aktueller Auswahl', async () => {
+    const current: SlideshowSourceImage[] = [
+      { id: 'u1', source: 'upload' },
+      { id: 'stock:x', source: 'stock' },
+    ]
+    const stored = { imageObject: fakeImage({ stored: true }), name: 'foto.png' }
+    const loadUpload = vi.fn(async (key: string) => (key === 'k-ok' ? stored : null))
+    const slots: PresetImageSlot[] = [
+      { upload: { key: 'k-ok', name: 'foto.png' } },
+      { stock: ref },
+      { upload: { key: 'k-weg', name: 'weg.png' } },
+      { stock: null },
+    ]
+    const { pairs, missing } = (await restorePresetImages(slots, current, {
+      loadUpload,
+      getLoadedStock: (id) => (id === 's1' ? fakeImage({ cached: 1 }) : null),
+    }))!
+    expect(pairs.map((p) => p.img!.id)).toEqual(['preset:k-ok', 'stock:s1', 'u1'])
+    expect(pairs[0]!.img).toMatchObject({
+      source: 'upload',
+      name: 'foto.png',
+      imageObject: stored.imageObject,
+    })
+    expect(pairs[1]!.img!.imageObject).toEqual({ cached: 1 })
+    expect(pairs[2]!.slot).toBe(slots[2])
+    expect(missing).toEqual(['weg.png'])
+    // 4. Position entfällt (kein weiteres hochgeladenes Bild)
+    expect(pairs).toHaveLength(3)
+  })
+
+  it('nutzt die Galerie-ID, wenn das Bild in der Upload-Galerie liegt', async () => {
+    const { pairs } = (await restorePresetImages([{ upload: { key: 'k', name: 'a.png' } }], [], {
+      loadUpload: async () => ({ imageObject: fakeImage(), name: 'a.png', galleryId: 42 }),
+    }))!
+    expect(pairs[0]!.img!.id).toBe(42)
+  })
+
+  it('stockEntryFromRef baut einen ladbaren Eintrag', () => {
+    const e = stockEntryFromRef(ref)
+    expect(e).toMatchObject({ id: 'stock:s1', source: 'stock', thumbnail: ref.file })
+    expect(e.stockImage).toMatchObject({ id: 's1', file: ref.file })
+  })
+})

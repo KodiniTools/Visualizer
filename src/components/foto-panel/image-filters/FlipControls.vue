@@ -5,18 +5,18 @@
     </div>
     <div class="flip-buttons">
       <button
-        @pointerdown="onSliderStart"
-        @click="onFlipHorizontal"
         class="flip-button"
         :class="{ active: flipHRef }"
+        @pointerdown="onSliderStart"
+        @click="onFlipHorizontal"
       >
         ↔ {{ t('foto.flipH') }}
       </button>
       <button
-        @pointerdown="onSliderStart"
-        @click="onFlipVertical"
         class="flip-button"
         :class="{ active: flipVRef }"
+        @pointerdown="onSliderStart"
+        @click="onFlipVertical"
       >
         ↕ {{ t('foto.flipV') }}
       </button>
@@ -24,12 +24,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
+import type { ImageFilterContext } from './imageFilterContext'
 
 const { t } = useI18n()
-const ifc = inject('imageFilterControls')
+const ifc = inject('imageFilterControls') as ImageFilterContext
 const { flipHRef, flipVRef, onSliderStart, onFlipHorizontal, onFlipVertical } = ifc
 </script>
 

@@ -168,10 +168,10 @@
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useRecorderStore } from '../stores/recorderStore.js'
+import { useI18n } from '../lib/i18n'
+import { useRecorderStore } from '../stores/recorderStore'
 import HelpTooltip from './HelpTooltip.vue'
 import RecorderStatusIndicator from './recorder/RecorderStatusIndicator.vue'
 import RecorderTransportControls from './recorder/RecorderTransportControls.vue'
@@ -182,16 +182,16 @@ import RecorderConversionProgress from './recorder/RecorderConversionProgress.vu
 import RecorderConversionOverlay from './recorder/RecorderConversionOverlay.vue'
 import RecorderResultsModal from './recorder/RecorderResultsModal.vue'
 import RecorderSaveDialog from './recorder/RecorderSaveDialog.vue'
-import { useRecordingTimer } from '../composables/useRecordingTimer.js'
-import { useWebmExport } from '../composables/useWebmExport.js'
-import { useServerConversion } from '../composables/useServerConversion.js'
-import { useGifConversion } from '../composables/useGifConversion.js'
-import { useHqExport } from '../composables/useHqExport.js'
-import { useSaveDialog } from '../composables/useSaveDialog.js'
-import { useRecorderSettings } from '../composables/recorder/useRecorderSettings.js'
-import { useRecorderActions } from '../composables/recorder/useRecorderActions.js'
-import { useRecorderExportSave } from '../composables/recorder/useRecorderExportSave.js'
-import { useRecordingPreview } from '../composables/recorder/useRecordingPreview.js'
+import { useRecordingTimer } from '../composables/useRecordingTimer'
+import { useWebmExport } from '../composables/useWebmExport'
+import { useServerConversion } from '../composables/useServerConversion'
+import { useGifConversion } from '../composables/useGifConversion'
+import { useHqExport } from '../composables/useHqExport'
+import { useSaveDialog } from '../composables/useSaveDialog'
+import { useRecorderSettings } from '../composables/recorder/useRecorderSettings'
+import { useRecorderActions } from '../composables/recorder/useRecorderActions'
+import { useRecorderExportSave } from '../composables/recorder/useRecorderExportSave'
+import { useRecordingPreview } from '../composables/recorder/useRecordingPreview'
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()

@@ -52,25 +52,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Position und Größe der Slideshow (in Prozent des Canvas) mit Reset. */
 import SliderControl from '../../ui/SliderControl.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
 
 const TRANSFORM_DEFAULTS = Object.freeze({ x: 10, y: 10, width: 80, height: 80 })
 
-const transformX = defineModel('transformX', { type: Number, default: 10 })
-const transformY = defineModel('transformY', { type: Number, default: 10 })
-const transformWidth = defineModel('transformWidth', {
-  type: Number,
-  default: 80,
-})
-const transformHeight = defineModel('transformHeight', {
-  type: Number,
-  default: 80,
-})
+const transformX = defineModel<number>('transformX', { default: 10 })
+const transformY = defineModel<number>('transformY', { default: 10 })
+const transformWidth = defineModel<number>('transformWidth', { default: 80 })
+const transformHeight = defineModel<number>('transformHeight', { default: 80 })
 
-const emit = defineEmits(['reset'])
+const emit = defineEmits<{ reset: [] }>()
 const { t } = useI18n()
 
 function resetTransform() {

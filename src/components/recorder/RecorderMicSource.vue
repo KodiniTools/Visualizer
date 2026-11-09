@@ -33,12 +33,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Mikrofon zur laufenden Aufnahme zuschalten. Das Panel zeigt diesen Abschnitt
 // nur während der Aufnahme; der Zustand beginnt daher bei jeder Aufnahme bei „aus“.
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import UiSwitch from '../ui/UiSwitch.vue'
-import { useMicrophoneToggle } from '../../composables/useMicrophoneToggle.js'
+import { useMicrophoneToggle } from '../../composables/useMicrophoneToggle'
 
 const { t } = useI18n()
 const { microphoneEnabled, isSwitchingSource, toggleMicrophone } = useMicrophoneToggle()

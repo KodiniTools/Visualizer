@@ -58,10 +58,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../ui/SliderField.vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useVisualizerStore } from '../../stores/visualizerStore.js'
+import { useI18n } from '../../lib/i18n'
+import { useVisualizerStore } from '../../stores/visualizerStore'
 
 const { t } = useI18n()
 const store = useVisualizerStore()

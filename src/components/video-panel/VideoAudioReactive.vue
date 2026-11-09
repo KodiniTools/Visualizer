@@ -19,33 +19,38 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Audio-Reaktiv-Panel für ein Video-Objekt (Canvas-Video, Video-Hintergrund,
  * Workspace-Video-Hintergrund). Arbeitet direkt auf
  * `video.fotoSettings.audioReactive` (Struktur wie bei Canvas-Bildern).
  */
 import { ref } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { ensureAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig.js'
-import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
+import { useI18n } from '../../lib/i18n'
+import { ensureAudioReactiveConfig } from '../../lib/audio/audioReactiveConfig'
+import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
+import type { FotoImageObject, FotoSettings } from '../../lib/fotoManager'
+import type { AudioReactivePanelApi } from '../../composables/audioReactive/useAudioReactiveTarget'
 
-const props = defineProps({
-  /** Video-Datenobjekt mit `fotoSettings` (wird in-place bearbeitet) */
-  video: { type: Object, default: null },
-  /** Optionale Bezeichnung (z. B. "Hintergrund") */
-  label: { type: String, default: '' },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Video-Datenobjekt mit `fotoSettings` (wird in-place bearbeitet) */
+    video?: FotoImageObject | null
+    /** Optionale Bezeichnung (z. B. "Hintergrund") */
+    label?: string
+  }>(),
+  { video: null, label: '' },
+)
 
 const { t } = useI18n()
-const panelRef = ref(null)
+const panelRef = ref<AudioReactivePanelApi | null>(null)
 
 /** Stellt die vollständige Konfiguration des Videos sicher. */
 function cfg() {
   const v = props.video
   if (!v) return null
-  if (!v.fotoSettings) v.fotoSettings = {}
+  if (!v.fotoSettings) v.fotoSettings = {} as FotoSettings
   v.fotoSettings.audioReactive = ensureAudioReactiveConfig(v.fotoSettings.audioReactive)
   return v.fotoSettings.audioReactive
 }

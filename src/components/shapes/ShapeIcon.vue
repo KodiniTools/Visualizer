@@ -84,24 +84,29 @@
   </svg>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Vorschau einer Form als Inline-SVG – dieselbe Pfadgeometrie wie auf dem
  * Canvas (src/lib/shapes/shapes.js); übernommen aus KodiniTools/Bildkonverter. Farbe folgt `currentColor` (Theme-Text) bzw.
  * optional den Farben einer konkreten Form.
  */
 import { computed } from 'vue'
-import { getGalleryPreview, SHAPE_KIND, SHAPE_PATHS } from '../../lib/shapes/shapes.js'
+import { getGalleryPreview, SHAPE_KIND, SHAPE_PATHS } from '../../lib/shapes/shapes'
+import type { ShapeGalleryItem, ShapePreset } from '../../lib/shapes/shapes'
+import type { Shape } from '../../stores/shapeStore'
 
-const props = defineProps({
-  /** Galerie-Eintrag ({ type, aspect, preset }) */
-  item: { type: Object, required: true },
-  size: { type: Number, default: 32 },
-  /** Konkrete Form: übernimmt Füll-/Linienfarbe statt currentColor */
-  shape: { type: Object, default: null },
-  /** Angezeigter Text (z. B. übersetzter Sticker-Text), sonst Text der Form/Vorlage */
-  text: { type: String, default: null },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Galerie-Eintrag ({ type, aspect, preset }) */
+    item: ShapeGalleryItem
+    size?: number
+    /** Konkrete Form: übernimmt Füll-/Linienfarbe statt currentColor */
+    shape?: Shape | null
+    /** Angezeigter Text (z. B. übersetzter Sticker-Text), sonst Text der Form/Vorlage */
+    text?: string | null
+  }>(),
+  { size: 32, shape: null, text: null },
+)
 
 // Eindeutige id je Instanz (mehrere Vorschaubilder auf der Seite)
 const gradientId = `shape-icon-gradient-${Math.random().toString(36).slice(2, 10)}`
@@ -111,11 +116,11 @@ const preview = computed(() => {
   const s = props.shape
   if (!s) return getGalleryPreview(props.item, VIEW)
   // Varianten der konkreten Form (Marker-Stil, Effekt, Umriss) übernehmen
-  const preset = { ...props.item.preset }
+  const preset: Record<string, unknown> = { ...props.item.preset }
   for (const key of ['markerStyle', 'region', 'effect', 'points']) if (s[key]) preset[key] = s[key]
   // Freihand: eigenes Seitenverhältnis des Strichs
   const aspect = s.type === 'freehand' ? s.width / Math.max(1, s.height) : props.item.aspect
-  const base = getGalleryPreview({ ...props.item, aspect, preset }, VIEW)
+  const base = getGalleryPreview({ ...props.item, aspect, preset: preset as ShapePreset }, VIEW)
   return { ...base, filled: s.filled !== false, dash: s.dash || 'solid' }
 })
 
@@ -181,7 +186,7 @@ const stroke = computed(() => {
   if (isEffect.value) return 'currentColor'
   if (isStroke.value || !preview.value.filled) return props.shape?.strokeColor || 'currentColor'
   // Gefüllte Form mit Umrandung (z. B. weiße Sprechblase) bleibt so erkennbar
-  return props.shape?.strokeWidth > 0 ? props.shape.strokeColor : 'none'
+  return (props.shape?.strokeWidth ?? 0) > 0 ? (props.shape as Shape).strokeColor : 'none'
 })
 const strokeWidth = computed(() =>
   isHighlighter.value ? 7 : isStroke.value ? 3 : isEffect.value ? 1.5 : 2.5,

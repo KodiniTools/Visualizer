@@ -79,9 +79,9 @@
       <div class="hero-background">
         <div class="wave-container">
           <div
-            class="wave-bar"
             v-for="n in 24"
             :key="n"
+            class="wave-bar"
             :style="{ animationDelay: `${n * 0.08}s` }"
           ></div>
         </div>
@@ -90,10 +90,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, h, ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { useTheme } from '../lib/theme.js'
+import { useI18n } from '../lib/i18n'
+import { useTheme } from '../lib/theme'
+
+interface FeatureCard {
+  title: string
+  description: string
+}
 
 const { t, locale } = useI18n()
 const { isDark } = useTheme()
@@ -182,8 +187,9 @@ const CustomizeIcon = () =>
 
 // Feature cards with translations
 const featureCards = computed(() => {
-  const _ = locale.value // Reactivity dependency
-  const cards = t('internalLanding.features.cards')
+  void locale.value // Reactivity dependency
+  // Listen-Schlüssel: t() liefert hier das Array aus den Übersetzungen
+  const cards = t('internalLanding.features.cards') as unknown as FeatureCard[]
   const icons = [VisualizerIcon, VideoIcon, CustomizeIcon]
   const gradients = [
     'linear-gradient(135deg, #f8e1a9 0%, #c9984d 100%)',

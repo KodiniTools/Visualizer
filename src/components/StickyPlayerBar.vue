@@ -34,16 +34,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, provide, onMounted, onUnmounted } from 'vue'
-import { usePlayerPopover } from '../composables/usePlayerPopover.js'
-import { usePlayerVolumeEq } from '../composables/usePlayerVolumeEq.js'
-import { usePlayMode } from '../composables/usePlayMode.js'
-import { useAudioSourceControls } from '../composables/useAudioSourceControls.js'
-import { useBeatMarkers } from '../composables/useBeatMarkers.js'
-import { usePlaylistManager } from '../composables/usePlaylistManager.js'
-import { useBgSettings } from '../composables/useBgSettings.js'
-import { useVideoPanel } from '../composables/useVideoPanel.js'
+import { usePlayerPopover, isOutsidePopoverClick } from '../composables/usePlayerPopover'
+import { usePlayerVolumeEq } from '../composables/usePlayerVolumeEq'
+import { usePlayMode } from '../composables/usePlayMode'
+import { useAudioSourceControls } from '../composables/useAudioSourceControls'
+import { useBeatMarkers } from '../composables/useBeatMarkers'
+import { usePlaylistManager } from '../composables/usePlaylistManager'
+import { useBgSettings } from '../composables/useBgSettings'
+import { useVideoPanel } from '../composables/useVideoPanel'
 import TextManagerPopover from './sticky-player-bar/TextManagerPopover.vue'
 import AudioSourcePopover from './sticky-player-bar/AudioSourcePopover.vue'
 import VolumeEqPopover from './sticky-player-bar/VolumeEqPopover.vue'
@@ -65,10 +65,11 @@ import VideoPopover from './sticky-player-bar/VideoPopover.vue'
 import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
-import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest.js'
-import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction.js'
+import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest'
+import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction'
+import type { PlayerBarContext } from './sticky-player-bar/playerBarContext'
 
-const barRef = ref(null)
+const barRef = ref<HTMLElement | null>(null)
 
 // The bar owns all shared state via composables (so watchers and DOM listeners
 // register exactly once) and hands it to the child popovers/controls through a
@@ -77,7 +78,12 @@ const popover = usePlayerPopover()
 const volumeEq = usePlayerVolumeEq()
 const playMode = usePlayMode()
 const audioSource = useAudioSourceControls()
-const markers = useBeatMarkers(() => popover.openPopover('markers'))
+// Video-Zustand vor den Markern anlegen: Marker können hochgeladene Videos
+// als Hintergrund aktivieren.
+const videoPanel = useVideoPanel()
+const markers = useBeatMarkers(() => popover.openPopover('markers'), {
+  videoGallery: videoPanel.videoGallery,
+})
 const playlist = usePlaylistManager()
 
 // Hintergrund-/Canvas-Zustand hier erzeugen, nicht im Panel: die Leiste ist
@@ -88,9 +94,16 @@ provide('bgSettings', useBgSettings())
 
 // Ebenso der Video-Zustand: die hochgeladene Video-Liste und die
 // Platzierungs-Einstellungen sollen das Schließen des Popovers überleben.
-provide('videoPanel', useVideoPanel())
+provide('videoPanel', videoPanel)
 
-provide('playerBar', { popover, volumeEq, playMode, audioSource, markers, playlist })
+provide('playerBar', {
+  popover,
+  volumeEq,
+  playMode,
+  audioSource,
+  markers,
+  playlist,
+} satisfies PlayerBarContext)
 
 // Tippen auf dem Canvas legt sofort einen Text an (TextManagerPanel reagiert
 // auf dieses Ereignis). Da der Text-Manager jetzt im Popover sitzt, wird es
@@ -101,12 +114,20 @@ const openTextManager = () => popover.openPopover('textManager')
 const openSlideshow = () => popover.openPopover('slideshow')
 // Klick auf eine Form im Canvas öffnet die Formen-Galerie zum Bearbeiten.
 const openShapes = () => popover.openPopover('shapes')
+// Klick daneben: blendet alle offenen Fenster aus, die Funktionen bleiben in
+// der Leiste aktiv (erneuter Klick dort öffnet sie wieder).
+const onDocumentPointerDown = (event: PointerEvent) => {
+  if (!popover.openPopovers.value.length) return
+  if (isOutsidePopoverClick(event.target, barRef.value)) popover.hideAllPopovers()
+}
 onMounted(() => {
+  document.addEventListener('pointerdown', onDocumentPointerDown, true)
   window.addEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.addEventListener('openTextEditorWithChar', openTextManager)
   window.addEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
 })
 onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
   window.removeEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.removeEventListener('openTextEditorWithChar', openTextManager)
   window.removeEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)

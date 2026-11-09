@@ -16,15 +16,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import type { PlayerBarContext } from './playerBarContext'
+import { useI18n } from '../../lib/i18n'
 import VisualizerLayerPanel from '../VisualizerLayerPanel.vue'
-import { vPopoverDrag } from '../../directives/popoverDrag.js'
+import { vPopoverDrag } from '../../directives/popoverDrag'
 
 const { t } = useI18n()
 
-const { popover } = inject('playerBar')
+const { popover } = inject('playerBar') as PlayerBarContext
 const { closePopover, cascadeOffset } = popover
 const close = () => closePopover('multiLayer')
 const initOffset = cascadeOffset('multiLayer')

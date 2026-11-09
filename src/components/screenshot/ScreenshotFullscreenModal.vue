@@ -42,24 +42,27 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Vollbild-Vorschau eines Screenshots. Escape schließt; der Listener lebt
 // genau so lange wie die Komponente (Eltern blenden sie per v-if ein).
 import { onMounted, onBeforeUnmount } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 
-defineProps({
-  url: { type: String, required: true },
-  fileName: { type: String, default: '' },
-  formatLabel: { type: String, default: '' },
-  dimensions: { type: String, default: '' },
-  size: { type: String, default: '' },
-})
+withDefaults(
+  defineProps<{
+    url: string
+    fileName?: string
+    formatLabel?: string
+    dimensions?: string
+    size?: string
+  }>(),
+  { fileName: '', formatLabel: '', dimensions: '', size: '' },
+)
 
-const emit = defineEmits(['close', 'download'])
+const emit = defineEmits<{ close: []; download: [] }>()
 const { t } = useI18n()
 
-function handleKeydown(e) {
+function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('close')
 }
 

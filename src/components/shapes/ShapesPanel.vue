@@ -161,7 +161,7 @@
           size="sm"
           :label="t('shapes.edit.font')"
           :options="fontOptions"
-          @update:model-value="setFont"
+          @update:model-value="(v) => setFont(v as string)"
         />
         <SliderControl
           :label="t('shapes.edit.fontSize')"
@@ -425,6 +425,12 @@
         />
       </div>
 
+      <!-- Animation (Pulsieren, Ein-/Ausblenden …) -->
+      <div v-if="!isEffect" class="control-block shape-anim">
+        <span class="section-title">{{ t('shapes.edit.animation') }}</span>
+        <ShapeAnimation :shape="selectedShape" @commit="commit" />
+      </div>
+
       <!-- Audio-Reaktiv (wie bei Bildern) -->
       <div v-if="!isEffect" class="control-block shape-audio">
         <span class="section-title">{{ t('shapes.edit.audioReactive') }}</span>
@@ -459,7 +465,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * ShapesPanel – Galerie „Formen & Symbole“ (inkl. Sticker und Emojis) plus
  * Bearbeitung der ausgewählten Form; Nachbau der Galerie aus
@@ -469,12 +475,13 @@
  * neu. Ein Verlaufsschritt pro abgeschlossener Änderung (commit).
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { CUSTOM_FONTS } from '../../lib/fonts.js'
-import { useShapeStore } from '../../stores/shapeStore.js'
-import { useHistoryStore } from '../../stores/historyStore.js'
-import { getHistoryRecorder } from '../../lib/history/historyRecorder.js'
-import { SHAPES_FOCUS_TEXT_EVENT } from '../../lib/shapes/shapeInteraction.js'
+import { useI18n } from '../../lib/i18n'
+import { CUSTOM_FONTS } from '../../lib/fonts'
+import { useShapeStore } from '../../stores/shapeStore'
+import type { DrawStyle, DrawTool, Shape } from '../../stores/shapeStore'
+import { useHistoryStore } from '../../stores/historyStore'
+import { getHistoryRecorder } from '../../lib/history/historyRecorder'
+import { SHAPES_FOCUS_TEXT_EVENT } from '../../lib/shapes/shapeInteraction'
 import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
@@ -486,6 +493,7 @@ import SliderControl from '../ui/SliderControl.vue'
 import ShapeIcon from './ShapeIcon.vue'
 import ShapeColorField from './ShapeColorField.vue'
 import ShapeAudioReactive from './ShapeAudioReactive.vue'
+import ShapeAnimation from './ShapeAnimation.vue'
 import {
   CENSOR_EFFECTS,
   CENSOR_REGIONS,
@@ -507,20 +515,24 @@ import {
   isDrawToolItem,
   isHeightless,
   supportsShapeText,
-} from '../../lib/shapes/shapes.js'
+} from '../../lib/shapes/shapes'
+import type { ShapeGalleryItem } from '../../lib/shapes/shapes'
 
-const props = defineProps({
-  /** Canvas-Größe in px (Startgröße/-position neuer Formen, Reglerbereiche); 0 = Live-Canvas */
-  canvasWidth: { type: Number, default: 0 },
-  canvasHeight: { type: Number, default: 0 },
-  disabled: { type: Boolean, default: false },
-})
+const props = withDefaults(
+  defineProps<{
+    /** Canvas-Größe in px (Startgröße/-position neuer Formen, Reglerbereiche); 0 = Live-Canvas */
+    canvasWidth?: number
+    canvasHeight?: number
+    disabled?: boolean
+  }>(),
+  { canvasWidth: 0, canvasHeight: 0, disabled: false },
+)
 
 const { t } = useI18n()
 const shapeStore = useShapeStore()
 const historyStore = useHistoryStore()
 
-const activeCategory = ref(SHAPE_CATEGORIES[0])
+const activeCategory = ref<string>(SHAPE_CATEGORIES[0] as string)
 const lockRatio = ref(false)
 
 const categoryOptions = computed(() =>
@@ -528,7 +540,7 @@ const categoryOptions = computed(() =>
 )
 
 /** Optionen für UiSegmentedControl aus einer Werteliste und einem i18n-Präfix */
-function optionsFor(values, prefix) {
+function optionsFor(values: readonly string[], prefix: string) {
   return values.map((value) => ({ value, label: t(`${prefix}.${value}`) }))
 }
 
@@ -555,9 +567,10 @@ const isStrokeKind = computed(() => selectedKind.value === SHAPE_KIND.STROKE)
 const isMarker = computed(() => selectedKind.value === SHAPE_KIND.MARKER)
 const isEffect = computed(() => selectedKind.value === SHAPE_KIND.EFFECT)
 const isEmoji = computed(() => selectedKind.value === SHAPE_KIND.EMOJI)
-const fillType = computed(() =>
-  FILL_TYPES.includes(selectedShape.value?.fillType) ? selectedShape.value.fillType : 'solid',
-)
+const fillType = computed(() => {
+  const value = selectedShape.value?.fillType
+  return value && FILL_TYPES.includes(value) ? value : 'solid'
+})
 const isGradient = computed(() => fillType.value !== 'solid')
 const heightless = computed(() => isHeightless(selectedShape.value?.type))
 const hasStroke = computed(() => (selectedShape.value?.strokeWidth || 0) > 0)
@@ -584,7 +597,7 @@ const fontSizeMax = computed(() =>
 )
 
 /** Schriftgröße in px → textScale (Anteil an der Form, damit sie mitskaliert) */
-function setFontSize(px) {
+function setFontSize(px: number) {
   const scale = Number(px) / minSide.value
   update({
     textScale:
@@ -593,7 +606,7 @@ function setFontSize(px) {
   })
 }
 
-function setFont(fontFamily) {
+function setFont(fontFamily: string) {
   setAndCommit({ fontFamily })
   // Schrift laden; die Render-Schleife zeichnet ohnehin jedes Frame neu
   document.fonts?.load?.(`32px "${fontFamily}"`).catch(() => {})
@@ -602,25 +615,29 @@ function setFont(fontFamily) {
 // ===== Zeichenwerkzeuge =====
 const drawTool = computed(() => shapeStore.drawTool)
 const drawStyle = computed(
-  () => shapeStore.drawSettings[drawTool.value] ?? { color: '#000000', opacity: 100 },
+  (): Pick<DrawStyle, 'color' | 'opacity'> & { width?: DrawStyle['width'] } =>
+    (drawTool.value ? shapeStore.drawSettings[drawTool.value] : undefined) ?? {
+      color: '#000000',
+      opacity: 100,
+    },
 )
 const drawWidth = computed(() => {
   const { width, height } = canvasSize()
-  return drawStyle.value.width ?? getDefaultDrawWidth(drawTool.value, width, height)
+  return drawStyle.value.width ?? getDefaultDrawWidth(drawTool.value ?? undefined, width, height)
 })
 
-function setDrawTool(tool) {
+function setDrawTool(tool: DrawTool | null) {
   shapeStore.setDrawTool(tool)
 }
 
-function setDrawSetting(patch) {
+function setDrawSetting(patch: Partial<DrawStyle>) {
   if (drawTool.value) shapeStore.updateDrawSettings(drawTool.value, patch)
 }
 
-function onTileClick(item) {
+function onTileClick(item: ShapeGalleryItem) {
   if (props.disabled) return
   if (isDrawToolItem(item)) {
-    setDrawTool(drawTool.value === item.tool ? null : item.tool)
+    setDrawTool(drawTool.value === item.tool ? null : (item.tool as DrawTool))
     return
   }
   setDrawTool(null)
@@ -639,7 +656,9 @@ watch(drawTool, (tool) => {
 /** Doppelklick auf eine Form mit Text: Texteingabe fokussieren */
 function focusTextInput() {
   nextTick(() => {
-    const input = document.querySelector('.shapes-panel [data-shape-text]')
+    const input = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+      '.shapes-panel [data-shape-text]',
+    )
     if (input) {
       input.focus()
       input.select?.()
@@ -654,7 +673,9 @@ onBeforeUnmount(() => {
 
 function canvasSize() {
   const live =
-    typeof document !== 'undefined' ? document.querySelector('.canvas-wrapper canvas') : null
+    typeof document !== 'undefined'
+      ? document.querySelector<HTMLCanvasElement>('.canvas-wrapper canvas')
+      : null
   return {
     width: props.canvasWidth || live?.width || shapeStore.canvasSize.width || 1920,
     height: props.canvasHeight || live?.height || shapeStore.canvasSize.height || 1080,
@@ -671,12 +692,12 @@ const rangeY = computed(() => {
   return { min: Math.min(0, y), max: Math.max(1, canvasSize().height, y) }
 })
 
-function sizeMax(current) {
+function sizeMax(current: number) {
   const { width, height } = canvasSize()
   return Math.max(SHAPE_LIMITS.minSize + 1, Math.round(Math.max(width, height) * 2), current)
 }
 
-function galleryItemFor(shape) {
+function galleryItemFor(shape: Shape): ShapeGalleryItem {
   return (
     SHAPE_GALLERY.find((g) => g.id === shape.galleryId) ?? {
       id: shape.type,
@@ -686,18 +707,18 @@ function galleryItemFor(shape) {
   )
 }
 
-function shapeName(shape) {
+function shapeName(shape: Shape) {
   return SHAPE_GALLERY.some((g) => g.id === shape.galleryId)
     ? t(`shapes.items.${shape.galleryId}`)
     : shape.type
 }
 
-function addLabel(item) {
+function addLabel(item: ShapeGalleryItem) {
   return t('shapes.add').replace('{name}', t(`shapes.items.${item.id}`))
 }
 
 /** Sticker mit übersetzbarem Text (z. B. „Neu“) */
-function stickerText(item) {
+function stickerText(item: ShapeGalleryItem | undefined) {
   const key = item?.preset?.textKey
   return key ? t(`shapes.stickerText.${key}`) : null
 }
@@ -710,48 +731,48 @@ function commit() {
   }
 }
 
-function update(patch) {
+function update(patch: Partial<Shape>) {
   if (!selectedShape.value) return
   shapeStore.updateShape(selectedShape.value.id, patch)
 }
 
-function setAndCommit(patch) {
+function setAndCommit(patch: Partial<Shape>) {
   update(patch)
   commit()
 }
 
-function toggleFill(filled) {
+function toggleFill(filled: boolean) {
   const shape = selectedShape.value
   if (!shape) return
   // Ohne Füllung muss eine Kontur sichtbar bleiben, sonst verschwindet die Form
-  const patch = { filled }
+  const patch: Partial<Shape> = { filled }
   if (!filled && !(shape.strokeWidth > 0)) {
     patch.strokeWidth = Math.max(2, Math.round(Math.min(shape.width, shape.height) * 0.05))
   }
   setAndCommit(patch)
 }
 
-function setWidth(width) {
+function setWidth(width: number) {
   const shape = selectedShape.value
   if (!shape) return
-  const patch = { width }
+  const patch: Partial<Shape> = { width }
   if (lockRatio.value && !heightless.value && shape.width > 0) {
     patch.height = Math.max(SHAPE_LIMITS.minSize, Math.round(width * (shape.height / shape.width)))
   }
   update(patch)
 }
 
-function setHeight(height) {
+function setHeight(height: number) {
   const shape = selectedShape.value
   if (!shape) return
-  const patch = { height }
+  const patch: Partial<Shape> = { height }
   if (lockRatio.value && shape.height > 0) {
     patch.width = Math.max(SHAPE_LIMITS.minSize, Math.round(height * (shape.width / shape.height)))
   }
   update(patch)
 }
 
-function addShape(galleryId) {
+function addShape(galleryId: string) {
   const { width, height } = canvasSize()
   const shape = shapeStore.addShape(galleryId, width, height)
   if (!shape) return
@@ -760,12 +781,12 @@ function addShape(galleryId) {
   commit()
 }
 
-function select(id) {
+function select(id: string | null) {
   if (id !== null && drawTool.value) setDrawTool(null)
   shapeStore.selectShape(id)
 }
 
-function remove(id) {
+function remove(id: string) {
   if (shapeStore.deleteShape(id)) commit()
 }
 
@@ -773,7 +794,7 @@ function duplicate() {
   if (selectedShape.value && shapeStore.duplicateShape(selectedShape.value.id)) commit()
 }
 
-function reorder(direction) {
+function reorder(direction: 'up' | 'down') {
   if (selectedShape.value && shapeStore.moveShapeOrder(selectedShape.value.id, direction)) {
     commit()
   }

@@ -7,7 +7,7 @@
       :label="t('visualizer.reactSource.label')"
       :options="sourceOptions"
       :model-value="store.reactSource"
-      @update:model-value="store.setReactSource($event)"
+      @update:model-value="store.setReactSource($event as string)"
     />
     <template v-if="store.reactSource !== 'spectrum'">
       <span class="section-label">
@@ -28,13 +28,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import SliderField from '../ui/SliderField.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import VisualizerReactShapeControls from './VisualizerReactShapeControls.vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useVisualizerStore, REACT_SOURCES } from '../../stores/visualizerStore.js'
+import { useI18n } from '../../lib/i18n'
+import { useVisualizerStore, REACT_SOURCES } from '../../stores/visualizerStore'
+import type { ReactShape } from '../../lib/visualizers/core/reactSource'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
@@ -51,7 +52,7 @@ const sourceOptions = computed(() => [
   },
 ])
 
-const SHAPE_SETTERS = {
+const SHAPE_SETTERS: Record<keyof ReactShape, (v: unknown) => void> = {
   reactSmoothing: store.setReactSmoothing,
   reactGain: store.setReactGain,
   reactEasing: store.setReactEasing,
@@ -59,7 +60,7 @@ const SHAPE_SETTERS = {
   reactPhase: store.setReactPhase,
 }
 
-function onShapeUpdate(field, value) {
+function onShapeUpdate(field: keyof ReactShape, value: unknown) {
   SHAPE_SETTERS[field]?.(value)
 }
 </script>

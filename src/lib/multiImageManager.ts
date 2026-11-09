@@ -1,0 +1,1426 @@
+/**
+ * MultiImageManager - Verwaltet mehrere Bilder auf dem Canvas
+ * Arbeitet eng mit CanvasManager zusammen
+ * ✨ Verwendet modularisierte Audio-Verarbeitung
+ */
+
+import { calculateEffectValue } from './audio/index'
+import { makeLevelResolver } from './audio/ReactiveLevel'
+import {
+  mergeTransitionTransform,
+  clipToWorkspace,
+  clipToWipe,
+  applyAudioFilters,
+  applyTransitionBlur,
+  applyBaseTransforms,
+  applyEntryAnimation,
+  applyAudioGeometry,
+  resolveBorder,
+  drawChromatic,
+  drawPlain,
+  drawVignette,
+} from './multiImage/drawSteps'
+import {
+  findResizeHandleAt,
+  getDeleteButtonBounds,
+  getResizeHandles,
+  isPointInRect,
+  type Rect,
+} from './canvasObjects/geometry'
+import {
+  getEntranceTransform,
+  type EntranceAnimationState,
+  type EntranceTransform,
+} from './canvasObjects/entranceAnimation'
+import {
+  cloneImageAnimation,
+  getImageAnimationTransform,
+  hasImageAnimation,
+  restartImageAnimation,
+  seekImageAnimation,
+  type ImageTimedAnimation,
+} from './canvasObjects/imageAnimation'
+import { moveToBack, moveToFront } from './canvasObjects/zOrder'
+import { resolveImageName } from './canvasObjects/imageName'
+import { getSlideshowManager } from './slideshowManagerBridge'
+import { getAudioAnalysisData } from './audio/audioAnalysisData'
+import type { EngineAudioSettings } from './audio/audioReactiveEngine'
+import type { AudioFx } from './multiImage/drawSteps'
+import type { FotoImageObject, FotoManager } from './fotoManager'
+import type { RelBounds, TransitionState } from './slideshowTransitions'
+
+/** nur in einigen Dev-Builds vorhanden (GC-Hinweis) */
+declare const gc: (() => void) | undefined
+
+/** Einfache Filter (Fallback ohne FotoManager) */
+export interface ImageBasicSettings {
+  brightness: number
+  contrast: number
+  saturation: number
+  opacity: number
+  blur: number
+  preset: string | null
+  [key: string]: unknown
+}
+
+export interface ImageAnimation extends EntranceAnimationState {
+  type: string
+  active: boolean
+  startTime: number
+  duration: number
+  progress: number
+}
+
+/** Slideshow-Zustand eines Bildes (vom SlideshowManager gesetzt) */
+export interface ImageSlideshowState {
+  active?: boolean
+  /** Index in der Slideshow (vom SlideshowManager gesetzt) */
+  imageIndex?: number
+  opacity?: number
+  transitionState?: Partial<TransitionState> | null
+  clipRect?: RelBounds | null
+  [key: string]: unknown
+}
+
+/** Bild-Objekt auf dem Canvas */
+export interface CanvasImage extends FotoImageObject {
+  id: number | string
+  type: 'image'
+  imageObject: HTMLImageElement
+  /** Ursprünglicher Dateiname (Bildvorschau); null, wenn unbekannt */
+  name?: string | null
+  relX: number
+  relY: number
+  relWidth: number
+  relHeight: number
+  settings?: ImageBasicSettings
+  animation?: ImageAnimation
+  /** Animationen wie bei Texten (Fade/Scale/Slide), siehe canvasObjects/imageAnimation */
+  timedAnimation?: ImageTimedAnimation | null
+  isSlideshowImage?: boolean
+  slideshow?: ImageSlideshowState
+}
+
+export interface ImageTargetBounds {
+  relX: number
+  relY: number
+  relWidth: number
+  relHeight: number
+}
+
+export interface AddImageWithBoundsOptions {
+  /** Animationsdauer in ms */
+  duration?: number
+  scale?: number
+  isSlideshowImage?: boolean
+  slideshow?: ImageSlideshowState
+  /** false: nicht automatisch auswählen */
+  select?: boolean
+  /** Dateiname (sonst aus der Bild-URL abgeleitet) */
+  name?: string | null
+  /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
+  timedAnimation?: ImageTimedAnimation | null
+}
+
+/** Optionen für addImage() */
+export interface AddImageOptions {
+  /** Dateiname (sonst aus der Bild-URL abgeleitet) */
+  name?: string | null
+  /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
+  timedAnimation?: ImageTimedAnimation | null
+}
+
+export interface DrawImagesOptions {
+  /** null = alle, true = nur hinter dem Visualizer, false = nur davor */
+  behindVisualizer?: boolean | null
+}
+
+export interface MultiImageManagerCallbacks {
+  redrawCallback?: () => void
+  onImageSelected?: (image: CanvasImage | null) => void
+  onImageChanged?: () => void
+  fotoManager?: FotoManager | null
+}
+
+/** Audio-Einstellungen inkl. alter Einzel-Effekt-Struktur */
+type ImageAudioSettings = EngineAudioSettings & { effect?: string; intensity?: number }
+
+export interface ImageAudioReactiveValues {
+  hasEffects: boolean
+  effects: AudioFx
+}
+
+export class MultiImageManager {
+  canvas: HTMLCanvasElement
+  images: CanvasImage[]
+  selectedImage: CanvasImage | null
+  redrawCallback: () => void
+  onImageSelected: (image: CanvasImage | null) => void
+  onImageChanged: () => void
+  fotoManager: FotoManager | null
+  /**
+   * Von Beat-Markern ausgeblendete Bilder (bis zu ihrem Marker). Reiner
+   * Laufzeit-Zustand: nicht im Verlauf, nicht in Presets.
+   */
+  markerHiddenIds: Set<CanvasImage['id']>
+
+  constructor(canvas: HTMLCanvasElement, callbacks: MultiImageManagerCallbacks = {}) {
+    this.canvas = canvas
+    this.images = []
+    this.selectedImage = null
+    this.markerHiddenIds = new Set()
+
+    // Callbacks
+    this.redrawCallback = callbacks.redrawCallback || (() => {})
+    this.onImageSelected = callbacks.onImageSelected || (() => {})
+    this.onImageChanged = callbacks.onImageChanged || (() => {})
+
+    // ✨ FotoManager Referenz (für Filter + Schatten)
+    this.fotoManager = callbacks.fotoManager || null
+
+    console.log('✅ MultiImageManager initialisiert')
+  }
+
+  /**
+   * ✅ KRITISCHER FIX: Aktualisiert die Canvas-Referenz
+   * Wird aufgerufen, wenn das DOM-Canvas sich vom gespeicherten Canvas unterscheidet
+   * (z.B. nach einem direkten Page-Refresh)
+   */
+  updateCanvas(newCanvas: HTMLCanvasElement | null | undefined): boolean {
+    if (newCanvas && newCanvas !== this.canvas) {
+      console.log('[MultiImageManager] Canvas-Referenz aktualisiert')
+      this.canvas = newCanvas
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Initialisiert Filter-Einstellungen für ein Bild (für FotoManager-Kompatibilität)
+   */
+  initializeImageSettings<T extends { settings?: ImageBasicSettings }>(imageData: T): T {
+    if (!imageData.settings) {
+      imageData.settings = {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        opacity: 100,
+        blur: 0,
+        preset: null,
+      }
+    }
+    return imageData
+  }
+
+  /**
+   * Aktualisiert eine einzelne Einstellung für ein Bild (für FotoManager-Kompatibilität)
+   * WICHTIG: Ruft KEINEN redrawCallback auf, um Endlosschleifen zu vermeiden
+   */
+  updateSetting(
+    imageData: { settings?: ImageBasicSettings } | null | undefined,
+    property: string,
+    value: unknown,
+  ): boolean {
+    if (!imageData || !imageData.settings) return false
+
+    imageData.settings[property] = value
+    // KEIN redrawCallback hier! Der FotoManager ruft den Redraw selbst auf
+
+    return true
+  }
+
+  /**
+   * Fügt ein neues Bild zum Canvas hinzu
+   */
+  addImage(
+    imageObject: HTMLImageElement | null | undefined,
+    options: AddImageOptions = {},
+  ): CanvasImage | null {
+    if (!imageObject) {
+      console.error('❌ Kein Bild zum Hinzufügen übergeben')
+      return null
+    }
+
+    const img = imageObject
+
+    // Berechne initiale Größe (1/3 der Canvas-Breite)
+    const initialRelWidth = 1 / 3
+    const imgAspectRatio = img.height / img.width
+    const canvasAspectRatio = this.canvas.height / this.canvas.width
+    const initialRelHeight = (initialRelWidth * imgAspectRatio) / canvasAspectRatio
+
+    // Erstelle Bild-Objekt mit FotoManager-kompatibler Filter-Struktur
+    const newImage: CanvasImage = {
+      id: Date.now() + Math.random(), // Eindeutige ID
+      type: 'image',
+      imageObject: img,
+      name: resolveImageName(options.name, img),
+      relX: (1 - initialRelWidth) / 2, // Zentriert
+      relY: (1 - initialRelHeight) / 2, // Zentriert
+      relWidth: initialRelWidth,
+      relHeight: initialRelHeight,
+      // Filter-Einstellungen (kompatibel mit FotoManager)
+      settings: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        opacity: 100,
+        blur: 0,
+        preset: null,
+      },
+    }
+
+    if (hasImageAnimation(options.timedAnimation)) {
+      newImage.timedAnimation = cloneImageAnimation(options.timedAnimation)
+    }
+
+    // ✨ Initialisiere fotoSettings (für FotoManager Filter + Schatten)
+    if (this.fotoManager) {
+      this.fotoManager.initializeImageSettings(newImage)
+    }
+
+    this.images.push(newImage)
+    this.setSelectedImage(newImage)
+
+    console.log('✅ Bild hinzugefügt:', newImage.id, 'Anzahl Bilder:', this.images.length)
+
+    this.redrawCallback()
+    this.onImageChanged()
+
+    return newImage
+  }
+
+  /**
+   * ✨ NEU: Fügt ein Bild mit benutzerdefinierten Bounds und Animation hinzu
+   * @param {HTMLImageElement} imageObject - Das Bildobjekt
+   * @param {Object} bounds - Die Ziel-Bounds { relX, relY, relWidth, relHeight }
+   * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
+   * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean, name: Dateiname }
+   */
+  addImageWithBounds(
+    imageObject: HTMLImageElement | null | undefined,
+    bounds: ImageTargetBounds,
+    animation = 'none',
+    options: AddImageWithBoundsOptions = {},
+  ): CanvasImage | null {
+    if (!imageObject) {
+      console.error('❌ Kein Bild zum Hinzufügen übergeben')
+      return null
+    }
+
+    // Extrahiere Optionen mit Standardwerten
+    const duration = options.duration || 500
+    const isSlideshowImage = options.isSlideshowImage || false
+
+    // Berechne Bild-Seitenverhältnis
+    const imgAspectRatio = imageObject.height / imageObject.width
+    const canvasAspectRatio = this.canvas.height / this.canvas.width
+
+    // Berechne relative Höhe basierend auf der Breite und dem Seitenverhältnis
+    let finalRelWidth = bounds.relWidth
+    let finalRelHeight = (bounds.relWidth * imgAspectRatio) / canvasAspectRatio
+
+    // Wenn die Höhe größer ist als die Bounds, passe die Breite an
+    if (finalRelHeight > bounds.relHeight) {
+      finalRelHeight = bounds.relHeight
+      finalRelWidth = (bounds.relHeight * canvasAspectRatio) / imgAspectRatio
+    }
+
+    // Zentriere das Bild innerhalb der Bounds
+    const finalRelX = bounds.relX + (bounds.relWidth - finalRelWidth) / 2
+    const finalRelY = bounds.relY + (bounds.relHeight - finalRelHeight) / 2
+
+    // Erstelle Bild-Objekt
+    const newImage: CanvasImage = {
+      id: Date.now() + Math.random(),
+      type: 'image',
+      imageObject: imageObject,
+      name: resolveImageName(options.name, imageObject),
+      relX: finalRelX,
+      relY: finalRelY,
+      relWidth: finalRelWidth,
+      relHeight: finalRelHeight,
+      settings: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        opacity: 100,
+        blur: 0,
+        preset: null,
+      },
+      // ✨ Animations-Status
+      animation: {
+        type: animation,
+        active: animation !== 'none',
+        startTime: Date.now(),
+        duration: duration,
+        progress: 0,
+      },
+      // ✨ FIX: isSlideshowImage Flag SOFORT setzen, BEVOR setSelectedImage() aufgerufen wird
+      // Dies stellt sicher, dass Selection-Marker die korrekten Transform-Bounds verwenden
+      isSlideshowImage: isSlideshowImage,
+    }
+    // Slideshow-Zustand (Deckkraft/Übergang) vor dem ersten Zeichnen setzen,
+    // damit das Bild nicht einen Frame lang voll sichtbar erscheint
+    if (options.slideshow) newImage.slideshow = options.slideshow
+    if (hasImageAnimation(options.timedAnimation)) {
+      newImage.timedAnimation = cloneImageAnimation(options.timedAnimation)
+    }
+
+    // Initialisiere fotoSettings
+    if (this.fotoManager) {
+      this.fotoManager.initializeImageSettings(newImage)
+    }
+
+    this.images.push(newImage)
+    // options.select === false: nicht automatisch auswählen (z. B. Slideshow –
+    // sonst bekäme jedes eingeblendete Bild eine Auswahl-Markierung)
+    if (options.select !== false) this.setSelectedImage(newImage)
+
+    console.log(
+      '✅ Bild mit Bounds hinzugefügt:',
+      newImage.id,
+      'Animation:',
+      animation,
+      'Dauer:',
+      duration,
+      'ms',
+      'isSlideshowImage:',
+      isSlideshowImage,
+    )
+
+    // Starte Animation wenn nötig
+    if (animation !== 'none') {
+      this._startAnimation(newImage)
+    }
+
+    this.redrawCallback()
+    this.onImageChanged()
+
+    return newImage
+  }
+
+  /**
+   * ✨ NEU: Startet die Eintritts-Animation für ein Bild
+   */
+  _startAnimation(imageData: CanvasImage): void {
+    if (!imageData.animation || !imageData.animation.active) return
+
+    console.log('🎬 Animation gestartet:', {
+      type: imageData.animation.type,
+      duration: imageData.animation.duration,
+      startTime: imageData.animation.startTime,
+    })
+
+    const animate = () => {
+      if (!imageData.animation || !imageData.animation.active) return
+
+      const elapsed = Date.now() - imageData.animation.startTime
+      const duration = imageData.animation.duration
+      const progress = Math.min(elapsed / duration, 1)
+      imageData.animation.progress = progress
+
+      this.redrawCallback()
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        // Animation beendet
+        imageData.animation.active = false
+        console.log('✅ Animation beendet für Bild:', imageData.id, 'nach', elapsed, 'ms')
+      }
+    }
+
+    requestAnimationFrame(animate)
+  }
+
+  /**
+   * Transform der Einblend-Animation (siehe canvasObjects/entranceAnimation.js)
+   */
+  getAnimationTransform(imageData: CanvasImage): EntranceTransform {
+    const entrance = getEntranceTransform(imageData.animation, this.canvas)
+    if (!imageData.timedAnimation) return entrance
+    // Animationen wie bei Texten (canvasObjects/imageAnimation) einrechnen
+    const timed = getImageAnimationTransform(imageData, this.canvas)
+    return {
+      ...entrance,
+      opacity: entrance.opacity * timed.opacity,
+      translateX: entrance.translateX + timed.translateX,
+      translateY: entrance.translateY + timed.translateY,
+      scale: entrance.scale * timed.scale,
+    }
+  }
+
+  /**
+   * Dupliziert ein Canvas-Bild (Strg+D, Kopieren/Einfügen): Daten werden
+   * tief kopiert, das Bild-Element wird geteilt (es wird nur gezeichnet).
+   * addImage() erwartet dagegen ein HTMLImageElement und ist dafür ungeeignet.
+   *
+   * @param source - Bild-Objekt (auch eine JSON-Kopie mit übernommenem imageObject)
+   * @param offset - relativer Versatz der Kopie
+   * @returns das neue Bild oder null, wenn kein Bild-Element vorhanden ist
+   */
+  duplicateImage(
+    source: Partial<CanvasImage> | null | undefined,
+    offset = 0.05,
+  ): CanvasImage | null {
+    const imageObject = source?.imageObject
+    if (
+      !source ||
+      !imageObject ||
+      typeof imageObject.width !== 'number' ||
+      !Number.isFinite(source.relWidth) ||
+      !Number.isFinite(source.relHeight)
+    ) {
+      console.error('❌ Bild kann nicht dupliziert werden: kein Bild-Element')
+      return null
+    }
+    const { imageObject: _el, ...data } = source
+    const copy = JSON.parse(JSON.stringify(data)) as Omit<CanvasImage, 'imageObject'>
+    const newImage = {
+      ...copy,
+      id: Date.now() + Math.random(),
+      type: 'image',
+      imageObject,
+      relX: (source.relX ?? 0) + offset,
+      relY: (source.relY ?? 0) + offset,
+    } as CanvasImage
+    // Eintritts-Animation des Originals nicht fortsetzen
+    if (newImage.animation) newImage.animation.active = false
+
+    this.images.push(newImage)
+    this.setSelectedImage(newImage)
+    this.redrawCallback()
+    this.onImageChanged()
+    return newImage
+  }
+
+  /**
+   * Entfernt ein Bild vom Canvas
+   */
+  removeImage(imageId: CanvasImage['id']): boolean {
+    const index = this.images.findIndex((img) => img.id === imageId)
+    if (index === -1) return false
+
+    this.images.splice(index, 1)
+
+    if (this.selectedImage && this.selectedImage.id === imageId) {
+      this.selectedImage = null
+      this.onImageSelected(null)
+    }
+
+    console.log('🗑️ Bild entfernt:', imageId, 'Verbleibende Bilder:', this.images.length)
+
+    this.redrawCallback()
+    this.onImageChanged()
+
+    return true
+  }
+
+  /**
+   * ↩️ Stellt ein zuvor entferntes Bild wieder her
+   * Fügt das Bild an seiner ursprünglichen Ebenen-Position (Index) wieder ein
+   * @param {Object} imageData - Das wiederherzustellende Bild-Objekt
+   * @param {number} [index] - Ursprünglicher Index in der Ebenen-Reihenfolge
+   * @returns {boolean} true wenn erfolgreich
+   */
+  restoreImage(imageData: CanvasImage | null | undefined, index?: number): boolean {
+    if (!imageData) return false
+    // Doppelte Wiederherstellung verhindern
+    if (this.images.some((img) => img.id === imageData.id)) return false
+
+    if (typeof index === 'number' && index >= 0 && index <= this.images.length) {
+      this.images.splice(index, 0, imageData)
+    } else {
+      this.images.push(imageData)
+    }
+
+    console.log('↩️ Bild wiederhergestellt:', imageData.id, 'Bilder gesamt:', this.images.length)
+
+    this.redrawCallback()
+    this.onImageChanged()
+
+    return true
+  }
+
+  /**
+   * Setzt das aktuell ausgewählte Bild
+   */
+  setSelectedImage(image: CanvasImage | null): void {
+    if (this.selectedImage && image && this.selectedImage.id === image.id) {
+      return // Bereits ausgewählt
+    }
+
+    this.selectedImage = image
+
+    // Ebenenreihenfolge wird NICHT automatisch geändert
+    // Der Benutzer kann explizit die Ebenensteuerung verwenden
+
+    this.onImageSelected(image)
+    this.redrawCallback()
+  }
+
+  /**
+   * Gibt das aktuell ausgewählte Bild zurück
+   */
+  getSelectedImage(): CanvasImage | null {
+    return this.selectedImage
+  }
+
+  /**
+   * Gibt alle Bilder zurück
+   */
+  getAllImages(): CanvasImage[] {
+    return this.images
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ✨ EASING-FUNKTIONEN für geschmeidigere Audio-Reaktionen
+  // ✅ Delegiert an modulares Audio-System
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * ✨ Berechnet Audio-Reaktive Effekt-Werte basierend auf den aktuellen Audio-Daten
+   * ✅ Unterstützt MEHRERE Effekte gleichzeitig
+   * ✅ Easing-Funktionen für geschmeidigere Übergänge
+   * ✅ Delay/Phasenversatz für Kaskaden-Effekte
+   * ✅ Beat-Boost für dramatischere Effekte bei Beats
+   * ✅ NEU: Individuelle Audio-Quelle pro Effekt
+   * ✅ Verwendet modulares Audio-System
+   */
+  getAudioReactiveValues(
+    audioSettings: ImageAudioSettings | null | undefined,
+  ): ImageAudioReactiveValues | null {
+    if (!audioSettings || !audioSettings.enabled) {
+      return null
+    }
+
+    const audioData = getAudioAnalysisData()
+    if (!audioData) return null
+
+    // Globale Einstellungen
+    const globalSource = audioSettings.source || 'bass'
+    const smoothing = audioSettings.smoothing ?? 50
+    const easing = audioSettings.easing || 'linear'
+    const phase = audioSettings.phase || 0
+    const beatBoost = audioSettings.beatBoost ?? 1.0
+    const gain = audioSettings.gain ?? 1.0
+
+    // ✨ Kontinuierliches Attack/Release-Smoothing + funktionierender Beat-Boost/Gain.
+    // Der Resolver berechnet jede Audio-Quelle nur einmal pro Frame (geteilte Hülle).
+    const resolveLevel = makeLevelResolver(audioSettings, {
+      audioData,
+      smoothing,
+      beatBoost,
+      phase,
+      easing,
+      gain,
+    })
+
+    // Ergebnis-Objekt für alle aktivierten Effekte
+    const result: ImageAudioReactiveValues = {
+      hasEffects: false,
+      effects: {},
+    }
+
+    // ✨ NEUE STRUKTUR: Prüfe welche Effekte aktiviert sind
+    const effects = audioSettings.effects
+    if (!effects) {
+      // Fallback für alte Struktur (einzelner Effekt)
+      const baseLevel = resolveLevel(globalSource)
+      const effect = audioSettings.effect || 'hue'
+      const intensity = (audioSettings.intensity || 80) / 100
+
+      result.hasEffects = true
+      result.effects[effect] = this._calculateEffectValue(
+        effect,
+        Math.min(1, baseLevel * intensity),
+      )
+      return result
+    }
+
+    // Berechne Werte für jeden aktivierten Effekt
+    for (const [effectName, effectConfig] of Object.entries(effects)) {
+      if (effectConfig && effectConfig.enabled) {
+        // ✨ Individuelle Quelle oder globale Quelle
+        const effectSource = effectConfig.source || globalSource
+        const baseLevel = resolveLevel(effectSource)
+        const intensity = (effectConfig.intensity || 80) / 100
+
+        // freqSplit liest Bass/Höhen selbst aus – hier zählt nur die Intensität
+        // als Amplituden-Skalierung (sonst würde eine Einzelquelle beide Bänder gaten).
+        const passLevel =
+          effectName === 'freqSplit' ? intensity : Math.min(1, baseLevel * intensity)
+
+        result.hasEffects = true
+        result.effects[effectName] = this._calculateEffectValue(effectName, passLevel)
+      }
+    }
+
+    return result.hasEffects ? result : null
+  }
+
+  /**
+   * ✨ Berechnet den Wert für einen einzelnen Effekt
+   * ✅ Verwendet jetzt das modulare AudioReactiveEffects-Modul
+   */
+  _calculateEffectValue(effectName: string, normalizedLevel: number) {
+    return calculateEffectValue(effectName, normalizedLevel)
+  }
+
+  /**
+   * Deckkraft-Faktor aus Eintritts-Animation und Slideshow-Übergang (0–1).
+   * Ein aktives Slideshow-Bild ohne gültige Deckkraft gilt als unsichtbar.
+   */
+  _getLayerAlpha(
+    imgData: CanvasImage,
+    animTransform: { opacity?: number } | null | undefined,
+  ): number {
+    const opacity = animTransform?.opacity
+    let alpha = Number.isFinite(opacity) ? Math.max(0, Math.min(1, opacity as number)) : 1
+    if (imgData.slideshow?.active) {
+      const o = Number(imgData.slideshow.opacity)
+      alpha *= Number.isFinite(o) ? Math.max(0, Math.min(1, o)) : 0
+    }
+    return alpha
+  }
+
+  /**
+   * Zeichnet alle Bilder auf den Canvas
+   * ✅ OPTIMIERT: Reduziert Canvas-Context Overhead für Recording
+   * ✨ ERWEITERT: Unterstützt jetzt Filter, Schatten und Rotation vom FotoManager
+   * ✨ NEU: Audio-Reaktive Effekte
+   * ✨ NEU: Layer-Filter für Visualizer-Unterstützung
+   * @param {CanvasRenderingContext2D} ctx - Canvas-Kontext
+   * @param {Object} options - Optionen
+   * @param {boolean|null} options.behindVisualizer - null=alle, true=nur hinter Visualizer, false=nur vor Visualizer
+   */
+  drawImages(
+    ctx: CanvasRenderingContext2D | null | undefined,
+    options: DrawImagesOptions = {},
+  ): void {
+    if (!ctx || this.images.length === 0) return
+
+    // ✅ KRITISCHER FIX: Verwende ctx.canvas für Bounds-Berechnung
+    // Dies stellt sicher, dass wir die Dimensionen des TATSÄCHLICH sichtbaren Canvas verwenden
+    const renderCanvas = ctx.canvas
+
+    // ✨ Filter Bilder basierend auf Layer-Einstellung
+    const { behindVisualizer = null } = options
+    const hidden = this.markerHiddenIds
+    const imagesToDraw = this.images.filter(
+      (imgData) =>
+        !hidden.has(imgData.id) &&
+        (behindVisualizer === null ||
+          (imgData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer),
+    )
+
+    imagesToDraw.forEach((imgData) => this._drawImage(ctx, imgData, renderCanvas))
+  }
+
+  /**
+   * Zeichnet ein einzelnes Bild inkl. Animation, Slideshow-Übergang und
+   * audio-reaktiven Effekten. Die Einzelschritte liegen in multiImage/drawSteps.js;
+   * ihre Reihenfolge ist Teil des Verhaltens.
+   */
+  _drawImage(
+    ctx: CanvasRenderingContext2D,
+    imgData: CanvasImage,
+    renderCanvas: HTMLCanvasElement,
+  ): void {
+    // ✨ forceImageBounds=true damit die tatsächlichen Bild-Koordinaten verwendet werden
+    const bounds = this.getImageBounds(imgData, renderCanvas, true)
+    if (!bounds) return
+
+    const fotoSettings = imgData.fotoSettings
+    const audioReactive = this.getAudioReactiveValues(fotoSettings?.audioReactive)
+    // Aktive audio-reaktive Effekte (null = keine)
+    const fx = audioReactive?.hasEffects ? audioReactive.effects || null : null
+
+    // ✨ SLIDESHOW: Übergangsanimation (siehe slideshowTransitions.js) in die
+    // Eintritts-Animation einrechnen; Deckkraft kommt über slideshow.opacity
+    const slideshow = imgData.slideshow?.active ? imgData.slideshow : null
+    const transition = slideshow ? slideshow.transitionState : null
+    const animTransform = mergeTransitionTransform(
+      this.getAnimationTransform(imgData),
+      transition,
+      bounds,
+    )
+
+    // ✅ FIX: IMMER save/restore für jedes Bild um Filter-Leakage zu verhindern
+    ctx.save()
+
+    // ✨ Deckkraft von Eintritts-Animation und Slideshow-Übergang. Wird NACH den
+    // Bild-Filtern eingerechnet, weil applyFilters() globalAlpha auf die
+    // Bild-Deckkraft setzt (sonst wären Ein-/Ausblendungen wirkungslos und ein
+    // neues Slideshow-Bild erschiene einen Frame lang voll sichtbar).
+    const layerAlpha = this._getLayerAlpha(imgData, animTransform)
+
+    clipToWorkspace(ctx, slideshow ? slideshow.clipRect : null, renderCanvas)
+    clipToWipe(ctx, transition?.wipe, bounds)
+
+    // ✨ Nutze FotoManager für Filter + Schatten (wenn verfügbar)
+    if (this.fotoManager && fotoSettings) {
+      this.fotoManager.applyFilters(ctx, imgData)
+    } else if (imgData.settings) {
+      // Fallback: Alte Filter-Methode
+      this.applyFilters(ctx, imgData)
+    }
+    ctx.globalAlpha = ctx.globalAlpha * layerAlpha
+
+    if (fx) applyAudioFilters(ctx, fx)
+    applyTransitionBlur(ctx, transition?.blur)
+    applyBaseTransforms(ctx, bounds, { transition, fotoSettings, fx })
+
+    let drawBounds = applyEntryAnimation(ctx, bounds, animTransform)
+
+    if (fx) drawBounds = applyAudioGeometry(ctx, drawBounds, fx)
+
+    const border = resolveBorder(fotoSettings, fx)
+    const chromaticOffset = fx?.chromatic?.chromaticOffset
+
+    if ((chromaticOffset ?? 0) > 0.5 && border.width === 0) {
+      drawChromatic(ctx, imgData.imageObject, drawBounds, chromaticOffset as number)
+    } else if (border.width > 0) {
+      // _drawImageOutline zeichnet Kontur UND Bild (Filter auf das Originalbild)
+      this._drawImageOutline(
+        ctx,
+        imgData,
+        drawBounds,
+        border.width,
+        border.color,
+        border.opacity,
+        border.glow,
+        layerAlpha,
+      )
+    } else {
+      drawPlain(ctx, imgData.imageObject, drawBounds)
+    }
+
+    if (fx?.vignettePulse) {
+      drawVignette(ctx, drawBounds, fx.vignettePulse.vignetteStrength || 0)
+    }
+
+    // ✅ FIX: ctx.restore() stellt alle Filter/Transformationen wieder her
+    ctx.restore()
+  }
+
+  /**
+   * Zeichnet interaktive Elemente (Rahmen, Handles, Löschbutton)
+   */
+  drawInteractiveElements(ctx: CanvasRenderingContext2D): void {
+    if (!this.selectedImage || this.selectedImage.type !== 'image') return
+    if (this.markerHiddenIds.has(this.selectedImage.id)) return
+
+    // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden
+    let bounds: Rect | null
+    const sm = this.selectedImage.isSlideshowImage ? getSlideshowManager() : null
+    if (sm) {
+      // sichtbarer Bereich inkl. Übergang (Markierung liegt auf dem Bild)
+      const transform = sm.getDisplayBounds
+        ? sm.getDisplayBounds(this.selectedImage)
+        : sm.getSelectionBounds(this.selectedImage)
+      bounds = {
+        x: transform.relX * this.canvas.width,
+        y: transform.relY * this.canvas.height,
+        width: transform.relWidth * this.canvas.width,
+        height: transform.relHeight * this.canvas.height,
+      }
+    } else {
+      bounds = this.getImageBounds(this.selectedImage)
+    }
+    if (!bounds) return
+
+    ctx.save()
+
+    // Rahmen zeichnen
+    ctx.strokeStyle = 'rgba(110, 168, 254, 0.9)'
+    ctx.lineWidth = 2
+    ctx.setLineDash([6, 4])
+    ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height)
+    ctx.setLineDash([])
+
+    // Skalierungs-Handles zeichnen
+    const handles = this.getResizeHandles(bounds)
+    ctx.fillStyle = 'rgba(110, 168, 254, 0.9)'
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = 1
+
+    for (const key in handles) {
+      const handle = handles[key] as Rect
+      ctx.fillRect(handle.x, handle.y, handle.width, handle.height)
+      ctx.strokeRect(handle.x, handle.y, handle.width, handle.height)
+    }
+
+    // Löschbutton zeichnen
+    const deleteButton = this.getDeleteButtonBounds(bounds)
+    ctx.fillStyle = 'rgba(255, 69, 58, 0.95)'
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = 1.5
+
+    ctx.beginPath()
+    ctx.arc(
+      deleteButton.x + deleteButton.width / 2,
+      deleteButton.y + deleteButton.height / 2,
+      deleteButton.width / 2,
+      0,
+      Math.PI * 2,
+    )
+    ctx.fill()
+    ctx.stroke()
+
+    // X-Symbol zeichnen
+    const padding = 6
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(deleteButton.x + padding, deleteButton.y + padding)
+    ctx.lineTo(
+      deleteButton.x + deleteButton.width - padding,
+      deleteButton.y + deleteButton.height - padding,
+    )
+    ctx.moveTo(deleteButton.x + deleteButton.width - padding, deleteButton.y + padding)
+    ctx.lineTo(deleteButton.x + padding, deleteButton.y + deleteButton.height - padding)
+    ctx.stroke()
+
+    ctx.restore()
+  }
+
+  /**
+   * Berechnet die Bounds eines Bildes
+   * ✅ KRITISCHER FIX: Akzeptiert optionalen Canvas-Parameter für korrekte Dimensionen
+   * ✨ NEU: Für Slideshow-Bilder werden die Slideshow-Transform-Bounds zurückgegeben
+   * @param {Object} imgData - Bild-Daten
+   * @param {HTMLCanvasElement} canvasOverride - Optionaler Canvas für Dimensionen (z.B. ctx.canvas)
+   * @param {boolean} forceImageBounds - Wenn true, werden immer die Bild-Bounds verwendet (für Rendering)
+   */
+  getImageBounds(
+    imgData: CanvasImage | null | undefined,
+    canvasOverride: HTMLCanvasElement | null = null,
+    forceImageBounds = false,
+  ): Rect | null {
+    if (!imgData || imgData.type !== 'image') return null
+
+    // ✅ FIX: Verwende übergebenen Canvas wenn vorhanden, sonst this.canvas
+    const targetCanvas = canvasOverride || this.canvas
+    if (!targetCanvas || targetCanvas.width === 0 || targetCanvas.height === 0) {
+      console.warn(
+        '[MultiImageManager] Canvas hat ungültige Dimensionen:',
+        targetCanvas?.width,
+        'x',
+        targetCanvas?.height,
+      )
+      return null
+    }
+
+    // ✨ NEU: Für Slideshow-Bilder die Slideshow-Transform-Bounds verwenden (für Selection)
+    const sm = !forceImageBounds && imgData.isSlideshowImage ? getSlideshowManager() : null
+    if (sm) {
+      // sichtbarer Bereich inkl. Übergang (Klick-Erkennung/Markierung)
+      const transform = sm.getDisplayBounds
+        ? sm.getDisplayBounds(imgData)
+        : sm.getSelectionBounds(imgData)
+      return {
+        x: transform.relX * targetCanvas.width,
+        y: transform.relY * targetCanvas.height,
+        width: transform.relWidth * targetCanvas.width,
+        height: transform.relHeight * targetCanvas.height,
+      }
+    }
+
+    return {
+      x: imgData.relX * targetCanvas.width,
+      y: imgData.relY * targetCanvas.height,
+      width: imgData.relWidth * targetCanvas.width,
+      height: imgData.relHeight * targetCanvas.height,
+    }
+  }
+
+  getResizeHandles(bounds: Rect): Record<string, Rect> {
+    return getResizeHandles(bounds)
+  }
+
+  /**
+   * Berechnet die Position des Löschbuttons
+   */
+  getDeleteButtonBounds(objectBounds: Rect): Rect {
+    return getDeleteButtonBounds(objectBounds)
+  }
+
+  /**
+   * Findet ein Bild an einer bestimmten Position
+   */
+  findImageAt(x: number, y: number): CanvasImage | null {
+    // Von hinten nach vorne (oberste Ebene zuerst)
+    for (let i = this.images.length - 1; i >= 0; i--) {
+      const img = this.images[i] as CanvasImage
+      if (this.markerHiddenIds.has(img.id)) continue // unsichtbar → nicht anklickbar
+      const bounds = this.getImageBounds(img)
+
+      if (bounds && this.isPointInRect(x, y, bounds)) {
+        return img
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * Prüft ob ein Punkt in einem Rechteck liegt
+   */
+  isPointInRect(x: number, y: number, rect: Rect): boolean {
+    return isPointInRect(x, y, rect)
+  }
+
+  /**
+   * Findet ein Handle an einer bestimmten Position
+   */
+  findHandleAt(x: number, y: number) {
+    if (!this.selectedImage || this.selectedImage.type !== 'image') return null
+
+    const bounds = this.getImageBounds(this.selectedImage)
+    return bounds ? findResizeHandleAt(x, y, bounds) : null
+  }
+
+  /**
+   * Prüft ob ein Punkt auf dem Löschbutton liegt
+   */
+  isPointOnDeleteButton(x: number, y: number): boolean {
+    if (!this.selectedImage || this.selectedImage.type !== 'image') return false
+
+    const bounds = this.getImageBounds(this.selectedImage)
+    if (!bounds) return false
+
+    const deleteButton = this.getDeleteButtonBounds(bounds)
+    return this.isPointInRect(x, y, deleteButton)
+  }
+
+  /**
+   * Wendet Filter auf den Kontext an
+   */
+  applyFilters(ctx: CanvasRenderingContext2D, imgData: CanvasImage): void {
+    if (!imgData.settings) return
+
+    const s = imgData.settings
+    let filterString = `brightness(${s.brightness}%) contrast(${s.contrast}%) saturate(${s.saturation}%)`
+
+    if (s.blur > 0) {
+      filterString += ` blur(${s.blur}px)`
+    }
+
+    ctx.filter = filterString
+    ctx.globalAlpha = s.opacity / 100
+  }
+
+  /**
+   * Aktualisiert die Filter-Einstellungen eines Bildes
+   */
+  updateImageFilter(imageId: CanvasImage['id'], filterProperty: string, value: unknown): boolean {
+    const image = this.images.find((img) => img.id === imageId)
+    if (!image || !image.settings) return false
+
+    image.settings[filterProperty] = value
+    this.redrawCallback()
+
+    return true
+  }
+
+  /**
+   * ✅ CRITICAL FIX: Bereitet MultiImageManager für Recording vor
+   *
+   * Problem: Canvas-Context cached Image-Referenzen zwischen Aufnahmen
+   * Bei 3. Aufnahme: Memory-Overflow durch zu viele cached Images
+   *
+   * Lösung: Force Canvas-Context reset vor jeder Aufnahme
+   */
+  prepareForRecording(ctx: CanvasRenderingContext2D | null | undefined): void {
+    if (!ctx) return
+
+    console.log('[MultiImageManager] 🧹 Preparing for recording...')
+
+    // Reset context to clean state
+    ctx.save()
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.globalAlpha = 1.0
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.filter = 'none'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+    ctx.shadowColor = 'transparent'
+    ctx.restore()
+
+    // Force garbage collection hint
+    if (typeof gc !== 'undefined') {
+      try {
+        gc()
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    console.log(`[MultiImageManager] ✅ Ready for recording (${this.images.length} images)`)
+  }
+
+  /**
+   * ✅ Cleanup nach Recording
+   */
+  cleanupAfterRecording(): void {
+    console.log('[MultiImageManager] 🧹 Cleanup after recording...')
+
+    // Keine Images löschen - nur GC-Hint
+    // Die Bilder bleiben für nächste Aufnahme verfügbar
+
+    // Force garbage collection hint
+    if (typeof gc !== 'undefined') {
+      try {
+        gc()
+      } catch (e) {
+        // Ignore - gc not available
+      }
+    }
+
+    console.log(`[MultiImageManager] ✅ Cleanup complete`)
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ✨ BEAT-MARKER: Bilder erst zum Marker-Zeitpunkt einblenden
+  // ═══════════════════════════════════════════════════════════════════
+
+  /** Blendet ein Bild für Beat-Marker aus bzw. wieder ein. */
+  setMarkerHidden(imageId: CanvasImage['id'], hidden: boolean): void {
+    if (hidden) this.markerHiddenIds.add(imageId)
+    else this.markerHiddenIds.delete(imageId)
+  }
+
+  /** true, wenn ein Beat-Marker das Bild gerade ausblendet */
+  isMarkerHidden(imageId: CanvasImage['id']): boolean {
+    return this.markerHiddenIds.has(imageId)
+  }
+
+  /** Alle von Beat-Markern ausgeblendeten Bilder wieder einblenden. */
+  clearMarkerHidden(): void {
+    if (this.markerHiddenIds.size === 0) return
+    this.markerHiddenIds.clear()
+    this.redrawCallback()
+  }
+
+  /**
+   * Spielt die Animationen eines Bildes von vorn ab: Animationen wie bei
+   * Texten (Fade/Scale/Slide) und den Einblend-Effekt der Platzierung.
+   */
+  restartImageAnimations(imageId: CanvasImage['id']): boolean {
+    const image = this.images.find((img) => img.id === imageId)
+    if (!image) return false
+    restartImageAnimation(image)
+    const entrance = image.animation
+    if (entrance && entrance.type && entrance.type !== 'none') {
+      entrance.active = true
+      entrance.startTime = Date.now()
+      entrance.progress = 0
+      this._startAnimation(image)
+    }
+    this.redrawCallback()
+    return true
+  }
+
+  /**
+   * Setzt die Animationen eines Bildes auf eine Laufzeit (Spulen): Das Bild
+   * steht danach so, als hätte ein Marker es vor `elapsedMs` eingeblendet.
+   * Der einmalige Einblend-Effekt der Platzierung läuft dabei nicht.
+   */
+  seekImageAnimations(imageId: CanvasImage['id'], elapsedMs: number): boolean {
+    const image = this.images.find((img) => img.id === imageId)
+    if (!image) return false
+    seekImageAnimation(image, elapsedMs)
+    return true
+  }
+
+  /**
+   * Räumt alle Bilder auf
+   */
+  clear(): void {
+    this.images = []
+    this.markerHiddenIds.clear()
+    this.selectedImage = null
+    this.onImageSelected(null)
+    this.redrawCallback()
+    this.onImageChanged()
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ✨ Z-INDEX / EBENEN-STEUERUNG
+  // ═══════════════════════════════════════════════════════════════════
+
+  /**
+   * Gibt den Index eines Bildes im Array zurück
+   * @returns {number} Index oder -1 wenn nicht gefunden
+   */
+  getImageIndex(image: CanvasImage | null | undefined): number {
+    if (!image) return -1
+    return this.images.findIndex((img) => img.id === image.id)
+  }
+
+  /**
+   * Gibt die Anzahl der Bilder zurück
+   */
+  getImageCount(): number {
+    return this.images.length
+  }
+
+  /**
+   * Bringt ein Bild ganz nach vorne
+   * @returns {boolean} true wenn erfolgreich
+   */
+  bringToFront(image?: CanvasImage | null): boolean {
+    if (!image) image = this.selectedImage
+    if (!image) return false
+
+    if (!moveToFront(this.images, this.getImageIndex(image), image)) return false
+
+    this.redrawCallback()
+    this.onImageChanged()
+    return true
+  }
+
+  /**
+   * Bringt ein Bild ganz nach hinten
+   * @returns {boolean} true wenn erfolgreich
+   */
+  sendToBack(image?: CanvasImage | null): boolean {
+    if (!image) image = this.selectedImage
+    if (!image) return false
+
+    if (!moveToBack(this.images, this.getImageIndex(image), image)) return false
+
+    this.redrawCallback()
+    this.onImageChanged()
+    return true
+  }
+
+  /**
+   * Verschiebt ein Bild eine Ebene nach oben
+   * @param {Object} image - Das Bild-Objekt
+   * @returns {boolean} true wenn erfolgreich
+   */
+  moveUp(image?: CanvasImage | null): boolean {
+    if (!image) image = this.selectedImage
+    if (!image) return false
+
+    const index = this.getImageIndex(image)
+    if (index === -1) return false
+
+    // Bereits ganz oben?
+    if (index === this.images.length - 1)
+      return false
+
+      // Tausche mit dem nächsten Bild
+    ;[this.images[index], this.images[index + 1]] = [
+      this.images[index + 1] as CanvasImage,
+      this.images[index] as CanvasImage,
+    ]
+
+    console.log('↑ Bild eine Ebene nach oben:', image.id)
+    this.redrawCallback()
+    this.onImageChanged()
+    return true
+  }
+
+  /**
+   * Verschiebt ein Bild eine Ebene nach unten
+   * @param {Object} image - Das Bild-Objekt
+   * @returns {boolean} true wenn erfolgreich
+   */
+  moveDown(image?: CanvasImage | null): boolean {
+    if (!image) image = this.selectedImage
+    if (!image) return false
+
+    const index = this.getImageIndex(image)
+    if (index === -1) return false
+
+    // Bereits ganz unten?
+    if (index === 0)
+      return false
+
+      // Tausche mit dem vorherigen Bild
+    ;[this.images[index], this.images[index - 1]] = [
+      this.images[index - 1] as CanvasImage,
+      this.images[index] as CanvasImage,
+    ]
+
+    console.log('↓ Bild eine Ebene nach unten:', image.id)
+    this.redrawCallback()
+    this.onImageChanged()
+    return true
+  }
+
+  /**
+   * ✨ Verschiebt ein Bild von einer Position zu einer anderen (für Drag & Drop)
+   * @param {number} fromIndex - Ursprünglicher Index des Bildes
+   * @param {number} toIndex - Zielindex für das Bild
+   * @returns {boolean} true wenn erfolgreich
+   */
+  reorderImage(fromIndex: number, toIndex: number): boolean {
+    // Validierung
+    if (fromIndex < 0 || fromIndex >= this.images.length) return false
+    if (toIndex < 0 || toIndex >= this.images.length) return false
+    if (fromIndex === toIndex) return false
+
+    // Entferne das Bild von der ursprünglichen Position
+    // fromIndex oben geprüft
+    const movedImage = this.images.splice(fromIndex, 1)[0] as CanvasImage
+
+    // Füge es an der neuen Position ein
+    this.images.splice(toIndex, 0, movedImage)
+
+    console.log(
+      '🔀 Bild neu angeordnet:',
+      movedImage.id,
+      `von Ebene ${fromIndex + 1} nach ${toIndex + 1}`,
+    )
+    this.redrawCallback()
+    this.onImageChanged()
+    return true
+  }
+
+  /**
+   * ✨ NEU: Ersetzt das Bild eines bestehenden Canvas-Elements
+   * Behält Position, Größe, Filter und Einstellungen bei
+   * @param {number|string} imageId - ID des zu ersetzenden Bildes
+   * @param {HTMLImageElement} newImageObject - Das neue Bild
+   * @param name - Dateiname des neuen Bildes (sonst aus der URL abgeleitet)
+   * @returns {Object|null} Das aktualisierte Bildobjekt oder null bei Fehler
+   */
+  replaceImage(
+    imageId: CanvasImage['id'],
+    newImageObject: HTMLImageElement | null | undefined,
+    name?: string | null,
+  ): CanvasImage | null {
+    if (!newImageObject) {
+      console.error('❌ Kein neues Bild zum Ersetzen übergeben')
+      return null
+    }
+
+    const image = this.images.find((img) => img.id === imageId)
+    if (!image) {
+      console.error('❌ Bild mit ID nicht gefunden:', imageId)
+      return null
+    }
+
+    // Altes Bild merken für Log
+    const oldWidth = image.imageObject?.naturalWidth || 0
+    const oldHeight = image.imageObject?.naturalHeight || 0
+
+    // Neues Bild setzen - alle anderen Eigenschaften bleiben erhalten
+    image.imageObject = newImageObject
+    image.name = resolveImageName(name, newImageObject)
+
+    console.log(
+      '🔄 Bild ersetzt:',
+      imageId,
+      `Alt: ${oldWidth}x${oldHeight}`,
+      `Neu: ${newImageObject.naturalWidth}x${newImageObject.naturalHeight}`,
+    )
+
+    this.redrawCallback()
+    this.onImageChanged()
+
+    return image
+  }
+
+  /**
+   * ✨ Zeichnet eine Kontur um die sichtbare Form eines Bildes (unterstützt Transparenz)
+   * Verwendet einen Outline-Effekt durch mehrfaches Zeichnen mit Offset
+   * HINWEIS: Rotation wird bereits im aufrufenden Context angewendet
+   * @param {Object} imgData - Das Bildobjekt mit imageObject und fotoSettings
+   * @param {number} borderOpacity - Deckkraft der Kontur (0-1)
+   * @param {number} borderGlow - Audio-reaktives Leuchten um die Kontur (0-50px)
+   */
+  _drawImageOutline(
+    ctx: CanvasRenderingContext2D,
+    imgData: CanvasImage,
+    bounds: Rect,
+    borderWidth: number,
+    borderColor: string,
+    borderOpacity = 1,
+    borderGlow = 0,
+    layerAlpha = 1,
+  ): void {
+    const imageObject = imgData.imageObject
+    if (!imageObject || borderWidth <= 0) return
+
+    // Erstelle temporäres Canvas für die Farbmaske
+    const tempCanvas = document.createElement('canvas')
+    tempCanvas.width = Math.ceil(bounds.width + borderWidth * 2)
+    tempCanvas.height = Math.ceil(bounds.height + borderWidth * 2)
+    const tempCtx = tempCanvas.getContext('2d') as CanvasRenderingContext2D
+
+    // Zeichne das Bild auf das temporäre Canvas (zentriert mit Platz für Kontur)
+    tempCtx.drawImage(imageObject, borderWidth, borderWidth, bounds.width, bounds.height)
+
+    // Wende Konturfarbe auf die sichtbaren Pixel an
+    tempCtx.globalCompositeOperation = 'source-in'
+    tempCtx.fillStyle = borderColor
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+
+    // 8 Richtungen für gleichmäßige Kontur (N, NE, E, SE, S, SW, W, NW)
+    const directions: [number, number][] = [
+      [0, -1], // N
+      [1, -1], // NE
+      [1, 0], // E
+      [1, 1], // SE
+      [0, 1], // S
+      [-1, 1], // SW
+      [-1, 0], // W
+      [-1, -1], // NW
+    ]
+
+    // ✨ Filter zurücksetzen für saubere Kontur-Zeichnung
+    ctx.filter = 'none'
+    ctx.globalAlpha = borderOpacity * layerAlpha
+
+    // ✨ AUDIO-REAKTIVER GLOW: Leuchteffekt um die Kontur
+    if (borderGlow > 0) {
+      ctx.shadowColor = borderColor
+      ctx.shadowBlur = borderGlow
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
+    } else {
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
+    }
+
+    // Für dickere Konturen: Mehrere Schichten zeichnen
+    const steps = Math.ceil(borderWidth / 2)
+    for (let step = 1; step <= steps; step++) {
+      const offset = step * 2
+      for (const [dx, dy] of directions) {
+        ctx.drawImage(
+          tempCanvas,
+          bounds.x - borderWidth + dx * offset,
+          bounds.y - borderWidth + dy * offset,
+        )
+      }
+    }
+
+    // ✨ Glow zurücksetzen vor dem Original-Bild
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+
+    // ✨ Filter wieder anwenden für das Original-Bild
+    if (this.fotoManager && imgData.fotoSettings) {
+      this.fotoManager.applyFilters(ctx, imgData)
+    }
+    ctx.globalAlpha = ctx.globalAlpha * layerAlpha
+
+    // Original-Bild mit Filtern zeichnen (über der Kontur)
+    ctx.drawImage(imageObject, bounds.x, bounds.y, bounds.width, bounds.height)
+
+    // ✨ Filter zurücksetzen nach dem Zeichnen
+    if (this.fotoManager && imgData.fotoSettings) {
+      this.fotoManager.resetFilters(ctx)
+    }
+  }
+}

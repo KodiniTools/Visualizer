@@ -1,0 +1,25 @@
+// @vitest-environment jsdom
+import { describe, it, expect, afterEach } from 'vitest'
+import { getSlideshowManager, setSlideshowManager } from '../../lib/slideshowManagerBridge'
+import { stub } from '../helpers/canvasStubs'
+
+afterEach(() => setSlideshowManager(null))
+
+describe('slideshowManagerBridge', () => {
+  it('liefert null, solange keine Slideshow gesetzt ist', () => {
+    expect(getSlideshowManager()).toBeNull()
+  })
+
+  it('setzt den Manager ohne window-Global', () => {
+    const mgr = { isPaused: false }
+    setSlideshowManager(stub(mgr))
+    expect(getSlideshowManager()).toBe(mgr)
+    expect((window as unknown as Record<string, unknown>).slideshowManager).toBeUndefined()
+  })
+
+  it('null und undefined setzen zurück', () => {
+    setSlideshowManager(stub({}))
+    setSlideshowManager(undefined)
+    expect(getSlideshowManager()).toBeNull()
+  })
+})

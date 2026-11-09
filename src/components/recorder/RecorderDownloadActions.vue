@@ -22,17 +22,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Download-Knopf + Schließen-Knopf für fertige Recorder-Exporte
 // (WebM direkt im Panel, MP4/GIF/HQ in RecorderConversionProgress).
-defineProps({
-  /** 'mp4' | 'gif' | 'hq' | 'webm' – bestimmt die Farbe des Download-Knopfs */
-  variant: { type: String, default: 'mp4' },
-  label: { type: String, required: true },
-  closeTitle: { type: String, default: '' },
-})
+withDefaults(
+  defineProps<{
+    /** Bestimmt die Farbe des Download-Knopfs */
+    variant?: 'mp4' | 'gif' | 'hq' | 'webm'
+    label: string
+    closeTitle?: string
+  }>(),
+  { variant: 'mp4', closeTitle: '' },
+)
 
-const emit = defineEmits(['download', 'dismiss'])
+const emit = defineEmits<{ download: []; dismiss: [] }>()
 </script>
 
 <style scoped>

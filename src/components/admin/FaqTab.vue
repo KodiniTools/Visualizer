@@ -19,7 +19,7 @@
       <AdminField
         v-model="item.question"
         label="Frage"
-        :placeholder="defaults.faq.items[index]?.question"
+        :placeholder="defaults.faq.items?.[index]?.question"
         multiline
         :rows="2"
         @edit="save"
@@ -27,7 +27,7 @@
       <AdminField
         v-model="item.answer"
         label="Antwort"
-        :placeholder="defaults.faq.items[index]?.answer"
+        :placeholder="defaults.faq.items?.[index]?.answer"
         multiline
         :rows="4"
         @edit="save"
@@ -36,7 +36,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useLandingContentStore } from '../../stores/landingContent'
 import AdminField from './AdminField.vue'

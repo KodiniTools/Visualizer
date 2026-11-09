@@ -7,7 +7,7 @@
       :label="t('foto.filterPreset')"
       label-hidden
       size="sm"
-      @update:model-value="onPresetChange"
+      @update:model-value="onPresetChange($event as string)"
     />
 
     <!-- Rückgängig / Wiederholen / Zurücksetzen -->
@@ -37,16 +37,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Filter-Preset des aktiven Bildes sowie Rückgängig/Wiederholen/Zurücksetzen. */
 import { computed, inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { localizedName } from '../../../lib/localizedName.js'
+import { useI18n } from '../../../lib/i18n'
+import type { ImageFilterContext } from './imageFilterContext'
+import { localizedName } from '../../../lib/localizedName'
 import UiButton from '../../ui/UiButton.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 
 const { t } = useI18n()
-const ifc = inject('imageFilterControls')
+const ifc = inject('imageFilterControls') as ImageFilterContext
 const {
   presets,
   locale,

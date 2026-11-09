@@ -58,13 +58,14 @@
   </UiDialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { UiButton, UiDialog } from '../ui/index.js'
+import type { BgSettingsApi } from '../../composables/useBgSettings'
+import { useI18n } from '../../lib/i18n'
+import { UiButton, UiDialog } from '../ui'
 
 const { t } = useI18n()
-const bg = inject('bgSettings')
+const bg = inject('bgSettings') as BgSettingsApi
 const {
   hasImageBackground,
   hasVideoBackground,

@@ -35,22 +35,20 @@
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Rahmen einer Animation im Neu-Text-Formular: Kopfzeile mit Status,
  * An/Aus-Schalter, Einstellungen (Slot) und „Mit … hinzufügen“.
  */
 import UiButton from '../../ui/UiButton.vue'
-import { useI18n } from '../../../lib/i18n.js'
+import type { TimedTextAnimation } from '../../../lib/textManager/types'
+import { useI18n } from '../../../lib/i18n'
 
-defineProps({
-  icon: { type: String, required: true },
-  title: { type: String, required: true },
-  addLabel: { type: String, required: true },
-  canAdd: { type: Boolean, default: true },
+withDefaults(defineProps<{ icon: string; title: string; addLabel: string; canAdd?: boolean }>(), {
+  canAdd: true,
 })
-const effect = defineModel('effect', { type: Object, required: true })
-const emit = defineEmits(['add'])
+const effect = defineModel<TimedTextAnimation>('effect', { required: true })
+const emit = defineEmits<{ add: [] }>()
 const { t } = useI18n()
 </script>
 

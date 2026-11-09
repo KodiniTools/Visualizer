@@ -25,12 +25,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
+import type { AudioReactiveControls } from './audioReactiveControls'
 
 const { t } = useI18n()
-const arc = inject('audioReactiveControls')
+const arc = inject('audioReactiveControls') as AudioReactiveControls
 const { presetList, activeAudioPreset, togglePreset, clearPreset } = arc
 </script>
 

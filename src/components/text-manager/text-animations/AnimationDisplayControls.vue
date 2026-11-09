@@ -14,7 +14,7 @@
     <label>{{ t('textManager.displayDuration') }}: {{ effect.displayDuration }}ms</label>
     <div class="dur-row">
       <SliderField
-        :model-value="effect.displayDuration"
+        :model-value="effect.displayDuration as number"
         :min="500"
         :max="30000"
         :step="100"
@@ -27,15 +27,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /** Permanent anzeigen / Anzeigedauer einer Animation. */
 import SliderField from '../../ui/SliderField.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
-import { useI18n } from '../../../lib/i18n.js'
-import { useEffectField } from './useEffectField.js'
+import { useI18n } from '../../../lib/i18n'
+import { useEffectField } from './useEffectField'
+import type { TimedTextAnimation } from '../../../lib/textManager/types'
 
-const effect = defineModel('effect', { type: Object, required: true })
-const emit = defineEmits(['change'])
+const effect = defineModel<TimedTextAnimation>('effect', { required: true })
+const emit = defineEmits<{ change: [] }>()
 const set = useEffectField(effect, emit)
 const { t } = useI18n()
 </script>

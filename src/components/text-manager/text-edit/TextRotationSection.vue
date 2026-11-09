@@ -12,25 +12,26 @@
         <label>{{ t('textManager.rotation') }}: {{ selectedText.rotation }}°</label>
         <SliderField
           v-model="selectedText.rotation"
-          @update:model-value="updateText"
           :min="-180"
           :max="180"
           :default-value="0"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
     </div>
   </details>
 </template>
 
-<script setup>
-import { useI18n } from '../../../lib/i18n.js'
+<script setup lang="ts">
+import { useI18n } from '../../../lib/i18n'
 import SliderField from '../../ui/SliderField.vue'
 import { inject } from 'vue'
+import type { TextEditControls } from './textEditControls'
 
 const { t } = useI18n()
 
-const tec = inject('textEditControls')
+const tec = inject('textEditControls') as TextEditControls
 const { selectedText, updateText } = tec
 </script>
 

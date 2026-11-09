@@ -12,16 +12,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // Statuszeile des Recorders: Zustand (processing > paused > recording > ready > idle)
 // und Laufzeit während der Aufnahme.
 import { computed } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useRecorderStore } from '../../stores/recorderStore.js'
+import { useI18n } from '../../lib/i18n'
+import { useRecorderStore } from '../../stores/recorderStore'
 
-defineProps({
-  displayTime: { type: String, default: '00:00' },
-})
+withDefaults(defineProps<{ displayTime?: string }>(), { displayTime: '00:00' })
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()

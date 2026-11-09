@@ -19,10 +19,10 @@
               '--preset-color': preset.visualizer.color,
               '--preset-bg': preset.background.color,
             }"
-            @click="apply(preset)"
             :title="
               preset.needsImage ? `${preset.name} — ${t('presets.needsImageHint')}` : preset.name
             "
+            @click="apply(preset)"
           >
             <span class="preset-emoji">{{ preset.emoji }}</span>
             <span class="preset-name">{{ preset.name }}</span>
@@ -39,10 +39,10 @@
             v-model="newPresetName"
             class="preset-name-input"
             :placeholder="t('presets.namePlaceholder')"
-            @keydown.enter="saveCurrent"
             maxlength="30"
+            @keydown.enter="saveCurrent"
           />
-          <button class="btn-save" @click="saveCurrent" :disabled="!newPresetName.trim()">
+          <button class="btn-save" :disabled="!newPresetName.trim()" @click="saveCurrent">
             💾 {{ t('presets.save') }}
           </button>
         </div>
@@ -68,8 +68,8 @@
               </button>
               <button
                 class="btn-delete"
-                @click.stop="deletePreset(preset.id)"
                 :title="t('common.delete')"
+                @click.stop="deletePreset(preset.id)"
               >
                 ✕
               </button>
@@ -81,22 +81,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, inject, onMounted } from 'vue'
-import { usePresetStore } from '../stores/presetStore.js'
-import { BUILT_IN_PRESETS } from '../data/builtInPresets.js'
-import { useToastStore } from '../stores/toastStore.js'
-import { useI18n } from '../lib/i18n.js'
+import type { CanvasManagerRef } from '../composables/types'
+import { usePresetStore, type VisualizerPreset } from '../stores/presetStore'
+import { BUILT_IN_PRESETS } from '../data/builtInPresets'
+import { useToastStore } from '../stores/toastStore'
+import { useI18n } from '../lib/i18n'
 
 const { t } = useI18n()
 
 // When embedded (e.g. inside the sticky-player-bar popover) the panel drops its
 // own collapse header and card chrome, since the popover already supplies them.
-defineProps({
-  embedded: { type: Boolean, default: false },
-})
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false })
 
-const canvasManager = inject('canvasManager')
+const canvasManager = inject('canvasManager') as CanvasManagerRef
 const presetStore = usePresetStore()
 const toastStore = useToastStore()
 
@@ -108,19 +107,19 @@ const builtInPresets = BUILT_IN_PRESETS
  * Untertitel der Preset-Kachel: bei Multi-Layer-Vorlagen die Anzahl der
  * Ebenen, sonst der Visualizer-Name.
  */
-function presetSubtitle(preset) {
+function presetSubtitle(preset: VisualizerPreset): string {
   const v = preset.visualizer
   const count = v?.mode === 'multi' ? (v.layers?.length ?? 0) : 0
   if (count > 0) return `${count} ${t('presets.layers')}`
   return v?.selectedVisualizer || ''
 }
-const activePresetId = ref(null)
+const activePresetId = ref<string | null>(null)
 
 onMounted(() => {
   presetStore.loadUserPresets()
 })
 
-function apply(preset) {
+function apply(preset: VisualizerPreset) {
   presetStore.applyPreset(preset, canvasManager)
   activePresetId.value = preset.id
   toastStore.success(t('presets.applied').replace('{name}', preset.name))
@@ -134,7 +133,7 @@ function saveCurrent() {
   toastStore.success(t('presets.saved'))
 }
 
-function deletePreset(id) {
+function deletePreset(id: string) {
   presetStore.deleteUserPreset(id)
 }
 </script>

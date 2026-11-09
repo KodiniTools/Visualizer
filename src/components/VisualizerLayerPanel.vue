@@ -382,23 +382,25 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from './ui/SliderField.vue'
 import VisualizerReactShapeControls from './visualizer-panel/VisualizerReactShapeControls.vue'
 import VisualizerImagePicker from './VisualizerImagePicker.vue'
 import VisualizerLedTextSection from './visualizer-panel/VisualizerLedTextSection.vue'
-import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings.js'
+import { isLedTextVisualizer } from '../lib/visualizers/gl/ledTextSettings'
 import VisualizerEffectsPanel from './VisualizerEffectsPanel.vue'
 import ColorField from './ui/ColorField.vue'
-import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from './ui/index.js'
-import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape.js'
-import { ref, computed, nextTick } from 'vue'
-import { useI18n } from '../lib/i18n.js'
-import { localizedName } from '../lib/localizedName.js'
-import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore.js'
-import { useLayerPresetStore } from '../stores/layerPresetStore.js'
-import { useToastStore } from '../stores/toastStore.js'
-import { Visualizers } from '../lib/visualizers/index.js'
+import { UiButton, UiIconButton, UiSegmentedControl, UiSelect, UiSwitch } from './ui'
+import { visualizerShapeOptions } from '../lib/visualizers/core/visualizerShape'
+import { ref, computed, nextTick, type ComponentPublicInstance } from 'vue'
+import { useI18n } from '../lib/i18n'
+import { localizedName } from '../lib/localizedName'
+import { useVisualizerStore, BLEND_MODES, REACT_SOURCES } from '../stores/visualizerStore'
+import { useLayerPresetStore, type LayerPreset } from '../stores/layerPresetStore'
+import { useToastStore } from '../stores/toastStore'
+import { Visualizers } from '../lib/visualizers/index'
+import type { BlendMode } from '../stores/visualizer/catalog'
+import type { VisualizerLayer } from '../stores/visualizer/useVisualizerLayers'
 
 const { t, locale } = useI18n()
 const store = useVisualizerStore()
@@ -420,11 +422,11 @@ function saveLayerPreset() {
   }
 }
 
-function applyLayerPreset(preset) {
+function applyLayerPreset(preset: LayerPreset) {
   layerPresetStore.applyLayerPreset(preset)
 }
 
-function deleteLayerPreset(preset) {
+function deleteLayerPreset(preset: LayerPreset) {
   if (confirm(`${t('visualizer.confirmDeletePreset')} (${preset.name})`)) {
     layerPresetStore.deleteLayerPreset(preset.id)
   }
@@ -457,14 +459,14 @@ const reactSourceOptions = computed(() => [
 const newLayerVisualizerId = ref(store.selectedVisualizer || 'bars')
 
 // Aufgeklappte Effekt-Bereiche je Layer
-const openEffects = ref({})
+const openEffects = ref<Record<string, boolean>>({})
 
-function toggleEffects(layerId) {
+function toggleEffects(layerId: string) {
   openEffects.value[layerId] = !openEffects.value[layerId]
 }
 
 /** Anzahl der aktiven Effekte eines Layers (für das Abzeichen im Kopf). */
-function activeEffectCount(layer) {
+function activeEffectCount(layer: VisualizerLayer) {
   const fx = store.layerEffects(layer)
   return [fx.bloomEnabled, fx.trailsEnabled, fx.beatPunchEnabled, fx.onsetFlourishEnabled].filter(
     Boolean,
@@ -472,23 +474,23 @@ function activeEffectCount(layer) {
 }
 
 // Refs für Layer-Elemente (für Auto-Scroll)
-const layerListRef = ref(null)
-const layerRefs = ref({})
+const layerListRef = ref<HTMLElement | null>(null)
+const layerRefs = ref<Record<string, HTMLElement>>({})
 
-function setLayerRef(layerId, el) {
+function setLayerRef(layerId: string, el: Element | ComponentPublicInstance | null) {
   if (el) {
-    layerRefs.value[layerId] = el
+    layerRefs.value[layerId] = el as HTMLElement
   } else {
     delete layerRefs.value[layerId]
   }
 }
 
 // Layer auswählen und in Sicht scrollen
-function layerNeedsImage(layer) {
+function layerNeedsImage(layer: VisualizerLayer): boolean {
   return !!Visualizers[layer.visualizerId]?.needsImage
 }
 
-function selectLayerAndScroll(layerId) {
+function selectLayerAndScroll(layerId: string) {
   store.selectLayer(layerId)
   // Nach dem Rendern der Details in Sicht scrollen
   nextTick(() => {
@@ -505,7 +507,7 @@ const reversedLayers = computed(() => {
 })
 
 // Kategorie-Namen (Übersetzung)
-const categoryTranslationKeys = {
+const categoryTranslationKeys: Record<string, string> = {
   'GPU-Presets': 'visualizer.categories.gpu',
   Laser: 'visualizer.categories.laser',
   'LED-Ziffern': 'visualizer.categories.ledDigits',
@@ -515,16 +517,16 @@ const categoryTranslationKeys = {
   Klassisch: 'visualizer.categories.classic',
 }
 
-function getCategoryName(category) {
+function getCategoryName(category: string): string {
   const key = categoryTranslationKeys[category]
   return key ? t(key) : category
 }
 
-function getVisualizerName(visualizerId) {
+function getVisualizerName(visualizerId: string): string {
   return localizedName(Visualizers[visualizerId], locale.value, visualizerId)
 }
 
-function getBlendModeName(mode) {
+function getBlendModeName(mode: BlendMode): string {
   return localizedName(mode, locale.value)
 }
 
@@ -536,11 +538,11 @@ function addNewLayer() {
   const hue = (store.visualizerLayers.length * 137.5) % 360 // Goldener Winkel für Farbverteilung
 
   // Konvertiere HSL zu HEX
-  const hslToHex = (h, s, l) => {
+  const hslToHex = (h: number, s: number, l: number): string => {
     s /= 100
     l /= 100
     const a = s * Math.min(l, 1 - l)
-    const f = (n) => {
+    const f = (n: number) => {
       const k = (n + h / 30) % 12
       const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
       return Math.round(255 * color)
@@ -561,7 +563,7 @@ function addNewLayer() {
   })
 }
 
-function updateProperty(layerId, property, value) {
+function updateProperty(layerId: string, property: string, value: unknown) {
   store.updateLayerProperty(layerId, property, value)
 }
 </script>

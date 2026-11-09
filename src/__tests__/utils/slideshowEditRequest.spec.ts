@@ -1,0 +1,31 @@
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { requestSlideshowImageEdit, SLIDESHOW_EDIT_EVENT } from '../../lib/slideshowEditRequest'
+import { setSlideshowManager } from '../../lib/slideshowManagerBridge'
+import type { SlideshowManager } from '../../lib/slideshowManager'
+
+/** Manager-Stub: nur der Pausen-Zustand wird gelesen */
+const manager = (isPaused: boolean) => ({ isPaused }) as unknown as SlideshowManager
+
+afterEach(() => {
+  setSlideshowManager(null)
+})
+
+describe('requestSlideshowImageEdit (Leiste + Canvas-Klick)', () => {
+  const img = { isSlideshowImage: true, slideshow: { imageIndex: 3 } }
+
+  it('nur bei pausierter Slideshow und Slideshow-Bildern', () => {
+    const handler = vi.fn()
+    window.addEventListener(SLIDESHOW_EDIT_EVENT, handler)
+    setSlideshowManager(manager(false))
+    expect(requestSlideshowImageEdit(img)).toBe(false)
+    setSlideshowManager(manager(true))
+    expect(
+      requestSlideshowImageEdit({ id: 1 } as Parameters<typeof requestSlideshowImageEdit>[0]),
+    ).toBe(false)
+    expect(requestSlideshowImageEdit(null)).toBe(false)
+    expect(requestSlideshowImageEdit(img)).toBe(true)
+    window.removeEventListener(SLIDESHOW_EDIT_EVENT, handler)
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler.mock.calls[0]![0].detail).toEqual({ index: 3 })
+  })
+})

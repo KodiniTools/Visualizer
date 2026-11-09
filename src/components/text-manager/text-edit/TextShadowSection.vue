@@ -24,11 +24,11 @@
             @update:model-value="updateText"
           />
           <input
-            type="text"
             v-model="selectedText.shadow.color"
-            @input="updateText"
+            type="text"
             class="color-text-input"
             placeholder="#000000"
+            @input="updateText"
           />
         </div>
       </div>
@@ -38,11 +38,11 @@
         <label>{{ t('textManager.shadowBlur') }}: {{ selectedText.shadow.blur }}px</label>
         <SliderField
           v-model="selectedText.shadow.blur"
-          @update:model-value="updateText"
           :min="0"
           :max="50"
           :default-value="0"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
 
@@ -51,11 +51,11 @@
         <label>{{ t('textManager.shadowX') }}-Offset: {{ selectedText.shadow.offsetX }}px</label>
         <SliderField
           v-model="selectedText.shadow.offsetX"
-          @update:model-value="updateText"
           :min="-50"
           :max="50"
           :default-value="0"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
 
@@ -64,25 +64,26 @@
         <label>{{ t('textManager.shadowY') }}-Offset: {{ selectedText.shadow.offsetY }}px</label>
         <SliderField
           v-model="selectedText.shadow.offsetY"
-          @update:model-value="updateText"
           :min="-50"
           :max="50"
           :default-value="0"
           class="slider"
+          @update:model-value="updateText"
         />
       </div>
     </div>
   </details>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import type { TextEditControls } from './textEditControls'
+import { useI18n } from '../../../lib/i18n'
 
 const { t } = useI18n()
-const tec = inject('textEditControls')
+const tec = inject('textEditControls') as TextEditControls
 const { selectedText, updateText } = tec
 </script>
 

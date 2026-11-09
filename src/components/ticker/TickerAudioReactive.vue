@@ -18,12 +18,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
-import { useTickerStore } from '../../stores/tickerStore.js'
-import { TICKER_SHARED_EFFECT_NAMES } from '../../lib/audio/audioReactiveConfig.js'
-import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget.js'
+import { useI18n } from '../../lib/i18n'
+import { useTickerStore } from '../../stores/tickerStore'
+import { TICKER_SHARED_EFFECT_NAMES } from '../../lib/audio/audioReactiveConfig'
+import { useAudioReactiveTarget } from '../../composables/audioReactive/useAudioReactiveTarget'
 import AudioReactivePanel from '../foto-panel/AudioReactivePanel.vue'
 
 const { t } = useI18n()
@@ -61,7 +61,7 @@ const { activePreset, hasSavedSettings, panelListeners } = useAudioReactiveTarge
     c.enabled = ticker.audioReactive
   },
   onSettingsApplied(c, saved) {
-    ticker.audioReactive = Boolean(saved.enabled)
+    ticker.audioReactive = Boolean((saved as { enabled?: unknown }).enabled)
     c.enabled = ticker.audioReactive
   },
 })

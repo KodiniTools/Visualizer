@@ -2,7 +2,7 @@
   <div class="foto-panel-wrapper">
     <!-- Bild-Vorschau Overlay -->
     <ImagePreviewOverlay
-      :previewImage="previewImage"
+      :preview-image="previewImage"
       @close="closePreview"
       @add-to-canvas="addPreviewToCanvas"
       @set-as-background="setPreviewAsBackground"
@@ -10,15 +10,16 @@
 
     <!-- Upload-Bereich für eigene Bilder -->
     <ImageUploadSection
-      :imageGallery="imageGallery"
-      :selectedImageIndices="selectedImageIndices"
-      :selectedImageCount="selectedImageCount"
-      :selectedAnimation="selectedAnimation"
-      :animationDuration="animationDuration"
-      :imageScale="imageScale"
-      :imageOffsetX="imageOffsetX"
-      :imageOffsetY="imageOffsetY"
-      :isInRangeSelectionMode="isInRangeSelectionMode"
+      :image-gallery="imageGallery"
+      :selected-image-indices="selectedImageIndices"
+      :selected-image-count="selectedImageCount"
+      :selected-animation="selectedAnimation"
+      :animation-duration="animationDuration"
+      :image-scale="imageScale"
+      :image-offset-x="imageOffsetX"
+      :image-offset-y="imageOffsetY"
+      :is-in-range-selection-mode="isInRangeSelectionMode"
+      :new-image-animation="newImageAnimation"
       @upload="handleImageUpload"
       @select-image="selectImage"
       @open-preview="openUploadedPreview"
@@ -41,12 +42,12 @@
     <Teleport :to="slideshowTeleportTarget || 'body'" :disabled="!slideshowTeleportTarget">
       <SlideshowPanel
         :images="slideshowImages"
-        :hasSavedSettings="hasSavedAudioSettings"
-        :isActive="slideshowIsActive"
-        :isPaused="slideshowIsPaused"
-        :currentImageIndex="slideshowCurrentIndex"
-        :totalImages="slideshowTotalImages"
-        :currentPhase="slideshowCurrentPhase"
+        :has-saved-settings="hasSavedAudioSettings"
+        :is-active="slideshowIsActive"
+        :is-paused="slideshowIsPaused"
+        :current-image-index="slideshowCurrentIndex"
+        :total-images="slideshowTotalImages"
+        :current-phase="slideshowCurrentPhase"
         :has-workspace="hasWorkspace"
         :adjustments-api="slideshowAdjustmentsApi"
         :external-transform="slideshowExternalTransform"
@@ -75,11 +76,11 @@
     <!-- Filter-Bereich -->
     <ImageFiltersPanel
       ref="imageFiltersPanelRef"
-      :currentActiveImage="currentActiveImage"
+      :current-active-image="currentActiveImage"
       :presets="presets"
-      :canMoveUp="canMoveUp"
-      :canMoveDown="canMoveDown"
-      :currentLayerInfo="currentLayerInfo"
+      :can-move-up="canMoveUp"
+      :can-move-down="canMoveDown"
+      :current-layer-info="currentLayerInfo"
       :bounds-api="imageBoundsApi"
       @bring-to-front="onBringToFront"
       @move-up="onMoveUp"
@@ -92,14 +93,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Foto-Panel: eigene Bilder (Galerie, Platzierung, Vorschau), Filter/Ebenen
  * des aktiven Canvas-Bildes und die Verdrahtung des Slideshow-Panels.
  * Die Logik liegt in den Composables unter `foto-panel/`.
  */
-import { ref, watch, onMounted, onBeforeUnmount, inject } from 'vue'
-import { useI18n } from '../lib/i18n.js'
+import { ref, watch, onMounted, onBeforeUnmount, inject, type Ref } from 'vue'
+import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 
 // Sub-Komponenten
@@ -109,25 +110,32 @@ import ImageFiltersPanel from './foto-panel/ImageFiltersPanel.vue'
 import SlideshowPanel from './foto-panel/SlideshowPanel.vue'
 
 // Composables
-import { SLIDESHOW_POPOVER_TARGET_ID } from '../composables/useSlideshowPopover.js'
-import { useImageGallery } from '../composables/useImageGallery.js'
-import { useImageAudioReactive } from '../composables/useImageAudioReactive.js'
-import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop.js'
-import { useFotoSlideshow } from './foto-panel/useFotoSlideshow.js'
-import { useImagePlacement } from './foto-panel/useImagePlacement.js'
-import { useActiveImageEditing } from './foto-panel/useActiveImageEditing.js'
-import { registerFotoPanel } from '../lib/fotoPanelBridge.js'
+import { SLIDESHOW_POPOVER_TARGET_ID } from '../composables/useSlideshowPopover'
+import { useImageGallery } from '../composables/useImageGallery'
+import { useImageAudioReactive } from '../composables/useImageAudioReactive'
+import { useGalleryCanvasDrop } from '../composables/useGalleryCanvasDrop'
+import { useFotoSlideshow } from './foto-panel/useFotoSlideshow'
+import { useImagePlacement } from './foto-panel/useImagePlacement'
+import { useActiveImageEditing } from './foto-panel/useActiveImageEditing'
+import { registerFotoPanel } from '../lib/fotoPanelBridge'
+import type { CanvasManagerRef } from '../composables/types'
+import type { FotoImageObject, FotoManager, FotoPresetInfo } from '../lib/fotoManager'
+import type { MultiImageManager } from '../lib/multiImageManager'
+import type { GalleryDragPayload } from './foto-panel/useImagePlacement'
+import type { ImageBoundsApi } from './foto-panel/image-filters/imageFilterContext'
 
 const { t } = useI18n()
 const toastStore = useToastStore()
 
 // Injected Refs von App.vue
-const fotoManagerRef = inject('fotoManager')
-const multiImageManagerRef = inject('multiImageManager')
-const canvasManagerRef = inject('canvasManager')
+const fotoManagerRef = inject('fotoManager') as Ref<FotoManager | null | undefined> | undefined
+const multiImageManagerRef = inject('multiImageManager') as
+  | Ref<MultiImageManager | null | undefined>
+  | undefined
+const canvasManagerRef = inject('canvasManager') as CanvasManagerRef | undefined
 
 // Panel-Refs
-const imageFiltersPanelRef = ref(null)
+const imageFiltersPanelRef = ref<InstanceType<typeof ImageFiltersPanel> | null>(null)
 
 // Aktuell aktives Bild (für Filter-UI) – geteilter Zustand mit dem
 // Audio-Reaktiv-Panel in der Player-Leiste; savedAudioReactiveSettings/
@@ -136,7 +144,7 @@ const { currentActiveImage, savedAudioReactiveSettings, hasSavedAudioSettings } 
   useImageAudioReactive()
 
 // Filter-Presets des FotoManagers
-const presets = ref([])
+const presets = ref<FotoPresetInfo[]>([])
 
 // ═══════════════════════════════════════════════════════════════════
 // GALERIE & PLATZIERUNG
@@ -156,6 +164,7 @@ const {
 
 const {
   selectedAnimation,
+  newImageAnimation,
   animationDuration,
   imageScale,
   imageOffsetX,
@@ -182,10 +191,15 @@ const {
   startDrag: startGalleryDrag,
   endDrag: endGalleryDrag,
   teardown: teardownGalleryDrop,
-} = useGalleryCanvasDrop({
+} = useGalleryCanvasDrop<GalleryDragPayload>({
   canvasManagerRef,
   multiImageManagerRef,
-  placement: { selectedAnimation, animationDuration, imageScale },
+  placement: {
+    selectedAnimation,
+    animationDuration,
+    imageScale,
+    timedAnimation: newImageAnimation,
+  },
   // Eigene Bilder sind bereits als <img> geladen – direkt zurückgeben.
   resolveImage: (payload) => payload?.imgData?.img || null,
   resolveName: (payload) => payload?.imgData?.fileName || payload?.imgData?.name,
@@ -196,7 +210,7 @@ const {
   onError: () => toastStore.error(t('toast.imageLoadError')),
 })
 
-function onGalleryImageDragStart(payload) {
+function onGalleryImageDragStart(payload: GalleryDragPayload) {
   startGalleryDrag(payload, payload?.event)
 }
 
@@ -224,9 +238,12 @@ const {
 } = useActiveImageEditing({ multiImageManagerRef, fotoManagerRef, currentActiveImage })
 
 // Position & Größe normaler Canvas-Bilder (ImageFiltersPanel → PositionSizeControls)
-const imageBoundsApi = {
+const imageBoundsApi: ImageBoundsApi = {
   getCanvas: () => multiImageManagerRef?.value?.canvas ?? null,
-  redraw: () => canvasManagerRef?.value?.redraw?.(),
+  // CanvasManager hat (noch) kein redraw(); der Render-Loop zeichnet ohnehin neu
+  redraw: () => (canvasManagerRef?.value as { redraw?: () => void } | null | undefined)?.redraw?.(),
+  // Mit aktivem Workspace-Preset füllt „Füllen“ den Workspace (exportierter Bereich)
+  getFitArea: () => canvasManagerRef?.value?.getWorkspaceBounds?.() ?? null,
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -275,7 +292,7 @@ const {
 
 // Teleport-Ziel: Slideshow-Fenster der Sticky-Bar (im selben Durchlauf
 // gemountet und dauerhaft vorhanden)
-const slideshowTeleportTarget = ref(null)
+const slideshowTeleportTarget = ref<HTMLElement | null>(null)
 onMounted(() => {
   slideshowTeleportTarget.value = document.getElementById(SLIDESHOW_POPOVER_TARGET_ID)
 })
@@ -284,8 +301,10 @@ onMounted(() => {
 // INITIALISIERUNG
 // ═══════════════════════════════════════════════════════════════════
 
-function loadActiveImageSettings(imgData) {
-  imageFiltersPanelRef.value?.loadImageSettings(imgData?.fotoSettings || {})
+function loadActiveImageSettings(imgData: object | null | undefined) {
+  imageFiltersPanelRef.value?.loadImageSettings(
+    (imgData as FotoImageObject | null | undefined)?.fotoSettings || {},
+  )
 }
 
 onMounted(() => {

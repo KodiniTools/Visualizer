@@ -82,14 +82,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SliderField from '../../ui/SliderField.vue'
 import ColorField from '../../ui/ColorField.vue'
 import { inject } from 'vue'
-import { useI18n } from '../../../lib/i18n.js'
+import { useI18n } from '../../../lib/i18n'
+import type { ImageFilterContext } from './imageFilterContext'
 
 const { t } = useI18n()
-const ifc = inject('imageFilterControls')
+const ifc = inject('imageFilterControls') as ImageFilterContext
 const {
   filters,
   shadowColor,

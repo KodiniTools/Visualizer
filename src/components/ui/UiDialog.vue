@@ -43,9 +43,9 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import { useI18n } from '../../lib/i18n'
 import UiIconButton from './UiIconButton.vue'
 
 /**
@@ -54,20 +54,29 @@ import UiIconButton from './UiIconButton.vue'
  * Fokus wandert beim Öffnen in den Dialog und beim Schließen zurück.
  * Visualizer: `closeLabel` fällt auf i18n `common.close` zurück.
  */
-const props = defineProps({
-  open: { type: Boolean, required: true },
-  title: { type: String, required: true },
-  description: { type: String, default: undefined },
-  closeLabel: { type: String, default: undefined },
-  /** Eigene id, z. B. für aria-controls am auslösenden Button. */
-  id: { type: String, default: undefined },
-  /** md = 440 px für Bestätigungen, lg = 720 px für Übersichten wie Tastaturkürzel. */
-  size: { type: String, default: 'md', validator: (v) => ['md', 'lg'].includes(v) },
-  /** Teleport-Ziel, z. B. ein Portal-Element der App mit eigenem Stacking-Context. */
-  teleportTo: { type: String, default: 'body' },
-})
+const props = withDefaults(
+  defineProps<{
+    open: boolean
+    title: string
+    description?: string
+    closeLabel?: string
+    /** Eigene id, z. B. für aria-controls am auslösenden Button. */
+    id?: string
+    /** md = 440 px für Bestätigungen, lg = 720 px für Übersichten wie Tastaturkürzel. */
+    size?: 'md' | 'lg'
+    /** Teleport-Ziel, z. B. ein Portal-Element der App mit eigenem Stacking-Context. */
+    teleportTo?: string
+  }>(),
+  {
+    description: undefined,
+    closeLabel: undefined,
+    id: undefined,
+    size: 'md',
+    teleportTo: 'body',
+  },
+)
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{ close: [] }>()
 
 const { t } = useI18n()
 const closeLabel = computed(() => props.closeLabel ?? t('common.close'))
@@ -77,8 +86,8 @@ const dialogId = computed(() => props.id ?? `ui-dialog-${generatedId}`)
 const titleId = computed(() => `${dialogId.value}-title`)
 const descriptionId = computed(() => `${dialogId.value}-description`)
 
-const panel = ref(null)
-let previouslyFocused = null
+const panel = ref<HTMLElement | null>(null)
+let previouslyFocused: HTMLElement | null = null
 
 watch(
   () => props.open,

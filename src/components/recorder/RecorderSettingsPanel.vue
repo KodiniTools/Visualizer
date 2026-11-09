@@ -120,13 +120,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 /**
  * Aufnahme-Einstellungen (Qualität, Bildrate, Upload, Server-Exporte).
  * Zustand kommt per inject('recorderSettings') aus useRecorderSettings.
  */
 import { computed, inject } from 'vue'
-import { useI18n } from '../../lib/i18n.js'
+import type { Ref } from 'vue'
+import type { UploadMode } from '../../stores/recorderStore'
+import type { RecorderSettingsApi } from '../../composables/recorder/useRecorderSettings'
+import { useI18n } from '../../lib/i18n'
 import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 
@@ -150,23 +153,27 @@ const {
   gifWidth,
   enableHqExport,
   hqFps,
-} = inject('recorderSettings')
+} = inject('recorderSettings') as RecorderSettingsApi
 
 const UPLOAD_MODES = ['auto', 'server', 'direct']
-const toOptions = (values) => values.map((v) => ({ value: String(v), label: String(v) }))
+const toOptions = (values: number[]) => values.map((v) => ({ value: String(v), label: String(v) }))
 const GIF_FPS_OPTIONS = toOptions([10, 15, 20])
 const GIF_WIDTH_OPTIONS = toOptions([320, 480, 640])
 const HQ_FPS_OPTIONS = toOptions([24, 30, 60])
 
 /**
  * UiSegmentedControl arbeitet mit Strings; die Einstellungen sind Zahlen.
- * @param {import('vue').Ref<number>} source
- * @param {(value: number) => void} [write] - eigener Setter (z. B. mit Store-Aufruf)
+ * @param write - eigener Setter (z. B. mit Store-Aufruf)
  */
-function numberModel(source, write = (v) => (source.value = v)) {
+function numberModel(
+  source: Ref<number>,
+  write: (v: number) => void = (v) => {
+    source.value = v
+  },
+) {
   return computed({
     get: () => String(source.value),
-    set: (v) => write(Number(v)),
+    set: (v: string) => write(Number(v)),
   })
 }
 
@@ -178,7 +185,7 @@ const hqFpsModel = numberModel(hqFps)
 
 const uploadModel = computed({
   get: () => uploadMode.value,
-  set: (v) => selectUploadMode(v),
+  set: (v: string) => selectUploadMode(v as UploadMode),
 })
 
 const qualityOptions = qualityPresets.map((p) => ({ value: String(p.value), label: p.label }))

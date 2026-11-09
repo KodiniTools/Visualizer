@@ -1,0 +1,502 @@
+/**
+ * Video API Service
+ *
+ * Kommuniziert mit dem FFmpeg Backend Server für:
+ * - Video-Upload und Konvertierung (WebM → MP4)
+ * - Job-Status Abfragen
+ * - Download verarbeiteter Videos
+ */
+
+// API Base URL (relativ für NGINX Proxy)
+const API_BASE = '/visualizer/api'
+
+/** Status eines Konvertierungs-Jobs (Server-Antwort) */
+export interface JobStatus {
+  status: string
+  progress?: number
+  error?: string
+  outputFile?: string
+  thumbnail?: string
+  info?: unknown
+  [extra: string]: unknown
+}
+
+export interface ServerHealth {
+  available: boolean
+  status?: 'ok' | 'degraded'
+  ffmpeg?: { available?: boolean; [extra: string]: unknown }
+  error?: string
+}
+
+export interface UploadResult {
+  success: true
+  jobId: string
+  status?: string
+}
+
+export interface WaitForJobOptions {
+  pollInterval?: number
+  timeout?: number
+  onProgress?: (progress: number) => void
+}
+
+export interface ConvertAndWaitOptions {
+  quality?: string
+  onProgress?: (progress: number) => void
+  onStatusChange?: (status: string) => void
+  onJobId?: (jobId: string) => void
+}
+
+export interface ConvertGifOptions {
+  fps?: number
+  width?: number
+  colors?: number
+}
+
+export interface ConversionResult {
+  success: true
+  downloadUrl: string
+  fileUrl: string
+  filename: string | undefined
+  thumbnail?: string | null
+  info: unknown
+}
+
+/** Fehlermeldung aus einem unbekannten Fehlerwert */
+function messageOf(error: unknown): string | undefined {
+  return (error as { message?: string } | null | undefined)?.message
+}
+
+/**
+ * Prüft ob der Backend-Server verfügbar ist
+ *
+ * ⚠️ WICHTIG: Nutzt `${API_BASE}/info` (also `/visualizer/api/info`) statt
+ * dem Backend-eigenen `/health`-Root-Endpoint. NGINX proxied auf dem Server
+ * i.d.R. nur `/visualizer/api/*` zum Backend – ein direkter Aufruf von
+ * `/visualizer/health` läuft sonst ins SPA-Fallback (index.html), liefert
+ * HTTP 200 mit HTML statt JSON und lässt den Server dauerhaft als
+ * "nicht verfügbar" erscheinen, obwohl er läuft (Recorder-Checkboxen für
+ * MP4/GIF/HQ-Export bleiben dann fälschlich deaktiviert).
+ */
+export async function checkServerHealth(): Promise<ServerHealth> {
+  try {
+    const response = await fetch(`${API_BASE}/info`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      return {
+        available: true,
+        status: data.ffmpeg?.available ? 'ok' : 'degraded',
+        ffmpeg: data.ffmpeg,
+      }
+    }
+    return { available: false, error: 'Server not responding' }
+  } catch (error) {
+    return { available: false, error: messageOf(error) }
+  }
+}
+
+/**
+ * Holt Server-Informationen (FFmpeg Status, Presets etc.)
+ */
+export async function getServerInfo(): Promise<unknown> {
+  try {
+    const response = await fetch(`${API_BASE}/info`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (response.ok) {
+      return await response.json()
+    }
+    throw new Error(`HTTP ${response.status}`)
+  } catch (error) {
+    console.error('[VideoAPI] Server info error:', error)
+    return null
+  }
+}
+
+/**
+ * Konvertiert ein Video (WebM → MP4)
+ *
+ * @param {Blob} videoBlob - Das WebM Video-Blob
+ * @param {Object} options - Konvertierungsoptionen
+ * @param {string} options.quality - Qualitäts-Preset: 'highest', 'high', 'medium', 'social', 'preview'
+ * @param {function} options.onProgress - Progress Callback (0-100)
+ * @returns {Promise<{jobId: string, status: string}>}
+ */
+export async function convertVideo(
+  videoBlob: Blob,
+  options: { quality?: string } = {},
+): Promise<UploadResult> {
+  const quality = options.quality || 'high'
+
+  const formData = new FormData()
+  formData.append('video', videoBlob, 'recording.webm')
+  formData.append('quality', quality)
+
+  try {
+    const response = await fetch(`${API_BASE}/convert`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`)
+    }
+
+    const result = await response.json()
+
+    if (result.success && result.jobId) {
+      return {
+        success: true,
+        jobId: result.jobId,
+        status: result.status,
+      }
+    }
+
+    throw new Error(result.error || 'Unknown error')
+  } catch (error) {
+    console.error('[VideoAPI] Convert error:', error)
+    throw error
+  }
+}
+
+/**
+ * Fragt den Status eines Konvertierungs-Jobs ab
+ *
+ * @param {string} jobId - Die Job-ID
+ * @returns {Promise<Object>} Job-Status Objekt
+ */
+export async function getJobStatus(jobId: string): Promise<JobStatus> {
+  try {
+    const response = await fetch(`${API_BASE}/status/${jobId}`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(10000),
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { status: 'not_found', error: 'Job not found' }
+      }
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('[VideoAPI] Status error:', error)
+    throw error
+  }
+}
+
+/**
+ * Wartet auf Job-Abschluss mit Polling
+ *
+ * @param {string} jobId - Die Job-ID
+ * @param {Object} options - Optionen
+ * @param {function} options.onProgress - Progress Callback (0-100)
+ * @param {number} options.pollInterval - Polling-Intervall in ms (default: 1000)
+ * @param {number} options.timeout - Timeout in ms (default: 1800000 = 30 min)
+ * @returns {Promise<Object>} Finales Job-Ergebnis
+ */
+export async function waitForJob(
+  jobId: string,
+  options: WaitForJobOptions = {},
+): Promise<JobStatus> {
+  const pollInterval = options.pollInterval || 1000
+  const timeout = options.timeout || 1800000 // 30 Minuten (für große Videos 100+ MB)
+  const onProgress = options.onProgress || (() => {})
+
+  const startTime = Date.now()
+
+  return new Promise<JobStatus>((resolve, reject) => {
+    const poll = async () => {
+      // Timeout Check
+      if (Date.now() - startTime > timeout) {
+        reject(new Error('Conversion timeout'))
+        return
+      }
+
+      try {
+        const status = await getJobStatus(jobId)
+
+        // Progress Callback
+        if (status.progress !== undefined) {
+          onProgress(status.progress)
+        }
+
+        switch (status.status) {
+          case 'completed':
+            resolve(status)
+            return
+
+          case 'failed':
+            reject(new Error(status.error || 'Conversion failed'))
+            return
+
+          case 'cancelled':
+            reject(
+              Object.assign(new Error(status.error || 'Cancelled by user'), { cancelled: true }),
+            )
+            return
+
+          case 'processing':
+          case 'pending':
+            // Weiter pollen
+            setTimeout(poll, pollInterval)
+            break
+
+          case 'not_found':
+            reject(new Error('Job not found'))
+            return
+
+          default:
+            // Unbekannter Status - weiter pollen
+            setTimeout(poll, pollInterval)
+        }
+      } catch (error) {
+        // Bei Netzwerkfehlern weiter versuchen
+        console.warn('[VideoAPI] Polling error, retrying:', messageOf(error))
+        setTimeout(poll, pollInterval * 2)
+      }
+    }
+
+    // Start Polling
+    poll()
+  })
+}
+
+/**
+ * Generiert die Download-URL für eine verarbeitete Datei
+ *
+ * @param {string} filename - Der Dateiname
+ * @param {boolean} cleanup - Ob die Datei nach Download gelöscht werden soll
+ * @returns {string} Die vollständige Download-URL
+ */
+export function getDownloadUrl(filename: string | undefined, cleanup = false): string {
+  const url = `${API_BASE}/download/${filename}`
+  return cleanup ? `${url}?cleanup=true` : url
+}
+
+/**
+ * Löscht eine Datei auf dem Server
+ *
+ * @param {string} filename - Der Dateiname
+ * @returns {Promise<Object>} Ergebnis
+ */
+export async function cleanupFile(filename: string): Promise<unknown> {
+  try {
+    const response = await fetch(`${API_BASE}/cleanup/${filename}`, {
+      method: 'POST',
+    })
+    return await response.json()
+  } catch (error) {
+    console.warn('[VideoAPI] Cleanup error:', error)
+    return { success: false, error: messageOf(error) }
+  }
+}
+
+/**
+ * Generiert die File-URL für statische Dateien
+ *
+ * @param {string} filename - Der Dateiname
+ * @returns {string} Die vollständige File-URL
+ */
+export function getFileUrl(filename: string | undefined): string {
+  return `/visualizer/files/${filename}`
+}
+
+/**
+ * Bricht eine laufende MP4-Konvertierung ab (tötet den FFmpeg-Prozess auf
+ * dem Server, falls schon gestartet).
+ *
+ * @param {string} jobId - Die Job-ID
+ * @returns {Promise<Object>} Ergebnis
+ */
+export async function cancelConversion(jobId: string): Promise<unknown> {
+  try {
+    const response = await fetch(`${API_BASE}/convert/${jobId}/cancel`, {
+      method: 'POST',
+    })
+    return await response.json()
+  } catch (error) {
+    console.warn('[VideoAPI] Cancel error:', error)
+    return { success: false, error: messageOf(error) }
+  }
+}
+
+/**
+ * Kompletter Konvertierungs-Workflow
+ *
+ * @param {Blob} videoBlob - Das WebM Video-Blob
+ * @param {Object} options - Optionen
+ * @param {string} options.quality - Qualitäts-Preset
+ * @param {function} options.onProgress - Progress Callback (0-100)
+ * @param {function} options.onStatusChange - Status Change Callback
+ * @returns {Promise<Object>} Ergebnis mit downloadUrl
+ */
+export async function convertAndWait(
+  videoBlob: Blob,
+  options: ConvertAndWaitOptions = {},
+): Promise<ConversionResult> {
+  const onProgress = options.onProgress || (() => {})
+  const onStatusChange = options.onStatusChange || (() => {})
+
+  // 1. Upload starten
+  onStatusChange('uploading')
+  onProgress(5)
+
+  const uploadResult = await convertVideo(videoBlob, {
+    quality: options.quality || 'high',
+  })
+
+  if (!uploadResult.success) {
+    throw new Error('Upload failed')
+  }
+
+  // Erlaubt dem Aufrufer, die jobId zu speichern (z.B. für einen Abbrechen-Button).
+  options.onJobId?.(uploadResult.jobId)
+
+  // 2. Auf Konvertierung warten
+  onStatusChange('converting')
+  onProgress(10)
+
+  const result = await waitForJob(uploadResult.jobId, {
+    onProgress: (progress) => {
+      // Progress von 10-95 mappen (5% für Upload, 5% für Finalisierung)
+      const mappedProgress = 10 + progress * 0.85
+      onProgress(Math.round(mappedProgress))
+    },
+    pollInterval: 1000,
+    timeout: 1800000, // 30 Minuten für große Videos (100+ MB)
+  })
+
+  // 3. Ergebnis aufbereiten
+  onStatusChange('completed')
+  onProgress(100)
+
+  return {
+    success: true,
+    downloadUrl: getDownloadUrl(result.outputFile),
+    fileUrl: getFileUrl(result.outputFile),
+    filename: result.outputFile,
+    thumbnail: result.thumbnail ? getFileUrl(result.thumbnail) : null,
+    info: result.info,
+  }
+}
+
+/**
+ * Startet GIF-Konvertierung auf dem Server (WebM → GIF)
+ *
+ * @param {Blob} videoBlob
+ * @param {Object} options
+ * @param {number} options.fps    - Frames/s (default 15)
+ * @param {number} options.width  - Breite in px (default 480)
+ * @param {number} options.colors - Farben 2–256 (default 256)
+ * @returns {Promise<{jobId, status}>}
+ */
+export async function convertGif(
+  videoBlob: Blob,
+  options: ConvertGifOptions = {},
+): Promise<UploadResult> {
+  const formData = new FormData()
+  formData.append('video', videoBlob, 'recording.webm')
+  formData.append('fps', String(options.fps || 15))
+  formData.append('width', String(options.width || 480))
+  formData.append('colors', String(options.colors || 256))
+
+  try {
+    const response = await fetch(`${API_BASE}/convert-gif`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`GIF upload failed: ${response.status} - ${errorText}`)
+    }
+
+    const result = await response.json()
+
+    if (result.success && result.jobId) {
+      return { success: true, jobId: result.jobId, status: result.status }
+    }
+
+    throw new Error(result.error || 'Unknown error')
+  } catch (error) {
+    console.error('[VideoAPI] convertGif error:', error)
+    throw error
+  }
+}
+
+/**
+ * Kompletter GIF-Export-Workflow (Upload → Polling → fertig)
+ *
+ * @param {Blob} videoBlob
+ * @param {Object} options
+ * @param {number}   options.fps          - Frames/s
+ * @param {number}   options.width        - Breite in px
+ * @param {number}   options.colors       - Anzahl Farben
+ * @param {function} options.onProgress   - Callback (0–100)
+ * @param {function} options.onStatusChange - Callback ('uploading'|'converting'|'completed')
+ * @returns {Promise<{success, downloadUrl, fileUrl, filename, info}>}
+ */
+export async function convertGifAndWait(
+  videoBlob: Blob,
+  options: ConvertGifOptions & Omit<ConvertAndWaitOptions, 'quality' | 'onJobId'> = {},
+): Promise<ConversionResult> {
+  const onProgress = options.onProgress || (() => {})
+  const onStatusChange = options.onStatusChange || (() => {})
+
+  onStatusChange('uploading')
+  onProgress(5)
+
+  const uploadResult = await convertGif(videoBlob, {
+    fps: options.fps || 15,
+    width: options.width || 480,
+    colors: options.colors || 256,
+  })
+
+  if (!uploadResult.success) throw new Error('GIF upload failed')
+
+  onStatusChange('converting')
+  onProgress(10)
+
+  const result = await waitForJob(uploadResult.jobId, {
+    onProgress: (progress) => {
+      onProgress(Math.round(10 + progress * 0.88))
+    },
+    pollInterval: 1500,
+    timeout: 900000, // 15 Minuten (GIFs sind schneller als MP4)
+  })
+
+  onStatusChange('completed')
+  onProgress(100)
+
+  return {
+    success: true,
+    downloadUrl: getDownloadUrl(result.outputFile),
+    fileUrl: getFileUrl(result.outputFile),
+    filename: result.outputFile,
+    info: result.info,
+  }
+}
+
+export default {
+  checkServerHealth,
+  getServerInfo,
+  convertVideo,
+  convertGif,
+  getJobStatus,
+  waitForJob,
+  getDownloadUrl,
+  getFileUrl,
+  cleanupFile,
+  cancelConversion,
+  convertAndWait,
+  convertGifAndWait,
+}

@@ -261,3 +261,63 @@ describe('MultiImageManager: Marker-Ausblendung', () => {
     expect(mgr.markerHiddenIds.size).toBe(0)
   })
 })
+
+describe('Bilder mit eigener Anzeigedauer', () => {
+  /** Ersetzt die Animation des ersten Bildes: Einblenden mit Anzeigedauer */
+  function timedFirst(overrides: { loop?: boolean; permanent?: boolean } = {}) {
+    const anim = createImageAnimation()
+    anim.fade.enabled = true
+    anim.fade.permanent = overrides.permanent ?? false
+    anim.fade.loop = overrides.loop ?? false
+    mim.images[0]!.timedAnimation = anim
+  }
+
+  async function reachSecondMarker() {
+    markerStore.addMarker(5, { imageId: first.id })
+    markerStore.addMarker(8, { imageId: second.id })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(mim.isMarkerHidden(first.id)).toBe(false)
+    frame(7.99)
+    frame(8.01)
+  }
+
+  it('der nächste Bild-Marker blendet ein Bild mit Anzeigedauer nicht aus', async () => {
+    timedFirst()
+    await reachSecondMarker()
+    // Beide Bilder gleichzeitig sichtbar; das erste endet mit seiner Animation
+    expect(mim.isMarkerHidden(first.id)).toBe(false)
+    expect(mim.isMarkerHidden(second.id)).toBe(false)
+  })
+
+  it('auch ein Marker ohne Bild lässt es nach seiner Anzeigedauer auslaufen', async () => {
+    timedFirst()
+    markerStore.addMarker(5, { imageId: first.id })
+    markerStore.addMarker(8, { visualizer: null })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    frame(7.99)
+    frame(8.01)
+    expect(mim.isMarkerHidden(first.id)).toBe(false)
+  })
+
+  it('permanente Bilder und Bilder mit Loop werden weiterhin abgelöst', async () => {
+    timedFirst({ loop: true })
+    await reachSecondMarker()
+    expect(mim.isMarkerHidden(first.id)).toBe(true)
+    expect(mim.isMarkerHidden(second.id)).toBe(false)
+  })
+
+  it('ein noch nicht erschienenes Bild mit Anzeigedauer bleibt ausgeblendet', async () => {
+    timedFirst()
+    markerStore.addMarker(5, { imageId: second.id })
+    markerStore.addMarker(8, { imageId: first.id })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(mim.isMarkerHidden(first.id)).toBe(true)
+    expect(mim.isMarkerHidden(second.id)).toBe(false)
+  })
+})

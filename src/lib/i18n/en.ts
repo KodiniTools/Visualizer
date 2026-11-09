@@ -1029,6 +1029,14 @@ export default {
     confirmDeleteMarkers: 'Delete all beat-drop markers?',
     editMarker: 'Edit marker',
     timeFormatHint: '(M:SS.hh or sec.)',
+    markerDuration: 'Duration',
+    markerDurationHint:
+      'Longest display time of the elements in this marker: delay + fade-in + display time + fade-out',
+    markerDurationEnd: 'Ends',
+    markerDurationPermanent: 'permanent',
+    markerDurationPermanentHint:
+      'At least one element has no limited display time and stays visible until another marker replaces it',
+    markerDurationPlusPermanent: '+ permanent elements',
     timeStepBack: 'Time back (step size)',
     timeStepForward: 'Time forward (step size)',
     timeStepSlow: 'slow (0.01 s)',

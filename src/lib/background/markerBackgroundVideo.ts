@@ -24,6 +24,8 @@ export interface GalleryVideoEntry {
   name: string
   /** Blob-URL des hochgeladenen Videos */
   src: string
+  /** Länge in Sekunden (aus den Metadaten; für die Marker-Dauer) */
+  duration?: number
 }
 
 /** Im Marker gespeicherter Verweis (kein Videoinhalt) */

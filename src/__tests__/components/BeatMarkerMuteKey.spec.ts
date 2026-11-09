@@ -5,8 +5,9 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { stub } from '../helpers/canvasStubs'
 import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
@@ -18,9 +19,9 @@ const Host = defineComponent({
   template: '<div />',
 })
 
-let wrapper
-let shortcuts
-let playerStore
+let wrapper: VueWrapper
+let shortcuts: KeyboardShortcuts
+let playerStore: ReturnType<typeof usePlayerStore>
 
 beforeEach(async () => {
   vi.spyOn(console, 'log').mockImplementation(() => {})
@@ -31,13 +32,16 @@ beforeEach(async () => {
   useMarkerTransitionStore().enabled = false
   playerStore.playlist = [{ name: 'track.mp3', url: 'blob:x' }]
   playerStore.duration = 120
-  playerStore.audioRef = { currentTime: 12.5 }
+  playerStore.audioRef = stub({ currentTime: 12.5 })
   playerStore.currentTime = 12.5
   wrapper = mount(Host, {
     attachTo: document.body,
     global: { provide: { canvasManager: ref(null) } },
   })
-  shortcuts = new KeyboardShortcuts({ playerStore, gridStore: {} }, { canvasManager: null })
+  shortcuts = new KeyboardShortcuts(
+    stub({ playerStore, gridStore: {} }),
+    stub({ canvasManager: null }),
+  )
   shortcuts.enable()
   await nextTick()
 })
@@ -48,7 +52,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const press = (key, mods = {}) =>
+const press = (key: string, mods = {}) =>
   document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...mods }))
 
 describe('Taste M', () => {

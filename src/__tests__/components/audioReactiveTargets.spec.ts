@@ -1,21 +1,38 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { defineComponent, h, nextTick, ref } from 'vue'
-import { mount, flushPromises } from '@vue/test-utils'
+import { defineComponent, h, nextTick, ref, type Component } from 'vue'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ShapeAudioReactive from '../../components/shapes/ShapeAudioReactive.vue'
 import TickerAudioReactive from '../../components/ticker/TickerAudioReactive.vue'
 import VideoAudioReactive from '../../components/video-panel/VideoAudioReactive.vue'
 import { useShapeStore } from '../../stores/shapeStore'
 import { useTickerStore } from '../../stores/tickerStore'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
 import { historyApplyRevision } from '../../lib/history/historyRecorder'
 
 // Verhalten der drei Audio-Reaktiv-Ziele (Form, Lauftext, Video) gegenüber dem
 // gemeinsamen AudioReactivePanel. Gilt vor und nach dem Zusammenführen.
 
+/** Audio-Reaktiv-Konfiguration eines Ziels (nur die geprüften Felder) */
+interface TargetConfig {
+  enabled?: boolean
+  source?: unknown
+  smoothing?: unknown
+  easing?: unknown
+  beatBoost?: unknown
+  phase?: unknown
+  gain?: unknown
+  effects?: Record<string, { intensity?: unknown; source?: unknown }>
+}
+/** Video-Ziel: Konfiguration entsteht erst in fotoSettings */
+interface VideoTarget {
+  id: string
+  fotoSettings?: { audioReactive?: TargetConfig }
+}
+
 const loadSettings = vi.fn()
-let bar
+let bar: { style: { width?: string; background?: string } }
 const PanelStub = defineComponent({
   name: 'AudioReactivePanel',
   props: {
@@ -32,8 +49,8 @@ const PanelStub = defineComponent({
   },
 })
 
-const ev = (value) => ({ target: { value, checked: value } })
-let rafQueue
+const ev = (value: unknown) => ({ target: { value, checked: value } })
+let rafQueue: (() => void)[]
 function runFrame() {
   const q = rafQueue
   rafQueue = []
@@ -46,7 +63,7 @@ beforeEach(() => {
   loadSettings.mockClear()
   bar = { style: {} }
   rafQueue = []
-  vi.stubGlobal('requestAnimationFrame', (cb) => (rafQueue.push(cb), rafQueue.length))
+  vi.stubGlobal('requestAnimationFrame', (cb: () => void) => (rafQueue.push(cb), rafQueue.length))
   vi.stubGlobal('cancelAnimationFrame', () => {
     rafQueue = []
   })
@@ -60,11 +77,14 @@ afterEach(() => {
   setAudioAnalysisData(null)
 })
 
-const mountWith = (comp, props) =>
+const mountWith = (comp: Component, props?: Record<string, unknown>) =>
   mount(comp, { props, global: { stubs: { AudioReactivePanel: PanelStub } } })
 
 /** Gemeinsame Abläufe; `target` liefert Zugriff auf Konfiguration und Schalter. */
-function sharedBehaviour(name, setup) {
+function sharedBehaviour(
+  name: string,
+  setup: () => Promise<{ wrapper: VueWrapper; cfg: () => TargetConfig; key: string }>,
+) {
   describe(`${name} – gemeinsames Verhalten`, () => {
     it('Master-Regler und Effekte schreiben in die Konfiguration', async () => {
       const { wrapper, cfg } = await setup()
@@ -85,15 +105,15 @@ function sharedBehaviour(name, setup) {
         90,
         1.25,
       ])
-      const fx = Object.keys(c.effects)[0]
+      const fx = Object.keys(c.effects!)[0]!
       p.vm.$emit('effect-toggle', fx, 1)
       p.vm.$emit('effect-intensity-change', fx, '150')
       p.vm.$emit('effect-source-change', fx, 'treble')
-      expect(c.effects[fx]).toMatchObject({ enabled: true, intensity: 100, source: 'treble' })
+      expect(c.effects![fx]).toMatchObject({ enabled: true, intensity: 100, source: 'treble' })
       p.vm.$emit('effect-intensity-change', fx, 'abc')
-      expect(c.effects[fx].intensity).toBe(100)
+      expect(c.effects![fx]!.intensity).toBe(100)
       p.vm.$emit('effect-source-change', fx, '')
-      expect(c.effects[fx].source).toBeNull()
+      expect(c.effects![fx]!.source).toBeNull()
       // unbekannte/geschützte Eigenschaften werden ignoriert
       p.vm.$emit('source-change', ev('x'))
       wrapper.unmount()
@@ -127,7 +147,7 @@ function sharedBehaviour(name, setup) {
       p.vm.$emit('save-settings')
       await nextTick()
       expect(p.props('hasSavedSettings')).toBe(true)
-      expect(JSON.parse(localStorage.getItem(key)).gain).toBe(1.75)
+      expect(JSON.parse(localStorage.getItem(key)!).gain).toBe(1.75)
       p.vm.$emit('gain-change', ev('0.5'))
       p.vm.$emit('apply-settings')
       expect(cfg().gain).toBe(1.75)
@@ -172,7 +192,7 @@ sharedBehaviour('ShapeAudioReactive', async () => {
   await flushPromises()
   return {
     wrapper,
-    cfg: () => store.shapes.find((s) => s.id === shape.id).audioReactive,
+    cfg: () => store.shapes.find((s) => s.id === shape!.id)!.audioReactive as TargetConfig,
     key: 'visualizer_shapeAudioReactivePreset',
   }
 })
@@ -185,12 +205,12 @@ sharedBehaviour('TickerAudioReactive', async () => {
 })
 
 sharedBehaviour('VideoAudioReactive', async () => {
-  const video = { id: 'v1' }
+  const video: VideoTarget = { id: 'v1' }
   const wrapper = mountWith(VideoAudioReactive, { video, label: 'Hintergrund' })
   await flushPromises()
   return {
     wrapper,
-    cfg: () => video.fotoSettings.audioReactive,
+    cfg: () => video.fotoSettings!.audioReactive!,
     key: 'visualizer_videoAudioReactivePreset',
   }
 })
@@ -206,10 +226,10 @@ describe('Ziel-spezifisches Verhalten', () => {
     await flushPromises()
     const p = wrapper.findComponent(PanelStub)
     expect(p.props('hasActiveImage')).toBe(true)
-    expect(p.props('allowedEffects').length).toBeGreaterThan(0)
-    expect(shape.audioReactive ?? null).toBeNull()
+    expect(p.props('allowedEffects')!.length).toBeGreaterThan(0)
+    expect(shape!.audioReactive ?? null).toBeNull()
     p.vm.$emit('gain-change', ev('1.1'))
-    expect(store.shapes[0].audioReactive.gain).toBe(1.1)
+    expect((store.shapes[0]!.audioReactive as TargetConfig).gain).toBe(1.1)
     wrapper.unmount()
   })
 
@@ -233,7 +253,9 @@ describe('Ziel-spezifisches Verhalten', () => {
     await flushPromises()
     const p = wrapper.findComponent(PanelStub)
     expect(p.props('hasActiveImage')).toBe(true)
-    expect(p.props('extraCategories')[0].effects.map((e) => e.id)).toEqual(['tempo', 'opacity'])
+    expect(
+      (p.props('extraCategories') as { effects: { id: string }[] }[])[0]!.effects.map((e) => e.id),
+    ).toEqual(['tempo', 'opacity'])
     expect(ticker.audioReactive).toBe(false)
     p.vm.$emit('toggle-preset', 'pulse')
     expect(ticker.audioReactive).toBe(true)
@@ -251,8 +273,11 @@ describe('Ziel-spezifisches Verhalten', () => {
   })
 
   it('Video: Kopfzeile mit Bezeichnung, Konfiguration wird vervollständigt, Preset je Video', async () => {
-    const v1 = { id: 'v1' }
-    const v2 = { id: 'v2', fotoSettings: { audioReactive: { enabled: true, source: 'mid' } } }
+    const v1: VideoTarget = { id: 'v1' }
+    const v2: VideoTarget = {
+      id: 'v2',
+      fotoSettings: { audioReactive: { enabled: true, source: 'mid' } },
+    }
     const wrapper = mountWith(VideoAudioReactive, { video: v1, label: 'Hintergrund' })
     await flushPromises()
     expect(wrapper.find('.var-label').text()).toBe('Hintergrund')
@@ -262,13 +287,13 @@ describe('Ziel-spezifisches Verhalten', () => {
     await wrapper.setProps({ video: v2 })
     await flushPromises()
     expect(p.props('activeAudioPreset')).toBeNull()
-    expect(v2.fotoSettings.audioReactive.source).toBe('mid')
+    expect(v2.fotoSettings!.audioReactive!.source).toBe('mid')
     p.vm.$emit('gain-change', ev('1.3'))
-    expect(Object.keys(v2.fotoSettings.audioReactive.effects).length).toBeGreaterThan(10)
+    expect(Object.keys(v2.fotoSettings!.audioReactive!.effects!).length).toBeGreaterThan(10)
     await wrapper.setProps({ video: v1 })
     await flushPromises()
     expect(p.props('activeAudioPreset')).toBe('pulse')
-    expect(loadSettings).toHaveBeenLastCalledWith(v1.fotoSettings.audioReactive)
+    expect(loadSettings).toHaveBeenLastCalledWith(v1.fotoSettings!.audioReactive)
     wrapper.unmount()
   })
 })

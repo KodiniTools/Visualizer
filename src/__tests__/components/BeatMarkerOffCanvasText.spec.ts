@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { stub } from '../helpers/canvasStubs'
 import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { TextManager } from '../../lib/textManager'
+import type { TextObject } from '../../lib/textManager/types'
 
 const Host = defineComponent({
   setup() {
@@ -15,16 +17,18 @@ const Host = defineComponent({
   template: '<div />',
 })
 
-let wrapper
-let vm
-let playerStore
-let markerStore
-let tm
-let kept
-let removed
+type HostVm = InstanceType<typeof Host>
 
-function frame(time) {
-  playerStore.audioRef.currentTime = time
+let wrapper: VueWrapper<HostVm>
+let vm: HostVm
+let playerStore: ReturnType<typeof usePlayerStore>
+let markerStore: ReturnType<typeof useBeatMarkerStore>
+let tm: TextManager
+let kept: TextObject
+let removed: TextObject
+
+function frame(time: number) {
+  playerStore.audioRef!.currentTime = time
   playerStore.notifyFrame()
 }
 
@@ -35,7 +39,7 @@ beforeEach(async () => {
   markerStore = useBeatMarkerStore()
   useMarkerTransitionStore().enabled = false
   playerStore.duration = 300
-  playerStore.audioRef = { currentTime: 0 }
+  playerStore.audioRef = stub({ currentTime: 0 })
 
   tm = new TextManager({})
   kept = tm.add('Bleibt')
@@ -54,7 +58,7 @@ beforeEach(async () => {
 afterEach(() => wrapper?.unmount())
 
 async function startPlaybackAtZero() {
-  playerStore.audioRef.currentTime = 0
+  playerStore.audioRef!.currentTime = 0
   playerStore.currentTime = 0
   playerStore.isPlaying = true
   await nextTick()
@@ -64,7 +68,7 @@ describe('Beat-Marker mit vom Canvas entfernten Texten', () => {
   it('bietet entfernte Texte weiter im Dropdown an (markiert)', () => {
     const list = vm.getMarkerTexts()
     expect(list.map((x) => x.id)).toEqual([kept.id, removed.id])
-    expect(list[0].offCanvas).toBe(false)
+    expect(list[0]!.offCanvas).toBe(false)
     expect(list[1]).toMatchObject({ number: 2, content: 'Snovi moji', offCanvas: true })
   })
 
@@ -118,10 +122,10 @@ describe('beatMarkerStore.clearTextReference', () => {
     const a = markerStore.addMarker(1, { textId: removed.id, textLabel: 'Snovi moji' })
     const b = markerStore.addMarker(2, { textId: kept.id, textLabel: 'Bleibt' })
     expect(markerStore.clearTextReference(removed.id)).toBe(1)
-    const byId = (id) => markerStore.markers.find((m) => m.id === id)
-    expect(byId(a.id).action.textId).toBeNull()
-    expect(byId(a.id).action.textLabel).toBeNull()
-    expect(byId(b.id).action.textId).toBe(kept.id)
+    const byId = (id: number) => markerStore.markers.find((m) => m.id === id)
+    expect(byId(a.id)!.action.textId).toBeNull()
+    expect(byId(a.id)!.action.textLabel).toBeNull()
+    expect(byId(b.id)!.action.textId).toBe(kept.id)
   })
 
   it('ignoriert leere IDs', () => {

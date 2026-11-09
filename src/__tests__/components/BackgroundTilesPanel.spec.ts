@@ -2,19 +2,20 @@
 // Charakterisierung des Kachel-Hintergrund-Panels. Die Tests greifen über
 // sichtbare Texte, Labels und Titel zu, nicht über CSS-Klassen, damit sie den
 // Wechsel von nativen Controls auf die Ui-Bausteine unverändert überstehen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref } from 'vue'
 import BackgroundTilesPanel from '../../components/BackgroundTilesPanel.vue'
 import SliderField from '../../components/ui/SliderField.vue'
 import { useBackgroundTilesStore } from '../../stores/backgroundTilesStore'
+import { fakeImage, stub } from '../helpers/canvasStubs'
 import de from '../../lib/i18n/de'
 
 const T = de.backgroundTiles
-let wrapper
-let store
-let redraw
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useBackgroundTilesStore>
+let redraw: Mock
 
 function mountPanel() {
   redraw = vi.fn()
@@ -29,20 +30,20 @@ function mountPanel() {
 }
 
 /** Klick auf das Label mit diesem Text (aktiviert Checkbox bzw. Schalter). */
-async function clickLabel(text) {
+async function clickLabel(text: string) {
   const label = [...document.body.querySelectorAll('label')].find(
-    (l) => l.textContent.trim() === text,
+    (l) => l.textContent!.trim() === text,
   )
   expect(label, `Label „${text}“`).toBeTruthy()
-  label.click()
+  label!.click()
   await flushPromises()
 }
 
 /** Knopf mit genau diesem sichtbaren Text oder diesem Titel. */
-function button(textOrTitle) {
+function button(textOrTitle: string) {
   const el = [...document.body.querySelectorAll('button')].find(
     (b) =>
-      b.textContent.replace(/\s+/g, ' ').trim().endsWith(textOrTitle) ||
+      b.textContent!.replace(/\s+/g, ' ').trim().endsWith(textOrTitle) ||
       b.getAttribute('title') === textOrTitle ||
       b.getAttribute('aria-label') === textOrTitle,
   )
@@ -50,12 +51,12 @@ function button(textOrTitle) {
   return el
 }
 
-async function click(textOrTitle) {
-  button(textOrTitle).click()
+async function click(textOrTitle: string) {
+  button(textOrTitle)!.click()
   await flushPromises()
 }
 
-const sliders = () => wrapper.findAllComponents(SliderField)
+const sliders = () => wrapper!.findAllComponents(SliderField)
 
 async function enableAndSelect(index = 0) {
   store.setTilesEnabled(true)
@@ -102,7 +103,7 @@ describe('Kachel-Panel – Aktivierung, Anzahl, Abstand', () => {
   it('Abstand-Regler setzt tileGap', async () => {
     store.setTilesEnabled(true)
     mountPanel()
-    sliders()[0].vm.$emit('update:modelValue', 12)
+    sliders()[0]!.vm.$emit('update:modelValue', 12)
     await flushPromises()
     expect(store.tileGap).toBe(12)
   })
@@ -110,10 +111,10 @@ describe('Kachel-Panel – Aktivierung, Anzahl, Abstand', () => {
   it('Klick auf eine Vorschau-Kachel wählt sie aus und öffnet den Editor', async () => {
     store.setTilesEnabled(true)
     mountPanel()
-    const preview = [...document.body.querySelectorAll('*')].filter(
+    const preview = [...document.body.querySelectorAll<HTMLElement>('*')].filter(
       (el) => el.children.length && el.firstElementChild?.textContent === '2',
     )[0]
-    preview.click()
+    preview!.click()
     await flushPromises()
     expect(store.selectedTileIndex).toBe(1)
     expect(document.body.textContent).toContain(T.editTile.replace('{n}', '2'))
@@ -133,9 +134,9 @@ describe('Kachel-Panel – ausgewählte Kachel', () => {
     await enableAndSelect(0)
     mountPanel()
     // [0] Abstand, [1] Deckkraft
-    sliders()[1].vm.$emit('update:modelValue', 0.4)
+    sliders()[1]!.vm.$emit('update:modelValue', 0.4)
     await flushPromises()
-    expect(store.tiles[0].backgroundOpacity).toBeCloseTo(0.4)
+    expect(store.tiles[0]!.backgroundOpacity).toBeCloseTo(0.4)
     expect(document.body.textContent).toContain('40%')
 
     const reset = vi.spyOn(store, 'resetTile')
@@ -143,9 +144,9 @@ describe('Kachel-Panel – ausgewählte Kachel', () => {
     expect(reset).toHaveBeenCalledWith(0)
 
     const close = [...document.body.querySelectorAll('button')].find(
-      (b) => b.textContent.trim() === '×' || b.getAttribute('aria-label') === de.common.close,
+      (b) => b.textContent!.trim() === '×' || b.getAttribute('aria-label') === de.common.close,
     )
-    close.click()
+    close!.click()
     await flushPromises()
     expect(store.selectedTileIndex).toBe(null)
   })
@@ -159,15 +160,15 @@ describe('Kachel-Panel – ausgewählte Kachel', () => {
     expect(document.body.textContent).toContain(T.orDragDrop)
     const fileInputs = document.body.querySelectorAll('input[type="file"]')
     const clickSpy = vi.fn()
-    fileInputs[0].addEventListener('click', clickSpy)
+    fileInputs[0]!.addEventListener('click', clickSpy)
     await click(T.uploadImage)
     expect(clickSpy).toHaveBeenCalled()
   })
 
   it('mit Bild: 11 Filter-Regler schreiben in imageSettings', async () => {
     await enableAndSelect(0)
-    store.tiles[0].image = {}
-    store.tiles[0].imageSrc = 'data:image/png;base64,x'
+    store.tiles[0]!.image = fakeImage()
+    store.tiles[0]!.imageSrc = 'data:image/png;base64,x'
     mountPanel()
     await flushPromises()
     const all = sliders()
@@ -188,10 +189,10 @@ describe('Kachel-Panel – ausgewählte Kachel', () => {
     ]
     for (const [i, key] of keys.entries()) {
       const value = key === 'scale' ? 1.5 : 7
-      all[2 + i].vm.$emit('update:modelValue', value)
+      all[2 + i]!.vm.$emit('update:modelValue', value)
     }
     await flushPromises()
-    const s = store.tiles[0].imageSettings
+    const s = store.tiles[0]!.imageSettings
     expect(s.brightness).toBe(7)
     expect(s.offsetY).toBe(7)
     expect(s.scale).toBe(1.5)
@@ -208,7 +209,7 @@ describe('Kachel-Panel – ausgewählte Kachel', () => {
       'offsetX',
       'offsetY',
     ]) {
-      expect(document.body.textContent).toContain(T[key])
+      expect(document.body.textContent).toContain(T[key as keyof typeof T])
     }
     const remove = vi.spyOn(store, 'removeTileImage')
     await click(T.removeImage)
@@ -217,18 +218,18 @@ describe('Kachel-Panel – ausgewählte Kachel', () => {
 
   it('mit Video: Stumm/Endlos schalten videoSettings, Entfernen', async () => {
     await enableAndSelect(0)
-    store.tiles[0].video = { pause() {} }
-    store.tiles[0].videoSrc = 'blob:video'
-    store.tiles[0].videoSettings = { muted: true, loop: true, playbackRate: 1 }
+    store.tiles[0]!.video = stub({ pause() {} })
+    store.tiles[0]!.videoSrc = 'blob:video'
+    store.tiles[0]!.videoSettings = { muted: true, loop: true, playbackRate: 1 }
     mountPanel()
     await flushPromises()
     expect(document.body.textContent).toContain(T.videoPlaying)
     await clickLabel(T.videoMuted)
-    expect(store.tiles[0].videoSettings.muted).toBe(false)
+    expect(store.tiles[0]!.videoSettings.muted).toBe(false)
     await clickLabel(T.videoLoop)
-    expect(store.tiles[0].videoSettings.loop).toBe(false)
+    expect(store.tiles[0]!.videoSettings.loop).toBe(false)
     await clickLabel(T.videoLoop)
-    expect(store.tiles[0].videoSettings.loop).toBe(true)
+    expect(store.tiles[0]!.videoSettings.loop).toBe(true)
     const remove = vi.spyOn(store, 'removeTileVideo')
     await click(T.removeVideo)
     expect(remove).toHaveBeenCalledWith(0)
@@ -242,7 +243,7 @@ describe('Kachel-Panel – Presets', () => {
     expect(document.body.textContent).toContain(T.noTilePresets)
     await click(T.saveTilePreset)
     expect(document.body.textContent).toContain('Kachel-Preset 1')
-    expect(JSON.parse(localStorage.getItem('visualizer-tile-presets'))).toHaveLength(1)
+    expect(JSON.parse(localStorage.getItem('visualizer-tile-presets')!)).toHaveLength(1)
 
     store.setTileCount(12)
     await click(T.load)
@@ -282,11 +283,11 @@ describe('Kachel-Panel – Galerie', () => {
     expect(document.body.textContent).toContain('Natur')
     expect(document.body.textContent).toContain('Stadt')
     expect(document.body.textContent).toContain('Wald')
-    expect(button(T.gallerySelect).disabled).toBe(true)
+    expect(button(T.gallerySelect)!.disabled).toBe(true)
 
-    document.body.querySelector('button[aria-label="Wald"]').click()
+    document.body.querySelector<HTMLElement>('button[aria-label="Wald"]')!.click()
     await flushPromises()
-    expect(button(T.gallerySelect).disabled).toBe(false)
+    expect(button(T.gallerySelect)!.disabled).toBe(false)
 
     await click('Stadt')
     expect(fetch).toHaveBeenCalledWith('b.json')
@@ -302,7 +303,7 @@ describe('Kachel-Panel – Galerie', () => {
     await click(T.fromGallery)
     const dialog = document.body.querySelector('[role="dialog"]')
     expect(dialog).toBeTruthy()
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    dialog!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
     await flushPromises()
     expect(document.body.querySelector('[role="dialog"]')).toBeNull()
   })
@@ -311,16 +312,16 @@ describe('Kachel-Panel – Galerie', () => {
 describe('Kachel-Panel – Ui-Bausteine', () => {
   it('Schalter und Kachelanzahl sind zugängliche Ui-Controls', async () => {
     store.setTilesEnabled(true)
-    store.tiles[0].video = { pause() {} }
-    store.tiles[0].videoSrc = 'blob:video'
+    store.tiles[0]!.video = stub({ pause() {} })
+    store.tiles[0]!.videoSrc = 'blob:video'
     store.selectTile(0)
     mountPanel()
     await flushPromises()
     const switches = [...document.body.querySelectorAll('[role="switch"]')]
     expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'true', 'true'])
     const group = document.body.querySelector('[role="radiogroup"]')
-    expect(group.getAttribute('aria-label')).toBe(T.tileCount)
-    expect(group.querySelector('[aria-checked="true"]').textContent.trim()).toBe('6')
+    expect(group!.getAttribute('aria-label')).toBe(T.tileCount)
+    expect(group!.querySelector('[aria-checked="true"]')!.textContent!.trim()).toBe('6')
     expect(document.body.querySelectorAll('input[type="checkbox"]')).toHaveLength(0)
   })
 })

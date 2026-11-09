@@ -458,8 +458,8 @@ onMounted(async () => {
   // Keyboard shortcuts (warten ggf. auf Canvas- und MultiImageManager)
   setupKeyboardShortcuts({
     instanceRef: keyboardShortcutsInstance,
-    // Die Shortcut-Typen beschreiben nur den genutzten Ausschnitt; addImage()
-    // bekommt dort ein Bild-Objekt statt eines <img> (siehe keyboardShortcuts.ts)
+    // Die Shortcut-Typen beschreiben nur den genutzten Ausschnitt (z. B. hat
+    // VideoObject.imageObject keinen width/height-Typ), daher der Cast
     canvasManagerInstance:
       canvasManagerInstance as unknown as ShortcutsDeps['canvasManagerInstance'],
     multiImageManagerInstance:

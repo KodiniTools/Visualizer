@@ -15,7 +15,7 @@ import {
 } from '../../lib/audioSettingsPersistence'
 import { setupStorePersistence } from '../../lib/storePersistence'
 
-let persistence
+let persistence: ReturnType<typeof setupAudioSettingsPersistence> | null = null
 function restart() {
   persistence?.stop()
   setActivePinia(createPinia())
@@ -28,7 +28,8 @@ function restart() {
   persistence = setupAudioSettingsPersistence(stores)
   return stores
 }
-const saved = (k) => JSON.parse(localStorage.getItem(AUDIO_STORAGE_KEYS[k]))
+const saved = (k: keyof typeof AUDIO_STORAGE_KEYS) =>
+  JSON.parse(localStorage.getItem(AUDIO_STORAGE_KEYS[k])!)
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -114,7 +115,7 @@ describe('Audio-Einstellungen – dauerhaft speichern', () => {
     expect(s.audioSourceStore.selectedDeviceId).toBe('default')
     expect(s.audioFxStore.enabled).toBe(false)
     expect(s.audioFxStore.pulseStrength).toBe(55)
-    expect(s.audioFxStore.unbekannt).toBeUndefined()
+    expect((s.audioFxStore as unknown as Record<string, unknown>).unbekannt).toBeUndefined()
     expect(s.beatDropStore.enabled).toBe(false)
   })
 
@@ -122,7 +123,7 @@ describe('Audio-Einstellungen – dauerhaft speichern', () => {
     const s = restart()
     s.beatDropStore.flashColor = '#123456'
     await nextTick()
-    persistence.stop()
+    persistence!.stop()
     persistence = null
     expect(saved('beatDrop').flashColor).toBe('#123456')
   })

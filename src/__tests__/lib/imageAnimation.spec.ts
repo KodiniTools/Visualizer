@@ -6,15 +6,17 @@ import {
   getImageAnimationTransform,
   hasImageAnimation,
   restartImageAnimation,
+  type ImageAnimationKey,
 } from '../../lib/canvasObjects/imageAnimation'
 import { MultiImageManager } from '../../lib/multiImageManager'
+import { stub } from '../helpers/canvasStubs'
 
 const CANVAS = { width: 1000, height: 500 }
 /** Basis-Zeitpunkt (0 gilt in der Text-Zeitleiste als „nicht gestartet“) */
 const T = 1_000_000
 
 /** Bild mit einem eingeschalteten Effekt */
-function imageWith(key, overrides = {}) {
+function imageWith(key: ImageAnimationKey, overrides: object = {}) {
   const timedAnimation = createImageAnimation()
   Object.assign(timedAnimation[key], { enabled: true, easing: 'linear' }, overrides)
   return { timedAnimation }
@@ -87,7 +89,7 @@ describe('canvasObjects/imageAnimation', () => {
   it('Neustart greift, wenn Render-Loop (Proxy) und Panel (Rohobjekt) verschieden zugreifen', () => {
     // Manager liegen in Vue-Refs → der Render-Loop zeichnet reaktive Proxys
     const manager = ref({ images: [imageWith('fade', { duration: 1000 })] })
-    const drawn = manager.value.images[0]
+    const drawn = manager.value.images[0]!
     const raw = toRaw(drawn)
     expect(drawn).not.toBe(raw)
 
@@ -117,9 +119,9 @@ describe('canvasObjects/imageAnimation', () => {
 describe('MultiImageManager + Bild-Animationen', () => {
   function makeManager() {
     const canvas = { width: 1000, height: 500 }
-    return new MultiImageManager(canvas, { redrawCallback: () => {} })
+    return new MultiImageManager(stub(canvas), { redrawCallback: () => {} })
   }
-  const IMG = { width: 100, height: 100 }
+  const IMG = stub<HTMLImageElement>({ width: 100, height: 100 })
 
   it('addImage/addImageWithBounds übernehmen eine Kopie der Animationen', () => {
     const mgr = makeManager()
@@ -132,17 +134,17 @@ describe('MultiImageManager + Bild-Animationen', () => {
       'none',
       { timedAnimation: cfg },
     )
-    expect(a.timedAnimation.slide.enabled).toBe(true)
-    expect(b.timedAnimation).not.toBe(cfg)
-    expect(b.timedAnimation).not.toBe(a.timedAnimation)
+    expect(a!.timedAnimation!.slide.enabled).toBe(true)
+    expect(b!.timedAnimation).not.toBe(cfg)
+    expect(b!.timedAnimation).not.toBe(a!.timedAnimation)
   })
 
   it('ohne aktiven Effekt kein timedAnimation am Bild (Verhalten wie bisher)', () => {
     const mgr = makeManager()
-    expect(mgr.addImage(IMG, { timedAnimation: createImageAnimation() }).timedAnimation).toBe(
+    expect(mgr.addImage(IMG, { timedAnimation: createImageAnimation() })!.timedAnimation).toBe(
       undefined,
     )
-    expect(mgr.addImage(IMG).timedAnimation).toBe(undefined)
+    expect(mgr.addImage(IMG)!.timedAnimation).toBe(undefined)
   })
 
   it('getAnimationTransform verbindet Einblend-Effekt und Bild-Animation', () => {
@@ -150,7 +152,7 @@ describe('MultiImageManager + Bild-Animationen', () => {
     const img = mgr.addImage(IMG, {
       timedAnimation: imageWith('slide', { from: 'top' }).timedAnimation,
     })
-    const t = mgr.getAnimationTransform(img)
+    const t = mgr.getAnimationTransform(img!)
     expect(t.translateY).toBe(-500)
     expect(t.rotation).toBe(0)
     expect(t.opacity).toBe(1)

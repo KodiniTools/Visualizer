@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest'
 import {
   createGlVisualizer,
   getSharedEngine,
   resetSharedEngine,
 } from '../../../lib/visualizers/gl/createGlVisualizer'
 import { hexToRgb01 } from '../../../lib/visualizers/gl/GLVisualizerEngine'
+import { stub } from '../../helpers/canvasStubs'
 
 // Node test environment: no OffscreenCanvas, no document → WebGL2 unavailable.
 // This is exactly the situation the adapter must survive via the fallback.
@@ -19,7 +20,7 @@ function fakeCtx() {
 }
 
 describe('gl/createGlVisualizer (no WebGL2 available)', () => {
-  let infoSpy
+  let infoSpy: MockInstance
   beforeEach(() => {
     resetSharedEngine()
     infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
@@ -30,8 +31,8 @@ describe('gl/createGlVisualizer (no WebGL2 available)', () => {
   })
 
   it('rejects specs without id or shader', () => {
-    expect(() => createGlVisualizer({})).toThrow()
-    expect(() => createGlVisualizer({ id: 'x' })).toThrow()
+    expect(() => createGlVisualizer(stub({}))).toThrow()
+    expect(() => createGlVisualizer(stub({ id: 'x' }))).toThrow()
   })
 
   it('exposes the registry contract', () => {
@@ -65,9 +66,9 @@ describe('gl/createGlVisualizer (no WebGL2 available)', () => {
     })
     const ctx = fakeCtx()
     const data = new Uint8Array(1024)
-    viz.init(640, 360)
-    viz.draw(ctx, data, 1024, 640, 360, '#ff8800', 0.7)
-    viz.draw(ctx, data, 1024, 640, 360, '#ff8800', 0.7)
+    ;(viz.init as (w: number, h: number) => void)(640, 360)
+    viz.draw(stub(ctx), data, 1024, 640, 360, '#ff8800', 0.7)
+    viz.draw(stub(ctx), data, 1024, 640, 360, '#ff8800', 0.7)
 
     expect(fallback.init).toHaveBeenCalledTimes(1)
     expect(fallback.init).toHaveBeenCalledWith(640, 360)
@@ -105,7 +106,7 @@ describe('gl/createGlVisualizer (no WebGL2 available)', () => {
       name_en: 'Demo',
       frag: 'void main(){ fragColor = vec4(0.0); }',
     })
-    expect(() => viz.draw(fakeCtx(), new Uint8Array(8), 8, 10, 10, '#fff', 1)).not.toThrow()
+    expect(() => viz.draw(stub(fakeCtx()), new Uint8Array(8), 8, 10, 10, '#fff', 1)).not.toThrow()
   })
 })
 

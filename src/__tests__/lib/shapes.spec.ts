@@ -47,7 +47,9 @@ import {
   reloadRecentColors,
   useRecentColors,
 } from '../../composables/useRecentColors'
-const close = (a, b, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps)
+import { stub } from '../helpers/canvasStubs'
+
+const close = (a: number, b: number, eps = 1e-6) => expect(Math.abs(a - b)).toBeLessThan(eps)
 
 describe('Katalog', () => {
   it('jeder Galerie-Eintrag hat einen Pfad-Typ, eine Kategorie und eine eindeutige id', () => {
@@ -67,8 +69,8 @@ describe('Katalog', () => {
 
   it('jeder Eintrag ist in DE und EN übersetzt', () => {
     for (const item of SHAPE_GALLERY) {
-      expect(de.shapes.items[item.id], item.id).toBeTruthy()
-      expect(en.shapes.items[item.id], item.id).toBeTruthy()
+      expect((de.shapes.items as Record<string, string>)[item.id], item.id).toBeTruthy()
+      expect((en.shapes.items as Record<string, string>)[item.id], item.id).toBeTruthy()
     }
   })
 
@@ -81,10 +83,10 @@ describe('Katalog', () => {
       // Endpunkte (ohne Bogen-Radien) liegen im Rahmen ±1 px (Herz-Kurven leicht darüber)
       const numbers = d
         .replace(/A [^A-Z]*?(?= [A-Z]|$)/g, (arc) => arc.split(' ').slice(-2).join(' '))
-        .match(/-?\d+(\.\d+)?/g)
+        .match(/-?\d+(\.\d+)?/g)!
         .map(Number)
       for (let i = 0; i + 1 < numbers.length; i += 2) {
-        expect(Math.abs(numbers[i])).toBeLessThanOrEqual(110)
+        expect(Math.abs(numbers[i]!)).toBeLessThanOrEqual(110)
       }
     },
   )
@@ -94,23 +96,23 @@ describe('createShape', () => {
   it('legt die Form mittig mit Startgröße relativ zum Canvas an', () => {
     const s = createShape('rect', 1000, 600)
     expect(s).toMatchObject({ type: 'rect', x: 500, y: 300, rotation: 0, opacity: 100 })
-    expect(s.width).toBeGreaterThan(s.height)
-    expect(s.filled).toBe(true)
-    expect(s.strokeWidth).toBe(0)
+    expect(s!.width).toBeGreaterThan(s!.height)
+    expect(s!.filled).toBe(true)
+    expect(s!.strokeWidth).toBe(0)
   })
 
   it('Linienformen haben eine Linienstärke, Presets greifen', () => {
     const arrow = createShape('arrow', 800, 800)
-    expect(SHAPE_PATHS[arrow.type].kind).toBe(SHAPE_KIND.STROKE)
-    expect(arrow.strokeWidth).toBeGreaterThan(0)
-    expect(createShape('dashedLine', 800, 800).dash).toBe('dashed')
+    expect(SHAPE_PATHS[arrow!.type]!.kind).toBe(SHAPE_KIND.STROKE)
+    expect(arrow!.strokeWidth).toBeGreaterThan(0)
+    expect(createShape('dashedLine', 800, 800)!.dash).toBe('dashed')
     const frame = createShape('frame', 800, 800)
-    expect(frame.filled).toBe(false)
-    expect(frame.strokeWidth).toBeGreaterThan(0)
+    expect(frame!.filled).toBe(false)
+    expect(frame!.strokeWidth).toBeGreaterThan(0)
   })
 
   it('erzeugt eindeutige ids und lehnt Unbekanntes ab', () => {
-    expect(createShape('star', 100, 100).id).not.toBe(createShape('star', 100, 100).id)
+    expect(createShape('star', 100, 100)!.id).not.toBe(createShape('star', 100, 100)!.id)
     expect(createShape('unbekannt', 100, 100)).toBeNull()
   })
 
@@ -141,7 +143,7 @@ describe('Hit-Testing und Griffe', () => {
   it('findet die oberste Form', () => {
     const a = { ...shape, id: 'a', rotation: 0 }
     const b = { ...shape, id: 'b', rotation: 0 }
-    expect(findShapeAt([a, b], 100, 100).id).toBe('b')
+    expect(findShapeAt([a, b], 100, 100)!.id).toBe('b')
     expect(findShapeAt([a, b], 500, 500)).toBeNull()
   })
 
@@ -199,7 +201,7 @@ describe('Layout-Anpassungen', () => {
   it('skaliert Formen auf eine neue Canvas-Größe', () => {
     const shapes = [{ x: 100, y: 50, width: 40, height: 20, strokeWidth: 4, shadowBlur: 0 }]
     expect(
-      scaleShapesToCanvas(shapes, { width: 200, height: 100 }, { width: 400, height: 300 }),
+      scaleShapesToCanvas(stub(shapes), { width: 200, height: 100 }, { width: 400, height: 300 }),
     ).toBe(true)
     expect(shapes[0]).toMatchObject({ x: 200, y: 150, width: 80, height: 40, strokeWidth: 8 })
     expect(scaleShapesToCanvas([], { width: 1, height: 1 }, { width: 2, height: 2 })).toBe(false)
@@ -210,7 +212,7 @@ describe('Layout-Anpassungen', () => {
       { id: 'in', x: 150, y: 150 },
       { id: 'out', x: 10, y: 10 },
     ]
-    expect(cropShapes(shapes, { x: 100, y: 100, width: 200, height: 200 })).toBe(1)
+    expect(cropShapes(stub(shapes), { x: 100, y: 100, width: 200, height: 200 })).toBe(1)
     expect(shapes).toEqual([{ id: 'in', x: 50, y: 50 }])
   })
 })
@@ -218,15 +220,15 @@ describe('Layout-Anpassungen', () => {
 describe('Marker und Verpixeln', () => {
   it('Marker: quadratisch, Nummer, Zahlenfarbe, weiße Kontur', () => {
     const m = createShape('marker', 1000, 800)
-    expect(m.width).toBe(m.height)
+    expect(m!.width).toBe(m!.height)
     expect(m).toMatchObject({
       type: 'marker',
       number: 1,
       textColor: '#ffffff',
       markerStyle: 'circle',
     })
-    expect(m.strokeWidth).toBeGreaterThan(0)
-    expect(createShape('markerSquare', 100, 100).markerStyle).toBe('square')
+    expect(m!.strokeWidth).toBeGreaterThan(0)
+    expect(createShape('markerSquare', 100, 100)!.markerStyle).toBe('square')
   })
 
   it('nextMarkerNumber zählt nur Marker', () => {
@@ -255,56 +257,57 @@ describe('Marker und Verpixeln', () => {
 
   it('Galerie-Vorschau: Marker mit Nummer, Verpixeln mit Raster', () => {
     const marker = SHAPE_GALLERY.find((g) => g.id === 'marker')
-    expect(getGalleryPreview(marker).label).toBe('1')
+    expect(getGalleryPreview(marker!).label).toBe('1')
     const pix = SHAPE_GALLERY.find((g) => g.id === 'pixelate')
-    expect(getGalleryPreview(pix).pattern).toMatch(/^M /)
+    expect(getGalleryPreview(pix!).pattern).toMatch(/^M /)
     const blur = SHAPE_GALLERY.find((g) => g.id === 'blur')
-    expect(getGalleryPreview(blur).effect).toBe('blur')
+    expect(getGalleryPreview(blur!).effect).toBe('blur')
   })
 })
 
 function fakeCtx() {
-  return {
+  const ctx = {
     font: '10px x',
-    measureText(text) {
+    measureText(text: string) {
       const size = parseFloat(this.font) || 10
       return { width: String(text).length * size * 0.5 }
     },
   }
+  return stub<CanvasRenderingContext2D>(ctx)
 }
 
 describe('Text in Formen', () => {
   it('Textformen der Galerie haben Text, Schrift und relative Größe', () => {
     for (const id of ['textBox', 'speechBubbleText', 'label']) {
       const shape = createShape(id, 1000, 800)
-      expect(supportsShapeText(shape.type), id).toBe(true)
+      expect(supportsShapeText(shape!.type), id).toBe(true)
       expect(shape).toMatchObject({ text: 'Text', textAlign: 'center' })
-      expect(shape.textScale).toBeGreaterThan(0)
-      expect(getShapePathData(shape.type, shape.width, shape.height, shape)).not.toBe('')
+      expect(shape!.textScale).toBeGreaterThan(0)
+      expect(getShapePathData(shape!.type, shape!.width, shape!.height, shape)).not.toBe('')
     }
     // Rechteck/Kreis bekommen ein (leeres) Textfeld, Pfeile nicht
-    expect(createShape('rect', 800, 600).text).toBe('')
+    expect(createShape('rect', 800, 600)!.text).toBe('')
     expect(supportsShapeText('arrow')).toBe(false)
-    expect(createShape('arrow', 800, 600).text).toBeUndefined()
+    expect(createShape('arrow', 800, 600)!.text).toBeUndefined()
   })
 
   it('Textbereich liegt in der Form; bei der Sprechblase über dem Zipfel', () => {
     for (const type of ['rect', 'roundedRect', 'ellipse', 'diamond', 'speechBubble', 'label']) {
       const box = getShapeTextBox({ type, width: 200, height: 100 })
-      expect(Math.abs(box.x) + box.width / 2, type).toBeLessThanOrEqual(100)
-      expect(Math.abs(box.y) + box.height / 2, type).toBeLessThanOrEqual(50)
+      expect(Math.abs(box!.x) + box!.width / 2, type).toBeLessThanOrEqual(100)
+      expect(Math.abs(box!.y) + box!.height / 2, type).toBeLessThanOrEqual(50)
     }
     const bubble = getShapeTextBox({ type: 'speechBubble', width: 200, height: 100 })
     // Körper endet bei y = +25 (h/2 · 0,5)
-    expect(bubble.y + bubble.height / 2).toBeLessThanOrEqual(25)
+    expect(bubble!.y + bubble!.height / 2).toBeLessThanOrEqual(25)
   })
 
   it('Schriftgröße wandert mit der Form', () => {
     const shape = createShape('textBox', 1000, 800)
-    const before = getShapeFontSize(shape)
-    shape.width *= 2
-    shape.height *= 2
-    expect(getShapeFontSize(shape)).toBeCloseTo(before * 2, 5)
+    const before = getShapeFontSize(shape!)
+    shape!.width *= 2
+    shape!.height *= 2
+    expect(getShapeFontSize(shape!)).toBeCloseTo(before * 2, 5)
   })
 
   it('bricht Text um und verkleinert ihn, bis er passt', () => {
@@ -314,14 +317,14 @@ describe('Text in Formen', () => {
     expect(wrapShapeText(ctx, 'a\n\nb', 100)).toEqual(['a', '', 'b'])
 
     const shape = { type: 'rect', width: 200, height: 100, text: 'Hallo', textScale: 0.3 }
-    const fits = layoutShapeText(ctx, shape)
-    expect(fits.fontSize).toBeCloseTo(30, 5)
-    expect(fits.lines).toEqual(['Hallo'])
+    const fits = layoutShapeText(ctx, stub(shape))
+    expect(fits!.fontSize).toBeCloseTo(30, 5)
+    expect(fits!.lines).toEqual(['Hallo'])
 
     const long = { ...shape, text: 'Ein ziemlich langer Satz für eine kleine Form' }
-    const layout = layoutShapeText(ctx, long)
-    expect(layout.fontSize).toBeLessThan(30)
-    expect(layout.lines.length * layout.fontSize * 1.2).toBeLessThanOrEqual(layout.box.height)
+    const layout = layoutShapeText(ctx, stub(long))
+    expect(layout!.fontSize).toBeLessThan(30)
+    expect(layout!.lines.length * layout!.fontSize * 1.2).toBeLessThanOrEqual(layout!.box.height)
   })
 })
 
@@ -333,7 +336,7 @@ describe('Freihand: Stift und Textmarker', () => {
       { x: 200, y: 400 },
     ])
     expect(fit).toMatchObject({ x: 200, y: 300, width: 200, height: 200 })
-    expect(fit.points).toEqual([
+    expect(fit!.points).toEqual([
       [-0.5, -0.5],
       [0.5, 0],
       [0, 0.5],
@@ -343,7 +346,7 @@ describe('Freihand: Stift und Textmarker', () => {
       fitFreehandPoints([
         { x: 0, y: 5 },
         { x: 10, y: 5 },
-      ]).height,
+      ])!.height,
     ).toBe(1)
     expect(fitFreehandPoints([])).toBeNull()
   })
@@ -356,9 +359,9 @@ describe('Freihand: Stift und Textmarker', () => {
     const hl = createFreehandShape(pts, { tool: 'highlighter', width: 20 })
     const pen = createFreehandShape(pts, { tool: 'pen', color: '#123456', width: 3 })
     expect(hl).toMatchObject({ type: 'freehand', tool: 'highlighter', strokeWidth: 20 })
-    expect(hl.opacity).toBeLessThan(100)
+    expect(hl!.opacity).toBeLessThan(100)
     expect(pen).toMatchObject({ tool: 'pen', strokeColor: '#123456', opacity: 100 })
-    expect(getShapePathData('freehand', pen.width, pen.height, pen)).toMatch(/^M /)
+    expect(getShapePathData('freehand', pen!.width, pen!.height, pen)).toMatch(/^M /)
     expect(getDefaultDrawWidth('highlighter', 1000, 1000)).toBeGreaterThan(
       getDefaultDrawWidth('pen', 1000, 1000),
     )
@@ -383,29 +386,32 @@ describe('Sticker und Emojis', () => {
     expect(createShape('badgeSale', 800, 600)).toMatchObject({ type: 'burst', text: 'SALE' })
     const emoji = createShape('emojiFire', 800, 600)
     expect(emoji).toMatchObject({ type: 'emoji', emoji: EMOJI_SET.emojiFire, strokeWidth: 0 })
-    expect(emoji.width).toBe(emoji.height)
-    expect(getGalleryPreview(SHAPE_GALLERY.find((g) => g.id === 'emojiFire')).emoji).toBe('🔥')
+    expect(emoji!.width).toBe(emoji!.height)
+    expect(getGalleryPreview(SHAPE_GALLERY.find((g) => g.id === 'emojiFire')!).emoji).toBe('🔥')
   })
 })
 
 describe('Farbverlauf', () => {
   function gradientCtx() {
-    const calls = []
-    const gradient = { stops: [], addColorStop: (o, c) => gradient.stops.push([o, c]) }
+    const calls: (string | number)[][] = []
+    const gradient: { stops: [number, string][]; addColorStop: (o: number, c: string) => number } =
+      { stops: [], addColorStop: (o, c) => gradient.stops.push([o, c]) }
     return {
       calls,
       gradient,
-      createLinearGradient: (...a) => (calls.push(['linear', ...a]), gradient),
-      createRadialGradient: (...a) => (calls.push(['radial', ...a]), gradient),
+      createLinearGradient: (...a: number[]) => (calls.push(['linear', ...a]), gradient),
+      createRadialGradient: (...a: number[]) => (calls.push(['radial', ...a]), gradient),
     }
   }
 
   it('einfarbig liefert die Farbe, linear/radial einen Verlauf über den Rahmen', () => {
     const base = { fillColor: '#ff0000', fillColor2: '#0000ff', gradientAngle: 0 }
-    expect(getFillStyle(gradientCtx(), { ...base, fillType: 'solid' }, 100, 50)).toBe('#ff0000')
+    expect(getFillStyle(stub(gradientCtx()), { ...base, fillType: 'solid' }, 100, 50)).toBe(
+      '#ff0000',
+    )
 
     const lin = gradientCtx()
-    getFillStyle(lin, { ...base, fillType: 'linear' }, 100, 50)
+    getFillStyle(stub(lin), { ...base, fillType: 'linear' }, 100, 50)
     expect(lin.calls[0]).toEqual(['linear', -50, -0, 50, 0])
     expect(lin.gradient.stops).toEqual([
       [0, '#ff0000'],
@@ -413,15 +419,15 @@ describe('Farbverlauf', () => {
     ])
 
     const down = gradientCtx()
-    getFillStyle(down, { ...base, fillType: 'linear', gradientAngle: 90 }, 100, 50)
-    const [, x0, y0, x1, y1] = down.calls[0]
+    getFillStyle(stub(down), { ...base, fillType: 'linear', gradientAngle: 90 }, 100, 50)
+    const [, x0, y0, x1, y1] = down.calls[0] as [string, number, number, number, number]
     close(x0, 0, 1e-9)
     close(x1, 0, 1e-9)
     close(y0, -25)
     close(y1, 25)
 
     const rad = gradientCtx()
-    getFillStyle(rad, { ...base, fillType: 'radial' }, 100, 50)
+    getFillStyle(stub(rad), { ...base, fillType: 'radial' }, 100, 50)
     expect(rad.calls[0]).toEqual(['radial', 0, 0, 0, 0, 0, 50])
   })
 })
@@ -441,7 +447,7 @@ describe('Zuletzt verwendete Farben', () => {
     expect(recentColors.value).toEqual(['#ff0000', '#00ff00'])
     for (let i = 0; i < 12; i++) addRecentColor(`#0000${String(i).padStart(2, '0')}`)
     expect(recentColors.value).toHaveLength(RECENT_COLORS_MAX)
-    expect(JSON.parse(localStorage.getItem(RECENT_COLORS_KEY))).toEqual(recentColors.value)
+    expect(JSON.parse(localStorage.getItem(RECENT_COLORS_KEY)!)).toEqual(recentColors.value)
 
     localStorage.setItem(RECENT_COLORS_KEY, '["#123456","kaputt"]')
     reloadRecentColors()

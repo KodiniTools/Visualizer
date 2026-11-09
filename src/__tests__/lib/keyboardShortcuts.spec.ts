@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { KeyboardShortcuts } from '../../lib/keyboardShortcuts'
+import { stub } from '../helpers/canvasStubs'
 
 /**
  * Verhaltenstest für KeyboardShortcuts.
@@ -79,8 +80,24 @@ const STATES = {
   'bild+kopie': { activeObject: { type: 'image' }, copied: { type: 'image' } },
 }
 
-function makeEvent(key, mods = {}, target = { tagName: 'DIV', isContentEditable: false }) {
-  return {
+/** Ziel eines Tastendrucks (Element-Ausschnitt) */
+interface FakeTarget {
+  tagName: string
+  isContentEditable?: boolean
+}
+
+/** Canvas-Objekt der Attrappe */
+type FakeObj = { type: string } & Record<string, unknown>
+
+/** Spionierbare Sicht auf die Aktionen */
+type ActionSpyTarget = Record<string, (...args: unknown[]) => unknown>
+
+function makeEvent(
+  key: string,
+  mods: Partial<Record<'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey', boolean>> = {},
+  target: FakeTarget = { tagName: 'DIV', isContentEditable: false },
+) {
+  const event = {
     key,
     ctrlKey: false,
     metaKey: false,
@@ -93,13 +110,14 @@ function makeEvent(key, mods = {}, target = { tagName: 'DIV', isContentEditable:
       this.defaultPrevented = true
     },
   }
+  return stub<KeyboardEvent>(event)
 }
 
-function makeShortcuts(canvasOverrides = {}) {
-  const calls = []
+function makeShortcuts(canvasOverrides: Record<string, unknown> = {}) {
+  const calls: string[] = []
   const rec =
-    (name) =>
-    (...args) =>
+    (name: string) =>
+    (...args: unknown[]) =>
       calls.push(`${name}(${args.map((a) => JSON.stringify(a)).join(', ')})`)
   const stores = {
     playerStore: {
@@ -120,7 +138,12 @@ function makeShortcuts(canvasOverrides = {}) {
     gridStore: { isVisible: false, toggleGrid: rec('grid.toggleGrid') },
     historyStore: { undo: rec('history.undo'), redo: rec('history.redo') },
   }
-  const canvasManager = {
+  const canvasManager: {
+    activeObject: FakeObj | null
+    isEditingText: boolean
+    canvas: { width: number; height: number } | null
+    [key: string]: unknown
+  } = {
     activeObject: null,
     isEditingText: false,
     canvas: { width: 1000, height: 500 },
@@ -130,8 +153,10 @@ function makeShortcuts(canvasOverrides = {}) {
     redrawCallback: rec('cm.redraw'),
     ...canvasOverrides,
   }
-  const multiImageManager = { duplicateImage: rec('mim.duplicateImage') }
-  const ks = new KeyboardShortcuts(stores, { canvasManager, multiImageManager })
+  const multiImageManager: { duplicateImage: (...args: unknown[]) => unknown } = {
+    duplicateImage: rec('mim.duplicateImage'),
+  }
+  const ks = new KeyboardShortcuts(stub(stores), stub({ canvasManager, multiImageManager }))
   return { ks, calls, stores, canvasManager, multiImageManager }
 }
 
@@ -147,20 +172,21 @@ afterEach(() => {
 
 describe('KeyboardShortcuts – Zuordnung Taste → Aktion', () => {
   it('vollständige Tabelle (Taste × Modifikatoren × Zustand)', () => {
-    const rows = []
+    const rows: string[] = []
     for (const [stateName, state] of Object.entries(STATES)) {
       for (const [modName, mods] of Object.entries(MODIFIERS)) {
         for (const key of KEYS) {
           const { ks, canvasManager } = makeShortcuts({ activeObject: state.activeObject })
-          ks.copiedObject = state.copied
-          const hit = []
+          ks.copiedObject = stub(state.copied)
+          const hit: string[] = []
           for (const name of ACTIONS) {
-            vi.spyOn(ks, name).mockImplementation((...args) => {
+            vi.spyOn(stub<ActionSpyTarget>(ks), name).mockImplementation((...args) => {
               hit.push(`${name}(${args.map((a) => JSON.stringify(a)).join(', ')})`)
             })
           }
-          const textEvents = []
-          const onText = (e) => textEvents.push(`openTextEditorWithChar(${e.detail.char})`)
+          const textEvents: string[] = []
+          const onText = (e: Event) =>
+            textEvents.push(`openTextEditorWithChar(${(e as CustomEvent).detail.char})`)
           window.addEventListener('openTextEditorWithChar', onText)
           const event = makeEvent(key, mods)
           ks.handleKeyDown(event)
@@ -177,7 +203,7 @@ describe('KeyboardShortcuts – Zuordnung Taste → Aktion', () => {
   })
 
   it('ignoriert Eingabefelder, contenteditable, Text-Bearbeitung und deaktivierten Zustand', () => {
-    const targets = [
+    const targets: FakeTarget[] = [
       { tagName: 'INPUT' },
       { tagName: 'TEXTAREA' },
       { tagName: 'DIV', isContentEditable: true },
@@ -234,7 +260,10 @@ describe('KeyboardShortcuts – Aktionen', () => {
     const { usePlayerStore } = await import('../../stores/playerStore')
     setActivePinia(createPinia())
     const playerStore = usePlayerStore()
-    const ks = new KeyboardShortcuts({ playerStore, gridStore: {} }, { canvasManager: null })
+    const ks = new KeyboardShortcuts(
+      stub({ playerStore, gridStore: {} }),
+      stub({ canvasManager: null }),
+    )
     // ohne Titel: kein Fehler (vorher: „play/previousTrack/toggleMute is not a function“)
     expect(() => ks.togglePlayPause()).not.toThrow()
     expect(() => ks.previousTrack()).not.toThrow()
@@ -312,7 +341,10 @@ describe('KeyboardShortcuts – Aktionen', () => {
     image.relX = 0.9 // Kopie ist unabhängig vom Original
     canvasManager.activeObject = null
     ks.pasteObject()
-    const [pasted, offset] = multiImageManager.duplicateImage.mock.calls.at(-1)
+    const [pasted, offset] = vi.mocked(multiImageManager.duplicateImage).mock.calls.at(-1) as [
+      FakeObj,
+      number,
+    ]
     expect(offset).toBe(0.05)
     expect(pasted).not.toBe(image)
     expect(pasted.relX).toBe(0.3)
@@ -333,7 +365,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
     for (const type of ['background', 'workspace-background']) {
       canvasManager.activeObject = { type, relX: 0, relY: 0 }
       ks.moveSelectedObject('arrowdown')
-      expect(canvasManager.activeObject.relY).toBe(0)
+      expect(canvasManager.activeObject!.relY).toBe(0)
     }
     canvasManager.activeObject = obj
     canvasManager.canvas = null
@@ -350,13 +382,13 @@ describe('KeyboardShortcuts – Aktionen', () => {
       imageObject: { width: 400, height: 100 },
     }
     canvasManager.activeObject = img
-    const snaps = []
+    const snaps: number[][] = []
     for (const [dir, fast] of [
       ['arrowdown', false],
       ['arrowup', true],
       ['arrowright', false],
       ['arrowleft', true],
-    ]) {
+    ] as [string, boolean][]) {
       ks.resizeSelectedObject(dir, fast)
       snaps.push([img.relWidth, img.relHeight].map((v) => Math.round(v * 1e6) / 1e6))
     }
@@ -393,7 +425,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
     setActivePinia(createPinia())
     const gridStore = useGridStore()
     const before = gridStore.isVisible
-    const ks = new KeyboardShortcuts({ gridStore }, { canvasManager: null })
+    const ks = new KeyboardShortcuts(stub({ gridStore }), stub({ canvasManager: null }))
     // vorher: „this.gridStore.toggle is not a function“
     ks.handleKeyDown(makeEvent('g'))
     expect(gridStore.isVisible).toBe(!before)
@@ -423,7 +455,7 @@ describe('KeyboardShortcuts – Aktionen', () => {
     const { ks } = makeShortcuts()
     expect(ks.getShortcutList()).toMatchSnapshot()
     ks.printShortcuts()
-    expect(console.log.mock.calls.map((c) => c.join(' '))).toMatchSnapshot()
+    expect(vi.mocked(console.log).mock.calls.map((c) => c.join(' '))).toMatchSnapshot()
   })
 })
 
@@ -431,9 +463,9 @@ describe('KeyboardShortcuts – Shortcut-Liste', () => {
   it('liefert je Aufruf eine eigene, veränderbare Kopie', () => {
     const { ks } = makeShortcuts()
     const a = ks.getShortcutList()
-    a.Player.Space = 'geändert'
+    a.Player!.Space = 'geändert'
     a.Neu = {}
-    expect(ks.getShortcutList().Player.Space).toBe('Play/Pause')
+    expect(ks.getShortcutList().Player!.Space).toBe('Play/Pause')
     expect(ks.getShortcutList().Neu).toBeUndefined()
   })
 })

@@ -11,7 +11,7 @@ import {
 } from '../../../lib/visualizers/gl/audioFeatures'
 import { visualizerState } from '../../../lib/visualizers/core/state'
 
-function spectrum(bufferLength, fn) {
+function spectrum(bufferLength: number, fn: (i: number) => number) {
   const arr = new Uint8Array(bufferLength)
   for (let i = 0; i < bufferLength; i++) arr[i] = Math.max(0, Math.min(255, Math.round(fn(i))))
   return arr
@@ -68,7 +68,7 @@ describe('gl/audioFeatures', () => {
     expect(first).toBeLessThan(255)
     for (let i = 0; i < 120; i++) updateAudioFeatures(state, data, len)
     const later = state.rows[AUDIO_TEX_WIDTH + 10]
-    expect(later).toBeGreaterThan(first)
+    expect(later).toBeGreaterThan(first!)
   })
 
   it('keeps every texel within 0–255 for extreme input', () => {
@@ -149,7 +149,7 @@ describe('gl/audioFeatures', () => {
   })
 
   describe('time-domain path', () => {
-    function wave(len, fn) {
+    function wave(len: number, fn: (i: number) => number) {
       const arr = new Uint8Array(len)
       for (let i = 0; i < len; i++) arr[i] = Math.max(0, Math.min(255, Math.round(128 + fn(i))))
       return arr
@@ -179,9 +179,9 @@ describe('gl/audioFeatures', () => {
       let max = 0
       let envMax = 0
       for (let x = 0; x < AUDIO_TEX_WIDTH; x++) {
-        min = Math.min(min, state.rows[x])
-        max = Math.max(max, state.rows[x])
-        envMax = Math.max(envMax, state.rows[AUDIO_TEX_WIDTH + x])
+        min = Math.min(min, state.rows[x]!)
+        max = Math.max(max, state.rows[x]!)
+        envMax = Math.max(envMax, state.rows[AUDIO_TEX_WIDTH + x]!)
       }
       expect(min).toBeLessThan(60)
       expect(max).toBeGreaterThan(190)
@@ -204,8 +204,8 @@ describe('gl/audioFeatures', () => {
         wave(len, (i) => 100 * Math.sin(i * 2.5)),
         len,
       )
-      expect(slow.bands[0]).toBeGreaterThan(fast.bands[0])
-      expect(fast.bands[2]).toBeGreaterThan(slow.bands[2])
+      expect(slow.bands[0]).toBeGreaterThan(fast.bands[0]!)
+      expect(fast.bands[2]).toBeGreaterThan(slow.bands[2]!)
     })
   })
 })

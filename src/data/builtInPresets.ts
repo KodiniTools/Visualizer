@@ -1,3 +1,4 @@
+import type { PresetBackground, VisualizerPreset } from '../stores/presetStore'
 // Eingebaute Visualizer-Presets (Single- und Multi-Layer).
 // Reine Daten; Laden, Speichern und Anwenden liegen in stores/presetStore.js.
 import { DEFAULT_REACT_SHAPE } from '../lib/visualizers/core/reactSource'
@@ -47,7 +48,7 @@ interface MultiPresetInput {
   name: string
   emoji: string
   color: string
-  background: Record<string, unknown>
+  background: PresetBackground
   /** mindestens ein Layer; der erste bestimmt selectedVisualizer */
   layers: [BuiltInLayer, ...BuiltInLayer[]]
   needsImage?: boolean
@@ -90,7 +91,7 @@ function multiPreset({
   }
 }
 
-export const BUILT_IN_PRESETS = [
+export const BUILT_IN_PRESETS: VisualizerPreset[] = [
   {
     id: 'builtin-neon-dark',
     name: 'Neon Dark',

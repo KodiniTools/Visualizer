@@ -94,7 +94,7 @@ describe('visualizer catalogue (migration stage 1)', () => {
 
   it('built-in presets select GPU presets', () => {
     for (const preset of BUILT_IN_PRESETS) {
-      const id = preset.visualizer.selectedVisualizer
+      const id = preset.visualizer.selectedVisualizer ?? ''
       expect(glVisualizers[id], `${preset.name} → ${id}`).toBeDefined()
     }
   })

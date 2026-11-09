@@ -182,8 +182,8 @@ describe('Ablauf: Filter ändern → stoppen → neue Sitzung → Start', () => 
     // Neue Sitzung: neuer Manager (leerer Sitzungsspeicher), neues Bildobjekt
     const m2 = createManager(persist)
     const fresh = [{ name: 'a.png', imageObject: { width: 10, height: 10 }, audioMode: 'default' }]
-    restorePersistedAdjustments(stub(m2), fresh, {
-      resolveImageObject: (img) => img.imageObject as object,
+    restorePersistedAdjustments(m2, fresh, {
+      resolveImageObject: (img) => stub<HTMLImageElement>(img.imageObject as object),
       getAdjustments: (k) => store.getAdjustments(k as string),
     })
     m2.start(stub([...fresh, { name: 'c.png', imageObject: { width: 5, height: 5 } }]))
@@ -242,8 +242,8 @@ describe('Ablauf: Größe/Position ändern → neue Sitzung → Start', () => {
 
     const m2 = make()
     const fresh = [{ name: 'a.png', imageObject: { width: 10, height: 10 } }]
-    const n = restorePersistedBounds(stub(m2), fresh, {
-      resolveImageObject: (img) => img.imageObject as object,
+    const n = restorePersistedBounds(m2, fresh, {
+      resolveImageObject: (img) => stub<HTMLImageElement>(img.imageObject as object),
       getBounds: (k) => settings.getImageSettings(k as string)?.bounds ?? null,
     })
     expect(n).toBe(1)

@@ -453,7 +453,7 @@ describe('useBgSettings – Presets', () => {
     const cm = mountBg()
     populate(cm)
     bg.backgroundColor.value = '#112233'
-    bg.gradientEnabled.value = 1 as unknown as boolean
+    bg.gradientEnabled.value = true
     bg.saveCurrentAsPreset()
     expect(bg.savedPresets.value).toHaveLength(1)
     const stored = JSON.parse(localStorage.getItem('visualizer-canvas-presets')!)

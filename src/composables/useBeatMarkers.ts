@@ -18,6 +18,7 @@ import { useShapeStore, type Shape } from '../stores/shapeStore'
 import { SHAPE_CATEGORIES, SHAPE_GALLERY } from '../lib/shapes/shapes'
 import { useImageGallery } from './useImageGallery'
 import { loadImageAnimation } from '../lib/imagePlacementSettings'
+import { onMarkerTargetEdited, type MarkerTargetEdit } from '../lib/markerTargetEdits'
 import {
   cloneImageAnimation,
   createImageAnimation,
@@ -193,6 +194,16 @@ export function useBeatMarkers(
       content: (o.content || '').replace(/\s+/g, ' ').trim().slice(0, 30),
       offCanvas: !!o.offCanvas,
     }))
+  }
+
+  /**
+   * Aktuelle Bezeichnung eines Marker-Textes (Inhalt bzw. Nummer). Folgt
+   * Änderungen am Text; null, wenn der Text nicht mehr existiert.
+   */
+  const getMarkerTextLabel = (id: TextObject['id'] | null | undefined) => {
+    if (id === undefined || id === null || id === '') return null
+    const txt = getMarkerTexts().find((tt) => tt.id === id)
+    return txt ? txt.content || `#${txt.number}` : null
   }
 
   const findText = (id: TextObject['id']) => orderedTextObjects().find((o) => o.id === id) || null
@@ -717,7 +728,58 @@ export function useBeatMarkers(
     const target = setBackgroundImageWithDefaults(canvasManager.value, toRaw(entry.img), defaults, {
       timedAnimation: ref.timedAnimation ?? null,
     })
+    // Gesetztes Hintergrund-Objekt mit dem Marker verknüpfen: Änderungen an
+    // seiner Animation (Foto-Panel) übernimmt der Marker sofort.
+    const cm = canvasManager.value
+    const placed = target === 'workspace' ? cm?.workspaceBackground : cm?.background
+    if (placed && typeof placed === 'object') markerBackgroundLinks.set(toRaw(placed), ref)
     console.log('🖼️ Hintergrund-Bild via Beat-Marker:', ref.name, `(${target})`)
+  }
+
+  // ══════════════════ Bearbeitungen sofort übernehmen ══════════════════
+  // Panels melden Bearbeitungen (lib/markerTargetEdits). Ein vom Marker
+  // ausgeblendetes Element wird dabei sichtbar, damit man die Änderung sieht;
+  // die Animation eines Marker-Hintergrundbildes geht zurück in den Marker.
+
+  /** Vom Marker gesetztes Hintergrund-Objekt → Bild-Verweis des Markers */
+  const markerBackgroundLinks = new WeakMap<object, MarkerBackgroundImageRef>()
+
+  /** Von einem Marker ausgeblendeten Text wieder zeigen (Deckkraft zurück). */
+  const revealMarkerText = (id: TextObject['id']) => {
+    if (!markerTextOriginalOpacity.has(id)) return
+    const obj = findText(id)
+    const original = markerTextOriginalOpacity.get(id) as number
+    markerTextOriginalOpacity.delete(id)
+    if (!obj) return
+    historyRecorder.absorb(() => {
+      obj.opacity = original > 0 ? original : 100
+      if (obj.offCanvas) revealedTextIds()?.add(id)
+    })
+    canvasManager.value?.redrawCallback?.()
+  }
+
+  const handleTargetEdit = (edit: MarkerTargetEdit) => {
+    switch (edit.kind) {
+      case 'text':
+        revealMarkerText(edit.id)
+        break
+      case 'image': {
+        const mim = multiImageManager.value
+        if (mim?.isMarkerHidden(edit.id)) {
+          mim.setMarkerHidden(edit.id, false)
+          mim.redrawCallback?.()
+        }
+        break
+      }
+      case 'background': {
+        const link = markerBackgroundLinks.get(toRaw(edit.object))
+        if (!link) break
+        const anim = (edit.object as { timedAnimation?: ImageTimedAnimation | null }).timedAnimation
+        if (hasImageAnimation(anim)) link.timedAnimation = cloneImageAnimation(anim)
+        else delete link.timedAnimation
+        break
+      }
+    }
   }
 
   /** Wiedergabe-Ende/Neustart: Hintergrund von vor den Bild-Markern zurück. */
@@ -1240,15 +1302,19 @@ export function useBeatMarkers(
   }
 
   let unsubscribeFrame: (() => void) | null = null
+  let unsubscribeEdits: (() => void) | null = null
 
   onMounted(() => {
     window.addEventListener('keydown', handleKeydown)
     unsubscribeFrame = playerStore.onFrame(handleFrame)
+    unsubscribeEdits = onMarkerTargetEdited(handleTargetEdit)
   })
   onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown)
     unsubscribeFrame?.()
     unsubscribeFrame = null
+    unsubscribeEdits?.()
+    unsubscribeEdits = null
     // Von Markern ausgeblendete Texte und Formen beim Verlassen wiederherstellen.
     restoreTextMarkers()
     restoreShapeMarkers()
@@ -1275,6 +1341,8 @@ export function useBeatMarkers(
     newMarkerBgImageAnimation,
     newMarkerPlacedImageAnimation,
     getMarkerCanvasImage,
+    getMarkerTextLabel,
+    getMarkerImageLabel: markerImageLabel,
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,

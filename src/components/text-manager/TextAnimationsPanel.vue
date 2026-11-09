@@ -14,13 +14,13 @@
         <AnimationEditSection
           :label="`${t(section.label)}:`"
           :effect="selectedText.animation?.[section.key] ?? null"
-          @toggle="section.toggle"
-          @restart="section.restart"
+          @toggle="onToggle(section)"
+          @restart="onRestart(section)"
         >
           <component
             :is="section.controls"
             :effect="selectedText.animation[section.key]"
-            @change="updateText"
+            @change="onChange(section)"
           />
         </AnimationEditSection>
       </template>
@@ -37,7 +37,8 @@
  * reicht das Effekt-Objekt des markierten Textes hinein und zeichnet bei
  * jeder Änderung (`change`) den Canvas neu.
  */
-import { computed, inject, toRef, watch } from 'vue'
+import { computed, inject, onUnmounted, toRef, watch } from 'vue'
+import { notifyMarkerTargetEdited } from '../../lib/markerTargetEdits'
 import type { Component } from 'vue'
 import type { CanvasManagerRef } from '../../composables/types'
 import type { TextObject } from '../../lib/textManager/types'
@@ -84,6 +85,55 @@ function updateText() {
 }
 
 const { t } = useI18n()
+
+/** Section-Eintrag (siehe SECTIONS) */
+type Section = (typeof SECTIONS)[number]
+
+/**
+ * Bearbeitung an Beat-Marker melden: Ein vom Marker bis zu seinem Zeitpunkt
+ * ausgeblendeter Text wird sichtbar, damit man die Änderung sieht.
+ */
+function notifyEdit() {
+  const id = selectedText.value?.id
+  if (id !== undefined && id !== null) notifyMarkerTargetEdited({ kind: 'text', id })
+}
+
+function onToggle(section: Section) {
+  section.toggle()
+  notifyEdit()
+}
+
+function onRestart(section: Section) {
+  section.restart()
+  notifyEdit()
+}
+
+// Geänderte Regler sofort sichtbar machen: Effekt kurz nach der letzten
+// Änderung von vorn abspielen (nicht bei jedem Zwischenwert eines Reglers)
+const CHANGE_RESTART_MS = 350
+let changeTimer: ReturnType<typeof setTimeout> | null = null
+const changedSections = new Set<Section>()
+
+function onChange(section: Section) {
+  updateText()
+  notifyEdit()
+  changedSections.add(section)
+  if (changeTimer !== null) clearTimeout(changeTimer)
+  changeTimer = setTimeout(() => {
+    changeTimer = null
+    for (const s of changedSections) s.restart()
+    changedSections.clear()
+  }, CHANGE_RESTART_MS)
+}
+
+function cancelChangeRestart() {
+  if (changeTimer !== null) clearTimeout(changeTimer)
+  changeTimer = null
+  changedSections.clear()
+}
+// Neustart gilt nur dem Text, an dem geändert wurde
+watch(selectedText, cancelChangeRestart)
+onUnmounted(cancelChangeRestart)
 
 const SECTIONS: {
   key: AnimationKey

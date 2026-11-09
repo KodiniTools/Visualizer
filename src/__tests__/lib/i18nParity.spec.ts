@@ -7,10 +7,10 @@ import en from '../../lib/i18n/en'
 import { PLACEMENT_ANIMATIONS } from '../../lib/placementAnimations'
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '../..')
-const read = (rel) => readFileSync(join(SRC, rel), 'utf8')
+const read = (rel: string) => readFileSync(join(SRC, rel), 'utf8')
 
 /** Verschachtelte Übersetzungen als Map 'a.b.c' → Wert. */
-function flatten(obj, prefix = '') {
+function flatten(obj: object, prefix = ''): [string, unknown][] {
   return Object.entries(obj).flatMap(([k, v]) =>
     v && typeof v === 'object' && !Array.isArray(v)
       ? flatten(v, `${prefix}${k}.`)
@@ -18,7 +18,7 @@ function flatten(obj, prefix = '') {
   )
 }
 
-const placeholders = (s) =>
+const placeholders = (s: unknown) =>
   typeof s === 'string' ? [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort() : []
 
 /**
@@ -27,7 +27,7 @@ const placeholders = (s) =>
  * jedes Objekt öffnet mit `{` am Zeilenende und schließt mit `}` am
  * Zeilenanfang; Arrays mit `[`/`]` entsprechend.
  */
-function duplicateKeys(source) {
+function duplicateKeys(source: string) {
   const stack = [{ keys: new Set(), path: '' }]
   const dups = []
   for (const raw of source.split('\n')) {
@@ -101,7 +101,7 @@ describe('i18n – DE/EN-Parität', () => {
 })
 
 /** Sichtbarer Text im Template, der nicht über t() läuft. */
-function hardcodedTemplateText(source) {
+function hardcodedTemplateText(source: string) {
   const tpl = (source.match(/<template>([\s\S]*)<\/template>/) || [])[1] || ''
   // HTML-Kommentare ohne Regex-Ersetzung entfernen (alles ab `<!--` bis `-->`)
   const clean = tpl
@@ -110,15 +110,15 @@ function hardcodedTemplateText(source) {
     .join('')
   const hits = []
   for (const m of clean.matchAll(/>([^<>]*)</g)) {
-    const txt = m[1]
+    const txt = m[1]!
       .replace(/\{\{[\s\S]*?\}\}/g, '')
       .replace(/&[a-z]+;/g, ' ')
       .trim()
     if (/[A-Za-zÄÖÜäöüß]{3,}/.test(txt)) hits.push(txt)
   }
   for (const m of clean.matchAll(/(?<![:@\w-])(title|placeholder|aria-label)="([^"]*)"/g)) {
-    const isHexColor = /^#[0-9a-f]{3,8}$/i.test(m[2])
-    if (!isHexColor && /[A-Za-zÄÖÜäöüß]{3,}/.test(m[2])) hits.push(`${m[1]}="${m[2]}"`)
+    const isHexColor = /^#[0-9a-f]{3,8}$/i.test(m[2]!)
+    if (!isHexColor && /[A-Za-zÄÖÜäöüß]{3,}/.test(m[2]!)) hits.push(`${m[1]}="${m[2]}"`)
   }
   // Sprachweichen im Template statt Übersetzungsschlüssel
   for (const m of clean.matchAll(/locale\s*===\s*['"]\w+['"]/g)) hits.push(m[0])
@@ -196,8 +196,8 @@ describe('i18n – Platzierung (Video und Bild) ohne fest verdrahtete Texte', ()
 
   it('jede Platzierungs-Animation hat einen Namen in DE und EN', () => {
     for (const key of PLACEMENT_ANIMATIONS) {
-      expect(de.placement.animations[key], key).toBeTruthy()
-      expect(en.placement.animations[key], key).toBeTruthy()
+      expect((de.placement.animations as Record<string, string>)[key], key).toBeTruthy()
+      expect((en.placement.animations as Record<string, string>)[key], key).toBeTruthy()
     }
   })
 })

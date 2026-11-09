@@ -20,6 +20,7 @@ import {
 } from '../../../lib/visualizers/gl/presets/glLedDigits'
 import { Visualizers, glVisualizers } from '../../../lib/visualizers/index'
 import { visualizerState } from '../../../lib/visualizers/core/state'
+import { stub } from '../../helpers/canvasStubs'
 
 describe('gl/ledTextSettings – Text', () => {
   it('begrenzt die Eingabe auf 4 Zeilen à 24 Zeichen ohne Steuerzeichen', () => {
@@ -121,7 +122,7 @@ describe('gl/ledText – Layout und Glyphen', () => {
   it('lässt Leerzeichen als leere Zelle aus', () => {
     const { cells } = ledTextLayout(['A B'], 300, 100)
     expect(cells.map((c) => c.ch)).toEqual(['A', 'B'])
-    expect(cells[1].x).toBe(200)
+    expect(cells[1]!.x).toBe(200)
   })
 
   it('hat einen LED-Doppelpunkt im gleichen 5×7-Raster', () => {
@@ -129,15 +130,15 @@ describe('gl/ledText – Layout und Glyphen', () => {
     const spec = makeLedColonPreset()
     expect(spec.id).toBe('glLedColon')
     for (const bits of COLON_BITMAP.map(rowToBits)) expect(spec.frag).toContain(`${bits}.0`)
-    expect(typeof spec.fallback.draw).toBe('function')
+    expect(typeof spec.fallback!.draw).toBe('function')
     // Doppelpunkt ist kein eigener Eintrag in der Visualizer-Liste
     expect(Visualizers.glLedColon).toBeUndefined()
   })
 
   it('findet für A–Z, 0–9 und ":" ein Glyphen-Preset', () => {
-    expect(glyphPresetFor('Q').id).toBe('glLedLetterQ')
-    expect(glyphPresetFor('7').id).toBe('glLedDigit7')
-    expect(glyphPresetFor(':').id).toBe('glLedColon')
+    expect(glyphPresetFor('Q')!.id).toBe('glLedLetterQ')
+    expect(glyphPresetFor('7')!.id).toBe('glLedDigit7')
+    expect(glyphPresetFor(':')!.id).toBe('glLedColon')
     expect(glyphPresetFor(' ')).toBeNull()
   })
 })
@@ -145,11 +146,14 @@ describe('gl/ledText – Layout und Glyphen', () => {
 describe('gl/ledText – Visualizer', () => {
   // Ohne WebGL2 zeichnen die Glyphen ihren Canvas2D-Fallback in ein
   // (gestubtes) OffscreenCanvas; gezählt werden die Kopien auf das Ziel.
-  const mockCtx = (calls) =>
+  const mockCtx = (calls: unknown[][]) =>
     new Proxy(
-      { globalAlpha: 1, fillStyle: '', strokeStyle: '', lineWidth: 1 },
+      { globalAlpha: 1, fillStyle: '', strokeStyle: '', lineWidth: 1 } as Record<
+        string | symbol,
+        unknown
+      >,
       {
-        get: (t, p) => (p in t ? t[p] : (...a) => calls.push([p, ...a])),
+        get: (t, p) => (p in t ? t[p] : (...a: unknown[]) => calls.push([p, ...a])),
         set: (t, p, v) => ((t[p] = v), true),
       },
     )
@@ -158,11 +162,13 @@ describe('gl/ledText – Visualizer', () => {
     vi.stubGlobal(
       'OffscreenCanvas',
       class {
-        constructor(w, h) {
+        declare width: number
+        declare height: number
+        constructor(w: number, h: number) {
           this.width = w
           this.height = h
         }
-        getContext(type) {
+        getContext(type: string) {
           return type === '2d' ? mockCtx([]) : null
         }
       },
@@ -174,10 +180,18 @@ describe('gl/ledText – Visualizer', () => {
     visualizerState._ledText = null
   })
 
-  const drawnCells = (id, config) => {
-    const calls = []
+  const drawnCells = (id: string, config: Record<string, unknown>) => {
+    const calls: unknown[][] = []
     visualizerState._ledText = { key: 'test', ...config }
-    Visualizers[id].draw(mockCtx(calls), new Uint8Array(64).fill(90), 64, 800, 200, '#ff0', 1)
+    Visualizers[id]!.draw(
+      stub(mockCtx(calls)),
+      new Uint8Array(64).fill(90),
+      64,
+      800,
+      200,
+      '#ff0',
+      1,
+    )
     return calls.filter((c) => c[0] === 'drawImage')
   }
 
@@ -185,8 +199,8 @@ describe('gl/ledText – Visualizer', () => {
     for (const id of [LED_TEXT_ID, LED_NUMBER_ID]) {
       expect(glVisualizers[id]).toBeDefined()
       expect(Visualizers[id]).toBe(glVisualizers[id])
-      expect(Visualizers[id].kind).toBe('gl')
-      expect(Visualizers[id].ledText).toBe(true)
+      expect(Visualizers[id]!.kind).toBe('gl')
+      expect(Visualizers[id]!.ledText).toBe(true)
     }
   })
 

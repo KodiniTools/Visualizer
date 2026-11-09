@@ -8,8 +8,9 @@ import {
   timestampedFilename,
   triggerDownload,
 } from '../../lib/saveFile'
+import { stub } from '../helpers/canvasStubs'
 
-function domError(name) {
+function domError(name: string) {
   const error = new Error(name)
   error.name = name
   return error
@@ -62,7 +63,7 @@ describe('Hilfsfunktionen', () => {
   })
 
   it('supportsSavePicker erkennt die API', () => {
-    expect(supportsSavePicker({ showSaveFilePicker: () => {} })).toBe(true)
+    expect(supportsSavePicker(stub({ showSaveFilePicker: () => {} }))).toBe(true)
     expect(supportsSavePicker({})).toBe(false)
   })
 
@@ -70,7 +71,7 @@ describe('Hilfsfunktionen', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     triggerDownload('blob:abc', 'clip.mp4')
     expect(click).toHaveBeenCalledTimes(1)
-    const anchor = click.mock.contexts[0]
+    const anchor = click.mock.contexts[0] as HTMLAnchorElement
     expect(anchor.download).toBe('clip.mp4')
     expect(anchor.getAttribute('href')).toBe('blob:abc')
     expect(document.body.contains(anchor)).toBe(false)
@@ -90,8 +91,8 @@ describe('saveViaPicker', () => {
       url: '/visualizer/api/files/x.mp4',
       suggestedName: 'visualizer.mp4',
       extension: 'mp4',
-      win,
-      fetchImpl,
+      win: stub(win),
+      fetchImpl: stub(fetchImpl),
     })
 
     expect(result).toEqual({ status: 'saved', name: 'neu.mp4' })
@@ -112,8 +113,8 @@ describe('saveViaPicker', () => {
       url: 'blob:x',
       suggestedName: 'a.webm',
       extension: 'webm',
-      win,
-      fetchImpl,
+      win: stub(win),
+      fetchImpl: stub(fetchImpl),
     })
     expect(result.status).toBe('saved')
     expect(writable.write).toHaveBeenCalledWith(blob)
@@ -127,8 +128,8 @@ describe('saveViaPicker', () => {
       url: 'blob:x',
       suggestedName: 'a.mp4',
       extension: 'mp4',
-      win,
-      fetchImpl,
+      win: stub(win),
+      fetchImpl: stub(fetchImpl),
     })
     expect(result).toEqual({ status: 'cancelled' })
     expect(fetchImpl).not.toHaveBeenCalled()
@@ -141,7 +142,7 @@ describe('saveViaPicker', () => {
         url: 'blob:x',
         suggestedName: 'a.mp4',
         extension: 'mp4',
-        win,
+        win: stub(win),
         fetchImpl: vi.fn(),
       }),
     ).rejects.toBeInstanceOf(SavePickerUnavailableError)
@@ -155,7 +156,13 @@ describe('saveViaPicker', () => {
       body: { pipeTo: async () => Promise.reject(new Error('netz')) },
     })
     await expect(
-      saveViaPicker({ url: 'blob:x', suggestedName: 'a.mp4', extension: 'mp4', win, fetchImpl }),
+      saveViaPicker({
+        url: 'blob:x',
+        suggestedName: 'a.mp4',
+        extension: 'mp4',
+        win: stub(win),
+        fetchImpl: stub(fetchImpl),
+      }),
     ).rejects.toThrow('netz')
     expect(writable.abort).toHaveBeenCalled()
   })
@@ -165,7 +172,13 @@ describe('saveViaPicker', () => {
     const win = { showSaveFilePicker: async () => handle }
     const fetchImpl = async () => ({ ok: false, status: 404 })
     await expect(
-      saveViaPicker({ url: '/x', suggestedName: 'a.mp4', extension: 'mp4', win, fetchImpl }),
+      saveViaPicker({
+        url: '/x',
+        suggestedName: 'a.mp4',
+        extension: 'mp4',
+        win: stub(win),
+        fetchImpl: stub(fetchImpl),
+      }),
     ).rejects.toThrow('HTTP 404')
     expect(handle.createWritable).not.toHaveBeenCalled()
   })

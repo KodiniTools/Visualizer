@@ -10,12 +10,18 @@ import {
 } from '../../lib/shapes/shapeInteraction'
 
 // Canvas 1000 × 500, angezeigt in 500 × 250 → 2 Canvas-Pixel pro Bildschirm-Pixel
-function setup({ textAt = null, activeObject = null } = {}) {
+/** Canvas-Objekt der Attrappe */
+type FakeObj = { type: string }
+
+function setup({
+  textAt = null,
+  activeObject = null,
+}: { textAt?: FakeObj | null; activeObject?: FakeObj | null } = {}) {
   const parent = document.createElement('div')
   const canvas = document.createElement('canvas')
   canvas.width = 1000
   canvas.height = 500
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 500, height: 250 })
+  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 500, height: 250 }) as DOMRect
   parent.appendChild(canvas)
   document.body.appendChild(parent)
 
@@ -24,7 +30,7 @@ function setup({ textAt = null, activeObject = null } = {}) {
 
   const cm = {
     activeObject,
-    setActiveObject: vi.fn((obj) => (cm.activeObject = obj)),
+    setActiveObject: vi.fn((obj: FakeObj | null) => (cm.activeObject = obj)),
     getObjectBounds: () => null,
     selectionManager: { getTextAtPos: () => textAt },
   }
@@ -40,13 +46,19 @@ function setup({ textAt = null, activeObject = null } = {}) {
 }
 
 // Bildschirm-Koordinaten zu Canvas-Koordinaten (Faktor 2)
-const mouse = (target, type, x, y, extra = {}) =>
+const mouse = (
+  target: EventTarget,
+  type: string,
+  x: number,
+  y: number,
+  extra: MouseEventInit = {},
+) =>
   target.dispatchEvent(
     new MouseEvent(type, { clientX: x / 2, clientY: y / 2, bubbles: true, button: 0, ...extra }),
   )
 
 describe('shapeInteraction', () => {
-  let ctx
+  let ctx: ReturnType<typeof setup> | null
 
   beforeEach(() => setActivePinia(createPinia()))
   afterEach(() => {
@@ -59,7 +71,7 @@ describe('shapeInteraction', () => {
     const canvas = document.createElement('canvas')
     canvas.width = 1000
     canvas.height = 500
-    canvas.getBoundingClientRect = () => ({ left: 10, top: 0, width: 500, height: 500 })
+    canvas.getBoundingClientRect = () => ({ left: 10, top: 0, width: 500, height: 500 }) as DOMRect
     expect(getCanvasDisplayScale(canvas)).toBe(0.5)
     // Oben/unten je 125 px Rand
     expect(getCanvasPointer(canvas, { clientX: 260, clientY: 250 })).toEqual({ x: 500, y: 250 })
@@ -73,7 +85,7 @@ describe('shapeInteraction', () => {
     window.addEventListener(SHAPES_OPEN_EVENT, opened)
 
     mouse(ctx.canvas, 'mousedown', 500, 250)
-    expect(ctx.store.selectedShapeId).toBe(shape.id)
+    expect(ctx.store.selectedShapeId).toBe(shape!.id)
     expect(ctx.cm.setActiveObject).toHaveBeenCalledWith(null)
     expect(opened).toHaveBeenCalled()
     // Der MouseHandler des Canvas sieht das Ereignis nicht
@@ -108,18 +120,18 @@ describe('shapeInteraction', () => {
     const shape = { ...ctx.store.addShape('rect', 1000, 500) }
     const { width, height } = shape
     // Rahmen-Abstand 6 Bildschirm-px = 12 Canvas-px
-    const se = { x: shape.x + width / 2 + 12, y: shape.y + height / 2 + 12 }
+    const se = { x: shape.x! + width! / 2 + 12, y: shape.y! + height! / 2 + 12 }
     mouse(ctx.canvas, 'mousedown', se.x, se.y)
     mouse(window, 'mousemove', se.x + 40, se.y + 20)
     mouse(window, 'mouseup', se.x + 40, se.y + 20)
     // Die Ecke folgt dem Zeiger (Griff sitzt 12 Canvas-px außerhalb der Form)
-    expect(ctx.store.shapes[0].width).toBe(width + 52)
-    expect(ctx.store.shapes[0].height).toBe(height + 32)
+    expect(ctx.store.shapes[0]!.width).toBe(width! + 52)
+    expect(ctx.store.shapes[0]!.height).toBe(height! + 32)
     expect(ctx.commit).toHaveBeenCalledTimes(1)
 
     ctx.commit.mockClear()
-    mouse(ctx.canvas, 'mousedown', shape.x, shape.y)
-    mouse(window, 'mouseup', shape.x, shape.y)
+    mouse(ctx.canvas, 'mousedown', shape.x!, shape.y!)
+    mouse(window, 'mouseup', shape.x!, shape.y!)
     expect(ctx.commit).not.toHaveBeenCalled()
   })
 
@@ -132,7 +144,7 @@ describe('shapeInteraction', () => {
     mouse(window, 'mouseup', 300, 100)
     expect(ctx.store.shapes).toHaveLength(1)
     expect(ctx.store.shapes[0]).toMatchObject({ type: 'freehand', tool: 'pen', x: 200 })
-    expect(ctx.store.shapes[0].points.length).toBeGreaterThanOrEqual(3)
+    expect(ctx.store.shapes[0]!.points!.length).toBeGreaterThanOrEqual(3)
     expect(ctx.commit).toHaveBeenCalledTimes(1)
     expect(ctx.canvasMouseDown).not.toHaveBeenCalled()
 
@@ -142,14 +154,14 @@ describe('shapeInteraction', () => {
 
   it('Tastatur: Pfeile verschieben, Strg+D dupliziert, Entf löscht – nicht in Eingabefeldern', () => {
     ctx = setup()
-    const startX = ctx.store.addShape('rect', 1000, 500).x
-    const key = (k, extra = {}, target = window) =>
+    const startX = ctx.store.addShape('rect', 1000, 500)!.x
+    const key = (k: string, extra: KeyboardEventInit = {}, target: EventTarget = window) =>
       target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, ...extra }))
     const bubbled = vi.fn()
     document.addEventListener('keydown', bubbled)
 
     key('ArrowRight', { shiftKey: true })
-    expect(ctx.store.shapes[0].x).toBe(startX + 10)
+    expect(ctx.store.shapes[0]!.x).toBe(startX + 10)
     key('d', { ctrlKey: true })
     expect(ctx.store.shapes).toHaveLength(2)
 

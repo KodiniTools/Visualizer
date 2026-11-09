@@ -4,9 +4,10 @@ import {
   glPendulumWave,
   PENDULUM_CYCLE,
 } from '../../../lib/visualizers/gl/presets/glPendulumWave'
+import { stub } from '../../helpers/canvasStubs'
 
-const LOUD = [0.5, 0.5, 0.5, 0.5]
-const SILENT = [0, 0, 0, 0]
+const LOUD = stub<Float32Array>([0.5, 0.5, 0.5, 0.5])
+const SILENT = stub<Float32Array>([0, 0, 0, 0])
 
 describe('glPendulumWave clock', () => {
   it('advances the phase with the frame time', () => {
@@ -22,8 +23,8 @@ describe('glPendulumWave clock', () => {
     for (let i = 0; i < Math.ceil((PENDULUM_CYCLE + 1) / 0.1); i++) {
       u = clock({ dt: 0.1, bands: LOUD, onset: {} })
     }
-    expect(u.uPhaseT).toBeGreaterThanOrEqual(0)
-    expect(u.uPhaseT).toBeLessThan(PENDULUM_CYCLE)
+    expect(u!.uPhaseT).toBeGreaterThanOrEqual(0)
+    expect(u!.uPhaseT).toBeLessThan(PENDULUM_CYCLE)
   })
 
   it('caps long frames and falls back to 60 fps for invalid dt', () => {
@@ -66,8 +67,8 @@ describe('glPendulumWave clock', () => {
 
   it('is wired into the preset as its uniforms hook', () => {
     expect(typeof glPendulumWave.uniforms).toBe('function')
-    const u = glPendulumWave.uniforms({ bands: LOUD, onset: {}, time: 0, dt: 0.016, intensity: 1 })
-    expect(u.uCycle).toBe(PENDULUM_CYCLE)
-    expect(u.uPendulums).toBeGreaterThanOrEqual(4)
+    const u = glPendulumWave.uniforms!({ bands: LOUD, onset: {}, time: 0, dt: 0.016, intensity: 1 })
+    expect(u!.uCycle).toBe(PENDULUM_CYCLE)
+    expect(u!.uPendulums).toBeGreaterThanOrEqual(4)
   })
 })

@@ -8,7 +8,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { setupVisualizerPersistence, VISUALIZER_STORAGE_KEY } from '../../lib/visualizerPersistence'
 
-let persistence
+let persistence: ReturnType<typeof setupVisualizerPersistence> | null = null
 // Neustart simulieren: neue Pinia, Store mit Standardwerten, dann laden
 function restart() {
   persistence?.stop()
@@ -17,7 +17,7 @@ function restart() {
   persistence = setupVisualizerPersistence(store)
   return store
 }
-const saved = () => JSON.parse(localStorage.getItem(VISUALIZER_STORAGE_KEY))
+const saved = () => JSON.parse(localStorage.getItem(VISUALIZER_STORAGE_KEY)!)
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -32,11 +32,11 @@ afterEach(() => {
 })
 
 // Zwei existierende, vom Standard abweichende Visualizer-IDs
-function pickIds(store) {
+function pickIds(store: ReturnType<typeof useVisualizerStore>) {
   const ids = store.availableVisualizers
     .map((v) => v.id)
     .filter((id) => id !== store.selectedVisualizer)
-  return [ids[0], ids[1]]
+  return [ids[0], ids[1]] as [string, string]
 }
 
 describe('Visualizer-Einstellungen – dauerhaft speichern', () => {
@@ -78,25 +78,25 @@ describe('Visualizer-Einstellungen – dauerhaft speichern', () => {
     store.addLayer(idA)
     store.addLayer(idB)
     const layers = store.visualizerLayers
-    layers[1].color = '#00ff00'
-    layers[1].blendMode = 'screen'
-    store.activeLayerId = layers[1].id
+    layers[1]!.color = '#00ff00'
+    layers[1]!.blendMode = 'screen'
+    store.activeLayerId = layers[1]!.id
     vi.advanceTimersByTime(500)
 
     store = restart()
     await vi.runAllTimersAsync()
     expect(store.multiLayerMode).toBe(true)
     expect(store.visualizerLayers.map((l) => l.visualizerId)).toEqual([idA, idB])
-    expect(store.visualizerLayers[1].color).toBe('#00ff00')
-    expect(store.visualizerLayers[1].blendMode).toBe('screen')
-    expect(store.visualizerLayers[1].effects).toBeTruthy()
-    expect(store.activeLayerId).toBe(store.visualizerLayers[1].id)
+    expect(store.visualizerLayers[1]!.color).toBe('#00ff00')
+    expect(store.visualizerLayers[1]!.blendMode).toBe('screen')
+    expect(store.visualizerLayers[1]!.effects).toBeTruthy()
+    expect(store.activeLayerId).toBe(store.visualizerLayers[1]!.id)
   })
 
   it('Bild-Verweise (Portrait) werden nicht gespeichert', () => {
     const store = restart()
     store.addLayer(pickIds(store)[0])
-    store.visualizerLayers[0].imageId = 'img-123'
+    store.visualizerLayers[0]!.imageId = 'img-123'
     store.visualizerImageId = 'img-123'
     vi.advanceTimersByTime(500)
     expect(saved().visualizerImageId).toBeNull()
@@ -132,10 +132,10 @@ describe('Visualizer-Einstellungen – dauerhaft speichern', () => {
     expect(store.visualizerColor).toBe('#6ea8fe')
     expect(store.visualizerOpacity).toBe(1)
     expect(store.visualizerX).toBe(0.7)
-    expect(store.unbekannt).toBeUndefined()
+    expect((store as unknown as Record<string, unknown>).unbekannt).toBeUndefined()
     expect(store.visualizerLayers.map((l) => l.id)).toEqual(['l2'])
-    expect(store.visualizerLayers[0].color).toBe('#123456')
-    expect(store.visualizerLayers[0].opacity).toBe(1) // Standard statt ungültig
+    expect(store.visualizerLayers[0]!.color).toBe('#123456')
+    expect(store.visualizerLayers[0]!.opacity).toBe(1) // Standard statt ungültig
     expect(store.activeLayerId).toBe('l2')
   })
 
@@ -157,7 +157,7 @@ describe('Visualizer-Einstellungen – dauerhaft speichern', () => {
   it('ausstehende Änderung wird beim Beenden noch gespeichert', () => {
     const store = restart()
     store.visualizerColor = '#010203'
-    persistence.stop()
+    persistence!.stop()
     persistence = null
     expect(saved().visualizerColor).toBe('#010203')
   })

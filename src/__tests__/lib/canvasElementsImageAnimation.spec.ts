@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { captureCanvasElements } from '../../lib/background/canvasElements'
+import { stub } from '../helpers/canvasStubs'
 
-function cmWith(images) {
-  return {
+function cmWith(images: object[]) {
+  return stub<Parameters<typeof captureCanvasElements>[0]>({
     multiImageManager: { getAllImages: () => images },
     videoManager: { getAllVideos: () => [] },
     textManager: { textObjects: [] },
-  }
+  })
 }
 
 const base = {
@@ -23,8 +24,8 @@ describe('Canvas-Presets: Bild-Animationen', () => {
   it('nimmt timedAnimation als Kopie auf', () => {
     const timedAnimation = { slide: { enabled: true, from: 'left' } }
     const { images } = captureCanvasElements(cmWith([{ ...base, timedAnimation }]), { $state: {} })
-    expect(images[0].timedAnimation).toEqual(timedAnimation)
-    expect(images[0].timedAnimation).not.toBe(timedAnimation)
+    expect(images[0]!.timedAnimation).toEqual(timedAnimation)
+    expect(images[0]!.timedAnimation).not.toBe(timedAnimation)
   })
 
   it('Bilder ohne Animation behalten ihre bisherige Form', () => {

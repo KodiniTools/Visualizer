@@ -19,23 +19,29 @@ import {
 import { useImagePlacement } from '../../components/foto-panel/useImagePlacement'
 import PositionSizeControls from '../../components/foto-panel/image-filters/PositionSizeControls.vue'
 import SlideshowImageEditor from '../../components/foto-panel/slideshow/SlideshowImageEditor.vue'
+import { stub } from '../helpers/canvasStubs'
+
+type PositionSizeImage = InstanceType<typeof PositionSizeControls>['$props']['image']
+type SlideshowImage = InstanceType<typeof SlideshowImageEditor>['$props']['image']
 
 beforeEach(() => localStorage.clear())
 afterEach(() => localStorage.clear())
 
 function placement() {
-  return useImagePlacement({
-    multiImageManagerRef: ref(null),
-    canvasManagerRef: ref(null),
-    gallery: {
-      imageGallery: ref([]),
-      selectedImages: ref([]),
-      selectedImageCount: ref(0),
-      deselectAllImages: () => {},
-    },
-    toastStore: { success() {}, error() {}, warning() {} },
-    t: (k) => k,
-  })
+  return useImagePlacement(
+    stub({
+      multiImageManagerRef: ref(null),
+      canvasManagerRef: ref(null),
+      gallery: {
+        imageGallery: ref([]),
+        selectedImages: ref([]),
+        selectedImageCount: ref(0),
+        deselectAllImages: () => {},
+      },
+      toastStore: { success() {}, error() {}, warning() {} },
+      t: (k: string) => k,
+    }),
+  )
 }
 
 describe('Platzierungs-Einstellungen', () => {
@@ -50,10 +56,10 @@ describe('Platzierungs-Einstellungen', () => {
       animationDuration: 2500,
       imageScale: 3,
       imageOffsetX: -40,
-      imageOffsetY: '25', // aus Eingabefeld als Text
+      imageOffsetY: '25' as unknown as number, // aus Eingabefeld als Text
     })
     await nextTick()
-    expect(JSON.parse(localStorage.getItem(PLACEMENT_KEYS.uploads))).toEqual({
+    expect(JSON.parse(localStorage.getItem(PLACEMENT_KEYS.uploads)!)).toEqual({
       selectedAnimation: 'bounce',
       animationDuration: 2500,
       imageScale: 3,
@@ -73,7 +79,7 @@ describe('Platzierungs-Einstellungen', () => {
     p.newImageAnimation.value.slide.enabled = true
     p.newImageAnimation.value.slide.from = 'right'
     await nextTick()
-    expect(JSON.parse(localStorage.getItem(IMAGE_ANIMATION_KEY)).slide).toMatchObject({
+    expect(JSON.parse(localStorage.getItem(IMAGE_ANIMATION_KEY)!).slide).toMatchObject({
       enabled: true,
       from: 'right',
     })
@@ -131,13 +137,15 @@ describe('„Seitenverhältnis beibehalten“', () => {
 
   it('Standard an; ausgeschaltet bleibt es bei neuen Bildern und nach Neustart aus', async () => {
     expect(loadKeepAspect()).toBe(true)
-    let w = mount(PositionSizeControls, { props: { image: image() } })
+    let w = mount(PositionSizeControls, { props: { image: stub<PositionSizeImage>(image()) } })
     expect(w.find('.image-keep-aspect [role="switch"]').attributes('aria-checked')).toBe('true')
     await w.find('.image-keep-aspect [role="switch"]').trigger('click')
     await nextTick()
     expect(localStorage.getItem(KEEP_ASPECT_KEY)).toBe('false')
     w.unmount()
-    w = mount(PositionSizeControls, { props: { image: { ...image(), id: 2 } } })
+    w = mount(PositionSizeControls, {
+      props: { image: stub<PositionSizeImage>({ ...image(), id: 2 }) },
+    })
     expect(w.find('.image-keep-aspect [role="switch"]').attributes('aria-checked')).toBe('false')
     w.unmount()
   })
@@ -146,7 +154,7 @@ describe('„Seitenverhältnis beibehalten“', () => {
     localStorage.setItem(KEEP_ASPECT_KEY, 'false')
     const w = mount(SlideshowImageEditor, {
       props: {
-        image: { name: 'a.png' },
+        image: stub<SlideshowImage>({ name: 'a.png' }),
         index: 0,
         total: 1,
         size: { width: 0.4, height: 0.2, defaultWidth: 0.4, defaultHeight: 0.2 },

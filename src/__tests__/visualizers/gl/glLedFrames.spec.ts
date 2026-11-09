@@ -10,6 +10,8 @@ import {
   glLedFrameRainbow,
 } from '../../../lib/visualizers/gl/presets/glLedFrames'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
+import type { GlPresetSpec, GlUniformMap } from '../../../lib/visualizers/gl/types'
+import { stub } from '../../helpers/canvasStubs'
 
 const PRESETS = [
   glLedFrameChase,
@@ -30,8 +32,8 @@ describe('gl/presets/glLedFrames', () => {
       expect(p.name_en).toMatch(/^LED Frame .* \(GPU\)$/)
       expect(p.frag).toContain('ledLamp(')
       expect(p.frag).toContain('roundedBox(')
-      expect(typeof p.fallback.draw).toBe('function')
-      expect(p.uniforms()).toEqual({ uLamps: FRAME_LAMPS, uLensSize: 0.38 })
+      expect(typeof p.fallback!.draw).toBe('function')
+      expect((p.uniforms as () => GlUniformMap)()).toEqual({ uLamps: FRAME_LAMPS, uLensSize: 0.38 })
     }
     // Jede Regel setzt Helligkeit und Farbton der Lampe.
     for (const v of Object.values(FRAME_VARIANTS)) {
@@ -44,7 +46,7 @@ describe('gl/presets/glLedFrames', () => {
   })
 
   it('ist in der Preset-Registry eingetragen', () => {
-    for (const p of PRESETS) expect(glPresetSpecs[p.id]).toBe(p)
+    for (const p of PRESETS) expect((glPresetSpecs as Record<string, GlPresetSpec>)[p.id]).toBe(p)
   })
 
   it('lehnt unbekannte Varianten ab', () => {
@@ -52,16 +54,15 @@ describe('gl/presets/glLedFrames', () => {
   })
 
   it('zeichnet den Fallback ohne Fehler auf einen 2D-Context', () => {
-    const calls = []
-    const ctx = new Proxy(
-      { globalAlpha: 1, fillStyle: '' },
-      {
-        get: (t, p) => (p in t ? t[p] : (...a) => calls.push([p, ...a])),
-        set: (t, p, v) => ((t[p] = v), true),
-      },
-    )
+    const calls: unknown[][] = []
+    const ctx = new Proxy({ globalAlpha: 1, fillStyle: '' } as Record<string | symbol, unknown>, {
+      get: (t, p) => (p in t ? t[p] : (...a: unknown[]) => calls.push([p, ...a])),
+      set: (t, p, v) => ((t[p] = v), true),
+    })
     const data = new Uint8Array(64).fill(160)
-    expect(() => glLedFrameVu.fallback.draw(ctx, data, 64, 800, 450, '#6ea8fe', 1)).not.toThrow()
+    expect(() =>
+      glLedFrameVu.fallback!.draw(stub(ctx), data, 64, 800, 450, '#6ea8fe', 1),
+    ).not.toThrow()
     // 16:9 bei 12 Lampen Hoehe: 21 x 12 Raster, Ring = 2*21 + 2*12 - 4 = 62 Lampen + Gehaeuse
     expect(calls.filter((c) => c[0] === 'arc').length).toBeGreaterThanOrEqual(62)
     expect(calls.some((c) => c[0] === 'fill' && c[1] === 'evenodd')).toBe(true)

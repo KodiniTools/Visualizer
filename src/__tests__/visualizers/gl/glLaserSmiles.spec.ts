@@ -9,6 +9,7 @@ import {
   glLaserSmileSurprised,
 } from '../../../lib/visualizers/gl/presets/glLaserSmiles'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
+import type { GlPresetSpec, GlUniformMap } from '../../../lib/visualizers/gl/types'
 
 const PRESETS = [
   glLaserSmileHappy,
@@ -28,8 +29,8 @@ describe('gl/presets/glLaserSmiles', () => {
       expect(p.name_en).toMatch(/^Laser Smiley .* \(GPU\)$/)
       expect(p.frag).toContain('float face(')
       expect(p.frag).toContain('laserGlow(')
-      expect(typeof p.fallback.draw).toBe('function')
-      expect(p.uniforms()).toEqual({ uGhost: 0.5 })
+      expect(typeof p.fallback!.draw).toBe('function')
+      expect((p.uniforms as () => GlUniformMap)()).toEqual({ uGhost: 0.5 })
     }
     // Jedes Gesicht hat Kopf (Kreisring), Augen (Teil 1) und Mund (Teil 2).
     for (const v of Object.values(SMILE_VARIANTS)) {
@@ -42,7 +43,7 @@ describe('gl/presets/glLaserSmiles', () => {
 
   it('ist in der Preset-Registry eingetragen und gehört zu den Laser-Presets', () => {
     for (const p of PRESETS) {
-      expect(glPresetSpecs[p.id]).toBe(p)
+      expect((glPresetSpecs as Record<string, GlPresetSpec>)[p.id]).toBe(p)
       expect(p.id.startsWith('glLaser')).toBe(true)
     }
   })

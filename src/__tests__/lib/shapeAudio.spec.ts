@@ -10,12 +10,13 @@ import {
 } from '../../lib/shapes/shapeAudio'
 import { EFFECT_NAMES } from '../../lib/audio/AudioReactiveEffects'
 import { createShape } from '../../lib/shapes/shapes'
+import { stub } from '../helpers/canvasStubs'
 
 function fakeCtx() {
-  const calls = []
+  const calls: unknown[][] = []
   const rec =
-    (name) =>
-    (...args) =>
+    (name: string) =>
+    (...args: unknown[]) =>
       calls.push([name, ...args])
   return {
     calls,
@@ -45,7 +46,11 @@ describe('shapeAudio', () => {
   })
 
   it('vervollständigt alte Konfigurationen in-place', () => {
-    const ar = { enabled: true, effects: { scale: { enabled: true, intensity: 50 } } }
+    const ar: {
+      enabled: boolean
+      effects: { scale: { enabled: boolean; intensity: number }; hue?: unknown }
+      source?: string
+    } = { enabled: true, effects: { scale: { enabled: true, intensity: 50 } } }
     expect(ensureShapeAudioReactive(ar)).toBe(ar)
     expect(ar.effects.scale.intensity).toBe(50)
     expect(ar.effects.hue).toBeTruthy()
@@ -60,7 +65,7 @@ describe('shapeAudio', () => {
 
   it('liefert keine Effekte ohne Freigabe oder Audiodaten', () => {
     const ar = createShapeAudioReactive()
-    ar.effects.scale.enabled = true
+    ar.effects.scale!.enabled = true
     expect(getShapeAudioFx(ar, audioData)).toBeNull()
     ar.enabled = true
     expect(getShapeAudioFx(ar, null)).toBeNull()
@@ -70,17 +75,17 @@ describe('shapeAudio', () => {
   it('berechnet Effektwerte für aktivierte Effekte', () => {
     const ar = createShapeAudioReactive()
     ar.enabled = true
-    ar.effects.hue.enabled = true
+    ar.effects.hue!.enabled = true
     const fx = getShapeAudioFx(ar, audioData)
-    expect(Object.keys(fx)).toEqual(['hue'])
-    expect(typeof fx.hue.hueRotate).toBe('number')
+    expect(Object.keys(fx!)).toEqual(['hue'])
+    expect(typeof fx!.hue!.hueRotate).toBe('number')
   })
 
   it('zeichnet ohne Effekte unverändert', () => {
     const ctx = fakeCtx()
     const shape = createShape('star', 800, 600)
     const draw = vi.fn()
-    drawShapeWithAudio(ctx, shape, null, draw)
+    drawShapeWithAudio(stub(ctx), shape!, null, draw)
     expect(draw).toHaveBeenCalledWith(ctx, shape)
     expect(ctx.calls).toEqual([])
   })
@@ -89,26 +94,26 @@ describe('shapeAudio', () => {
     const ctx = fakeCtx()
     const shape = createShape('star', 800, 600)
     const draw = vi.fn()
-    drawShapeWithAudio(ctx, shape, { scale: { scale: 2 }, bounce: { bounceY: 10 } }, draw)
-    expect(ctx.calls[0][0]).toBe('save')
+    drawShapeWithAudio(stub(ctx), shape!, { scale: { scale: 2 }, bounce: { bounceY: 10 } }, draw)
+    expect(ctx.calls[0]![0]).toBe('save')
     expect(ctx.calls).toContainEqual(['translate', 0, 10])
     expect(ctx.calls).toContainEqual(['scale', 2, 2])
-    expect(ctx.calls.at(-1)[0]).toBe('restore')
+    expect(ctx.calls.at(-1)![0]).toBe('restore')
     expect(draw).toHaveBeenCalledWith(ctx, shape)
   })
 
   it('setzt Filter und rechnet Strobe in die Deckkraft der Form ein', () => {
     const ctx = fakeCtx()
-    const shape = { ...createShape('star', 800, 600), opacity: 80 }
+    const shape = { ...createShape('star', 800, 600)!, opacity: 80 }
     const draw = vi.fn()
     drawShapeWithAudio(
-      ctx,
+      stub(ctx),
       shape,
       { hue: { hueRotate: 30 }, strobe: { strobeOpacity: 0.5, strobeBrightness: 100 } },
       draw,
     )
     expect(ctx.filter).toContain('hue-rotate(30deg)')
-    const drawn = draw.mock.calls[0][1]
+    const drawn = draw.mock.calls[0]![1]
     expect(drawn.opacity).toBe(40)
     expect(shape.opacity).toBe(80)
   })
@@ -117,7 +122,7 @@ describe('shapeAudio', () => {
     const ctx = fakeCtx()
     const shape = createShape('blur', 800, 600)
     const draw = vi.fn()
-    drawShapeWithAudio(ctx, shape, { scale: { scale: 2 } }, draw)
+    drawShapeWithAudio(stub(ctx), shape!, { scale: { scale: 2 } }, draw)
     expect(ctx.calls).toEqual([])
     expect(draw).toHaveBeenCalledWith(ctx, shape)
   })

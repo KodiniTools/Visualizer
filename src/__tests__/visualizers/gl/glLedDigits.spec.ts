@@ -9,6 +9,8 @@ import {
   rowToBits,
 } from '../../../lib/visualizers/gl/presets/glLedDigits'
 import { glPresetSpecs } from '../../../lib/visualizers/gl/index'
+import type { GlPresetSpec } from '../../../lib/visualizers/gl/types'
+import { stub } from '../../helpers/canvasStubs'
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 const LETTERS = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
@@ -18,7 +20,7 @@ describe('gl/presets/glLedDigits', () => {
     for (const d of DIGITS) {
       const bm = DIGIT_BITMAPS[d]
       expect(bm, `Ziffer ${d}`).toHaveLength(DIGIT_ROWS)
-      for (const row of bm) {
+      for (const row of bm!) {
         expect(row).toHaveLength(DIGIT_COLS)
         expect(row).toMatch(/^[.#]{5}$/)
       }
@@ -39,7 +41,7 @@ describe('gl/presets/glLedDigits', () => {
 
   it('bakt die Bitmap als Konstanten in den Shader', () => {
     const { frag } = makeLedDigitPreset(1)
-    for (const bits of DIGIT_BITMAPS[1].map(rowToBits)) {
+    for (const bits of DIGIT_BITMAPS[1]!.map(rowToBits)) {
       expect(frag).toContain(`return ${bits}.0;`)
     }
     expect(frag).toMatch(/void\s+main\s*\(/)
@@ -48,11 +50,11 @@ describe('gl/presets/glLedDigits', () => {
 
   it('ist unter glLedDigit0–9 registriert, mit Namen und Canvas2D-Fallback', () => {
     for (const d of DIGITS) {
-      const spec = glPresetSpecs[`glLedDigit${d}`]
+      const spec = (glPresetSpecs as Record<string, GlPresetSpec>)[`glLedDigit${d}`]!
       expect(spec).toBeDefined()
       expect(spec.name_de).toBe(`LED-Ziffer ${d} (GPU)`)
       expect(spec.name_en).toBe(`LED Digit ${d} (GPU)`)
-      expect(typeof spec.fallback.draw).toBe('function')
+      expect(typeof spec.fallback!.draw).toBe('function')
     }
   })
 
@@ -61,7 +63,7 @@ describe('gl/presets/glLedDigits', () => {
     for (const c of LETTERS) {
       const bm = LETTER_BITMAPS[c]
       expect(bm, `Buchstabe ${c}`).toHaveLength(DIGIT_ROWS)
-      for (const row of bm) expect(row).toMatch(/^[.#]{5}$/)
+      for (const row of bm!) expect(row).toMatch(/^[.#]{5}$/)
     }
   })
 
@@ -74,11 +76,11 @@ describe('gl/presets/glLedDigits', () => {
 
   it('ist unter glLedLetterA–Z registriert, mit Namen und Canvas2D-Fallback', () => {
     for (const c of LETTERS) {
-      const spec = glPresetSpecs[`glLedLetter${c}`]
+      const spec = (glPresetSpecs as Record<string, GlPresetSpec>)[`glLedLetter${c}`]!
       expect(spec).toBeDefined()
       expect(spec.name_de).toBe(`LED-Buchstabe ${c} (GPU)`)
       expect(spec.name_en).toBe(`LED Letter ${c} (GPU)`)
-      expect(typeof spec.fallback.draw).toBe('function')
+      expect(typeof spec.fallback!.draw).toBe('function')
       expect(spec.frag).toContain('ledLamp(')
     }
   })
@@ -95,17 +97,14 @@ describe('gl/presets/glLedDigits', () => {
   })
 
   it('zeichnet den Fallback ohne Fehler auf einen 2D-Context', () => {
-    const calls = []
-    const ctx = new Proxy(
-      { globalAlpha: 1, fillStyle: '' },
-      {
-        get: (t, p) => (p in t ? t[p] : (...a) => calls.push([p, ...a])),
-        set: (t, p, v) => ((t[p] = v), true),
-      },
-    )
+    const calls: unknown[][] = []
+    const ctx = new Proxy({ globalAlpha: 1, fillStyle: '' } as Record<string | symbol, unknown>, {
+      get: (t, p) => (p in t ? t[p] : (...a: unknown[]) => calls.push([p, ...a])),
+      set: (t, p, v) => ((t[p] = v), true),
+    })
     const data = new Uint8Array(64).fill(128)
     expect(() =>
-      makeLedDigitPreset(3).fallback.draw(ctx, data, 64, 800, 450, '#6ea8fe', 1),
+      makeLedDigitPreset(3).fallback!.draw(stub(ctx), data, 64, 800, 450, '#6ea8fe', 1),
     ).not.toThrow()
     // 35 Lampen + Gehaeuse: mindestens 36 Fuellungen
     expect(calls.filter((c) => c[0] === 'fill').length).toBeGreaterThanOrEqual(36)

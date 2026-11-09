@@ -138,6 +138,24 @@ describe('Beat-Marker mit platzierten Bildern', () => {
     expect(marker!.action.imageLabel).toBe('Ebene 3 — sonne.png')
   })
 
+  it('Galerie-Eintrag: die im Marker-Formular geänderte Animation wird übernommen', () => {
+    vm.addMarkerAtCurrentTime()
+    expect(vm.newMarkerPlacedImageAnimation.fade.enabled).toBe(false) // Vorgabe: alles aus
+    vm.newMarkerPlacedImageAnimation.scale.enabled = true
+    vm.newMarkerImageId = 'gallery:7'
+    vm.confirmAddMarker()
+    expect(mim.images[2]!.timedAnimation!.scale.enabled).toBe(true)
+  })
+
+  it('getMarkerCanvasImage liefert das Bild selbst (Animation im Formular bearbeitbar)', () => {
+    const img = vm.getMarkerCanvasImage(first.id)
+    expect(img!.id).toBe(first.id)
+    img!.timedAnimation!.slide.enabled = true
+    expect(mim.images[0]!.timedAnimation!.slide.enabled).toBe(true)
+    expect(vm.getMarkerCanvasImage('gallery:7')).toBeNull()
+    expect(vm.getMarkerCanvasImage('')).toBeNull()
+  })
+
   it('blendet zugewiesene Bilder beim Start aus und zum Marker-Zeitpunkt ein', async () => {
     markerStore.addMarker(5, { imageId: first.id })
     markerStore.addMarker(8, { imageId: second.id })

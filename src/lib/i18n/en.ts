@@ -1005,6 +1005,10 @@ export default {
     noPlacedImage: '-- No image --',
     placedImageAppears:
       'Placed image appears at the marker time with its settings; its animations restart',
+    placedImageAnimationHint:
+      'Same settings as in the photo panel – changes apply to the image. Restarts at the marker time.',
+    newPlacedImageAnimationHint:
+      'Defaults to the “Animation when adding” from the photo panel. Editable afterwards in the photo panel or here.',
     placedImages: 'Placed images',
     placeFromGallery: 'Place from gallery',
     newPlacedImageHint:

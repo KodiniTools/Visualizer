@@ -325,18 +325,15 @@ function setup(
 function runFrames(loop: ReturnType<typeof useRenderLoop>, n: number) {
   for (let i = 0; i < n; i++) {
     frame++
-    setAudioAnalysisData(
-      stub({
-        onsetBass: (frame % 3) / 2,
-        onsetMid: 0.25,
-        onsetTreble: 0.1,
-        onsetAll: (frame % 2) * 0.8,
-        bass: 0.6,
-        mid: 0.4,
-        treble: 0.2,
-        beat: frame % 2 === 0,
-      }),
-    )
+    setAudioAnalysisData({
+      onsetBass: (frame % 3) / 2,
+      onsetMid: 0.25,
+      onsetTreble: 0.1,
+      onsetAll: (frame % 2) * 0.8,
+      bass: 0.6,
+      mid: 0.4,
+      treble: 0.2,
+    })
     L(`--- frame ${frame}`)
     loop.draw()
   }

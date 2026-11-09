@@ -6,6 +6,8 @@
  * Lade-Callbacks erneut abgefragt).
  */
 
+import { resolveImageName } from '../canvasObjects/imageName'
+
 type Loose = Record<string, unknown>
 
 const deepClone = <T>(obj: T): NonNullable<T> | null =>
@@ -24,6 +26,7 @@ interface PlacedObject {
 
 interface CanvasImage extends PlacedObject {
   imageObject?: HTMLImageElement | null
+  name?: string | null
   timedAnimation?: Loose | null
 }
 
@@ -47,6 +50,8 @@ export interface CapturedImage {
   fotoSettings: Loose | null
   /** nur Bilder: Animationen wie bei Texten (canvasObjects/imageAnimation) */
   timedAnimation?: Loose | null
+  /** nur Bilder: Dateiname, falls bekannt (ältere Presets haben keinen) */
+  name?: string
 }
 
 export interface CapturedVideo extends CapturedImage {
@@ -107,6 +112,7 @@ function captureCanvasImages(cm: MaybeCm): CapturedImage[] {
     .getAllImages()
     .map((img) => ({
       src: img.imageObject?.src || null,
+      ...(img.name ? { name: img.name } : {}),
       relX: img.relX,
       relY: img.relY,
       relWidth: img.relWidth,
@@ -215,6 +221,7 @@ function restoreCanvasImages(cm: MaybeCm, list: unknown) {
         id: Date.now() + Math.random(),
         type: 'image',
         imageObject: img,
+        name: resolveImageName(data.name, img),
         relX: data.relX ?? 0.33,
         relY: data.relY ?? 0.33,
         relWidth: data.relWidth ?? 0.33,

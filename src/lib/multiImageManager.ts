@@ -41,6 +41,7 @@ import {
   type ImageTimedAnimation,
 } from './canvasObjects/imageAnimation'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder'
+import { resolveImageName } from './canvasObjects/imageName'
 import { getSlideshowManager } from './slideshowManagerBridge'
 import { getAudioAnalysisData } from './audio/audioAnalysisData'
 import type { EngineAudioSettings } from './audio/audioReactiveEngine'
@@ -86,6 +87,8 @@ export interface CanvasImage extends FotoImageObject {
   id: number | string
   type: 'image'
   imageObject: HTMLImageElement
+  /** Ursprünglicher Dateiname (Bildvorschau); null, wenn unbekannt */
+  name?: string | null
   relX: number
   relY: number
   relWidth: number
@@ -113,12 +116,16 @@ export interface AddImageWithBoundsOptions {
   slideshow?: ImageSlideshowState
   /** false: nicht automatisch auswählen */
   select?: boolean
+  /** Dateiname (sonst aus der Bild-URL abgeleitet) */
+  name?: string | null
   /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
   timedAnimation?: ImageTimedAnimation | null
 }
 
 /** Optionen für addImage() */
 export interface AddImageOptions {
+  /** Dateiname (sonst aus der Bild-URL abgeleitet) */
+  name?: string | null
   /** Animationen wie bei Texten; wird kopiert (siehe canvasObjects/imageAnimation) */
   timedAnimation?: ImageTimedAnimation | null
 }
@@ -247,6 +254,7 @@ export class MultiImageManager {
       id: Date.now() + Math.random(), // Eindeutige ID
       type: 'image',
       imageObject: img,
+      name: resolveImageName(options.name, img),
       relX: (1 - initialRelWidth) / 2, // Zentriert
       relY: (1 - initialRelHeight) / 2, // Zentriert
       relWidth: initialRelWidth,
@@ -287,7 +295,7 @@ export class MultiImageManager {
    * @param {HTMLImageElement} imageObject - Das Bildobjekt
    * @param {Object} bounds - Die Ziel-Bounds { relX, relY, relWidth, relHeight }
    * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
-   * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean }
+   * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean, name: Dateiname }
    */
   addImageWithBounds(
     imageObject: HTMLImageElement | null | undefined,
@@ -327,6 +335,7 @@ export class MultiImageManager {
       id: Date.now() + Math.random(),
       type: 'image',
       imageObject: imageObject,
+      name: resolveImageName(options.name, imageObject),
       relX: finalRelX,
       relY: finalRelY,
       relWidth: finalRelWidth,
@@ -1279,11 +1288,13 @@ export class MultiImageManager {
    * Behält Position, Größe, Filter und Einstellungen bei
    * @param {number|string} imageId - ID des zu ersetzenden Bildes
    * @param {HTMLImageElement} newImageObject - Das neue Bild
+   * @param name - Dateiname des neuen Bildes (sonst aus der URL abgeleitet)
    * @returns {Object|null} Das aktualisierte Bildobjekt oder null bei Fehler
    */
   replaceImage(
     imageId: CanvasImage['id'],
     newImageObject: HTMLImageElement | null | undefined,
+    name?: string | null,
   ): CanvasImage | null {
     if (!newImageObject) {
       console.error('❌ Kein neues Bild zum Ersetzen übergeben')
@@ -1302,6 +1313,7 @@ export class MultiImageManager {
 
     // Neues Bild setzen - alle anderen Eigenschaften bleiben erhalten
     image.imageObject = newImageObject
+    image.name = resolveImageName(name, newImageObject)
 
     console.log(
       '🔄 Bild ersetzt:',

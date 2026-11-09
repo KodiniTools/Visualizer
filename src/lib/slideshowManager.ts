@@ -28,6 +28,8 @@ export interface SlideshowImageConfig {
   imageObject?: HTMLImageElement | null
   img?: HTMLImageElement | null
   name?: string
+  /** voller Dateiname (Uploads; `name` kann für die Anzeige gekürzt sein) */
+  fileName?: string
   audioReactiveSettings?: unknown
   displayDuration?: unknown
   fadeInDuration?: unknown
@@ -986,6 +988,8 @@ export class SlideshowManager {
         duration: 0,
         isSlideshowImage: true,
         slideshow,
+        // Dateiname für die Bildvorschau (sonst aus der Bild-URL abgeleitet)
+        name: imageConfig?.fileName || imageConfig?.name,
         // Eingeblendete Bilder nicht auswählen – Markierungen nur nach Klick
         select: false,
       },

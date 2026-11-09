@@ -37,6 +37,8 @@ export interface HistoryImageObject extends FotoSettingsTarget {
   id: ObjectId
   type?: string
   imageObject: HTMLImageElement | null
+  /** Dateiname (Bildvorschau) */
+  name?: string | null
   relX?: number
   relY?: number
   relWidth?: number
@@ -90,6 +92,7 @@ interface ImageSnapshot {
   id: ObjectId
   type: string
   media: string | null
+  name?: string | null
   relX?: number
   relY?: number
   relWidth?: number
@@ -283,6 +286,7 @@ function captureImage(img: HistoryImageObject): ImageSnapshot {
     id: img.id,
     type: img.type || 'image',
     media: src ? mediaRegistry.remember(src, img.imageObject) : null,
+    name: img.name ?? null,
     relX: img.relX,
     relY: img.relY,
     relWidth: img.relWidth,
@@ -336,6 +340,8 @@ export function createImagesSegment(
         if (!obj) obj = { id: snap.id, type: snap.type, imageObject: null }
         await ensureImageElement(obj, snap.media)
         if (!obj.imageObject) continue
+        // Dateiname gehört zum Bild-Element (Ersetzen rückgängig → alter Name)
+        if (snap.name !== undefined) obj.name = snap.name
         obj.relX = snap.relX
         obj.relY = snap.relY
         obj.relWidth = snap.relWidth

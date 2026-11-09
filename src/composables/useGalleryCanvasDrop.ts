@@ -38,6 +38,8 @@ export interface GalleryCanvasDropOptions<P> {
   resolveImage: (
     payload: P,
   ) => HTMLImageElement | null | undefined | Promise<HTMLImageElement | null | undefined>
+  /** Dateiname der Nutzlast für das Canvas-Bild (sonst aus der Bild-URL abgeleitet) */
+  resolveName?: (payload: P) => string | null | undefined
   /** Callback nach erfolgreicher Platzierung */
   onPlaced?: (payload: P) => void
   /** Callback bei Fehler */
@@ -49,6 +51,7 @@ export function useGalleryCanvasDrop<P>({
   multiImageManagerRef,
   placement,
   resolveImage,
+  resolveName,
   onPlaced,
   onError,
 }: GalleryCanvasDropOptions<P>) {
@@ -141,6 +144,7 @@ export function useGalleryCanvasDrop<P>({
         {
           duration: placement.animationDuration?.value || 1000,
           timedAnimation: placement.timedAnimation?.value ?? null,
+          name: resolveName ? resolveName(payload) : undefined,
         },
       )
 

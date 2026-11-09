@@ -12,7 +12,10 @@ import { ref, computed, toRaw } from 'vue'
 export interface GalleryImage {
   id: number
   img: HTMLImageElement
+  /** für die Galerie-Anzeige gekürzt (max. 20 Zeichen) */
   name: string
+  /** voller Dateiname (z. B. für die Bildvorschau der Canvas-Bilder) */
+  fileName?: string
   /** z. B. '1920×1080' */
   dimensions: string
   /** formatiert, z. B. '1.2 MB' ('' wenn unbekannt) */
@@ -73,6 +76,7 @@ function pushGalleryImage(img: HTMLImageElement, name: string, size: string): Ga
     id: Date.now() + Math.random(),
     img,
     name: shortenName(name),
+    fileName: name,
     dimensions: `${img.width}×${img.height}`,
     size,
   }
@@ -110,6 +114,7 @@ function ensureGalleryImage(img: HTMLImageElement, name: string | null | undefin
     id: Date.now() + Math.random(),
     img,
     name: shortName,
+    fileName: name || 'Bild',
     dimensions: dims,
     size,
   }

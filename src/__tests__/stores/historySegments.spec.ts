@@ -60,6 +60,7 @@ interface FakeImageEntry {
   settings?: Record<string, unknown>
   fotoSettings: { rotation?: number; _cachedFilterKey?: string } & Record<string, unknown>
   timedAnimation?: FakeTimedAnimation
+  name?: string | null
 }
 
 interface FakeVideoEntry {
@@ -411,6 +412,40 @@ describe('History-Segmente', () => {
     expect(img!.timedAnimation).toBeUndefined()
     await store.redo()
     expect(img!.timedAnimation).toEqual({ fade: { enabled: true, duration: 1000 } })
+  })
+
+  it('Bilder: Dateiname wird mitgesichert (Ersetzen rückgängig → alter Name)', async () => {
+    const cm = makeCanvasManager()
+    const mgr = cm.multiImageManager
+    recorder.registerSegment(
+      'images',
+      createImagesSegment(() => stub(cm)),
+    )
+    const oldImage = fakeImage('data:alt')
+    mgr.images.push({
+      id: 7,
+      type: 'image',
+      imageObject: oldImage,
+      name: 'alt.png',
+      relX: 0,
+      relY: 0,
+      relWidth: 0.3,
+      relHeight: 0.3,
+      settings: {},
+      fotoSettings: {},
+    })
+    recorder.rebase()
+
+    const img = mgr.images[0]!
+    img.imageObject = fakeImage('data:neu')
+    img.name = 'neu.jpg'
+    recorder.checkpoint()
+
+    await store.undo()
+    expect(mgr.images[0]!.name).toBe('alt.png')
+    expect(mgr.images[0]!.imageObject.src).toBe('data:alt')
+    await store.redo()
+    expect(mgr.images[0]!.name).toBe('neu.jpg')
   })
 
   it('Videos: entfernte Videos werden nur pausiert, zerstörte aus der Quelle neu erzeugt', async () => {

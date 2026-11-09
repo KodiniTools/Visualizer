@@ -34,6 +34,8 @@ export function useCanvasImages({
 
   const pendingReplaceImage = ref<HTMLImageElement | null>(null)
   const pendingReplaceImageSrc = ref<string | null>(null)
+  // Dateiname des Ersatzbildes (Upload: File.name, Galerie: aus der URL)
+  let pendingReplaceName: string | null = null
 
   const draggedImageIndex = ref<number | null>(null)
   const dragOverIndex = ref<number | null>(null)
@@ -91,6 +93,7 @@ export function useCanvasImages({
     previewImageIndex.value = 0
     pendingReplaceImage.value = null
     pendingReplaceImageSrc.value = null
+    pendingReplaceName = null
   }
 
   function handleReplaceCanvasImage(event: Event) {
@@ -105,6 +108,7 @@ export function useCanvasImages({
       img.onload = () => {
         pendingReplaceImage.value = img
         pendingReplaceImageSrc.value = result
+        pendingReplaceName = file.name
       }
       img.src = result
     }
@@ -117,16 +121,22 @@ export function useCanvasImages({
     const manager = multiImageManagerInstance.value
     if (!manager) return
 
-    const result = manager.replaceImage(previewImageData.value.id, pendingReplaceImage.value)
+    const result = manager.replaceImage(
+      previewImageData.value.id,
+      pendingReplaceImage.value,
+      pendingReplaceName,
+    )
     if (result) previewImageData.value = result
 
     pendingReplaceImage.value = null
     pendingReplaceImageSrc.value = null
+    pendingReplaceName = null
   }
 
   function cancelPendingReplace() {
     pendingReplaceImage.value = null
     pendingReplaceImageSrc.value = null
+    pendingReplaceName = null
   }
 
   async function openReplaceGallery() {
@@ -230,6 +240,7 @@ export function useCanvasImages({
 
       pendingReplaceImage.value = img
       pendingReplaceImageSrc.value = imagePath
+      pendingReplaceName = null // wird aus imagePath abgeleitet
       closeReplaceGallery()
     } catch (error) {
       console.error('❌ Fehler beim Laden des Galeriebildes:', error)

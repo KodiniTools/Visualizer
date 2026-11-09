@@ -37,7 +37,7 @@ export interface VisualizerImageEntry {
 export interface CanvasImageLike {
   id: string | number
   imageObject: HTMLImageElement
-  name?: string
+  name?: string | null
 }
 
 /** Bild der Galerie „Eigene Bilder“ (Ausschnitt) */

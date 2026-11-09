@@ -19,6 +19,8 @@ export interface StockImageInfo {
 export interface SlideshowSourceImage {
   id: string | number
   name?: string
+  /** voller Dateiname (Uploads) */
+  fileName?: string
   source: string
   imageObject?: HTMLImageElement | null
   img?: HTMLImageElement | null
@@ -30,6 +32,7 @@ export interface SlideshowSourceImage {
 export interface SlideshowUpload {
   id: string | number
   name?: string
+  fileName?: string
   img?: HTMLImageElement | null
 }
 
@@ -93,7 +96,13 @@ export function buildSlideshowSourceImages(
     if (!u) continue
     const key = fileBaseName(u.name)
     if (key) seen.add(key)
-    result.push({ id: u.id, name: u.name, source: 'upload', imageObject: u.img })
+    result.push({
+      id: u.id,
+      name: u.name,
+      fileName: u.fileName || u.name,
+      source: 'upload',
+      imageObject: u.img,
+    })
   }
 
   for (const st of stocks) {

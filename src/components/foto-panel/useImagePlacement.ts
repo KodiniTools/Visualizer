@@ -94,6 +94,11 @@ export function useImagePlacement({
   // Bereichsauswahl-Modus
   const isInRangeSelectionMode = ref(false)
   const pendingRangeSelectionImage = ref<HTMLImageElement | null>(null)
+  // Dateiname des Bildes, das per Bereichsauswahl platziert wird
+  let pendingRangeSelectionName: string | null = null
+
+  /** Voller Dateiname eines Galerie-Eintrags (`name` ist für die Anzeige gekürzt). */
+  const fileNameOf = (imgData: GalleryImage) => imgData.fileName || imgData.name
 
   // Bild-Vorschau
   const previewImage = ref<UploadedPreview | null>(null)
@@ -129,7 +134,7 @@ export function useImagePlacement({
     if (!multiImageManager) return
 
     imagesToAdd.forEach((imgData) => {
-      multiImageManager.addImage(imgData.img, animationOption())
+      multiImageManager.addImage(imgData.img, { ...animationOption(), name: fileNameOf(imgData) })
     })
 
     console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`)
@@ -178,6 +183,7 @@ export function useImagePlacement({
     if (!canvasManager) return
 
     pendingRangeSelectionImage.value = imgData.img
+    pendingRangeSelectionName = fileNameOf(imgData)
     isInRangeSelectionMode.value = true
     canvasManager.startImageSelectionMode(
       (bounds) => handleRangeSelectionComplete(bounds),
@@ -218,7 +224,7 @@ export function useImagePlacement({
       pendingRangeSelectionImage.value,
       scaledBounds,
       bounds.animation || selectedAnimation.value,
-      { duration: animationDuration.value, ...animationOption() },
+      { duration: animationDuration.value, ...animationOption(), name: pendingRangeSelectionName },
     )
 
     deselectAllImages()
@@ -251,6 +257,7 @@ export function useImagePlacement({
     multiImageManager.addImageWithBounds(imgData.img, bounds, selectedAnimation.value, {
       duration: animationDuration.value,
       ...animationOption(),
+      name: fileNameOf(imgData),
     })
     console.log('✅ Bild platziert')
     deselectAllImages()
@@ -276,7 +283,10 @@ export function useImagePlacement({
     const multiImageManager = multiImageManagerRef?.value
     if (!multiImageManager) return
 
-    multiImageManager.addImage(previewImage.value.data.img, animationOption())
+    multiImageManager.addImage(previewImage.value.data.img, {
+      ...animationOption(),
+      name: fileNameOf(previewImage.value.data),
+    })
     closePreview()
   }
 

@@ -16,7 +16,7 @@
       <SliderField
         :model-value="effect.displayDuration as number"
         :min="500"
-        :max="30000"
+        :max="DISPLAY_DURATION_MAX_MS"
         :step="100"
         :default-value="5000"
         class="slider"
@@ -32,6 +32,7 @@
 import SliderField from '../../ui/SliderField.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import { useI18n } from '../../../lib/i18n'
+import { DISPLAY_DURATION_MAX_MS } from '../../../lib/displayDuration'
 import { useEffectField } from './useEffectField'
 import type { TimedTextAnimation } from '../../../lib/textManager/types'
 

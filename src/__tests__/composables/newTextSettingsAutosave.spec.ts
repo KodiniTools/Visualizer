@@ -147,7 +147,7 @@ describe('Text-Liste – einheitliche Dauer', () => {
     saveTextSequenceSettings({ enabled: true, duration: 8000 })
     expect(loadTextSequenceSettings()).toEqual({ enabled: true, duration: 8000 })
     saveTextSequenceSettings({ enabled: true, duration: 999999 })
-    expect(loadTextSequenceSettings().duration).toBe(30000)
+    expect(loadTextSequenceSettings().duration).toBe(120000)
     localStorage.setItem(TEXT_SEQUENCE_KEY, '{kaputt')
     expect(loadTextSequenceSettings()).toEqual({ enabled: false, duration: 5000 })
   })

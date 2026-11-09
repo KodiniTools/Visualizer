@@ -26,7 +26,7 @@
           <SliderField
             v-model="globalDuration"
             :min="500"
-            :max="30000"
+            :max="DISPLAY_DURATION_MAX_MS"
             :step="100"
             :default-value="5000"
             class="dur-slider"
@@ -122,6 +122,7 @@ import SliderField from '../ui/SliderField.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import { useI18n } from '../../lib/i18n'
+import { DISPLAY_DURATION_MAX_MS } from '../../lib/displayDuration'
 import type { TextListEntry } from '../../composables/textManager/useTextDirectory'
 
 withDefaults(

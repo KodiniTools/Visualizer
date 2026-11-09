@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * API Routes für Visualizer Backend
  *
@@ -55,7 +56,7 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024 * 1024, // 5 GB
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req, file, /** @type {any} */ cb) => {
     const allowedTypes = ['video/webm', 'video/mp4', 'video/quicktime', 'video/x-matroska']
     if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(webm|mp4|mov|mkv)$/i)) {
       cb(null, true)
@@ -73,6 +74,10 @@ function generateJobId() {
   return `job_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`
 }
 
+/**
+ * @param {string | null} inputFile
+ * @param {Record<string, any>} [options]
+ */
 function createJob(inputFile, options = {}) {
   const jobId = generateJobId()
   const job = {
@@ -90,6 +95,10 @@ function createJob(inputFile, options = {}) {
   return job
 }
 
+/**
+ * @param {string} jobId
+ * @param {Record<string, any>} updates
+ */
 function updateJob(jobId, updates) {
   const job = jobs.get(jobId)
   if (job) {
@@ -146,7 +155,7 @@ router.get('/info', async (req, res) => {
         supportedFormats: ['webm', 'mp4', 'mov', 'mkv'],
       },
     })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     res.status(500).json({ error: error.message })
   }
 })
@@ -175,7 +184,7 @@ router.post('/upload', upload.single('video'), async (req, res) => {
       },
       info: videoInfo,
     })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Cleanup bei Fehler
     if (req.file) {
       await fs.unlink(req.file.path).catch(() => {})
@@ -206,7 +215,7 @@ router.post('/convert', upload.single('video'), async (req, res) => {
       status: 'processing',
       message: 'Konvertierung gestartet. Status unter /api/status/' + job.id,
     })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if (req.file) {
       await fs.unlink(req.file.path).catch(() => {})
     }
@@ -216,6 +225,7 @@ router.post('/convert', upload.single('video'), async (req, res) => {
 
 /**
  * Parst FFmpeg Zeit-String zu Sekunden
+ * @param {string | null | undefined} timeStr
  */
 function parseFFmpegTime(timeStr) {
   if (!timeStr) return 0
@@ -227,6 +237,12 @@ function parseFFmpegTime(timeStr) {
 
 /**
  * Vollständiges Re-Encoding (für VP8/VP9/andere Codecs)
+ * @param {string} jobId
+ * @param {string} inputPath
+ * @param {string} outputPath
+ * @param {string} quality
+ * @param {number} totalDuration
+ * @param {number} [inputFileSize]
  */
 async function doFullEncoding(
   jobId,
@@ -271,6 +287,9 @@ async function doFullEncoding(
 
 /**
  * Asynchrone Konvertierung
+ * @param {string} jobId
+ * @param {string} inputPath
+ * @param {string} quality
  */
 async function processConversion(jobId, inputPath, quality) {
   const outputFilename = `converted_${Date.now()}.mp4`
@@ -293,8 +312,12 @@ async function processConversion(jobId, inputPath, quality) {
       inputFileSize = stats.size
 
       // Codec aus Streams extrahieren
-      const videoStream = info.streams?.find((s) => s.codec_type === 'video')
-      const audioStream = info.streams?.find((s) => s.codec_type === 'audio')
+      const videoStream = info.streams?.find(
+        (/** @type {{ codec_type?: string }} */ s) => s.codec_type === 'video',
+      )
+      const audioStream = info.streams?.find(
+        (/** @type {{ codec_type?: string }} */ s) => s.codec_type === 'audio',
+      )
       videoCodec = videoStream?.codec_name || 'unknown'
       audioCodec = audioStream?.codec_name || 'unknown'
 
@@ -317,7 +340,7 @@ async function processConversion(jobId, inputPath, quality) {
         await ffmpegService.remuxToMP4(inputPath, outputPath)
         updateJob(jobId, { progress: 92 })
         console.log(`✅ [Job ${jobId}] Remux abgeschlossen (SCHNELL!)`)
-      } catch (remuxError) {
+      } catch (/** @type {any} */ remuxError) {
         console.warn(
           `⚠️ [Job ${jobId}] Remux fehlgeschlagen, fallback zu Re-Encoding:`,
           remuxError.message,
@@ -344,7 +367,7 @@ async function processConversion(jobId, inputPath, quality) {
       await ffmpegService.generateThumbnail(outputPath, thumbnailPath)
       thumbnailFilename = path.basename(thumbnailPath)
       console.log(`✅ [Job ${jobId}] Thumbnail erstellt`)
-    } catch (thumbError) {
+    } catch (/** @type {any} */ thumbError) {
       console.warn(`⚠️ [Job ${jobId}] Thumbnail-Fehler (nicht fatal):`, thumbError.message)
     }
 
@@ -358,7 +381,7 @@ async function processConversion(jobId, inputPath, quality) {
         size: stats.size,
         format: 'mp4',
       }
-    } catch (infoError) {
+    } catch (/** @type {any} */ infoError) {
       console.warn(`⚠️ [Job ${jobId}] Video-Info Fehler (nicht fatal):`, infoError.message)
       // Fallback: Nur Dateigröße
       try {
@@ -390,7 +413,7 @@ async function processConversion(jobId, inputPath, quality) {
 
     // Cleanup Input
     await fs.unlink(inputPath).catch(() => {})
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Vom Nutzer abgebrochen (siehe POST /convert/:jobId/cancel) - der Job-Status
     // wurde dort bereits auf 'cancelled' gesetzt, hier nur noch aufräumen statt
     // ihn mit 'failed' zu überschreiben.
@@ -452,7 +475,7 @@ router.post('/process', upload.single('video'), async (req, res) => {
       status: 'processing',
       options,
     })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if (req.file) {
       await fs.unlink(req.file.path).catch(() => {})
     }
@@ -462,6 +485,9 @@ router.post('/process', upload.single('video'), async (req, res) => {
 
 /**
  * Asynchrone Video-Verarbeitung
+ * @param {string} jobId
+ * @param {string} inputPath
+ * @param {Record<string, any>} options
  */
 async function processVideo(jobId, inputPath, options) {
   updateJob(jobId, { status: 'processing', progress: 10 })
@@ -523,7 +549,7 @@ async function processVideo(jobId, inputPath, options) {
     await fs.unlink(inputPath).catch(() => {})
 
     console.log(`✅ Job ${jobId} (${options.action}) abgeschlossen`)
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     updateJob(jobId, {
       status: 'failed',
       error: error.message,
@@ -592,6 +618,7 @@ router.get('/download/:filename', async (req, res) => {
 
     // Content-Type basierend auf Erweiterung
     const ext = path.extname(filename).toLowerCase()
+    /** @type {Record<string, string>} */
     const contentTypes = {
       '.mp4': 'video/mp4',
       '.webm': 'video/webm',
@@ -635,7 +662,7 @@ router.post('/cleanup/:filename', async (req, res) => {
     console.log(`🧹 [Cleanup] Datei gelöscht: ${filename}`)
 
     res.json({ success: true, message: 'Datei gelöscht' })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if (error.code === 'ENOENT') {
       res.json({ success: true, message: 'Datei existiert nicht mehr' })
     } else {
@@ -696,7 +723,7 @@ router.post('/convert-gif', upload.single('video'), async (req, res) => {
       status: 'processing',
       message: `GIF-Konvertierung gestartet (${gifOptions.fps}fps, ${gifOptions.width}px). Status: /api/status/${job.id}`,
     })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if (req.file) await fs.unlink(req.file.path).catch(() => {})
     res.status(500).json({ error: error.message })
   }
@@ -704,6 +731,9 @@ router.post('/convert-gif', upload.single('video'), async (req, res) => {
 
 /**
  * Asynchrone GIF-Konvertierung
+ * @param {string} jobId
+ * @param {string} inputPath
+ * @param {{ fps?: number, width?: number, colors?: number }} options
  */
 async function processGifConversion(jobId, inputPath, options) {
   const outputFilename = `gif_${Date.now()}.gif`
@@ -748,6 +778,7 @@ async function processGifConversion(jobId, inputPath, options) {
     updateJob(jobId, { progress: 92 })
 
     // Dateigröße ermitteln
+    /** @type {{ format: string, fps?: number, width?: number, size?: number }} */
     let gifInfo = { format: 'gif', fps: options.fps, width: options.width }
     try {
       const stats = await fs.stat(outputPath)
@@ -763,7 +794,7 @@ async function processGifConversion(jobId, inputPath, options) {
 
     console.log(`✅ [Job ${jobId}] GIF fertig: ${outputFilename}`)
     await fs.unlink(inputPath).catch(() => {})
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error(`❌ [Job ${jobId}] GIF-Konvertierung fehlgeschlagen:`, error.message)
 
     updateJob(jobId, {
@@ -802,14 +833,14 @@ router.post(
       const job = createJob(inputPath, { quality, action: 'convert-blob' })
 
       // Starte Konvertierung
-      processConversion(job.id, inputPath, quality)
+      processConversion(job.id, inputPath, /** @type {string} */ (quality))
 
       res.json({
         success: true,
         jobId: job.id,
         status: 'processing',
       })
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       await fs.unlink(inputPath).catch(() => {})
       res.status(500).json({ error: error.message })
     }
@@ -830,7 +861,7 @@ router.post('/concat-segments', upload.array('segment', 50), async (req, res) =>
     console.log(`📥 [Concat] ${req.files.length} Segmente empfangen`)
 
     const quality = req.body.quality || 'high'
-    const segmentPaths = req.files.map((f) => f.path)
+    const segmentPaths = /** @type {Express.Multer.File[]} */ (req.files).map((f) => f.path)
 
     const job = createJob(segmentPaths[0], {
       quality,
@@ -848,10 +879,10 @@ router.post('/concat-segments', upload.array('segment', 50), async (req, res) =>
       segmentCount: req.files.length,
       message: `Füge ${req.files.length} Segmente zusammen. Status unter /api/status/${job.id}`,
     })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Cleanup bei Fehler
     if (req.files) {
-      for (const file of req.files) {
+      for (const file of /** @type {Express.Multer.File[]} */ (req.files)) {
         await fs.unlink(file.path).catch(() => {})
       }
     }
@@ -861,6 +892,9 @@ router.post('/concat-segments', upload.array('segment', 50), async (req, res) =>
 
 /**
  * Asynchrone Segment-Zusammenfügung
+ * @param {string} jobId
+ * @param {string[]} segmentPaths
+ * @param {string} quality
  */
 async function processConcatenation(jobId, segmentPaths, quality) {
   const outputFilename = `concat_${Date.now()}.mp4`
@@ -913,7 +947,7 @@ async function processConcatenation(jobId, segmentPaths, quality) {
       const thumbnailPath = path.join(FILES_DIR, `thumb_${Date.now()}.jpg`)
       await ffmpegService.generateThumbnail(outputPath, thumbnailPath)
       thumbnailFilename = path.basename(thumbnailPath)
-    } catch (thumbError) {
+    } catch (/** @type {any} */ thumbError) {
       console.warn(`⚠️ [Job ${jobId}] Thumbnail-Fehler (nicht fatal):`, thumbError.message)
     }
 
@@ -951,7 +985,7 @@ async function processConcatenation(jobId, segmentPaths, quality) {
       await fs.unlink(segmentPath).catch(() => {})
     }
     console.log(`🧹 [Job ${jobId}] ${segmentPaths.length} Segment-Dateien gelöscht`)
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error(`❌ [Job ${jobId}] Concat fehlgeschlagen:`, error.message)
 
     updateJob(jobId, {
@@ -1009,7 +1043,7 @@ router.post('/frame-export/start', async (req, res) => {
 
     console.log(`📹 [FrameExport] Job gestartet: ${jobId}`)
     res.json({ success: true, jobId })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     res.status(500).json({ error: error.message })
   }
 })
@@ -1026,7 +1060,7 @@ router.post('/frame-export/:jobId/frames', frameUpload.any(), async (req, res) =
 
   try {
     const startIndex = parseInt(req.body.startIndex) || 0
-    const frames = req.files.map((file, i) => ({
+    const frames = /** @type {Express.Multer.File[]} */ (req.files).map((file, i) => ({
       index: startIndex + i,
       buffer: file.buffer,
     }))
@@ -1035,7 +1069,7 @@ router.post('/frame-export/:jobId/frames', frameUpload.any(), async (req, res) =
     job.frameCount = Math.max(job.frameCount, startIndex + frames.length)
 
     res.json({ success: true, received: frames.length, total: job.frameCount })
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error(`❌ [FrameExport] Batch error:`, error.message)
     res.status(500).json({ error: error.message })
   }
@@ -1076,6 +1110,12 @@ router.post('/frame-export/:jobId/assemble', express.json(), async (req, res) =>
   processFrameAssembly(job.id, frameJob, outputPath, outputFilename)
 })
 
+/**
+ * @param {string} jobId
+ * @param {Record<string, any>} frameJob
+ * @param {string} outputPath
+ * @param {string} outputFilename
+ */
 async function processFrameAssembly(jobId, frameJob, outputPath, outputFilename) {
   try {
     console.log(`🎬 [FrameExport] Assembliere ${frameJob.frameCount} Frames...`)
@@ -1093,7 +1133,7 @@ async function processFrameAssembly(jobId, frameJob, outputPath, outputFilename)
     })
 
     console.log(`✅ [FrameExport] Fertig: ${outputFilename}`)
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error(`❌ [FrameExport] Assembly fehlgeschlagen:`, error.message)
     updateJob(jobId, { status: 'failed', error: error.message })
   } finally {

@@ -10,5 +10,5 @@
     "moduleResolution": "Bundler",
     "types": ["node"]
   },
-  "include": ["vite.config.*", "eslint.config.*", "playwright.config.*"]
+  "include": ["vite.config.*", "eslint.config.*", "playwright.config.*", "e2e/**/*.ts"]
 }

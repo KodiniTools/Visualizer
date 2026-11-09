@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Admin API Routes für die Visualizer Landing-Page
  *
@@ -37,7 +38,7 @@ const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json')
 // Sicherstellen, dass das Datenverzeichnis existiert
 try {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
-} catch (e) {
+} catch (/** @type {any} */ e) {
   console.error('❌ [Admin] Datenverzeichnis konnte nicht erstellt werden:', e.message)
 }
 
@@ -56,7 +57,7 @@ function loadSessions() {
       const arr = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8'))
       if (Array.isArray(arr)) arr.forEach(([k, v]) => sessions.set(k, v))
     }
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     console.error('❌ [Admin] Sessions konnten nicht geladen werden:', e.message)
   }
 }
@@ -64,12 +65,13 @@ function loadSessions() {
 function saveSessions() {
   try {
     fs.writeFileSync(SESSIONS_FILE, JSON.stringify(Array.from(sessions.entries())))
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     console.error('❌ [Admin] Sessions konnten nicht gespeichert werden:', e.message)
   }
 }
 
 // Landing-Inhalt (Overrides). null = keine Overrides gesetzt (i18n-Standard).
+/** @type {{ content: unknown, updatedAt: string | null }} */
 let landingContent = { content: null, updatedAt: null }
 
 function loadLandingContent() {
@@ -81,7 +83,7 @@ function loadLandingContent() {
         updatedAt: d && d.updatedAt ? d.updatedAt : null,
       }
     }
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     console.error('❌ [Admin] Landing-Inhalt konnte nicht geladen werden:', e.message)
     landingContent = { content: null, updatedAt: null }
   }
@@ -90,7 +92,7 @@ function loadLandingContent() {
 function saveLandingContent() {
   try {
     fs.writeFileSync(LANDING_CONTENT_FILE, JSON.stringify(landingContent, null, 2))
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     console.error('❌ [Admin] Landing-Inhalt konnte nicht gespeichert werden:', e.message)
   }
 }
@@ -102,6 +104,11 @@ loadLandingContent()
 // AUTH MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════════
 
+/**
+ * @param {import('express').Request & { user?: unknown }} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

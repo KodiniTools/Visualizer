@@ -29,7 +29,7 @@ import { createReadStream, createWriteStream } from 'fs'
  * @typedef {Object} ConvertOptions
  * @property {string} [quality] - Schlüssel aus ENCODING_PRESETS (Fallback: 'high')
  * @property {number} [timeout] - Gesamt-Timeout in ms
- * @property {number} [fps] - Wird übergeben, aber von convertToMP4 derzeit nicht ausgewertet
+ * @property {number | string} [fps] - Ausgabe-Framerate (1–60, Standard 60; Text aus Formularen erlaubt)
  * @property {(proc: import('child_process').ChildProcess) => void} [onProcess]
  * @property {(time: string) => void} [onProgress] - Callback mit FFmpeg-Zeitstring
  */
@@ -172,6 +172,22 @@ const ENCODING_PRESETS = {
   },
 }
 
+/** Standard-Framerate der MP4-Ausgabe (Visualizer-Aufnahmen) */
+export const DEFAULT_OUTPUT_FPS = 60
+
+/**
+ * Ausgabe-Framerate für convertToMP4: gültige Werte 1–60 (auch als Text aus
+ * einem Formular), sonst der Standard.
+ * @param {unknown} fps
+ * @returns {number}
+ */
+export function resolveOutputFps(fps) {
+  const value = typeof fps === 'string' && fps.trim() !== '' ? Number(fps) : fps
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_OUTPUT_FPS
+  if (value < 1 || value > 60) return DEFAULT_OUTPUT_FPS
+  return value
+}
+
 /**
  * Konvertiert WebM zu MP4 mit optimalen Einstellungen
  * @param {string} inputPath
@@ -180,6 +196,7 @@ const ENCODING_PRESETS = {
  */
 export async function convertToMP4(inputPath, outputPath, options = {}) {
   const preset = ENCODING_PRESETS[/** @type {string} */ (options.quality)] || ENCODING_PRESETS.high
+  const fps = resolveOutputFps(options.fps)
 
   // Timeout für FFmpeg: Standard 30 Minuten, mit Heartbeat-Überwachung
   // Große Dateien (100+ MB) brauchen länger für -movflags +faststart Finalisierung
@@ -204,7 +221,7 @@ export async function convertToMP4(inputPath, outputPath, options = {}) {
 
       // Framerate-Fix (verhindert Frame-Duplikation)
       '-r',
-      '60', // Output 60fps (für Visualizer)
+      String(fps), // Ausgabe-Framerate (Standard 60 für Visualizer)
       '-vsync',
       'cfr', // Constant framerate
 

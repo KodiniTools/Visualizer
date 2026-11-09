@@ -25,7 +25,7 @@ export default defineConfig({
   // e2e/ dürfen nicht von Vitest eingesammelt werden.
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.spec.{js,ts}'],
+    include: ['src/**/*.spec.{js,ts}', 'server/**/*.spec.js'],
   },
 
   build: {

@@ -230,6 +230,24 @@
             : t('player.placedImageAppears')
         }}
       </p>
+      <!-- Animation des platzierten Bildes: dieselben Einstellungen wie im Foto-Panel -->
+      <ImageAnimationControls
+        v-if="selectedPlacedImage"
+        :key="`placed-${selectedPlacedImage.id}`"
+        class="marker-bg-animation marker-placed-animation"
+        :image="selectedPlacedImage"
+        :title="t('player.markerImageAnimation')"
+        :hint="t('player.placedImageAnimationHint')"
+      />
+      <ImageAnimationPanel
+        v-else-if="String(newMarkerImageId).startsWith('gallery:')"
+        class="marker-bg-animation marker-placed-animation"
+        :title="t('player.markerImageAnimation')"
+        :hint="t('player.newPlacedImageAnimationHint')"
+        :animation="newMarkerPlacedImageAnimation"
+        :restartable="false"
+        :reset-key="editingMarkerId ?? 'new'"
+      />
 
       <UiTextField
         v-model="newMarkerLabel"
@@ -370,6 +388,7 @@ import UiSelect from '../ui/UiSelect.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import UiTextField from '../ui/UiTextField.vue'
 import ImageAnimationPanel from '../foto-panel/image-animation/ImageAnimationPanel.vue'
+import ImageAnimationControls from '../foto-panel/image-animation/ImageAnimationControls.vue'
 import { hasImageAnimation } from '../../lib/canvasObjects/imageAnimation'
 import { inject, computed, onUnmounted, useId } from 'vue'
 import type { PlayerBarContext } from './playerBarContext'
@@ -415,6 +434,8 @@ const {
   newMarkerVideoId,
   newMarkerVideoLoop,
   newMarkerBgImageAnimation,
+  newMarkerPlacedImageAnimation,
+  getMarkerCanvasImage,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,
@@ -516,6 +537,12 @@ const galleryImageOptions = computed(() => {
 
 // Platzierte Canvas-Bilder; beim Öffnen des Formulars neu geladen, damit
 // gerade platzierte Bilder sofort erscheinen
+// Gewähltes platziertes Bild (für seine Animations-Regler im Formular)
+const selectedPlacedImage = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerCanvasImage(newMarkerImageId.value)
+})
+
 const placedImageOptions = computed(() => {
   void showMarkerPanel.value
   return getMarkerCanvasImages()

@@ -3,7 +3,7 @@
 // und Vorgaben für neue Bilder im Upload-Bereich.
 import { describe, it, expect, afterEach } from 'vitest'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { nextTick, reactive, toRaw } from 'vue'
+import { nextTick, reactive, ref, toRaw } from 'vue'
 import ImageAnimationSections from '../../components/foto-panel/image-animation/ImageAnimationSections.vue'
 import ImageAnimationPanel from '../../components/foto-panel/image-animation/ImageAnimationPanel.vue'
 import ImageAnimationControls from '../../components/foto-panel/image-animation/ImageAnimationControls.vue'
@@ -102,6 +102,37 @@ describe('ImageAnimationControls (ausgewähltes Canvas-Bild)', () => {
     const buttons = wrapper.find('[data-effect="fade"]').findAll('button')
     await buttons[1]!.trigger('click')
     expect(getImageAnimationTransform(raw, CANVAS, t0 + 6000).opacity).toBe(0)
+  })
+
+  it('„Neu starten“ und Einschalten blenden ein von Beat-Markern ausgeblendetes Bild ein', async () => {
+    const timedAnimation = createImageAnimation()
+    timedAnimation.fade.enabled = true
+    const image = reactive({ id: 5, timedAnimation })
+    const hidden = new Set([5])
+    let redraws = 0
+    const mim = ref({
+      setMarkerHidden: (id: number, h: boolean) => (h ? hidden.add(id) : hidden.delete(id)),
+      redrawCallback: () => redraws++,
+    })
+    wrapper = mount(ImageAnimationControls, {
+      props: { image },
+      global: { provide: { multiImageManager: mim } },
+    })
+    await wrapper.find('[data-effect="fade"]').findAll('button')[1]!.trigger('click')
+    expect(hidden.has(5)).toBe(false)
+    expect(redraws).toBe(1)
+
+    hidden.add(5)
+    await toggleOf(wrapper, 'slide').trigger('click') // einschalten
+    expect(hidden.has(5)).toBe(false)
+  })
+
+  it('eigene Überschrift und Hinweis (Marker-Formular)', () => {
+    wrapper = mount(ImageAnimationControls, {
+      props: { image: reactive({ id: 1 }), title: 'Titel X', hint: 'Hinweis Y' },
+    })
+    expect(wrapper.text()).toContain('Titel X')
+    expect(wrapper.text()).toContain('Hinweis Y')
   })
 
   it('Bildwechsel: Platzhalter neu, Bereich je nach Animation auf-/zugeklappt', async () => {

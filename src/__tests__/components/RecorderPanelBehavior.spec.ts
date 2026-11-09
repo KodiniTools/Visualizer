@@ -72,18 +72,17 @@ beforeEach(() => {
     setState({ isPrepared: true, isRecording: true, statusType: 'recording' })
     return true
   })
-  vi.spyOn(store, 'pauseRecording').mockImplementation(
-    stub(() => {
-      setState({ isPrepared: true, isRecording: true, isPaused: true, statusType: 'paused' })
-      return true
-    }),
-  )
-  vi.spyOn(store, 'resumeRecording').mockImplementation(
-    stub(() => {
-      setState({ isPrepared: true, isRecording: true, statusType: 'recording' })
-      return true
-    }),
-  )
+  // Wie im Store async: Der Zustand wechselt erst nach einem Microtask
+  vi.spyOn(store, 'pauseRecording').mockImplementation(async () => {
+    await Promise.resolve()
+    setState({ isPrepared: true, isRecording: true, isPaused: true, statusType: 'paused' })
+    return true
+  })
+  vi.spyOn(store, 'resumeRecording').mockImplementation(async () => {
+    await Promise.resolve()
+    setState({ isPrepared: true, isRecording: true, statusType: 'recording' })
+    return true
+  })
   vi.spyOn(store, 'stopRecording').mockImplementation(async () => {
     const blob = new Blob(['x'], { type: 'video/webm' })
     setState({ statusType: 'idle', lastRecording: { blob } })

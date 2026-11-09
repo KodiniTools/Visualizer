@@ -7,6 +7,7 @@
     :reset-key="imageKey"
     @toggle="onToggle"
     @restart="onRestart"
+    @change="onChange"
   />
 </template>
 
@@ -17,7 +18,8 @@
  * kein `timedAnimation`; das Objekt entsteht beim ersten Einschalten, damit
  * eine reine Auswahl keinen Verlaufsschritt erzeugt.
  */
-import { computed, inject, ref, toRaw, watch, type Ref } from 'vue'
+import { computed, inject, onUnmounted, ref, toRaw, watch, type Ref } from 'vue'
+import { notifyMarkerTargetEdited } from '../../../lib/markerTargetEdits'
 import { useI18n } from '../../../lib/i18n'
 import {
   createImageAnimation,
@@ -30,7 +32,7 @@ import ImageAnimationPanel from './ImageAnimationPanel.vue'
 
 const props = defineProps<{
   /** Ausgewähltes Canvas-Bild */
-  image: ImageAnimationTarget & { id?: string | number }
+  image: ImageAnimationTarget & { id?: string | number; type?: string }
   /** Überschrift (Standard: „Animation“) */
   title?: string
   /** Hinweis unter der Überschrift (Standard: Foto-Panel-Hinweis) */
@@ -68,6 +70,42 @@ watch(
 const view = computed<ImageTimedAnimation>(() => props.image.timedAnimation ?? placeholder.value)
 const imageKey = computed(() => props.image.id ?? null)
 
+/**
+ * Bearbeitung an Beat-Marker melden: Ein vom Marker gesetztes
+ * Hintergrund-Bild schreibt seine Animation in den Marker zurück.
+ */
+function notifyEdit() {
+  const image = props.image
+  if (image.type === 'background' || image.type === 'workspace-background') {
+    notifyMarkerTargetEdited({ kind: 'background', object: toRaw(image) })
+  } else if (image.id !== undefined) {
+    notifyMarkerTargetEdited({ kind: 'image', id: image.id })
+  }
+}
+
+// Geänderte Regler sofort sichtbar machen: Effekt kurz nach der letzten
+// Änderung von vorn abspielen (nicht bei jedem Zwischenwert eines Reglers)
+const CHANGE_RESTART_MS = 350
+let changeTimer: ReturnType<typeof setTimeout> | null = null
+const changedKeys = new Set<ImageAnimationKey>()
+
+function onChange(key: ImageAnimationKey) {
+  if (!props.image.timedAnimation) return // nur Platzhalter, nichts am Bild
+  changedKeys.add(key)
+  notifyEdit()
+  if (changeTimer !== null) clearTimeout(changeTimer)
+  changeTimer = setTimeout(() => {
+    changeTimer = null
+    for (const k of changedKeys) restartImageAnimation(toRaw(props.image), k)
+    changedKeys.clear()
+    reveal()
+  }, CHANGE_RESTART_MS)
+}
+
+onUnmounted(() => {
+  if (changeTimer !== null) clearTimeout(changeTimer)
+})
+
 function onToggle(key: ImageAnimationKey, enabled: boolean) {
   const image = props.image
   if (!image.timedAnimation) {
@@ -79,10 +117,12 @@ function onToggle(key: ImageAnimationKey, enabled: boolean) {
     restartImageAnimation(toRaw(image), key)
     reveal()
   }
+  notifyEdit()
 }
 
 function onRestart(key: ImageAnimationKey) {
   restartImageAnimation(toRaw(props.image), key)
   reveal()
+  notifyEdit()
 }
 </script>

@@ -12,6 +12,7 @@
       :restartable="restartable"
       @toggle="(key, enabled) => emit('toggle', key, enabled)"
       @restart="(key) => emit('restart', key)"
+      @change="(key) => emit('change', key)"
     />
   </details>
 </template>
@@ -45,6 +46,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'toggle', key: ImageAnimationKey, enabled: boolean): void
   (e: 'restart', key: ImageAnimationKey): void
+  (e: 'change', key: ImageAnimationKey): void
 }>()
 
 const BADGES: Record<ImageAnimationKey, string> = { fade: 'Fade', scale: 'Scale', slide: 'Slide' }

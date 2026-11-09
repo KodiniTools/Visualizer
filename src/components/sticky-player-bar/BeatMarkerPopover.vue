@@ -324,7 +324,10 @@
           "
           class="marker-action marker-action-text"
           :title="t('player.textAppears')"
-          >📝 {{ marker.action.textLabel || t('player.text') }}</span
+          >📝
+          {{
+            getMarkerTextLabel(marker.action.textId) || marker.action.textLabel || t('player.text')
+          }}</span
         >
         <span
           v-if="
@@ -344,7 +347,12 @@
           "
           class="marker-action marker-action-image"
           :title="t('player.placedImageAppears')"
-          >📷 {{ marker.action.imageLabel || t('player.placedImage') }}</span
+          >📷
+          {{
+            (marker.action.imageId != null && getMarkerImageLabel(marker.action.imageId)) ||
+            marker.action.imageLabel ||
+            t('player.placedImage')
+          }}</span
         >
         <div class="marker-buttons">
           <UiIconButton
@@ -436,6 +444,8 @@ const {
   newMarkerBgImageAnimation,
   newMarkerPlacedImageAnimation,
   getMarkerCanvasImage,
+  getMarkerTextLabel,
+  getMarkerImageLabel,
   newMarkerLabel,
   getMarkerTexts,
   getMarkerShapes,

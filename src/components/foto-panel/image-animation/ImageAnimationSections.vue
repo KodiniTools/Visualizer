@@ -13,7 +13,7 @@
         <component
           :is="section.controls"
           :effect="animation[section.key]"
-          @change="emit('change')"
+          @change="emit('change', section.key)"
         />
       </AnimationEditSection>
     </template>
@@ -50,7 +50,8 @@ const emit = defineEmits<{
   /** Effekt an/aus; das Feld `enabled` ist bereits umgeschaltet */
   (e: 'toggle', key: ImageAnimationKey, enabled: boolean): void
   (e: 'restart', key: ImageAnimationKey): void
-  (e: 'change'): void
+  /** Regler des Effekts `key` geändert */
+  (e: 'change', key: ImageAnimationKey): void
 }>()
 
 const { t } = useI18n()

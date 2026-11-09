@@ -15,6 +15,7 @@ import {
 import { useImageGallery } from '../../composables/useImageGallery'
 import { saveImageAnimation } from '../../lib/imagePlacementSettings'
 import { createImageAnimation } from '../../lib/canvasObjects/imageAnimation'
+import { notifyMarkerTargetEdited } from '../../lib/markerTargetEdits'
 
 const AR = { enabled: true, source: 'mid', effects: { hue: { enabled: true, intensity: 70 } } }
 
@@ -296,5 +297,38 @@ describe('Beat-Marker: Animation des Hintergrund-Bildes', () => {
     frame(4.99)
     frame(5.01)
     expect(cm.setWorkspaceBackground).toHaveBeenLastCalledWith(imgB, { timedAnimation })
+  })
+
+  it('Änderungen an der Animation des Marker-Hintergrundbildes gehen sofort in den Marker', () => {
+    const marker = markerStore.addMarker(5, {
+      backgroundImage: { galleryId: 11, name: 'wald.jpg', defaults: null },
+    })
+    frame(4.99)
+    frame(5.01)
+    // Im Foto-Panel am gesetzten Hintergrund eine Animation einschalten
+    const bg = cm.background as { timedAnimation?: unknown }
+    const anim = createImageAnimation()
+    anim.fade.enabled = true
+    anim.fade.duration = 2500
+    bg.timedAnimation = anim
+    notifyMarkerTargetEdited({ kind: 'background', object: bg })
+    const saved = (marker.action.backgroundImage as MarkerBackgroundImageRef).timedAnimation!
+    expect(saved.fade).toMatchObject({ enabled: true, duration: 2500 })
+    expect(saved).not.toBe(anim) // Kopie
+
+    // Alle Effekte aus → Marker ohne Animation
+    anim.fade.enabled = false
+    notifyMarkerTargetEdited({ kind: 'background', object: bg })
+    expect(marker.action.backgroundImage).not.toHaveProperty('timedAnimation')
+  })
+
+  it('andere Hintergründe (nicht vom Marker gesetzt) ändern keinen Marker', () => {
+    const marker = markerStore.addMarker(5, {
+      backgroundImage: { galleryId: 11, name: 'wald.jpg', defaults: null },
+    })
+    const other = { timedAnimation: createImageAnimation() }
+    other.timedAnimation.slide.enabled = true
+    notifyMarkerTargetEdited({ kind: 'background', object: other })
+    expect(marker.action.backgroundImage).not.toHaveProperty('timedAnimation')
   })
 })

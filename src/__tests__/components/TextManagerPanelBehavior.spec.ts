@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-/* eslint-disable vue/one-component-per-file -- Stubs der Unterkomponenten */
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import { ref, nextTick, toRaw, defineComponent, h, type Ref } from 'vue'
 import { mount, type VueWrapper } from '@vue/test-utils'

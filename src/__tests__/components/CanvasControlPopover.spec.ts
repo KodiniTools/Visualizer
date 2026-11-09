@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { defineComponent, ref, nextTick, type Ref } from 'vue'
+import { defineComponent, ref, nextTick, isRef, type Ref } from 'vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import CanvasControlPopover from '../../components/sticky-player-bar/CanvasControlPopover.vue'
@@ -91,18 +91,32 @@ describe('CanvasControlPopover', () => {
   })
 
   it('behält den Hintergrund-Zustand über Schließen und erneutes Öffnen', async () => {
-    const bg = wrapper.vm.bg as unknown as Record<string, unknown>
-    bg.backgroundColor = '#123456'
-    bg.gradientEnabled = true
+    const pop = () => wrapper.find('.spb-popover-canvascontrol')
+    const gradientSwitch = () => pop().find<HTMLButtonElement>('.gradient-section [role="switch"]')
+    const colorText = () => pop().find<HTMLInputElement>('.color-text-input')
+
+    // Über die Bedienelemente des Popovers ändern, nicht über die Refs
+    expect(gradientSwitch().attributes('aria-checked')).toBe('false')
+    await gradientSwitch().trigger('click')
+    await colorText().setValue('rgba(18, 52, 86, 1)')
     await nextTick()
+    expect(pop().find('.gradient-controls').exists()).toBe(true)
+
+    // Der Zustand liegt in der Leiste (Refs bleiben Refs) ...
+    const bg = wrapper.vm.bg
+    expect(isRef(bg.backgroundColor)).toBe(true)
+    expect(bg.backgroundColor.value).toBe('#123456')
+    expect(bg.gradientEnabled.value).toBe(true)
 
     await wrapper.setProps({ open: false })
-    await nextTick()
+    expect(pop().exists()).toBe(false)
     await wrapper.setProps({ open: true })
     await nextTick()
 
-    expect(bg.backgroundColor).toBe('#123456')
-    expect(bg.gradientEnabled).toBe(true)
-    expect(wrapper.find('.spb-popover-canvascontrol .panel').exists()).toBe(true)
+    // ... und das neu gemountete Popover zeigt ihn wieder an
+    expect(pop().find('.panel').exists()).toBe(true)
+    expect(gradientSwitch().attributes('aria-checked')).toBe('true')
+    expect(pop().find('.gradient-controls').exists()).toBe(true)
+    expect(colorText().element.value).toBe('rgba(18, 52, 86, 1)')
   })
 })

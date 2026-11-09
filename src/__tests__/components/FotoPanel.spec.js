@@ -264,7 +264,7 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     expect(bounds.relX).toBeCloseTo(0.2 + 0.1 + 0.1)
     expect(bounds.relY).toBeCloseTo(0.2 + 0.05 - 0.1)
     expect(animation).toBe('zoom')
-    expect(opts).toEqual({ duration: 700 })
+    expect(opts).toEqual({ duration: 700, name: 'a.png' })
     await nextTick()
     expect(upload().props('isInRangeSelectionMode')).toBe(false)
 
@@ -292,7 +292,7 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     expect(bounds.relX).toBeCloseTo(0.6 - 0.15)
     expect(bounds.relY).toBeCloseTo(0.6 - 0.15)
     expect(anim).toBe('fade')
-    expect(opts).toEqual({ duration: 500 })
+    expect(opts).toEqual({ duration: 500, name: 'a.png' })
   })
 
   it('Alle löschen fragt nach', async () => {
@@ -319,7 +319,7 @@ describe('FotoPanel – Galerie & Platzierung', () => {
     })
     preview().vm.$emit('add-to-canvas')
     await nextTick()
-    expect(m.multiImageManager.addImage).toHaveBeenCalledWith(a)
+    expect(m.multiImageManager.addImage).toHaveBeenCalledWith(a, { name: 'a.png' })
     expect(preview().props('previewImage')).toBeNull()
 
     upload().vm.$emit('open-preview', data)

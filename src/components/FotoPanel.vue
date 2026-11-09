@@ -188,6 +188,7 @@ const {
   placement: { selectedAnimation, animationDuration, imageScale },
   // Eigene Bilder sind bereits als <img> geladen – direkt zurückgeben.
   resolveImage: (payload) => payload?.imgData?.img || null,
+  resolveName: (payload) => payload?.imgData?.fileName || payload?.imgData?.name,
   onPlaced: (payload) => {
     console.log('✅ Eigenes Bild per Drag & Drop platziert:', payload?.imgData?.name)
     toastStore.success(t('toast.imageAddedToCanvas'))

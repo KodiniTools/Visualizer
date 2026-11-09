@@ -34,7 +34,13 @@ export function buildSlideshowSourceImages(uploads = [], stocks = [], getLoadedS
     if (!u) continue
     const key = fileBaseName(u.name)
     if (key) seen.add(key)
-    result.push({ id: u.id, name: u.name, source: 'upload', imageObject: u.img })
+    result.push({
+      id: u.id,
+      name: u.name,
+      fileName: u.fileName || u.name,
+      source: 'upload',
+      imageObject: u.img,
+    })
   }
 
   for (const st of stocks) {

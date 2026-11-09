@@ -130,7 +130,10 @@ function makeShortcuts(canvasOverrides = {}) {
     redrawCallback: rec('cm.redraw'),
     ...canvasOverrides,
   }
-  const multiImageManager = { addImage: rec('mim.addImage') }
+  const multiImageManager = {
+    addImage: rec('mim.addImage'),
+    duplicateImage: rec('mim.duplicateImage'),
+  }
   const ks = new KeyboardShortcuts(stores, { canvasManager, multiImageManager })
   return { ks, calls, stores, canvasManager, multiImageManager }
 }

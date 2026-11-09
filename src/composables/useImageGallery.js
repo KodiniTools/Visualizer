@@ -56,6 +56,8 @@ function pushGalleryImage(img, name, size) {
     id: Date.now() + Math.random(),
     img,
     name: shortenName(name),
+    // Voller Dateiname (z. B. für die Bildvorschau der Canvas-Bilder)
+    fileName: name,
     dimensions: `${img.width}×${img.height}`,
     size,
   }
@@ -78,7 +80,7 @@ function pushGalleryImage(img, name, size) {
  * zurückgegeben.
  * @param {HTMLImageElement} img
  * @param {string} name
- * @returns {{ id:number, img:HTMLImageElement, name:string }}
+ * @returns {{ id:number, img:HTMLImageElement, name:string, fileName:string }}
  */
 function ensureGalleryImage(img, name) {
   const shortName = shortenName(name || 'Bild')
@@ -92,7 +94,14 @@ function ensureGalleryImage(img, name) {
 
   const src = typeof img.src === 'string' ? img.src : ''
   const size = src.startsWith('data:') ? formatFileSize(estimateDataUrlBytes(src)) : ''
-  const imageData = { id: Date.now() + Math.random(), img, name: shortName, dimensions: dims, size }
+  const imageData = {
+    id: Date.now() + Math.random(),
+    img,
+    name: shortName,
+    fileName: name || 'Bild',
+    dimensions: dims,
+    size,
+  }
   imageGallery.value.push(imageData)
   return imageGallery.value[imageGallery.value.length - 1]
 }

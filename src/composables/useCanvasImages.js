@@ -19,6 +19,8 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
 
   const pendingReplaceImage = ref(null)
   const pendingReplaceImageSrc = ref(null)
+  // Dateiname des Ersatzbildes (Upload: File.name, Galerie: aus der URL)
+  let pendingReplaceName = null
 
   const draggedImageIndex = ref(null)
   const dragOverIndex = ref(null)
@@ -76,6 +78,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     previewImageIndex.value = 0
     pendingReplaceImage.value = null
     pendingReplaceImageSrc.value = null
+    pendingReplaceName = null
   }
 
   function handleReplaceCanvasImage(event) {
@@ -88,6 +91,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
       img.onload = () => {
         pendingReplaceImage.value = img
         pendingReplaceImageSrc.value = e.target.result
+        pendingReplaceName = file.name
       }
       img.src = e.target.result
     }
@@ -100,16 +104,22 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
     const manager = multiImageManagerInstance.value
     if (!manager) return
 
-    const result = manager.replaceImage(previewImageData.value.id, pendingReplaceImage.value)
+    const result = manager.replaceImage(
+      previewImageData.value.id,
+      pendingReplaceImage.value,
+      pendingReplaceName,
+    )
     if (result) previewImageData.value = result
 
     pendingReplaceImage.value = null
     pendingReplaceImageSrc.value = null
+    pendingReplaceName = null
   }
 
   function cancelPendingReplace() {
     pendingReplaceImage.value = null
     pendingReplaceImageSrc.value = null
+    pendingReplaceName = null
   }
 
   async function openReplaceGallery() {
@@ -211,6 +221,7 @@ export function useCanvasImages({ multiImageManagerInstance, canvasManagerInstan
 
       pendingReplaceImage.value = img
       pendingReplaceImageSrc.value = imagePath
+      pendingReplaceName = null // wird aus imagePath abgeleitet
       closeReplaceGallery()
     } catch (error) {
       console.error('❌ Fehler beim Laden des Galeriebildes:', error)

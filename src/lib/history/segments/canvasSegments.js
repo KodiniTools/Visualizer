@@ -167,6 +167,7 @@ function captureImage(img) {
     id: img.id,
     type: img.type || 'image',
     media: src ? mediaRegistry.remember(src, img.imageObject) : null,
+    name: img.name ?? null,
     relX: img.relX,
     relY: img.relY,
     relWidth: img.relWidth,
@@ -217,6 +218,8 @@ export function createImagesSegment(getCanvasManager) {
         if (!obj) obj = { id: snap.id, type: snap.type, imageObject: null }
         await ensureImageElement(obj, snap.media)
         if (!obj.imageObject) continue
+        // Dateiname gehört zum Bild-Element (Ersetzen rückgängig → alter Name)
+        if (snap.name !== undefined) obj.name = snap.name
         obj.relX = snap.relX
         obj.relY = snap.relY
         obj.relWidth = snap.relWidth

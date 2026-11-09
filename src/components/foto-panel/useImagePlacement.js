@@ -42,6 +42,11 @@ export function useImagePlacement({
   // Bereichsauswahl-Modus
   const isInRangeSelectionMode = ref(false)
   const pendingRangeSelectionImage = ref(null)
+  // Dateiname des Bildes, das per Bereichsauswahl platziert wird
+  let pendingRangeSelectionName = null
+
+  /** Voller Dateiname eines Galerie-Eintrags (`name` ist für die Anzeige gekürzt). */
+  const fileNameOf = (imgData) => imgData?.fileName || imgData?.name
 
   // Bild-Vorschau
   const previewImage = ref(null)
@@ -76,7 +81,7 @@ export function useImagePlacement({
     if (!multiImageManager) return
 
     imagesToAdd.forEach((imgData) => {
-      multiImageManager.addImage(imgData.img)
+      multiImageManager.addImage(imgData.img, { name: fileNameOf(imgData) })
     })
 
     console.log(`✅ ${imagesToAdd.length} Bild(er) auf Canvas platziert`)
@@ -123,6 +128,7 @@ export function useImagePlacement({
     if (!canvasManager) return
 
     pendingRangeSelectionImage.value = imgData.img
+    pendingRangeSelectionName = fileNameOf(imgData)
     isInRangeSelectionMode.value = true
     canvasManager.startImageSelectionMode(
       (bounds) => handleRangeSelectionComplete(bounds),
@@ -163,7 +169,7 @@ export function useImagePlacement({
       pendingRangeSelectionImage.value,
       scaledBounds,
       bounds.animation || selectedAnimation.value,
-      { duration: animationDuration.value },
+      { duration: animationDuration.value, name: pendingRangeSelectionName },
     )
 
     deselectAllImages()
@@ -195,6 +201,7 @@ export function useImagePlacement({
 
     multiImageManager.addImageWithBounds(imgData.img, bounds, selectedAnimation.value, {
       duration: animationDuration.value,
+      name: fileNameOf(imgData),
     })
     console.log('✅ Bild platziert')
     deselectAllImages()
@@ -220,7 +227,9 @@ export function useImagePlacement({
     const multiImageManager = multiImageManagerRef?.value
     if (!multiImageManager) return
 
-    multiImageManager.addImage(previewImage.value.data.img)
+    multiImageManager.addImage(previewImage.value.data.img, {
+      name: fileNameOf(previewImage.value.data),
+    })
     closePreview()
   }
 

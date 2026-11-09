@@ -147,12 +147,8 @@ export class KeyboardShortcuts {
       console.log('📋 [Shortcut] Text duplicated')
     } else if (obj.type === 'image') {
       // Dupliziere Bild
-      this.multiImageManager?.addImage({
-        ...obj,
-        id: Date.now() + '_dup',
-        relX: obj.relX + 0.05,
-        relY: obj.relY + 0.05,
-      })
+      // Gleiches Bild-Element und gleicher Dateiname, leicht versetzt
+      this.multiImageManager?.duplicateImage(obj)
       console.log('📋 [Shortcut] Image duplicated')
     }
   }
@@ -163,6 +159,8 @@ export class KeyboardShortcuts {
 
     // Tiefe Kopie des Objekts
     this.copiedObject = JSON.parse(JSON.stringify(obj))
+    // Das Bild-Element übersteht JSON nicht → Referenz behalten
+    if (obj.type === 'image') this.copiedObject.imageObject = obj.imageObject
     console.log('📋 [Shortcut] Object copied:', obj.type)
   }
 
@@ -177,12 +175,7 @@ export class KeyboardShortcuts {
       })
       console.log('📄 [Shortcut] Text pasted')
     } else if (this.copiedObject.type === 'image') {
-      this.multiImageManager?.addImage({
-        ...this.copiedObject,
-        id: Date.now() + '_paste',
-        relX: this.copiedObject.relX + 0.05,
-        relY: this.copiedObject.relY + 0.05,
-      })
+      this.multiImageManager?.duplicateImage(this.copiedObject)
       console.log('📄 [Shortcut] Image pasted')
     }
   }

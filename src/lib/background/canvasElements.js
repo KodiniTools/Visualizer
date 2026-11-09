@@ -6,6 +6,8 @@
  * Lade-Callbacks erneut abgefragt).
  */
 
+import { resolveImageName } from '../canvasObjects/imageName.js'
+
 const deepClone = (obj) => (obj ? JSON.parse(JSON.stringify(obj)) : null)
 
 const DEFAULT_IMAGE_SETTINGS = Object.freeze({
@@ -29,6 +31,8 @@ function captureCanvasImages(cm) {
     .getAllImages()
     .map((img) => ({
       src: img.imageObject?.src || null,
+      // Dateiname nur speichern, wenn bekannt (ältere Presets haben keinen)
+      ...(img.name ? { name: img.name } : {}),
       relX: img.relX,
       relY: img.relY,
       relWidth: img.relWidth,
@@ -135,6 +139,7 @@ function restoreCanvasImages(cm, list) {
         id: Date.now() + Math.random(),
         type: 'image',
         imageObject: img,
+        name: resolveImageName(data.name, img),
         relX: data.relX ?? 0.33,
         relY: data.relY ?? 0.33,
         relWidth: data.relWidth ?? 0.33,

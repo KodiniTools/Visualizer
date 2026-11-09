@@ -4,8 +4,8 @@ exports[`KeyboardShortcuts – Aktionen > Duplizieren und Kopieren/Einfügen (Te
 [
   "cm.addText("Hallo", {"relX":0.15000000000000002,"relY":0.25,"fontSize":30,"fontFamily":"Arial","color":"#fff","align":"center","fontWeight":"bold","fontStyle":"normal","textDecoration":"none","shadow":{"blur":2}})",
   "cm.addText("Hallo", {"type":"text","text":"Hallo","relX":0.15000000000000002,"relY":0.25,"fontSize":30,"fontFamily":"Arial","color":"#fff","align":"center","fontWeight":"bold","fontStyle":"normal","textDecoration":"none","shadow":{"blur":2},"extra":"x"})",
-  "mim.addImage({"type":"image","id":"777_dup","relX":0.35,"relY":0.45,"relWidth":0.2,"src":"a.png"})",
-  "mim.addImage({"type":"image","id":"777_paste","relX":0.35,"relY":0.45,"relWidth":0.2,"src":"a.png"})",
+  "mim.duplicateImage({"type":"image","id":5,"relX":0.3,"relY":0.4,"relWidth":0.2,"src":"a.png"})",
+  "mim.duplicateImage({"type":"image","id":5,"relX":0.3,"relY":0.4,"relWidth":0.2,"src":"a.png"})",
 ]
 `;
 

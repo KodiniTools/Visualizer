@@ -902,6 +902,8 @@ export default {
     confirmDeleteAll: 'Remove all images from canvas?',
     imagePreview: 'Image Preview',
     imageMetadata: 'Image Information',
+    fileName: 'File name',
+    fileNameUnknown: 'Unknown',
     dimensions: 'Dimensions',
     position: 'Position',
     layer: 'Layer',

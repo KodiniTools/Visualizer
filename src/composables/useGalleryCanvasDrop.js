@@ -24,6 +24,8 @@
  * @param {import('vue').Ref<number>} opts.placement.imageScale
  * @param {(payload:any) => (HTMLImageElement|Promise<HTMLImageElement>)} opts.resolveImage
  *        Wandelt die gezogene Nutzlast in ein <img>-Element um (ggf. asynchron).
+ * @param {(payload:any) => (string|null|undefined)} [opts.resolveName]
+ *        Dateiname der Nutzlast für das Canvas-Bild (sonst aus der Bild-URL abgeleitet).
  * @param {(payload:any) => void} [opts.onPlaced]  Callback nach erfolgreicher Platzierung
  * @param {(error:any) => void}  [opts.onError]    Callback bei Fehler
  */
@@ -34,6 +36,7 @@ export function useGalleryCanvasDrop({
   multiImageManagerRef,
   placement,
   resolveImage,
+  resolveName,
   onPlaced,
   onError,
 }) {
@@ -125,6 +128,7 @@ export function useGalleryCanvasDrop({
         placement.selectedAnimation?.value || 'none',
         {
           duration: placement.animationDuration?.value || 1000,
+          name: resolveName ? resolveName(payload) : undefined,
         },
       )
 

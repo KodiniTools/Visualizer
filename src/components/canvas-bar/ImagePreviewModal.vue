@@ -12,6 +12,23 @@
       <section class="preview-section">
         <h3 class="preview-eyebrow">{{ t('app.imageMetadata') }}</h3>
         <dl v-if="previewImageData" class="preview-info-grid">
+          <div class="preview-info-item preview-info-item--wide">
+            <dt>{{ t('app.fileName') }}</dt>
+            <dd
+              v-if="fileName"
+              class="preview-file-name"
+              :title="fileName"
+              data-testid="preview-file-name"
+            >
+              <span class="preview-file-base">{{ fileNameParts.base }}</span
+              ><span v-if="fileNameParts.ext" class="preview-file-ext">{{
+                fileNameParts.ext
+              }}</span>
+            </dd>
+            <dd v-else class="preview-file-unknown" data-testid="preview-file-name">
+              {{ t('app.fileNameUnknown') }}
+            </dd>
+          </div>
           <div class="preview-info-item">
             <dt>{{ t('app.layer') }}</dt>
             <dd>{{ previewImageIndex + 1 }} / {{ canvasImagesCount }}</dd>
@@ -78,9 +95,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiDialog from '../ui/UiDialog.vue'
+import { splitFileName } from '../../lib/canvasObjects/imageName.js'
 
 const props = defineProps({
   showImagePreview: { type: Boolean, required: true },
@@ -102,6 +120,13 @@ const props = defineProps({
 })
 
 const replaceCanvasImageInput = ref(null)
+
+/** Gespeicherter Dateiname des Canvas-Bildes (leer, wenn unbekannt). */
+const fileName = computed(() => {
+  const name = props.previewImageData?.name
+  return typeof name === 'string' ? name.trim() : ''
+})
+const fileNameParts = computed(() => splitFileName(fileName.value))
 
 function requestClose() {
   if (props.replaceGalleryOpen) return
@@ -180,6 +205,35 @@ function requestClose() {
   font-weight: var(--ds-weight-semibold);
   font-family: var(--ds-font-mono);
   color: var(--ds-text);
+}
+
+.preview-info-item--wide {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* Lange Namen: Stamm mit Auslassungspunkten kürzen, Endung bleibt sichtbar.
+   Dateinamen sind Text, keine Messwerte → Grundschrift statt Mono. */
+.preview-info-item dd.preview-file-name {
+  display: flex;
+  min-width: 0;
+  white-space: nowrap;
+  font-family: var(--ds-font-sans);
+}
+
+.preview-file-base {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-file-ext {
+  flex-shrink: 0;
+}
+
+.preview-info-item dd.preview-file-unknown {
+  font-family: var(--ds-font-sans);
+  font-weight: var(--ds-weight-regular);
+  color: var(--ds-text-3);
 }
 
 .preview-actions {

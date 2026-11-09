@@ -108,6 +108,46 @@ describe('Bildvorschau – Anzeige', () => {
   })
 })
 
+describe('Bildvorschau – Dateiname', () => {
+  const fileNameEl = () => body().querySelector('[data-testid="preview-file-name"]')
+
+  it('zeigt den Dateinamen als erstes Feld, voller Name als Tooltip', () => {
+    mountModal({ previewImageData: { ...imageData, name: 'snovi moji.png' } })
+    const first = body().querySelector('dl > div')
+    expect(first.querySelector('dt').textContent.trim()).toBe(A.fileName)
+    expect(fileNameEl().textContent.replace(/\s+/g, ' ').trim()).toBe('snovi moji.png')
+    expect(fileNameEl().getAttribute('title')).toBe('snovi moji.png')
+  })
+
+  it('lange Namen: Stamm kürzbar, Endung bleibt separat sichtbar', () => {
+    const name = 'ein-sehr-langer-dateiname-aus-der-kamera-2026-11-09_18-04-46.jpeg'
+    mountModal({ previewImageData: { ...imageData, name } })
+    expect(fileNameEl().querySelector('.preview-file-base').textContent).toBe(
+      name.slice(0, -'.jpeg'.length),
+    )
+    expect(fileNameEl().querySelector('.preview-file-ext').textContent).toBe('.jpeg')
+    expect(fileNameEl().getAttribute('title')).toBe(name)
+  })
+
+  it('ohne gespeicherten Namen: „Unbekannt“, kein Tooltip', () => {
+    mountModal({ previewImageData: { ...imageData, name: null } })
+    expect(fileNameEl().textContent.trim()).toBe(A.fileNameUnknown)
+    expect(fileNameEl().hasAttribute('title')).toBe(false)
+  })
+
+  it('englische Beschriftung', async () => {
+    const { setLocale } = useI18n()
+    await setLocale('en')
+    try {
+      mountModal({ previewImageData: { ...imageData, name: 'house.jpg' } })
+      expect(text()).toContain(en.app.fileName)
+      expect(text()).toContain('house.jpg')
+    } finally {
+      await setLocale('de')
+    }
+  })
+})
+
 describe('Bildvorschau – Schließen', () => {
   it('Klick auf den Hintergrund schließt', () => {
     const fns = mountModal()
@@ -180,7 +220,7 @@ describe('Bildvorschau – Ui-Bausteine', () => {
   it('Bildinformationen als Begriffsliste, Bilder mit Alternativtext', () => {
     mountModal({ pendingReplaceImageSrc: 'data:image/png;base64,NEW' })
     const terms = [...body().querySelectorAll('dt')].map((el) => el.textContent.trim())
-    expect(terms).toEqual([A.layer, A.dimensions, A.position, de.common.size])
+    expect(terms).toEqual([A.fileName, A.layer, A.dimensions, A.position, de.common.size])
     for (const img of body().querySelectorAll('img')) expect(img.getAttribute('alt')).toBeTruthy()
   })
 

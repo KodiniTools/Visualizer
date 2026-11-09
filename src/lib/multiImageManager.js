@@ -28,6 +28,7 @@ import {
 } from './canvasObjects/geometry.js'
 import { getEntranceTransform } from './canvasObjects/entranceAnimation.js'
 import { moveToBack, moveToFront } from './canvasObjects/zOrder.js'
+import { resolveImageName } from './canvasObjects/imageName.js'
 import { getSlideshowManager } from './slideshowManagerBridge.js'
 import { getAudioAnalysisData } from './audio/audioAnalysisData.js'
 
@@ -94,8 +95,10 @@ export class MultiImageManager {
 
   /**
    * Fügt ein neues Bild zum Canvas hinzu
+   * @param {HTMLImageElement} imageObject
+   * @param {{ name?: string }} [options] - name: ursprünglicher Dateiname (sonst aus der URL abgeleitet)
    */
-  addImage(imageObject) {
+  addImage(imageObject, options = {}) {
     if (!imageObject) {
       console.error('❌ Kein Bild zum Hinzufügen übergeben')
       return null
@@ -114,6 +117,7 @@ export class MultiImageManager {
       id: Date.now() + Math.random(), // Eindeutige ID
       type: 'image',
       imageObject: img,
+      name: resolveImageName(options?.name, img),
       relX: (1 - initialRelWidth) / 2, // Zentriert
       relY: (1 - initialRelHeight) / 2, // Zentriert
       relWidth: initialRelWidth,
@@ -150,7 +154,7 @@ export class MultiImageManager {
    * @param {HTMLImageElement} imageObject - Das Bildobjekt
    * @param {Object} bounds - Die Ziel-Bounds { relX, relY, relWidth, relHeight }
    * @param {string} animation - Die Eintritts-Animation ('none', 'fade', 'slideLeft', 'slideRight', 'slideUp', 'slideDown', 'zoom', 'bounce', 'spin', 'elastic')
-   * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean }
+   * @param {Object} options - Optionen { duration: Animationsdauer in ms, scale: Skalierungsfaktor, isSlideshowImage: boolean, name: Dateiname }
    */
   addImageWithBounds(imageObject, bounds, animation = 'none', options = {}) {
     if (!imageObject) {
@@ -185,6 +189,7 @@ export class MultiImageManager {
       id: Date.now() + Math.random(),
       type: 'image',
       imageObject: imageObject,
+      name: resolveImageName(options.name, imageObject),
       relX: finalRelX,
       relY: finalRelY,
       relWidth: finalRelWidth,
@@ -1002,9 +1007,10 @@ export class MultiImageManager {
    * Behält Position, Größe, Filter und Einstellungen bei
    * @param {number|string} imageId - ID des zu ersetzenden Bildes
    * @param {HTMLImageElement} newImageObject - Das neue Bild
+   * @param {string} [name] - Dateiname des neuen Bildes (sonst aus der URL abgeleitet)
    * @returns {Object|null} Das aktualisierte Bildobjekt oder null bei Fehler
    */
-  replaceImage(imageId, newImageObject) {
+  replaceImage(imageId, newImageObject, name) {
     if (!newImageObject) {
       console.error('❌ Kein neues Bild zum Ersetzen übergeben')
       return null
@@ -1022,6 +1028,7 @@ export class MultiImageManager {
 
     // Neues Bild setzen - alle anderen Eigenschaften bleiben erhalten
     image.imageObject = newImageObject
+    image.name = resolveImageName(name, newImageObject)
 
     console.log(
       '🔄 Bild ersetzt:',
@@ -1034,6 +1041,52 @@ export class MultiImageManager {
     this.onImageChanged()
 
     return image
+  }
+
+  /**
+   * Legt eine Kopie eines Canvas-Bildes an (Strg+D bzw. Kopieren/Einfügen):
+   * gleiches Bild-Element und gleicher Dateiname, gleiche Größe, Drehung und
+   * Einstellungen, leicht nach rechts unten versetzt. Die Eintritts-Animation
+   * und Slideshow-Zustände werden nicht übernommen.
+   * @param {Object} source - Bildobjekt (live oder Kopie) mit `imageObject`
+   * @param {number} [offset=0.05] - relativer Versatz
+   * @returns {Object|null} Die Kopie oder null, wenn kein Bild-Element vorliegt
+   */
+  duplicateImage(source, offset = 0.05) {
+    if (!source?.imageObject) return null
+    const clone = (value) => (value == null ? null : JSON.parse(JSON.stringify(value)))
+    const num = (value, fallback) => (Number.isFinite(value) ? value : fallback)
+
+    const copy = {
+      id: Date.now() + Math.random(),
+      type: 'image',
+      imageObject: source.imageObject,
+      name: resolveImageName(source.name, source.imageObject),
+      relX: num(source.relX, 0) + offset,
+      relY: num(source.relY, 0) + offset,
+      relWidth: num(source.relWidth, 1 / 3),
+      relHeight: num(source.relHeight, 1 / 3),
+      rotation: num(source.rotation, 0),
+      settings: clone(source.settings) || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        opacity: 100,
+        blur: 0,
+        preset: null,
+      },
+    }
+    if (source.fotoSettings) {
+      copy.fotoSettings = clone(source.fotoSettings)
+    } else if (this.fotoManager) {
+      this.fotoManager.initializeImageSettings(copy)
+    }
+
+    this.images.push(copy)
+    this.setSelectedImage(copy)
+    this.redrawCallback()
+    this.onImageChanged()
+    return copy
   }
 
   /**

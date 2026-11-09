@@ -7,7 +7,7 @@ import { useVisualizerStore } from '../../stores/visualizerStore'
 // Verhalten, das andere Specs nicht abdecken. Muss vor und nach der Aufteilung
 // in Teilmodule identisch sein.
 
-let store
+let store: ReturnType<typeof useVisualizerStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -15,7 +15,8 @@ beforeEach(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
-const publicKeys = (s) => Object.keys(s).filter((k) => !k.startsWith('$') && !k.startsWith('_'))
+const publicKeys = (s: object) =>
+  Object.keys(s).filter((k) => !k.startsWith('$') && !k.startsWith('_'))
 
 describe('visualizerStore – Schnittstelle', () => {
   it('Modul-Exporte', () => {
@@ -33,7 +34,9 @@ describe('visualizerStore – Schnittstelle', () => {
   })
 
   it('Typen: Funktionen vs. Werte', () => {
-    const types = Object.fromEntries(publicKeys(store).map((k) => [k, typeof store[k]]))
+    const types = Object.fromEntries(
+      publicKeys(store).map((k) => [k, typeof (store as unknown as Record<string, unknown>)[k]]),
+    )
     expect(types).toMatchSnapshot()
   })
 })
@@ -112,8 +115,13 @@ describe('visualizerStore – Layer', () => {
     store.setMultiLayerMode(true)
     expect(store.layerCount).toBe(1)
     const l = store.activeLayer
-    expect([l.visualizerId, l.color, l.x, l.ledText]).toEqual(['glRings', '#ff0000', 0.2, 'HALLO'])
-    expect(l.effects.bloomEnabled).toBe(false)
+    expect([l!.visualizerId, l!.color, l!.x, l!.ledText]).toEqual([
+      'glRings',
+      '#ff0000',
+      0.2,
+      'HALLO',
+    ])
+    expect(l!.effects!.bloomEnabled).toBe(false)
     // zweites Einschalten erzeugt keinen weiteren Layer
     store.setMultiLayerMode(false)
     store.setMultiLayerMode(true)
@@ -125,7 +133,7 @@ describe('visualizerStore – Layer', () => {
     const b = store.addLayer('glRings', { color: '#00ff00' })
     expect(store.activeLayerId).toBe(b.id)
     const c = store.duplicateLayer(a.id)
-    expect(c.id).not.toBe(a.id)
+    expect(c!.id).not.toBe(a.id)
     expect(store.visualizerLayers.map((l) => l.visualizerId)).toEqual([
       'glBars',
       'glBars',
@@ -136,28 +144,28 @@ describe('visualizerStore – Layer', () => {
     expect(store.moveLayerUp(b.id)).toBe(false)
     expect(store.moveLayerDown(a.id)).toBe(false)
     expect(store.moveLayerUp(a.id)).toBe(true)
-    expect(store.visualizerLayers.map((l) => l.id)).toEqual([c.id, a.id, b.id])
+    expect(store.visualizerLayers.map((l) => l.id)).toEqual([c!.id, a.id, b.id])
     expect(store.moveLayerDown(b.id)).toBe(true)
-    expect(store.visualizerLayers.map((l) => l.id)).toEqual([c.id, b.id, a.id])
+    expect(store.visualizerLayers.map((l) => l.id)).toEqual([c!.id, b.id, a.id])
 
     store.selectLayer(b.id)
     store.selectLayer('nope')
     expect(store.activeLayerId).toBe(b.id)
     store.toggleLayerVisibility(b.id)
-    expect(store.visibleLayers.map((l) => l.id)).toEqual([c.id, a.id])
+    expect(store.visibleLayers.map((l) => l.id)).toEqual([c!.id, a.id])
 
     expect(store.removeLayer('nope')).toBe(false)
     store.removeLayer(b.id)
     expect(store.activeLayerId).toBe(a.id)
     store.removeLayer(a.id)
-    store.removeLayer(c.id)
+    store.removeLayer(c!.id)
     expect(store.activeLayerId).toBeNull()
     expect(store.multiLayerMode).toBe(false)
   })
 
   it('updateLayerProperty validiert und begrenzt', () => {
     const l = store.addLayer('glBars')
-    const set = (p, v) => store.updateLayerProperty(l.id, p, v)
+    const set = (p: string, v: unknown) => store.updateLayerProperty(l.id, p, v)
     expect(set('opacity', 2)).toBe(true)
     expect(set('x', -1)).toBe(true)
     expect(set('scale', 9)).toBe(true)

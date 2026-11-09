@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { usePlayerStore } from '../../stores/playerStore'
+import { stub } from '../helpers/canvasStubs'
 
-let store
+let store: ReturnType<typeof usePlayerStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -13,16 +14,16 @@ describe('playerStore Frame-Takt', () => {
   it('getPreciseTime liest das Audio-Element, sonst currentTime', () => {
     store.currentTime = 3.5
     expect(store.getPreciseTime()).toBe(3.5)
-    store.audioRef = { currentTime: 12.345 }
+    store.audioRef = stub({ currentTime: 12.345 })
     expect(store.getPreciseTime()).toBe(12.345)
-    store.audioRef = { currentTime: NaN }
+    store.audioRef = stub({ currentTime: NaN })
     expect(store.getPreciseTime()).toBe(3.5)
   })
 
   it('benachrichtigt Listener nur während der Wiedergabe mit der präzisen Zeit', () => {
     const listener = vi.fn()
     store.onFrame(listener)
-    store.audioRef = { currentTime: 7.891 }
+    store.audioRef = stub({ currentTime: 7.891 })
 
     store.notifyFrame()
     expect(listener).not.toHaveBeenCalled()
@@ -41,7 +42,7 @@ describe('playerStore Frame-Takt', () => {
     const off = store.onFrame(failing)
     store.onFrame(ok)
     store.isPlaying = true
-    store.audioRef = { currentTime: 1 }
+    store.audioRef = stub({ currentTime: 1 })
 
     store.notifyFrame()
     expect(ok).toHaveBeenCalledTimes(1)

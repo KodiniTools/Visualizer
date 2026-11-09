@@ -12,11 +12,11 @@ import {
 const KEY = 'visualizer-slideshow-presets'
 
 function memoryStorage() {
-  const data = new Map()
+  const data = new Map<string, string>()
   return {
-    getItem: (k) => (data.has(k) ? data.get(k) : null),
-    setItem: (k, v) => data.set(k, String(v)),
-    removeItem: (k) => data.delete(k),
+    getItem: (k: string) => (data.has(k) ? data.get(k) : null),
+    setItem: (k: string, v: unknown) => data.set(k, String(v)),
+    removeItem: (k: string) => data.delete(k),
     clear: () => data.clear(),
   }
 }
@@ -48,9 +48,9 @@ describe('slideshowPresetStore', () => {
   it('speichert Anzeigedauer + Audio-Modus pro Position und persistiert', () => {
     const store = useSlideshowPresetStore()
     const preset = store.savePreset('Mein Preset', snapshot)
-    expect(preset.name).toBe('Mein Preset')
-    expect(preset.settings.displayDuration).toBe(4000)
-    expect(preset.slots).toEqual(
+    expect(preset!.name).toBe('Mein Preset')
+    expect(preset!.settings.displayDuration).toBe(4000)
+    expect(preset!.slots).toEqual(
       snapshot.slots.map((sl) => ({
         ...sl,
         audioSource: null,
@@ -69,7 +69,7 @@ describe('slideshowPresetStore', () => {
     const reloaded = useSlideshowPresetStore()
     reloaded.loadPresets()
     expect(reloaded.presets).toHaveLength(1)
-    expect(reloaded.presets[0].slots[0]).toEqual({
+    expect(reloaded.presets[0]!.slots[0]).toEqual({
       displayDuration: 7000,
       audioMode: 'pulse',
       audioSource: null,
@@ -78,23 +78,20 @@ describe('slideshowPresetStore', () => {
       fadeOut: null,
       adjustments: null,
       bounds: null,
-      transition: null,
-      fadeIn: null,
-      fadeOut: null,
       stock: null,
       upload: null,
     })
-    expect(reloaded.presets[0].settings.fitToWorkspace).toBe(true)
-    expect(reloaded.presets[0].settings.moveWholeSlideshow).toBe(true)
-    expect(reloaded.presets[0].settings.transform).toEqual({ x: 5, y: 15, width: 70, height: 60 })
+    expect(reloaded.presets[0]!.settings.fitToWorkspace).toBe(true)
+    expect(reloaded.presets[0]!.settings.moveWholeSlideshow).toBe(true)
+    expect(reloaded.presets[0]!.settings.transform).toEqual({ x: 5, y: 15, width: 70, height: 60 })
   })
 
   it('löscht Presets', () => {
     const store = useSlideshowPresetStore()
     const p = store.savePreset('A', snapshot)
-    store.deletePreset(p.id)
+    store.deletePreset(p!.id)
     expect(store.presets).toHaveLength(0)
-    expect(JSON.parse(localStorage.getItem(KEY))).toEqual([])
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual([])
   })
 
   it('verkraftet kaputten localStorage-Inhalt', () => {
@@ -138,7 +135,7 @@ describe('slideshowPresetStore', () => {
         { displayDuration: null, audioMode: 'default', adjustments: null },
       ],
     })
-    const adj = p.slots[0].adjustments
+    const adj = p!.slots[0]!.adjustments
     expect(adj).toMatchObject({
       brightness: 200,
       sepia: 40,
@@ -146,11 +143,11 @@ describe('slideshowPresetStore', () => {
       shadowColor: '#ff0000',
       preset: 'vintage',
     })
-    expect(adj.borderColor).toBeUndefined()
-    expect(adj.unknown).toBeUndefined()
-    expect(adj.audioReactive.source).toBe('mid')
-    expect(adj.audioReactive.effects).toBeTypeOf('object')
-    expect(p.slots[1].adjustments).toBeNull()
+    expect(adj!.borderColor).toBeUndefined()
+    expect(adj!.unknown).toBeUndefined()
+    expect((adj!.audioReactive as { source: string }).source).toBe('mid')
+    expect((adj!.audioReactive as { effects: unknown }).effects).toBeTypeOf('object')
+    expect(p!.slots[1]!.adjustments).toBeNull()
   })
 
   it('normalisiert ungültige Werte auf Standardwerte', () => {
@@ -160,20 +157,20 @@ describe('slideshowPresetStore', () => {
       settings: { displayDuration: 'x', fadeInDuration: 999999, transform: { width: 1 } },
       slots: [{ displayDuration: -5, audioMode: 'evil', transition: 'boom' }, null],
     })
-    expect(p.name).toBe('Slideshow')
-    expect(p.settings.displayDuration).toBe(3000)
-    expect(p.settings.fadeInDuration).toBe(5000)
-    expect(p.settings.fitToWorkspace).toBe(false)
-    expect(p.settings.backgroundMode).toBe('none')
+    expect(p!.name).toBe('Slideshow')
+    expect(p!.settings.displayDuration).toBe(3000)
+    expect(p!.settings.fadeInDuration).toBe(5000)
+    expect(p!.settings.fitToWorkspace).toBe(false)
+    expect(p!.settings.backgroundMode).toBe('none')
     // ältere Presets: fitToWorkspace → 'workspace'
     expect(
-      normalizeSlideshowPreset({ id: 2, settings: { fitToWorkspace: true }, slots: [] }).settings
+      normalizeSlideshowPreset({ id: 2, settings: { fitToWorkspace: true }, slots: [] })!.settings
         .backgroundMode,
     ).toBe('workspace')
     // Fläche unter der Slideshow: ältere/ungültige Werte → Schwarz
-    expect(p.settings.backgroundColor).toBe('#000000')
-    expect(p.settings.workspaceColor).toBe('#000000')
-    expect(p.settings.backgroundImageFill).toMatchObject({
+    expect(p!.settings.backgroundColor).toBe('#000000')
+    expect(p!.settings.workspaceColor).toBe('#000000')
+    expect(p!.settings.backgroundImageFill).toMatchObject({
       enabled: false,
       stock: null,
       upload: null,
@@ -186,7 +183,7 @@ describe('slideshowPresetStore', () => {
         },
       ]),
     ).toEqual(new Set(['d'.repeat(64)]))
-    expect(p.settings.backgroundFillAudio).toEqual({
+    expect(p!.settings.backgroundFillAudio).toEqual({
       enabled: false,
       source: 'bass',
       brightness: 80,
@@ -197,9 +194,9 @@ describe('slideshowPresetStore', () => {
         id: 7,
         settings: { workspaceFillAudio: { enabled: true, source: 'mid', hue: 999 } },
         slots: [],
-      }).settings.workspaceFillAudio,
+      })!.settings.workspaceFillAudio,
     ).toEqual({ enabled: true, source: 'mid', brightness: 80, hue: 100 })
-    expect(p.settings.backgroundGradient).toEqual({
+    expect(p!.settings.backgroundGradient).toEqual({
       enabled: false,
       color2: '#333333',
       type: 'linear',
@@ -211,7 +208,7 @@ describe('slideshowPresetStore', () => {
         id: 6,
         settings: { workspaceGradient: { enabled: true, type: 'radial', color2: '#ABCDEF' } },
         slots: [],
-      }).settings.workspaceGradient,
+      })!.settings.workspaceGradient,
     ).toEqual({
       enabled: true,
       color2: '#abcdef',
@@ -220,21 +217,21 @@ describe('slideshowPresetStore', () => {
       audio: { enabled: false, source: 'bass', pulse: 80, rotation: 80 },
     })
     expect(
-      normalizeSlideshowPreset({ id: 5, settings: { workspaceColor: '#12AB34' }, slots: [] })
+      normalizeSlideshowPreset({ id: 5, settings: { workspaceColor: '#12AB34' }, slots: [] })!
         .settings.workspaceColor,
     ).toBe('#12ab34')
     expect(
-      normalizeSlideshowPreset({ id: 3, settings: { backgroundColor: 'red' }, slots: [] }).settings
+      normalizeSlideshowPreset({ id: 3, settings: { backgroundColor: 'red' }, slots: [] })!.settings
         .backgroundColor,
     ).toBe('#000000')
     expect(
-      normalizeSlideshowPreset({ id: 4, settings: { backgroundColor: '#AABBCC' }, slots: [] })
+      normalizeSlideshowPreset({ id: 4, settings: { backgroundColor: '#AABBCC' }, slots: [] })!
         .settings.backgroundColor,
     ).toBe('#aabbcc')
-    expect(p.settings.moveWholeSlideshow).toBe(false)
-    expect(p.settings.transition).toBe('fade')
-    expect(p.settings.transform.width).toBe(10)
-    expect(p.slots).toEqual([
+    expect(p!.settings.moveWholeSlideshow).toBe(false)
+    expect(p!.settings.transition).toBe('fade')
+    expect(p!.settings.transform.width).toBe(10)
+    expect(p!.slots).toEqual([
       {
         displayDuration: null,
         audioMode: 'default',
@@ -272,7 +269,7 @@ describe('normalizeImageBounds', () => {
     expect(normalizeImageBounds({ ...b, relWidth: 0 })).toBeNull()
     expect(normalizeImageBounds(null)).toBeNull()
     // Position so begrenzt, dass das Bild sichtbar bleibt
-    expect(normalizeImageBounds({ ...b, relX: 50 }).relX).toBe(1)
+    expect(normalizeImageBounds({ ...b, relX: 50 })!.relX).toBe(1)
   })
 })
 
@@ -284,9 +281,9 @@ describe('slideshowPresetStore – Bilder nur für die Sitzung', () => {
       { id: 'u1', name: 'A', source: 'upload', imageObject: imgObj },
       { id: 'stock:s1', name: 'B', source: 'stock', stockImage: { id: 's1' } },
     ])
-    const images = store.getSessionImages(p.id)
-    expect(images.map((i) => i.id)).toEqual(['u1', 'stock:s1'])
-    expect(images[0].imageObject).toBe(imgObj)
+    const images = store.getSessionImages(p!.id)
+    expect(images!.map((i) => i.id)).toEqual(['u1', 'stock:s1'])
+    expect(images![0]!.imageObject).toBe(imgObj)
     expect(localStorage.getItem('visualizer-slideshow-presets')).not.toContain('stock:s1')
 
     // Neuer Store (≈ Seite neu geladen): Preset da, Bilder nicht
@@ -294,16 +291,16 @@ describe('slideshowPresetStore – Bilder nur für die Sitzung', () => {
     const reloaded = useSlideshowPresetStore()
     reloaded.loadPresets()
     expect(reloaded.presets).toHaveLength(1)
-    expect(reloaded.getSessionImages(p.id)).toBeNull()
+    expect(reloaded.getSessionImages(p!.id)).toBeNull()
 
-    store.deletePreset(p.id)
-    expect(store.getSessionImages(p.id)).toBeNull()
+    store.deletePreset(p!.id)
+    expect(store.getSessionImages(p!.id)).toBeNull()
   })
 
   it('ohne Bilder wird nichts gemerkt', () => {
     const store = useSlideshowPresetStore()
     const p = store.savePreset('Ohne', snapshot, [])
-    expect(store.getSessionImages(p.id)).toBeNull()
+    expect(store.getSessionImages(p!.id)).toBeNull()
   })
 })
 
@@ -321,7 +318,7 @@ describe('Stock-Verweise dauerhaft im Preset', () => {
     expect(normalizeStockRef({ ...ref, file: 'gallery/../secret.png' })).toBeNull()
     expect(normalizeStockRef({ ...ref, file: 'javascript:alert(1)' })).toBeNull()
     expect(normalizeStockRef({ ...ref, id: '<script>' })).toBeNull()
-    expect(normalizeStockRef({ ...ref, thumbnail: 'data:x' }).thumbnail).toBe(ref.file)
+    expect(normalizeStockRef({ ...ref, thumbnail: 'data:x' })!.thumbnail).toBe(ref.file)
     expect(normalizeStockRef(null)).toBeNull()
   })
 
@@ -337,9 +334,9 @@ describe('Stock-Verweise dauerhaft im Preset', () => {
     setActivePinia(createPinia())
     const reloaded = useSlideshowPresetStore()
     reloaded.loadPresets()
-    const again = reloaded.presets.find((x) => x.id === p.id)
-    expect(again.slots[0].stock).toEqual(ref)
-    expect(again.slots[1].stock).toBeNull()
+    const again = reloaded.presets.find((x) => x.id === p!.id)
+    expect(again!.slots[0]!.stock).toEqual(ref)
+    expect(again!.slots[1]!.stock).toBeNull()
   })
 })
 
@@ -366,7 +363,7 @@ describe('Upload-Verweise dauerhaft im Preset', () => {
     setActivePinia(createPinia())
     const reloaded = useSlideshowPresetStore()
     reloaded.loadPresets()
-    expect(reloaded.presets[0].slots[0].upload).toEqual({ key, name: 'foto.png' })
+    expect(reloaded.presets[0]!.slots[0]!.upload).toEqual({ key, name: 'foto.png' })
     expect([...collectUploadKeys(reloaded.presets)]).toEqual([key])
   })
 })

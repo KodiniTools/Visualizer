@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 
-let store
+let store: ReturnType<typeof useBeatMarkerStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -47,7 +47,7 @@ describe('beatMarkerStore.checkCrossing (frame-genau)', () => {
     store.addMarker(5, {}, 'A')
     expect(store.checkCrossing(4, 6)).toHaveLength(1)
     store.resetTriggers()
-    expect(store.markers[0].triggered).toBe(false)
+    expect(store.markers[0]!.triggered).toBe(false)
     expect(store.checkCrossing(4, 6)).toHaveLength(1)
   })
 })

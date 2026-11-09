@@ -2,15 +2,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSlideshowImageSettingsStore } from '../../stores/slideshowImageSettingsStore'
 import { slideshowStableKey } from '../../components/foto-panel/slideshow/slideshowImageKey'
+import { stub } from '../helpers/canvasStubs'
 
 const KEY = 'visualizer-slideshow-image-transitions'
 
 function memoryStorage() {
-  const data = new Map()
+  const data = new Map<string, string>()
   return {
-    getItem: (k) => (data.has(k) ? data.get(k) : null),
-    setItem: (k, v) => data.set(k, String(v)),
-    removeItem: (k) => data.delete(k),
+    getItem: (k: string) => (data.has(k) ? data.get(k) : null),
+    setItem: (k: string, v: unknown) => data.set(k, String(v)),
+    removeItem: (k: string) => data.delete(k),
   }
 }
 
@@ -24,10 +25,13 @@ describe('slideshowStableKey', () => {
     expect(slideshowStableKey({ source: 'stock', stockImage: { id: 's1' } })).toBe('stock:s1')
     expect(slideshowStableKey({ id: 'stock:s2' })).toBe('stock:s2')
     expect(
-      slideshowStableKey({ id: 123, name: 'a.png', imageObject: { width: 40, height: 20 } }),
+      slideshowStableKey({ id: 123, name: 'a.png', imageObject: stub({ width: 40, height: 20 }) }),
     ).toBe('upload:a.png|40x20')
     expect(
-      slideshowStableKey({ name: 'b.png', img: { naturalWidth: 8, naturalHeight: 4, width: 1 } }),
+      slideshowStableKey({
+        name: 'b.png',
+        img: stub({ naturalWidth: 8, naturalHeight: 4, width: 1 }),
+      }),
     ).toBe('upload:b.png|8x4')
     expect(slideshowStableKey({ id: 1, name: 'ohne-bild.png' })).toBeNull()
     expect(slideshowStableKey(null)).toBeNull()

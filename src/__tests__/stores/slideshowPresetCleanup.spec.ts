@@ -7,8 +7,8 @@ vi.mock('../../utils/presetImageRepository', () => ({
   getStorageEstimate: vi.fn(async () => null),
 }))
 
-const { pruneImages, getImageStorageStats, getStorageEstimate } = await import(
-  '../../utils/presetImageRepository'
+const { pruneImages, getImageStorageStats, getStorageEstimate } = vi.mocked(
+  await import('../../utils/presetImageRepository'),
 )
 const { useSlideshowPresetStore, IMAGE_CLEANUP_GRACE_MS, _resetAutoCleanup } = await import(
   '../../stores/slideshowPresetStore'
@@ -17,7 +17,7 @@ const { useSlideshowPresetStore, IMAGE_CLEANUP_GRACE_MS, _resetAutoCleanup } = a
 const KEY = 'visualizer-slideshow-presets'
 const k1 = 'a'.repeat(64)
 const k2 = 'b'.repeat(64)
-const preset = (id, key) => ({
+const preset = (id: string, key: string) => ({
   id,
   name: id,
   settings: {},
@@ -25,11 +25,11 @@ const preset = (id, key) => ({
 })
 
 function memoryStorage() {
-  const data = new Map()
+  const data = new Map<string, string>()
   return {
-    getItem: (k) => (data.has(k) ? data.get(k) : null),
-    setItem: (k, v) => data.set(k, String(v)),
-    removeItem: (k) => data.delete(k),
+    getItem: (k: string) => (data.has(k) ? data.get(k) : null),
+    setItem: (k: string, v: unknown) => data.set(k, String(v)),
+    removeItem: (k: string) => data.delete(k),
   }
 }
 
@@ -66,7 +66,7 @@ describe('slideshowPresetStore – automatisches Aufräumen', () => {
     )
     const store = useSlideshowPresetStore()
     await store.cleanupImages()
-    const [keep] = pruneImages.mock.calls.at(-1)
+    const [keep] = pruneImages.mock.calls.at(-1)!
     expect([...keep].sort()).toEqual([k2, k3].sort())
   })
 
@@ -78,7 +78,7 @@ describe('slideshowPresetStore – automatisches Aufräumen', () => {
     expect(pruneImages).not.toHaveBeenCalled()
     await vi.advanceTimersByTimeAsync(3500)
     expect(pruneImages).toHaveBeenCalledTimes(1)
-    const [keep, opts] = pruneImages.mock.calls[0]
+    const [keep, opts] = pruneImages.mock.calls[0]!
     expect([...keep]).toEqual([k1])
     expect(opts).toEqual({ minAgeMs: IMAGE_CLEANUP_GRACE_MS })
 
@@ -96,7 +96,7 @@ describe('slideshowPresetStore – automatisches Aufräumen', () => {
     // anderer Tab schreibt ein weiteres Preset
     localStorage.setItem(KEY, JSON.stringify([preset('p1', k1), preset('p2', k2)]))
     await store.cleanupImages()
-    expect([...pruneImages.mock.calls.at(-1)[0]].sort()).toEqual([k1, k2])
+    expect([...pruneImages.mock.calls.at(-1)![0]].sort()).toEqual([k1, k2])
   })
 
   it('unlesbarer Preset-Speicher → nichts löschen', async () => {
@@ -112,10 +112,10 @@ describe('slideshowPresetStore – automatisches Aufräumen', () => {
   it('Löschen eines Presets räumt dessen Bilder auf', async () => {
     const store = useSlideshowPresetStore()
     const p = store.savePreset('A', { settings: {}, slots: [{ upload: { key: k1, name: 'a' } }] })
-    store.deletePreset(p.id)
+    store.deletePreset(p!.id)
     await Promise.resolve()
     expect(pruneImages).toHaveBeenCalled()
-    expect([...pruneImages.mock.calls.at(-1)[0]]).toEqual([])
+    expect([...pruneImages.mock.calls.at(-1)![0]]).toEqual([])
   })
 })
 

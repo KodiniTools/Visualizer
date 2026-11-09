@@ -6,7 +6,7 @@ import { usePresetStore } from '../../stores/presetStore'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 
 const KEY = 'visualizer-user-presets'
-let presets
+let presets: ReturnType<typeof usePresetStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -14,7 +14,7 @@ beforeEach(() => {
   presets = usePresetStore()
 })
 
-const stored = () => JSON.parse(localStorage.getItem(KEY))
+const stored = () => JSON.parse(localStorage.getItem(KEY)!)
 
 describe('presetStore – eigene Presets', () => {
   it('speichert den aktuellen Zustand dauerhaft', () => {
@@ -31,7 +31,7 @@ describe('presetStore – eigene Presets', () => {
 
   it('ohne Namen gibt es einen nummerierten Standardnamen', () => {
     presets.saveCurrentAsPreset('', null)
-    expect(presets.userPresets[0].name).toBe('Preset 1')
+    expect(presets.userPresets[0]!.name).toBe('Preset 1')
   })
 
   it('lädt gespeicherte Presets und übersteht kaputte Daten', () => {

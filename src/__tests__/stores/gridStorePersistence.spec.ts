@@ -36,7 +36,7 @@ describe('Raster-Einstellungen – dauerhaft speichern', () => {
     store.setOpacity(0.35)
     store.setSnapToGrid(true)
     await nextTick()
-    expect(JSON.parse(localStorage.getItem(GRID_STORAGE_KEY))).toEqual({
+    expect(JSON.parse(localStorage.getItem(GRID_STORAGE_KEY)!)).toEqual({
       isVisible: true,
       gridSize: 50,
       gridColor: '#ff8800',

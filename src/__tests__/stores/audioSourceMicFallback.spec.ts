@@ -2,12 +2,12 @@
  * Gemerktes Mikrofon fehlt (abgesteckt): Start fällt auf das Standardgerät
  * zurück statt dauerhaft zu scheitern.
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAudioSourceStore } from '../../stores/audioSourceStore'
 
 const stream = { getTracks: () => [] }
-let getUserMedia
+let getUserMedia: Mock
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -32,8 +32,8 @@ describe('Mikrofon – gemerktes Gerät fehlt', () => {
     const result = await store.startMicrophone('alt')
     expect(result).toBe(stream)
     expect(getUserMedia).toHaveBeenCalledTimes(2)
-    expect(getUserMedia.mock.calls[0][0].audio.deviceId).toEqual({ exact: 'alt' })
-    expect(getUserMedia.mock.calls[1][0].audio.deviceId).toBeUndefined()
+    expect(getUserMedia.mock.calls[0]![0].audio.deviceId).toEqual({ exact: 'alt' })
+    expect(getUserMedia.mock.calls[1]![0].audio.deviceId).toBeUndefined()
     expect(store.selectedDeviceId).toBe('default')
     expect(store.isMicrophoneActive).toBe(true)
   })

@@ -7,7 +7,7 @@ import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import VisualizerImagePicker from '../../components/VisualizerImagePicker.vue'
 import { clearVisualizerImages, registerVisualizerImage } from '../../lib/visualizers/imageRegistry'
-import { useImageGallery } from '../../composables/useImageGallery'
+import { useImageGallery, type GalleryImage } from '../../composables/useImageGallery'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
@@ -52,6 +52,14 @@ const groups = () =>
     options: [...g.querySelectorAll('option')].map((o) => o.textContent.trim()),
   }))
 const img = (name: string) => Object.assign(document.createElement('img'), { alt: name })
+/** Galerie-Eintrag wie von useImageGallery angelegt (Zahlen-ID, Maße, Größe) */
+const galleryImage = (): GalleryImage => ({
+  id: 1,
+  name: 'urlaub.jpg',
+  img: img('u'),
+  dimensions: '1920×1080',
+  size: '1.2 MB',
+})
 
 describe('Bildauswahl – Liste', () => {
   it('ohne Bilder nur „Automatisch“, Hinweis und Laden-Knopf', () => {
@@ -66,7 +74,7 @@ describe('Bildauswahl – Liste', () => {
 
   it('Gruppen für geladene, Leinwand- und Galerie-Bilder', () => {
     registerVisualizerImage({ name: 'eigen.png', source: stub({}), kind: 'upload' })
-    useImageGallery().imageGallery.value = stub([{ id: 'g1', name: 'urlaub.jpg', img: img('u') }])
+    useImageGallery().imageGallery.value = [galleryImage()]
     mountPicker({ canvas: [{ id: 7, imageObject: img('c') }] })
     expect(groups()).toEqual([
       { label: I.uploads, options: ['eigen.png'] },
@@ -76,9 +84,9 @@ describe('Bildauswahl – Liste', () => {
   })
 
   it('gewähltes Bild ist ausgewählt, Auswahl meldet die ID', async () => {
-    useImageGallery().imageGallery.value = stub([{ id: 'g1', name: 'urlaub.jpg', img: img('u') }])
-    mountPicker({ modelValue: 'gallery:g1' })
-    expect(select().value).toBe('gallery:g1')
+    useImageGallery().imageGallery.value = [galleryImage()]
+    mountPicker({ modelValue: 'gallery:1' })
+    expect(select().value).toBe('gallery:1')
     select().value = ''
     select().dispatchEvent(new Event('change'))
     await nextTick()
@@ -88,8 +96,8 @@ describe('Bildauswahl – Liste', () => {
 
 describe('Bildauswahl – Aktionen', () => {
   it('„Bild entfernen“ nur mit Auswahl, setzt auf null', () => {
-    useImageGallery().imageGallery.value = stub([{ id: 'g1', name: 'urlaub.jpg', img: img('u') }])
-    mountPicker({ modelValue: 'gallery:g1' })
+    useImageGallery().imageGallery.value = [galleryImage()]
+    mountPicker({ modelValue: 'gallery:1' })
     button(I.remove).click()
     expect(wrapper!.emitted('update:modelValue')![0]).toEqual([null])
   })
@@ -139,8 +147,8 @@ describe('Bildauswahl – Ui-Bausteine', () => {
   })
 
   it('Knöpfe sind Ui-Buttons', () => {
-    useImageGallery().imageGallery.value = stub([{ id: 'g1', name: 'urlaub.jpg', img: img('u') }])
-    mountPicker({ modelValue: 'gallery:g1' })
+    useImageGallery().imageGallery.value = [galleryImage()]
+    mountPicker({ modelValue: 'gallery:1' })
     for (const n of [I.upload, I.remove]) {
       expect(button(n).classList.contains('ui-button'), n).toBe(true)
     }

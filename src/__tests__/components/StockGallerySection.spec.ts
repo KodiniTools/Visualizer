@@ -10,17 +10,16 @@ import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 import type { StockImage } from '../../composables/useStockGallery'
-import { stub } from '../helpers/canvasStubs'
 
 const F = de.foto
 const categories = [
   { id: 'backgrounds', name: 'Hintergründe', icon: '🖼️', count: 12 },
   { id: 'eigene', name: 'Eigene', name_en: 'Own', icon: '⭐' },
 ]
-const images = stub<StockImage[]>([
-  { id: 's1', name: 'Wald', thumbnail: 'data:,1' },
-  { id: 's2', name: 'Meer', thumbnail: 'data:,2' },
-])
+const images: StockImage[] = [
+  { id: 's1', name: 'Wald', file: 'g/wald.jpg', thumbnail: 'data:,1' },
+  { id: 's2', name: 'Meer', file: 'g/meer.jpg', thumbnail: 'data:,2' },
+]
 let wrapper: VueWrapper | null
 
 function mountSection(props: Record<string, unknown> & { selected?: string[] } = {}) {

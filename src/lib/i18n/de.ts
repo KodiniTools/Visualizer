@@ -1030,6 +1030,14 @@ export default {
     confirmDeleteMarkers: 'Alle Beat-Drop Marker löschen?',
     editMarker: 'Marker bearbeiten',
     timeFormatHint: '(M:SS.hh oder Sek.)',
+    markerDuration: 'Dauer',
+    markerDurationHint:
+      'Längste Anzeigedauer der Elemente dieses Markers: Verzögerung + Einblenden + Anzeigedauer + Ausblenden',
+    markerDurationEnd: 'Ende',
+    markerDurationPermanent: 'dauerhaft',
+    markerDurationPermanentHint:
+      'Mindestens ein Element hat keine begrenzte Anzeigedauer und bleibt sichtbar, bis ein anderer Marker es ablöst',
+    markerDurationPlusPermanent: '+ dauerhafte Elemente',
     timeStepBack: 'Zeit zurück (Schrittweite)',
     timeStepForward: 'Zeit vor (Schrittweite)',
     timeStepSlow: 'langsam (0,01 s)',

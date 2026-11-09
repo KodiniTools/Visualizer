@@ -119,6 +119,32 @@
           </div>
           <span class="time-max">/ {{ formatTimePrecise(playerStore.duration) }}</span>
         </div>
+        <p
+          v-if="pendingDuration.count > 0"
+          class="marker-duration"
+          :title="
+            pendingDuration.seconds === null
+              ? t('player.markerDurationPermanentHint')
+              : t('player.markerDurationHint')
+          "
+        >
+          <span class="marker-duration-label">⏱ {{ t('player.markerDuration') }}:</span>
+          <template v-if="pendingDuration.seconds !== null">
+            <strong class="marker-duration-value">{{
+              formatDuration(pendingDuration.seconds)
+            }}</strong>
+            <span class="marker-duration-end"
+              >· {{ t('player.markerDurationEnd') }}
+              {{ formatTimePrecise(pendingMarkerTime + pendingDuration.seconds) }}</span
+            >
+            <span v-if="pendingDuration.hasPermanent" class="marker-duration-extra">{{
+              t('player.markerDurationPlusPermanent')
+            }}</span>
+          </template>
+          <strong v-else class="marker-duration-value">{{
+            t('player.markerDurationPermanent')
+          }}</strong>
+        </p>
         <UiSegmentedControl
           v-model="timeStepModel"
           :options="stepOptions"
@@ -354,6 +380,12 @@
             t('player.placedImage')
           }}</span
         >
+        <span
+          v-if="durationChip(marker)"
+          class="marker-action marker-action-duration"
+          :title="durationChip(marker)?.title"
+          >⏱{{ durationChip(marker)?.label }}</span
+        >
         <div class="marker-buttons">
           <UiIconButton
             :label="t('player.editMarker')"
@@ -454,6 +486,9 @@ const {
   getMarkerImageGallery,
   getMarkerGalleryImages,
   getMarkerGalleryVideos,
+  getMarkerDuration,
+  getPendingMarkerDuration,
+  pendingMarkerTime,
   updateMarkerTimeFromInput,
   stepMarkerTime,
   addMarkerAtCurrentTime,
@@ -473,6 +508,36 @@ type SelectValue = string | number
 const sortedMarkers = computed(
   () => beatMarkerStore.sortedMarkers as (BeatMarker & { action: MarkerAction })[],
 )
+
+// Gesamtdauer der Formular-Auswahl (längste Anzeigedauer der Elemente)
+const pendingDuration = computed(() => getPendingMarkerDuration())
+
+/** Dauer in Sekunden: unter 1 min als „8.50 s“, sonst „M:SS.hh“ */
+const formatDuration = (seconds: number) =>
+  seconds < 60 ? `${seconds.toFixed(2)} s` : formatTimePrecise(seconds)
+
+/**
+ * Dauer-Chip eines Markers in der Liste (null = keine Elemente). Wird beim
+ * Rendern berechnet, damit Änderungen an Text-/Bild-Animationen sofort zählen.
+ */
+const durationChip = (marker: BeatMarker & { action: MarkerAction }) => {
+  const d = getMarkerDuration(marker)
+  if (d.count === 0) return null
+  if (d.seconds === null) {
+    return {
+      label: t('player.markerDurationPermanent'),
+      title: t('player.markerDurationPermanentHint'),
+    }
+  }
+  const end = `${t('player.markerDurationEnd')} ${formatTimePrecise(marker.time + d.seconds)}`
+  return {
+    // Kompakt (ohne Leerzeichen), damit das Label in der Zeile Platz behält
+    label: formatDuration(d.seconds).replace(' ', '') + (d.hasPermanent ? '+' : ''),
+    title:
+      `${t('player.markerDurationHint')} · ${end}` +
+      (d.hasPermanent ? ` (${t('player.markerDurationPlusPermanent')})` : ''),
+  }
+}
 
 const timeInputId = `marker-time-${useId()}`
 const timeHintId = `${timeInputId}-hint`
@@ -785,6 +850,23 @@ const shapeSelectOptions = computed(() => [
   font-family: var(--ds-font-mono);
   color: var(--ds-text-3);
 }
+.marker-duration {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ds-space-1);
+  margin: var(--ds-space-1) 0 0;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-3);
+}
+.marker-duration-value {
+  font-family: var(--ds-font-mono);
+  font-weight: 600;
+  color: var(--ds-text);
+}
+.marker-duration-end {
+  font-family: var(--ds-font-mono);
+}
 .time-step-options {
   align-self: flex-start;
   margin-top: var(--ds-space-1);
@@ -890,6 +972,13 @@ const shapeSelectOptions = computed(() => [
 .marker-action-video {
   color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
+}
+.marker-action-duration {
+  flex-shrink: 0;
+  padding: 2px 4px;
+  font-family: var(--ds-font-mono);
+  color: var(--ds-text-2);
+  background-color: var(--ds-surface-2);
 }
 .marker-action-text {
   color: var(--ds-link);

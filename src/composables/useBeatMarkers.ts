@@ -48,6 +48,15 @@ import {
   type MarkerVideoRef,
 } from '../lib/background/markerBackgroundVideo'
 import type { TextObject } from '../lib/textManager/types'
+import {
+  imageDisplaySeconds,
+  shapeDisplaySeconds,
+  summarizeMarkerDuration,
+  textDisplaySeconds,
+  videoDisplaySeconds,
+  type MarkerDurationSummary,
+  type MarkerElementDuration,
+} from '../lib/markerDuration'
 import { seekTextAnimation } from '../lib/textManager/animation/seek'
 import type { CanvasImage, MultiImageManager } from '../lib/multiImageManager'
 import type { CanvasManagerRef } from './types'
@@ -644,6 +653,96 @@ export function useBeatMarkers(
   /** Hochgeladene Videos (Video-Panel) für das Marker-Dropdown */
   const getMarkerGalleryVideos = () =>
     videoGallery.value.map((v, i) => ({ id: v.id, number: i + 1, name: v.name }))
+
+  // ══════════════════ Gesamtdauer eines Markers ══════════════════
+  // Längste Anzeigedauer der Elemente, die der Marker einblendet (siehe
+  // lib/markerDuration.ts). Gelöschte Elemente zählen nicht mit. Bei Video
+  // und Hintergrund-Bild im selben Marker gewinnt das Video (wie beim Auslösen).
+
+  const isSet = <T>(v: T | '' | null | undefined): v is T =>
+    v !== '' && v !== null && v !== undefined
+
+  const textElement = (id: TextObject['id']): MarkerElementDuration[] => {
+    const txt = findText(id)
+    return txt ? [{ kind: 'text', seconds: textDisplaySeconds(txt) }] : []
+  }
+
+  const shapeElement = (id: string): MarkerElementDuration[] => {
+    const shape = shapeStore.shapes.find((s) => s.id === id)
+    return shape ? [{ kind: 'shape', seconds: shapeDisplaySeconds(shape.animation) }] : []
+  }
+
+  const canvasImageElement = (id: CanvasImage['id']): MarkerElementDuration[] => {
+    const img = getMarkerCanvasImage(id)
+    return img ? [{ kind: 'image', seconds: imageDisplaySeconds(img.timedAnimation) }] : []
+  }
+
+  const videoElement = (entry: GalleryVideoEntry, loop: boolean): MarkerElementDuration => ({
+    kind: 'video',
+    seconds: videoDisplaySeconds(loop, entry.duration),
+  })
+
+  /** Gesamtdauer eines gespeicherten Markers */
+  const getMarkerDuration = (marker: { action?: MarkerAction | null }): MarkerDurationSummary => {
+    const action = marker.action
+    const elements: MarkerElementDuration[] = []
+    if (action) {
+      if (isSet(action.textId)) elements.push(...textElement(action.textId as TextObject['id']))
+      if (isSet(action.shapeId)) elements.push(...shapeElement(action.shapeId))
+      if (isSet(action.imageId)) elements.push(...canvasImageElement(action.imageId))
+      const video = action.video ? findGalleryVideo(videoGallery.value, action.video) : null
+      if (video) {
+        elements.push(videoElement(video, isMarkerVideoLoop(action.video)))
+      } else if (
+        action.backgroundImage &&
+        findGalleryImage(imageGallery.value, action.backgroundImage)
+      ) {
+        elements.push({
+          kind: 'backgroundImage',
+          seconds: imageDisplaySeconds(action.backgroundImage.timedAnimation),
+        })
+      }
+    }
+    return summarizeMarkerDuration(elements)
+  }
+
+  /** Gesamtdauer der Auswahl im Marker-Formular (vor dem Speichern) */
+  const getPendingMarkerDuration = (): MarkerDurationSummary => {
+    const elements: MarkerElementDuration[] = []
+    const textId = newMarkerTextId.value
+    if (isSet(textId)) elements.push(...textElement(textId))
+    const shapeId = newMarkerShapeId.value
+    if (isSet(shapeId)) {
+      // Neue Form aus der Galerie: noch ohne Animation → bleibt stehen
+      if (shapeId.startsWith(GALLERY_PREFIX)) elements.push({ kind: 'shape', seconds: null })
+      else elements.push(...shapeElement(shapeId))
+    }
+    const imageId = newMarkerImageId.value
+    if (isSet(imageId)) {
+      if (typeof imageId === 'string' && imageId.startsWith(IMAGE_GALLERY_PREFIX)) {
+        elements.push({
+          kind: 'image',
+          seconds: imageDisplaySeconds(newMarkerPlacedImageAnimation.value),
+        })
+      } else {
+        elements.push(...canvasImageElement(imageId))
+      }
+    }
+    const videoId = newMarkerVideoId.value
+    const video = isSet(videoId) ? videoGallery.value.find((v) => v.id === videoId) : undefined
+    if (video) {
+      elements.push(videoElement(video, newMarkerVideoLoop.value))
+    } else if (
+      isSet(newMarkerBgImageId.value) &&
+      imageGallery.value.some((g) => g.id === newMarkerBgImageId.value)
+    ) {
+      elements.push({
+        kind: 'backgroundImage',
+        seconds: imageDisplaySeconds(newMarkerBgImageAnimation.value),
+      })
+    }
+    return summarizeMarkerDuration(elements)
+  }
 
   // Hintergrund vor dem ersten Hintergrund-Bild- bzw. Video-Marker eines
   // Durchlaufs. Ein späterer Marker ohne Bild, Video und Hintergrund-Preset
@@ -1495,6 +1594,7 @@ export function useBeatMarkers(
   return {
     showMarkerPanel,
     editingMarkerId,
+    pendingMarkerTime,
     pendingMarkerTimeInput,
     markerTimeStep,
     newMarkerVisualizer,
@@ -1521,6 +1621,8 @@ export function useBeatMarkers(
     getMarkerImageGallery,
     getMarkerGalleryImages,
     getMarkerGalleryVideos,
+    getMarkerDuration,
+    getPendingMarkerDuration,
     updateMarkerTimeFromInput,
     stepMarkerTime,
     getMarkerPosition,

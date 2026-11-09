@@ -189,3 +189,45 @@ describe('Marker greifen nur während der Wiedergabe ein', () => {
     expect(text.opacity).toBe(80)
   })
 })
+
+describe('Text-Marker respektieren die Anzeigedauer des Textes', () => {
+  function frame(time: number) {
+    playerStore.audioRef!.currentTime = time
+    playerStore.notifyFrame()
+  }
+
+  it('ein späterer Text-Marker blendet einen Text mit eigener Anzeigedauer nicht aus', async () => {
+    const second = tm.add('Dinko Ramić')
+    second.id = 2
+    Object.assign(text.animation!.fade!, {
+      enabled: true,
+      permanent: false,
+      displayDuration: 20000,
+    })
+    markerStore.addMarker(5, { textId: 1 })
+    markerStore.addMarker(8, { textId: 2 })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(text.opacity).toBe(80)
+    frame(7.99)
+    frame(8.01)
+    expect(second.opacity).toBeGreaterThan(0)
+    // Text 1 läuft nach seiner Anzeigedauer aus, nicht nach dem Marker
+    expect(text.opacity).toBe(80)
+  })
+
+  it('ein permanenter Text wird vom nächsten Text-Marker abgelöst', async () => {
+    const second = tm.add('Dinko Ramić')
+    second.id = 2
+    markerStore.addMarker(5, { textId: 1 })
+    markerStore.addMarker(8, { textId: 2 })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    frame(7.99)
+    frame(8.01)
+    expect(text.opacity).toBe(0)
+    expect(second.opacity).toBeGreaterThan(0)
+  })
+})

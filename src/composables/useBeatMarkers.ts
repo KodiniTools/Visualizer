@@ -219,6 +219,19 @@ export function useBeatMarkers(
   }
 
   /**
+   * Hat der Text eine eigene Anzeigedauer (mindestens ein aktiver Effekt mit
+   * „Permanent anzeigen“ aus und ohne Loop)? Dann beendet seine Animation
+   * die Anzeige, nicht der nächste Text-Marker.
+   */
+  const hasOwnDisplayEnd = (obj: TextObject) => {
+    const a = obj.animation
+    if (!a) return false
+    return [a.typewriter, a.fade, a.scale, a.slide].some(
+      (cfg) => !!cfg?.enabled && cfg.permanent === false && !cfg.loop,
+    )
+  }
+
+  /**
    * Setzt den Animations-Zustand eines Textes vollständig zurück, sodass alle
    * Animationen (Typewriter, Fade, Scale, Slide) ab dem Marker-Zeitpunkt neu
    * abgespielt werden.
@@ -306,7 +319,8 @@ export function useBeatMarkers(
    * Wendet die Text-Aktion eines ausgelösten Markers an: Der zugewiesene Text
    * erscheint mit seinen Einstellungen auf dem Canvas (Deckkraft + Animation
    * neu starten), alle anderen von Markern gesteuerten Texte werden
-   * ausgeblendet.
+   * ausgeblendet – außer Texten mit eigener Anzeigedauer: Die laufen nach
+   * ihren Einstellungen (Anzeigedauer, Ausblenden) weiter.
    */
   const applyTextAction = (action: MarkerAction, restart = true) => {
     const tid = action?.textId
@@ -318,6 +332,9 @@ export function useBeatMarkers(
     const revealed = revealedTextIds()
     orderedTextObjects().forEach((o) => {
       if (o.id === tid || !ids.has(o.id)) return
+      // Text mit eigener Anzeigedauer läuft nach seinen Einstellungen aus
+      // (bereits ausgeblendete Texte bleiben ausgeblendet).
+      if (o.opacity !== 0 && hasOwnDisplayEnd(o)) return
       if (!markerTextOriginalOpacity.has(o.id)) {
         markerTextOriginalOpacity.set(o.id, o.opacity ?? 100)
       }

@@ -3,7 +3,7 @@
 // Texte, Werte und Rollen statt CSS-Klassen, damit die Tests den Wechsel auf
 // die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import BeatDropSection from '../../components/canvas-control/BeatDropSection.vue'
@@ -13,8 +13,8 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const B = de.beatDrop
-let wrapper
-let store
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useBeatDropStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -34,9 +34,9 @@ async function mountSection(enabled = true) {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
 
 /** Hauptschalter: Switch mit dem Titel als Namen, sonst erste Checkbox. */
@@ -45,7 +45,7 @@ const mainToggle = () =>
   root().querySelector('input[type="checkbox"]')
 
 /** Schalter eines Effekts über seinen sichtbaren Namen. */
-function effectToggle(name) {
+function effectToggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find((i) =>
     i.closest('label')?.textContent.includes(name),
   )
@@ -186,7 +186,7 @@ describe('Beat-Drop – Ui-Bausteine', () => {
         'midOnset',
         'trebleOnset',
         'allOnset',
-      ].map((k) => B.sources[k]),
+      ].map((k) => B.sources[k as keyof typeof B.sources]),
     )
     expect(select().querySelector('optgroup').getAttribute('label')).toBe(B.sources.onsetGroup)
   })

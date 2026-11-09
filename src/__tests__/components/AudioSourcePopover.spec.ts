@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 // Audio-Quellen-Popover (Player-Leiste): Quelle Player/Mikrofon wählen,
 // Mikrofon-Status, Geräteauswahl bei mehreren Eingängen, Schließen.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, ref, type Ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import AudioSourcePopover from '../../components/sticky-player-bar/AudioSourcePopover.vue'
 import { usePlayerPopover } from '../../composables/usePlayerPopover'
@@ -13,10 +13,10 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const P = de.player
-let wrapper
-let store
-let popover
-let audioSource
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useAudioSourceStore>
+let popover: ReturnType<typeof usePlayerPopover>
+let audioSource: { selectedDevice: Ref<string>; selectSource: Mock; changeDevice: Mock }
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -46,8 +46,8 @@ async function mountPopover() {
   return wrapper
 }
 
-const root = () => wrapper.element
-const button = (label) =>
+const root = () => wrapper!.element
+const button = (label: string) =>
   [...root().querySelectorAll('button')].find((b) => b.textContent.trim() === label)
 
 const devices = [
@@ -58,7 +58,7 @@ const devices = [
 describe('AudioSourcePopover', () => {
   it('zeigt Player und Mikrofon; Player ist aktiv', async () => {
     await mountPopover()
-    expect(wrapper.text()).toContain(P.audioSource)
+    expect(wrapper!.text()).toContain(P.audioSource)
     expect(button(P.player).classList.contains('active')).toBe(true)
     expect(button(P.microphone).classList.contains('active')).toBe(false)
     expect(root().querySelector('select')).toBeNull()
@@ -78,8 +78,8 @@ describe('AudioSourcePopover', () => {
     store.audioInputDevices = devices
     await mountPopover()
     expect(button(P.microphone).classList.contains('active')).toBe(true)
-    expect(wrapper.text()).toContain(P.microphoneListening)
-    expect(wrapper.text()).toContain(P.selectDevice)
+    expect(wrapper!.text()).toContain(P.microphoneListening)
+    expect(wrapper!.text()).toContain(P.selectDevice)
 
     const select = root().querySelector('select')
     expect([...select.options].map((o) => [o.value, o.textContent.trim()])).toEqual([
@@ -95,7 +95,7 @@ describe('AudioSourcePopover', () => {
     store.isMicrophoneActive = false
     store.errorMessage = 'Kein Mikrofon gefunden'
     await nextTick()
-    expect(wrapper.text()).toContain('Kein Mikrofon gefunden')
+    expect(wrapper!.text()).toContain('Kein Mikrofon gefunden')
   })
 
   it('Geräteauswahl erst ab zwei Eingängen', async () => {
@@ -121,7 +121,7 @@ describe('AudioSourcePopover – Ui-Bausteine und Sprache', () => {
     expect(button(P.player).getAttribute('aria-pressed')).toBe('false')
     expect(button(P.player).getAttribute('type')).toBe('button')
     const select = root().querySelector('select')
-    expect(document.querySelector(`label[for="${select.id}"]`).textContent.trim()).toBe(
+    expect(document.querySelector(`label[for="${select.id}"]`)!.textContent!.trim()).toBe(
       P.selectDevice,
     )
   })
@@ -157,6 +157,6 @@ describe('AudioSourcePopover – Ui-Bausteine und Sprache', () => {
     await mountPopover()
     expect(button(en.player.player)).toBeTruthy()
     expect(button(en.player.microphone)).toBeTruthy()
-    expect(wrapper.text()).toContain(en.player.audioSource)
+    expect(wrapper!.text()).toContain(en.player.audioSource)
   })
 })

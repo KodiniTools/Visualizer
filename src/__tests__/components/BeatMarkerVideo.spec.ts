@@ -1,21 +1,27 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, h, provide, ref, nextTick } from 'vue'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { stub } from '../helpers/canvasStubs'
+import { type FakeBg, type FakeBgEntry, type FakeVideoEl } from '../helpers/markerStubs'
 import BeatMarkerPopover from '../../components/sticky-player-bar/BeatMarkerPopover.vue'
 import { useBeatMarkers } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
+import {
+  useBackgroundBridgeStore,
+  type BackgroundSnapshot,
+} from '../../stores/backgroundBridgeStore'
 import { useImageGallery } from '../../composables/useImageGallery'
+import type { GalleryVideoEntry, MarkerVideoRef } from '../../lib/background/markerBackgroundVideo'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const AR = { enabled: true, source: 'mid', effects: { hue: { enabled: true, intensity: 70 } } }
 
-function fakeVideoEl() {
+function fakeVideoEl(): FakeVideoEl {
   return {
     src: '',
     paused: true,
@@ -23,11 +29,11 @@ function fakeVideoEl() {
     loop: false,
     currentTime: 5,
     load: vi.fn(),
-    play: vi.fn(function () {
+    play: vi.fn(function (this: FakeVideoEl) {
       this.paused = false
       return Promise.resolve()
     }),
-    pause: vi.fn(function () {
+    pause: vi.fn(function (this: FakeVideoEl) {
       this.paused = true
     }),
   }
@@ -36,35 +42,35 @@ function fakeVideoEl() {
 function fakeCm() {
   const cm = {
     workspacePreset: null,
-    background: null,
+    background: null as FakeBg,
     workspaceBackground: null,
-    videoBackground: null,
-    workspaceVideoBackground: null,
+    videoBackground: null as FakeBgEntry | null,
+    workspaceVideoBackground: null as FakeBgEntry | null,
     textManager: { textObjects: [] },
     redrawCallback: vi.fn(),
     updateUICallback: vi.fn(),
-    setBackground: vi.fn((img) => {
+    setBackground: vi.fn((img: unknown) => {
       cm.background = { imageObject: img, fotoSettings: { audioReactive: null } }
     }),
     setWorkspaceBackground: vi.fn(() => false),
-    setVideoBackground: vi.fn((v) => {
+    setVideoBackground: vi.fn((v: unknown) => {
       cm.videoBackground = { videoElement: v, fotoSettings: { audioReactive: null } }
       if (cm.background && typeof cm.background === 'object') cm.background = '#ffffff'
     }),
-    setWorkspaceVideoBackground: vi.fn((v) => {
+    setWorkspaceVideoBackground: vi.fn((v: unknown) => {
       cm.workspaceVideoBackground = { videoElement: v, fotoSettings: {} }
     }),
   }
   return cm
 }
 
-let wrapper
-let api
-let playerStore
-let markerStore
-let cm
-let created
-const videoGallery = ref([])
+let wrapper: VueWrapper | null
+let api: ReturnType<typeof useBeatMarkers>
+let playerStore: ReturnType<typeof usePlayerStore>
+let markerStore: ReturnType<typeof useBeatMarkerStore>
+let cm: ReturnType<typeof fakeCm>
+let created: FakeVideoEl[]
+const videoGallery = ref<GalleryVideoEntry[]>([])
 const imageGallery = useImageGallery().imageGallery
 const imgA = { src: 'data:image/png;base64,AAA' }
 
@@ -90,18 +96,18 @@ const PopoverHost = defineComponent({
   },
 })
 
-function frame(time) {
-  playerStore.audioRef.currentTime = time
+function frame(time: number) {
+  playerStore.audioRef!.currentTime = time
   playerStore.notifyFrame()
 }
 
 /** Marker bei `time` überschreiten und das Marker-Video fertig laden lassen. */
-function crossAndLoad(time) {
+function crossAndLoad(time: number) {
   frame(time - 0.01)
   frame(time + 0.01)
   const el = created.at(-1)
   el?.onloadeddata?.()
-  return el
+  return el!
 }
 
 beforeEach(async () => {
@@ -115,18 +121,18 @@ beforeEach(async () => {
     if (tag !== 'video') return origCreate(tag, opts)
     const el = fakeVideoEl()
     created.push(el)
-    return el
+    return stub<HTMLVideoElement>(el)
   })
   playerStore = usePlayerStore()
   markerStore = useBeatMarkerStore()
   useMarkerTransitionStore().enabled = false
   playerStore.duration = 300
-  playerStore.audioRef = { currentTime: 0 }
+  playerStore.audioRef = stub({ currentTime: 0 })
   videoGallery.value = [
     { id: 101, name: 'intro', src: 'blob:intro' },
     { id: 202, name: 'drop', src: 'blob:drop' },
   ]
-  imageGallery.value = [{ id: 11, name: 'wald.jpg', img: imgA }]
+  imageGallery.value = [stub({ id: 11, name: 'wald.jpg', img: imgA })]
   cm = fakeCm()
 })
 
@@ -141,7 +147,7 @@ afterEach(() => {
 
 async function mountHost() {
   wrapper = mount(Host, { global: { provide: { canvasManager: ref(cm) } } })
-  playerStore.audioRef.currentTime = 2
+  playerStore.audioRef!.currentTime = 2
   playerStore.currentTime = 2
   playerStore.isPlaying = true
   await nextTick()
@@ -162,7 +168,7 @@ describe('Beat-Marker mit Video – Formular', () => {
     api.addMarkerAtCurrentTime()
     api.newMarkerVideoId.value = 202
     api.confirmAddMarker()
-    const action = markerStore.markers.at(-1).action
+    const action = markerStore.markers.at(-1)!.action
     expect(action.video).toEqual({
       galleryId: 202,
       name: 'drop',
@@ -172,7 +178,7 @@ describe('Beat-Marker mit Video – Formular', () => {
     expect(JSON.stringify(action)).not.toContain('blob:')
     expect(api.newMarkerVideoId.value).toBe('')
 
-    api.startEditMarker(markerStore.markers.at(-1))
+    api.startEditMarker(markerStore.markers.at(-1)!)
     expect(api.newMarkerVideoId.value).toBe(202)
     api.addMarkerAtCurrentTime()
     expect(api.newMarkerVideoId.value).toBe('')
@@ -182,7 +188,7 @@ describe('Beat-Marker mit Video – Formular', () => {
     await mountHost()
     api.addMarkerAtCurrentTime()
     api.confirmAddMarker()
-    expect(markerStore.markers.at(-1).action.video).toBeNull()
+    expect(markerStore.markers.at(-1)!.action.video).toBeNull()
   })
 })
 
@@ -195,8 +201,8 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     expect(el.src).toBe('blob:drop')
     expect(el.muted).toBe(true)
     expect(el.loop).toBe(true)
-    expect(cm.videoBackground.videoElement).toBe(el)
-    expect(cm.videoBackground.fotoSettings.audioReactive).toEqual(AR)
+    expect(cm.videoBackground!.videoElement).toBe(el)
+    expect(cm.videoBackground!.fotoSettings.audioReactive).toEqual(AR)
     expect(el.currentTime).toBe(0)
     await flushPromises()
     expect(el.play).toHaveBeenCalled()
@@ -207,7 +213,7 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     markerStore.addMarker(5, { video: { galleryId: 999, name: 'intro' } })
     const el = crossAndLoad(5)
     expect(el.src).toBe('blob:intro')
-    expect(cm.videoBackground.videoElement).toBe(el)
+    expect(cm.videoBackground!.videoElement).toBe(el)
   })
 
   it('überspringt Videos, die nicht mehr hochgeladen sind', async () => {
@@ -228,12 +234,12 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     })
     const el = crossAndLoad(5)
     expect(cm.setBackground).not.toHaveBeenCalled()
-    expect(cm.videoBackground.videoElement).toBe(el)
+    expect(cm.videoBackground!.videoElement).toBe(el)
   })
 
   it('mit Hintergrund-Preset im selben Marker liefert das Preset kein eigenes Video', async () => {
     await mountHost()
-    const applied = []
+    const applied: BackgroundSnapshot[] = []
     useBackgroundBridgeStore().register(
       () => ({}),
       (snap) => applied.push(snap),
@@ -244,8 +250,8 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     })
     crossAndLoad(5)
     expect(applied).toHaveLength(1)
-    expect(applied[0].backgroundVideo).toBeNull()
-    expect(applied[0].backgroundColor).toBe('#000000')
+    expect(applied[0]!.backgroundVideo).toBeNull()
+    expect(applied[0]!.backgroundColor).toBe('#000000')
   })
 
   it('ein Marker ohne Bild/Video stellt den Hintergrund von vorher wieder her', async () => {
@@ -287,7 +293,7 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     frame(8.01)
     expect(cm.videoBackground).toBeNull()
     expect(el.src).toBe('')
-    expect(cm.background.imageObject).toBe(imgA)
+    expect(cm.background!.imageObject).toBe(imgA)
   })
 
   it('verwirft ein Marker-Video, das erst nach dem nächsten Wechsel fertig lädt', async () => {
@@ -300,9 +306,9 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     const late = created.at(-1)
     frame(5.99)
     frame(6.01)
-    late.onloadeddata()
+    late!.onloadeddata!()
     expect(cm.setVideoBackground).not.toHaveBeenCalled()
-    expect(late.src).toBe('')
+    expect(late!.src).toBe('')
     expect(cm.background).toBe('#222222')
   })
 
@@ -325,9 +331,9 @@ describe('Beat-Marker-Popover – Video-Auswahl', () => {
     })
   }
 
-  const selectWith = (text) =>
+  const selectWith = (text: string) =>
     [...document.body.querySelectorAll('select')].find((s) =>
-      [...s.options].some((o) => o.textContent.trim() === text),
+      [...s.options].some((o) => o.textContent!.trim() === text),
     )
 
   it('zeigt „Kein Video“ und die hochgeladenen Videos; Auswahl zeigt den Hinweis', async () => {
@@ -336,14 +342,14 @@ describe('Beat-Marker-Popover – Video-Auswahl', () => {
     await flushPromises()
     const select = selectWith(de.player.noMarkerVideo)
     expect(select).toBeTruthy()
-    expect([...select.options].map((o) => o.textContent.trim())).toEqual([
+    expect([...select!.options].map((o) => o.textContent!.trim())).toEqual([
       de.player.noMarkerVideo,
       '1. intro',
       '2. drop',
     ])
     expect(document.body.textContent).not.toContain(de.player.markerVideoHint)
-    select.value = select.options[2].value
-    select.dispatchEvent(new Event('change'))
+    select!.value = select!.options[2]!.value
+    select!.dispatchEvent(new Event('change'))
     await flushPromises()
     expect(document.body.textContent).toContain(de.player.markerVideoHint)
   })
@@ -354,8 +360,8 @@ describe('Beat-Marker-Popover – Video-Auswahl', () => {
     api.addMarkerAtCurrentTime()
     await flushPromises()
     const select = selectWith(de.player.noMarkerVideo)
-    const empty = [...select.options].find(
-      (o) => o.textContent.trim() === de.player.emptyVideoGallery,
+    const empty = [...select!.options].find(
+      (o) => o.textContent!.trim() === de.player.emptyVideoGallery,
     )
     expect(empty?.disabled).toBe(true)
   })
@@ -377,8 +383,8 @@ describe('Beat-Marker-Popover – Video-Auswahl', () => {
       'markerVideoOnce',
       'markerVideoLoopHint',
     ]) {
-      expect(de.player[key]).toBeTruthy()
-      expect(en.player[key]).toBeTruthy()
+      expect(de.player[key as keyof typeof de.player]).toBeTruthy()
+      expect(en.player[key as keyof typeof en.player]).toBeTruthy()
     }
   })
 })
@@ -392,13 +398,13 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     api.newMarkerVideoLoop.value = false
     api.confirmAddMarker()
     const marker = markerStore.markers.at(-1)
-    expect(marker.action.video.loop).toBe(false)
+    expect((marker!.action.video as MarkerVideoRef).loop).toBe(false)
     expect(api.newMarkerVideoLoop.value).toBe(true)
 
-    api.startEditMarker(marker)
+    api.startEditMarker(marker!)
     expect(api.newMarkerVideoLoop.value).toBe(false)
     // Alte Marker ohne Feld laufen in Schleife
-    api.startEditMarker({ id: 99, time: 1, label: '', action: { video: { galleryId: 101 } } })
+    api.startEditMarker(stub({ id: 99, time: 1, label: '', action: { video: { galleryId: 101 } } }))
     expect(api.newMarkerVideoLoop.value).toBe(true)
   })
 
@@ -407,7 +413,7 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     markerStore.addMarker(5, { video: { galleryId: 101, name: 'intro' } })
     const el = crossAndLoad(5)
     expect(el.loop).toBe(true)
-    expect(cm.videoBackground.loop).toBe(true)
+    expect(cm.videoBackground!.loop).toBe(true)
   })
 
   it('einmal: nach dem Video-Ende kommt der Hintergrund von vor dem Video zurück', async () => {
@@ -419,14 +425,14 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     frame(4.99)
     frame(5.01)
     const markerImage = cm.background
-    expect(markerImage.imageObject).toBe(imgA)
+    expect(markerImage!.imageObject).toBe(imgA)
 
     const el = crossAndLoad(8)
     expect(el.loop).toBe(false)
-    expect(cm.videoBackground.videoElement).toBe(el)
+    expect(cm.videoBackground!.videoElement).toBe(el)
     expect(cm.background).toBe('#ffffff')
 
-    el.onended()
+    el.onended!()
     // Zustand direkt vor dem Video (Bild des vorherigen Markers), nicht die Basis
     expect(cm.background).toBe(markerImage)
     expect(cm.videoBackground).toBeNull()
@@ -442,10 +448,10 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     const once = crossAndLoad(8)
     expect(loopVideo.pause).toHaveBeenCalled()
     expect(loopVideo.src).toBe('blob:intro')
-    expect(cm.videoBackground.videoElement).toBe(once)
+    expect(cm.videoBackground!.videoElement).toBe(once)
 
     loopVideo.play.mockClear()
-    once.onended()
+    once.onended!()
     expect(cm.videoBackground).toBe(loopEntry)
     await flushPromises()
     expect(loopVideo.play).toHaveBeenCalled()
@@ -461,12 +467,12 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     const once = crossAndLoad(8)
     frame(9.99)
     frame(10.01)
-    expect(cm.background.imageObject).toBe(imgA)
+    expect(cm.background!.imageObject).toBe(imgA)
     expect(loopVideo.src).toBe('')
     expect(once.src).toBe('')
 
-    once.onended()
-    expect(cm.background.imageObject).toBe(imgA)
+    once.onended!()
+    expect(cm.background!.imageObject).toBe(imgA)
   })
 
   it('Basis-Video des Nutzers bleibt erhalten, wenn ein Marker das einmalige Video ablöst', async () => {
@@ -497,7 +503,7 @@ describe('Beat-Marker-Popover – Schleife', () => {
     mountPopover()
     api.addMarkerAtCurrentTime()
     await flushPromises()
-    const hasSwitch = () => document.body.textContent.includes(de.player.markerVideoLoop)
+    const hasSwitch = () => document.body.textContent!.includes(de.player.markerVideoLoop)
     expect(hasSwitch()).toBe(false)
     api.newMarkerVideoId.value = 101
     await flushPromises()

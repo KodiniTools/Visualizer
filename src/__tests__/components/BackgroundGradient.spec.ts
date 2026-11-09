@@ -2,17 +2,25 @@
 // Charakterisierung „Gradient“ (Canvas-Steuerung → Hintergrund): Schalter,
 // zweite Farbe, Typ und Winkel schreiben in bgSettings und rufen
 // updateGradientSettings. Zugriff über Texte und Rollen statt CSS-Klassen.
-import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { describe, it, expect, afterEach, vi, type Mock } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick, ref, type Ref } from 'vue'
 import BackgroundGradient from '../../components/canvas-control/background/BackgroundGradient.vue'
 import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const c = de.canvasControl
-let wrapper
-let bg
+let wrapper: VueWrapper | null
+/** Bereitgestellte bgSettings (nur die Felder, die die Komponente nutzt) */
+interface FakeBgSettings {
+  gradientEnabled: Ref<boolean>
+  gradientColor2: Ref<string>
+  gradientType: Ref<string>
+  gradientAngle: Ref<number>
+  updateGradientSettings: Mock
+}
+let bg: FakeBgSettings
 
 afterEach(async () => {
   wrapper?.unmount()
@@ -21,7 +29,7 @@ afterEach(async () => {
   await setLocale('de')
 })
 
-function mountGradient(state = {}) {
+function mountGradient(state: Partial<FakeBgSettings> = {}) {
   bg = {
     gradientEnabled: ref(false),
     gradientColor2: ref('#112233'),
@@ -37,11 +45,11 @@ function mountGradient(state = {}) {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 
 /** Schalter über seinen Text: Checkbox im Label oder Switch mit label[for]. */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) => i.closest('label')?.textContent.trim() === name,
   )
@@ -49,9 +57,9 @@ function toggle(name) {
   const label = [...root().querySelectorAll('label')].find((l) => l.textContent.trim() === name)
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
-async function flip(name) {
+async function flip(name: string) {
   const el = toggle(name)
   expect(el, `Schalter „${name}“`).toBeTruthy()
   if (el.type === 'checkbox') {
@@ -112,7 +120,7 @@ describe('Hintergrund-Gradient – Ui-Bausteine und Sprache', () => {
     expect(toggle(c.enableGradient).getAttribute('role')).toBe('switch')
     expect(root().querySelector('input[type="checkbox"]')).toBeNull()
     const select = root().querySelector('select')
-    expect(document.querySelector(`label[for="${select.id}"]`).textContent.trim()).toBe(c.type)
+    expect(document.querySelector(`label[for="${select.id}"]`)!.textContent!.trim()).toBe(c.type)
   })
 
   it('Texte folgen der Sprache', async () => {

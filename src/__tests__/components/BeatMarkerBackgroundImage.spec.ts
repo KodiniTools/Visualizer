@@ -1,12 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { defineComponent, ref, nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { useBeatMarkers } from '../../composables/useBeatMarkers'
+import { fakeImage, stub } from '../helpers/canvasStubs'
+import { type FakeBg } from '../helpers/markerStubs'
+import { useBeatMarkers, type MarkerBackgroundImageRef } from '../../composables/useBeatMarkers'
 import { usePlayerStore } from '../../stores/playerStore'
 import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
-import { useBackgroundBridgeStore } from '../../stores/backgroundBridgeStore'
+import {
+  useBackgroundBridgeStore,
+  type BackgroundSnapshot,
+} from '../../stores/backgroundBridgeStore'
 import { useImageGallery } from '../../composables/useImageGallery'
 import { saveImageAnimation } from '../../lib/imagePlacementSettings'
 import { createImageAnimation } from '../../lib/canvasObjects/imageAnimation'
@@ -22,19 +27,19 @@ const Host = defineComponent({
 
 function fakeCm() {
   const cm = {
-    workspacePreset: null,
-    background: null,
-    workspaceBackground: null,
+    workspacePreset: null as unknown,
+    background: null as FakeBg,
+    workspaceBackground: null as FakeBg,
     videoBackground: null,
     workspaceVideoBackground: null,
     textManager: { textObjects: [] },
     redrawCallback: vi.fn(),
     updateUICallback: vi.fn(),
-    setBackground: vi.fn((img) => {
+    setBackground: vi.fn((img: unknown) => {
       cm.background =
         typeof img === 'string' ? img : { imageObject: img, fotoSettings: { audioReactive: null } }
     }),
-    setWorkspaceBackground: vi.fn((img) => {
+    setWorkspaceBackground: vi.fn((img: unknown) => {
       if (!cm.workspacePreset) return false
       cm.workspaceBackground = { imageObject: img, fotoSettings: {} }
       return true
@@ -43,17 +48,19 @@ function fakeCm() {
   return cm
 }
 
-let wrapper
-let vm
-let playerStore
-let markerStore
-let cm
-const gallery = useImageGallery().imageGallery
-const imgA = { src: 'data:image/png;base64,AAA' }
-const imgB = { src: 'data:image/png;base64,BBB' }
+type HostVm = InstanceType<typeof Host>
 
-function frame(time) {
-  playerStore.audioRef.currentTime = time
+let wrapper: VueWrapper<HostVm>
+let vm: HostVm
+let playerStore: ReturnType<typeof usePlayerStore>
+let markerStore: ReturnType<typeof useBeatMarkerStore>
+let cm: ReturnType<typeof fakeCm>
+const gallery = useImageGallery().imageGallery
+const imgA = fakeImage({ src: 'data:image/png;base64,AAA' })
+const imgB = fakeImage({ src: 'data:image/png;base64,BBB' })
+
+function frame(time: number) {
+  playerStore.audioRef!.currentTime = time
   playerStore.notifyFrame()
 }
 
@@ -64,15 +71,15 @@ beforeEach(async () => {
   markerStore = useBeatMarkerStore()
   useMarkerTransitionStore().enabled = false
   playerStore.duration = 300
-  playerStore.audioRef = { currentTime: 0 }
+  playerStore.audioRef = stub({ currentTime: 0 })
   gallery.value = [
-    { id: 11, name: 'wald.jpg', img: imgA },
-    { id: 22, name: 'stadt.jpg', img: imgB },
+    stub({ id: 11, name: 'wald.jpg', img: imgA }),
+    stub({ id: 22, name: 'stadt.jpg', img: imgB }),
   ]
   cm = fakeCm()
   wrapper = mount(Host, { global: { provide: { canvasManager: ref(cm) } } })
   vm = wrapper.vm
-  playerStore.audioRef.currentTime = 2
+  playerStore.audioRef!.currentTime = 2
   playerStore.currentTime = 2
   playerStore.isPlaying = true
   await nextTick()
@@ -96,7 +103,7 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     vm.addMarkerAtCurrentTime()
     vm.newMarkerBgImageId = 22
     vm.confirmAddMarker()
-    const action = markerStore.markers.at(-1).action
+    const action = markerStore.markers.at(-1)!.action
     expect(action.backgroundImage).toEqual({
       galleryId: 22,
       name: 'stadt.jpg',
@@ -105,7 +112,7 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     expect(JSON.stringify(action)).not.toContain('base64')
     expect(vm.newMarkerBgImageId).toBe('')
 
-    vm.startEditMarker(markerStore.markers.at(-1))
+    vm.startEditMarker(markerStore.markers.at(-1)!)
     expect(vm.newMarkerBgImageId).toBe(22)
   })
 
@@ -142,8 +149,8 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     })
     frame(4.99)
     frame(5.01)
-    expect(cm.workspaceBackground.imageObject).toBe(imgA)
-    expect(cm.workspaceBackground.fotoSettings.audioReactive).toEqual(AR)
+    expect(cm.workspaceBackground!.imageObject).toBe(imgA)
+    expect(cm.workspaceBackground!.fotoSettings!.audioReactive).toEqual(AR)
   })
 
   it('überspringt Bilder, die nicht mehr in der Galerie sind', () => {
@@ -155,7 +162,7 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
 
   it('mit Hintergrund-Preset im selben Marker liefert das Preset kein eigenes Bild', () => {
     const bridge = useBackgroundBridgeStore()
-    const applied = []
+    const applied: BackgroundSnapshot[] = []
     bridge.register(
       () => ({}),
       (snap) => applied.push(snap),
@@ -167,9 +174,9 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     frame(4.99)
     frame(5.01)
     expect(applied).toHaveLength(1)
-    expect(applied[0].backgroundImage).toBeNull()
-    expect(applied[0].backgroundColor).toBe('#000000')
-    expect(cm.background.imageObject).toBe(imgA)
+    expect(applied[0]!.backgroundImage).toBeNull()
+    expect(applied[0]!.backgroundColor).toBe('#000000')
+    expect(cm.background!.imageObject).toBe(imgA)
   })
 
   it('ein Marker ohne Hintergrund-Bild stellt den Hintergrund von vorher wieder her', () => {
@@ -228,7 +235,7 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
     frame(4.99)
     frame(5.01)
-    expect(cm.background.imageObject).toBe(imgA)
+    expect(cm.background!.imageObject).toBe(imgA)
     playerStore.currentTime = 0
     await nextTick()
     expect(cm.background).toBeNull()
@@ -249,12 +256,12 @@ describe('Beat-Marker: Animation des Hintergrund-Bildes', () => {
     expect(vm.newMarkerBgImageAnimation.slide).toMatchObject({ enabled: true, from: 'right' })
     vm.newMarkerBgImageId = 11
     vm.confirmAddMarker()
-    const saved = markerStore.markers.at(-1).action.backgroundImage
-    expect(saved.timedAnimation.slide).toMatchObject({ enabled: true, from: 'right' })
+    const saved = markerStore.markers.at(-1)!.action.backgroundImage as MarkerBackgroundImageRef
+    expect(saved.timedAnimation!.slide).toMatchObject({ enabled: true, from: 'right' })
 
     // Bearbeiten lädt die Animation des Markers, nicht die aktuelle Vorgabe
     saveImageAnimation(createImageAnimation())
-    vm.startEditMarker(markerStore.markers.at(-1))
+    vm.startEditMarker(markerStore.markers.at(-1)!)
     expect(vm.newMarkerBgImageAnimation.slide.enabled).toBe(true)
   })
 
@@ -262,7 +269,7 @@ describe('Beat-Marker: Animation des Hintergrund-Bildes', () => {
     vm.addMarkerAtCurrentTime()
     vm.newMarkerBgImageId = 22
     vm.confirmAddMarker()
-    expect(markerStore.markers.at(-1).action.backgroundImage).not.toHaveProperty('timedAnimation')
+    expect(markerStore.markers.at(-1)!.action.backgroundImage).not.toHaveProperty('timedAnimation')
   })
 
   it('beim Auslösen bekommt Hintergrund bzw. Workspace-Hintergrund die Animation', () => {

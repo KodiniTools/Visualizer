@@ -4,7 +4,7 @@
 // audioFxStore. Zugriff über sichtbare Texte und Rollen statt CSS-Klassen,
 // damit die Tests den Wechsel auf die Ui-Bausteine und i18n überstehen.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import AudioFxPanel from '../../components/AudioFxPanel.vue'
@@ -28,8 +28,8 @@ const EFFECTS = [
   'BPM-Puls',
   'Frequenz-Split',
 ]
-let wrapper
-let store
+let wrapper: VueWrapper | null
+let store: ReturnType<typeof useAudioFxStore>
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -48,7 +48,7 @@ function mountPanel() {
   return wrapper
 }
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 /** Innerstes Element mit genau diesem Text (Kopfzeile zum Aufklappen). */
 const header = (title = TITLE) =>
@@ -60,7 +60,7 @@ async function open() {
 }
 
 /** Schalter über seinen Text: Checkbox (im Label oder in der Zeile) oder Switch. */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) =>
       i.closest('label')?.textContent.trim() === name ||
@@ -70,9 +70,9 @@ function toggle(name) {
   const label = [...root().querySelectorAll('label')].find((l) => l.textContent.trim() === name)
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
-async function flip(name) {
+async function flip(name: string) {
   const el = toggle(name)
   expect(el, `Schalter „${name}“`).toBeTruthy()
   if (el.type === 'checkbox') {
@@ -82,7 +82,7 @@ async function flip(name) {
   await nextTick()
 }
 const ranges = () => [...root().querySelectorAll('input[type="range"]')]
-async function slide(el, value) {
+async function slide(el: HTMLInputElement, value: number) {
   el.value = String(value)
   el.dispatchEvent(new Event('input'))
   await nextTick()
@@ -209,7 +209,7 @@ describe('Audio-FX – Ui-Bausteine und Sprache', () => {
     await open()
     expect(root().querySelectorAll('[role="switch"]').length).toBe(EFFECTS.length + 1)
     const select = root().querySelector('select')
-    expect(document.querySelector(`label[for="${select.id}"]`).textContent.trim()).toBe(
+    expect(document.querySelector(`label[for="${select.id}"]`)!.textContent!.trim()).toBe(
       de.audioFx.source,
     )
   })

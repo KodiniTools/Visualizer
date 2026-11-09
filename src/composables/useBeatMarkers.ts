@@ -160,6 +160,9 @@ export function useBeatMarkers(
   // Animation des Hintergrund-Bildes; neue Marker übernehmen die im Foto-Panel
   // eingestellte „Animation beim Hinzufügen“
   const newMarkerBgImageAnimation = ref<ImageTimedAnimation>(createImageAnimation())
+  // Animation für ein Galerie-Bild, das der Marker beim Speichern neu platziert
+  // (Vorgabe: „Animation beim Hinzufügen“ aus dem Foto-Panel)
+  const newMarkerPlacedImageAnimation = ref<ImageTimedAnimation>(createImageAnimation())
   const newMarkerLabel = ref('')
 
   // ══════════════════ Text-Steuerung über Marker ══════════════════
@@ -500,11 +503,23 @@ export function useBeatMarkers(
       const galleryId = value.slice(IMAGE_GALLERY_PREFIX.length)
       const entry = imageGallery.value.find((g) => String(g.id) === galleryId)
       if (!mim || !entry?.img) return null
-      const placed = mim.addImage(entry.img, { timedAnimation: loadImageAnimation() })
+      const placed = mim.addImage(entry.img, {
+        timedAnimation: cloneImageAnimation(newMarkerPlacedImageAnimation.value),
+      })
       mim.setSelectedImage(null)
       return placed?.id ?? null
     }
     return placedImages().some(({ img }) => img.id === value) ? value : null
+  }
+
+  /**
+   * Platziertes Canvas-Bild zur Dropdown-Auswahl (null bei Galerie-Eintrag
+   * oder unbekannter ID). Das Marker-Formular bearbeitet dessen Animationen
+   * direkt – dieselben Einstellungen wie im Foto-Panel.
+   */
+  const getMarkerCanvasImage = (id: CanvasImage['id'] | '' | null | undefined) => {
+    if (id === '' || id === null || id === undefined) return null
+    return placedImages().find(({ img }) => img.id === id)?.img ?? null
   }
 
   /** Anzeigename eines Canvas-Bildes in der Marker-Liste */
@@ -868,6 +883,7 @@ export function useBeatMarkers(
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
     newMarkerBgImageAnimation.value = loadImageAnimation()
+    newMarkerPlacedImageAnimation.value = loadImageAnimation()
     showMarkerPanel.value = true
     openMarkersPopover()
   }
@@ -905,6 +921,7 @@ export function useBeatMarkers(
           | undefined) ?? '')
       : ''
     newMarkerVideoLoop.value = isMarkerVideoLoop(marker.action?.video)
+    newMarkerPlacedImageAnimation.value = loadImageAnimation()
     newMarkerBgImageAnimation.value = cloneImageAnimation(
       marker.action?.backgroundImage?.timedAnimation,
     )
@@ -1256,6 +1273,8 @@ export function useBeatMarkers(
     newMarkerVideoId,
     newMarkerVideoLoop,
     newMarkerBgImageAnimation,
+    newMarkerPlacedImageAnimation,
+    getMarkerCanvasImage,
     newMarkerLabel,
     getMarkerTexts,
     getMarkerShapes,

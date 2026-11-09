@@ -1006,6 +1006,10 @@ export default {
     noPlacedImage: '-- Kein Bild --',
     placedImageAppears:
       'Platziertes Bild erscheint zum Marker-Zeitpunkt mit seinen Einstellungen; seine Animationen starten dabei von vorn',
+    placedImageAnimationHint:
+      'Gleiche Einstellungen wie im Foto-Panel – Änderungen gelten für das Bild. Startet zum Marker-Zeitpunkt von vorn.',
+    newPlacedImageAnimationHint:
+      'Vorgabe ist die „Animation beim Hinzufügen“ aus dem Foto-Panel. Danach im Foto-Panel oder hier bearbeitbar.',
     placedImages: 'Platzierte Bilder',
     placeFromGallery: 'Aus der Galerie platzieren',
     newPlacedImageHint:

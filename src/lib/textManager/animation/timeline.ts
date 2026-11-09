@@ -178,3 +178,31 @@ export function resolveTimeline(
 
   return { p, isComplete }
 }
+
+/**
+ * Startzeitpunkt (für `animation._state[stateKey]`), bei dem die Animation
+ * zum Zeitpunkt `now` bereits `elapsedMs` läuft – gemessen ab ihrem Auslösen,
+ * also einschließlich Start-Verzögerung. Für das Spulen: Ein Element, das ein
+ * Beat-Marker vor 6 s eingeblendet hat, steht danach an derselben Stelle
+ * seiner Animation wie beim Abspielen von vorn (Eingang, Anzeigedauer,
+ * Ausgang). Bei Loop wird auf den laufenden Durchlauf umgerechnet.
+ *
+ * @param cfg - Konfiguration der Animation (animation.fade o.ä.)
+ * @param elapsedMs - Zeit seit dem Auslösen in ms (≥ 0)
+ * @param now - Bezugszeitpunkt in ms (wie beim Zeichnen)
+ */
+export function timelineStartForElapsed(
+  cfg: TimedTextAnimation,
+  elapsedMs: number,
+  now: number,
+): number {
+  let sinceStart = Math.max(0, elapsedMs) - (cfg.startDelay || 0)
+  if (cfg.loop && sinceStart > 0) {
+    const duration = cfg.duration || DEFAULT_DURATION
+    const period =
+      cycleDuration(cfg, duration, holdDuration(cfg)) + (cfg.loopDelay ?? DEFAULT_LOOP_DELAY)
+    if (period > 0) sinceStart %= period
+  }
+  // 0 gilt im Zustand als „nicht gestartet“
+  return now - sinceStart || 1
+}

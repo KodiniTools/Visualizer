@@ -68,6 +68,14 @@ export default defineConfigWithVueTs(
   },
 
   {
+    // Specs definieren kleine Host-/Stub-Komponenten inline neben dem Test.
+    files: ['src/__tests__/**/*.{js,ts}'],
+    rules: {
+      'vue/one-component-per-file': 'off',
+    },
+  },
+
+  {
     ...pluginPlaywright.configs['flat/recommended'],
     files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },

@@ -69,6 +69,7 @@
           class="overview-card"
           @click.prevent="scrollToSection(card.id)"
         >
+          <!-- eslint-disable-next-line vue/no-v-html -- statisches SVG aus icon(), keine Nutzereingabe -->
           <div class="overview-icon" v-html="icon(card.id, 28)"></div>
           <div class="overview-card-content">
             <h3 class="overview-card-title">{{ card.title }}</h3>
@@ -94,6 +95,7 @@
                 :class="{ active: activeSection === section.id }"
                 @click.prevent="scrollToSection(section.id)"
               >
+                <!-- eslint-disable-next-line vue/no-v-html -- statisches SVG aus icon(), keine Nutzereingabe -->
                 <span class="toc-icon" v-html="icon(section.id, 14)"></span>
                 {{ section.nav }}
               </a>
@@ -118,6 +120,7 @@
             :class="{ 'unique-section': section.variant === 'unique' }"
           >
             <div class="section-header">
+              <!-- eslint-disable-next-line vue/no-v-html -- statisches SVG aus icon(), keine Nutzereingabe -->
               <div class="section-icon" v-html="icon(section.id, 22)"></div>
               <h2 class="section-title">{{ section.title }}</h2>
               <span v-if="section.isNew" class="new-badge">{{ t('blog.newBadge') }}</span>

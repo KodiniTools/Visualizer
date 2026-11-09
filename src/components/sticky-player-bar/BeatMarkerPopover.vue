@@ -275,6 +275,25 @@
         :reset-key="editingMarkerId ?? 'new'"
       />
 
+      <!-- Video auf dem Canvas: vorhandenes Canvas-Video oder hochgeladenes
+           Video, das beim Speichern platziert wird -->
+      <UiSelect
+        :model-value="newMarkerCanvasVideoId as SelectValue"
+        :label="t('player.canvasVideo')"
+        :options="canvasVideoSelectOptions"
+        :title="t('player.canvasVideoAppears')"
+        size="sm"
+        class="marker-canvas-video"
+        @update:model-value="newMarkerCanvasVideoId = $event"
+      />
+      <p v-if="newMarkerCanvasVideoId !== ''" class="form-hint marker-form-hint">
+        {{
+          String(newMarkerCanvasVideoId).startsWith('gallery:')
+            ? t('player.newCanvasVideoHint')
+            : t('player.canvasVideoAppears')
+        }}
+      </p>
+
       <UiTextField
         v-model="newMarkerLabel"
         :label="t('player.label')"
@@ -381,6 +400,21 @@
           }}</span
         >
         <span
+          v-if="
+            marker.action.canvasVideoId !== undefined &&
+            marker.action.canvasVideoId !== null &&
+            marker.action.canvasVideoId !== ''
+          "
+          class="marker-action marker-action-canvas-video"
+          :title="t('player.canvasVideoAppears')"
+          >🎞️
+          {{
+            getMarkerCanvasVideoLabel(marker.action.canvasVideoId) ||
+            marker.action.canvasVideoLabel ||
+            t('player.canvasVideo')
+          }}</span
+        >
+        <span
           v-if="durationChip(marker)"
           class="marker-action marker-action-duration"
           :title="durationChip(marker)?.title"
@@ -473,6 +507,7 @@ const {
   newMarkerBgImageId,
   newMarkerVideoId,
   newMarkerVideoLoop,
+  newMarkerCanvasVideoId,
   newMarkerBgImageAnimation,
   newMarkerPlacedImageAnimation,
   getMarkerCanvasImage,
@@ -486,6 +521,9 @@ const {
   getMarkerImageGallery,
   getMarkerGalleryImages,
   getMarkerGalleryVideos,
+  getMarkerCanvasVideos,
+  getMarkerVideoGallery,
+  getMarkerCanvasVideoLabel,
   getMarkerDuration,
   getPendingMarkerDuration,
   pendingMarkerTime,
@@ -629,6 +667,19 @@ const galleryVideoOptions = computed(() => {
   return getMarkerGalleryVideos()
 })
 
+// Videos auf dem Canvas; beim Öffnen des Formulars neu geladen, damit gerade
+// platzierte Videos sofort erscheinen
+const canvasVideoOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerCanvasVideos()
+})
+
+// Hochgeladene Videos, die der Marker beim Speichern platziert (reaktiv auf die Video-Liste)
+const videoGalleryPlaceOptions = computed(() => {
+  void showMarkerPanel.value
+  return getMarkerVideoGallery()
+})
+
 // Hintergrund-Auswahl (Vorlagen + gespeicherte Presets). Wird beim Öffnen des
 // Formulars neu geladen, damit frisch gespeicherte Presets sofort erscheinen.
 const backgroundPresetOptions = computed(() => {
@@ -719,6 +770,27 @@ const placedImageSelectOptions = computed(() => [
       label: `${img.number}. ${img.name}`,
     })),
   ),
+])
+
+const canvasVideoSelectOptions = computed(() => [
+  { value: '', label: t('player.noCanvasVideo') },
+  ...group(
+    t('player.placedVideos'),
+    canvasVideoOptions.value.map((video) => ({
+      value: video.id as SelectValue,
+      label:
+        `${t('videoPanel.videoLabel')} ${video.layer}` + (video.name ? ` — ${video.name}` : ''),
+    })),
+  ),
+  ...(videoGalleryPlaceOptions.value.length === 0 && canvasVideoOptions.value.length === 0
+    ? [{ value: '__empty-canvas-videos', label: t('player.emptyVideoGallery'), disabled: true }]
+    : group(
+        t('player.placeUploadedVideo'),
+        videoGalleryPlaceOptions.value.map((video) => ({
+          value: video.value,
+          label: `${video.number}. ${video.name}`,
+        })),
+      )),
 ])
 
 const shapeSelectOptions = computed(() => [
@@ -969,7 +1041,8 @@ const shapeSelectOptions = computed(() => [
 }
 .marker-action-bg,
 .marker-action-bgimage,
-.marker-action-video {
+.marker-action-video,
+.marker-action-canvas-video {
   color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
 }

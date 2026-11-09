@@ -59,6 +59,12 @@ import {
 } from '../lib/markerDuration'
 import { seekTextAnimation } from '../lib/textManager/animation/seek'
 import type { CanvasImage, MultiImageManager } from '../lib/multiImageManager'
+import type { VideoManager, VideoObject } from '../lib/videoManager'
+import {
+  useMarkerCanvasVideos,
+  type CanvasVideoPlacement,
+  type MarkerCanvasVideoAction,
+} from './beatMarkers/useMarkerCanvasVideos'
 import type { CanvasManagerRef } from './types'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
@@ -90,12 +96,17 @@ export type MarkerAction = BeatMarkerAction & {
   imageLabel?: string | null
   backgroundImage?: MarkerBackgroundImageRef | null
   video?: MarkerVideoRef | null
-}
+} & MarkerCanvasVideoAction
 
 /** Optionen für useBeatMarkers */
 export interface UseBeatMarkersOptions {
   /** Hochgeladene Videos (Video-Panel), wählbar als Marker-Video */
   videoGallery?: Ref<GalleryVideoEntry[]>
+  /**
+   * Platzieren eines hochgeladenen Videos auf dem Canvas (Video-Panel) –
+   * für „Video auf Canvas“ mit einem Galerie-Eintrag.
+   */
+  canvasVideoPlacement?: CanvasVideoPlacement | null
 }
 
 /**
@@ -106,10 +117,14 @@ export interface UseBeatMarkersOptions {
  * @param openMarkersPopover - opens the markers popover, so adding
  *   a marker (incl. via the "M" shortcut) reveals the form.
  * @param options.videoGallery - hochgeladene Videos (Video-Panel), wählbar als Marker-Video.
+ * @param options.canvasVideoPlacement - legt hochgeladene Videos auf den Canvas (Video-Panel).
  */
 export function useBeatMarkers(
   openMarkersPopover: () => void,
-  { videoGallery = ref<GalleryVideoEntry[]>([]) }: UseBeatMarkersOptions = {},
+  {
+    videoGallery = ref<GalleryVideoEntry[]>([]),
+    canvasVideoPlacement = null,
+  }: UseBeatMarkersOptions = {},
 ) {
   const { t } = useI18n()
   const playerStore = usePlayerStore()
@@ -130,6 +145,17 @@ export function useBeatMarkers(
   const canvasManager = inject('canvasManager', ref(null)) as CanvasManagerRef
   // Platzierte Bilder (Foto-Panel) – für die Bild-Aktion der Marker
   const multiImageManager = inject('multiImageManager', ref(null)) as Ref<MultiImageManager | null>
+  // Videos auf dem Canvas (Video-Panel) – für „Video auf Canvas“
+  const videoManager = inject('videoManager', ref(null)) as Ref<VideoManager | null>
+  const canvasVideos = useMarkerCanvasVideos({
+    videoManager,
+    videoGallery,
+    markerActions: () => beatMarkerStore.markers.map((m) => m.action as MarkerAction),
+    isPlaying: () => playerStore.isPlaying,
+    placement: canvasVideoPlacement,
+    formatLabel: (layer, name) =>
+      `${t('videoPanel.videoLabel')} ${layer}${name ? ` — ${name}` : ''}`,
+  })
 
   const showMarkerPanel = ref(false)
   const editingMarkerId = ref<number | null>(null)
@@ -168,6 +194,10 @@ export function useBeatMarkers(
   // true = Video in Schleife, false = einmal abspielen; danach kehrt der
   // Hintergrund von vor dem Video zurück.
   const newMarkerVideoLoop = ref(true)
+  // Video auf dem Canvas pro Marker (Canvas-Video-ID oder `gallery:<id>` für
+  // ein hochgeladenes Video, das beim Speichern platziert wird; '' = keins).
+  // Erscheint zum Marker-Zeitpunkt mit Einblend-Effekt und startet von vorn.
+  const newMarkerCanvasVideoId = ref<VideoObject['id'] | ''>('')
   // Animation des Hintergrund-Bildes; neue Marker übernehmen die im Foto-Panel
   // eingestellte „Animation beim Hinzufügen“
   const newMarkerBgImageAnimation = ref<ImageTimedAnimation>(createImageAnimation())
@@ -690,6 +720,10 @@ export function useBeatMarkers(
       if (isSet(action.textId)) elements.push(...textElement(action.textId as TextObject['id']))
       if (isSet(action.shapeId)) elements.push(...shapeElement(action.shapeId))
       if (isSet(action.imageId)) elements.push(...canvasImageElement(action.imageId))
+      const canvasVideo = canvasVideos.getMarkerCanvasVideo(action.canvasVideoId)
+      if (canvasVideo) {
+        elements.push({ kind: 'canvasVideo', seconds: canvasVideos.displaySeconds(canvasVideo) })
+      }
       const video = action.video ? findGalleryVideo(videoGallery.value, action.video) : null
       if (video) {
         elements.push(videoElement(video, isMarkerVideoLoop(action.video)))
@@ -728,6 +762,8 @@ export function useBeatMarkers(
         elements.push(...canvasImageElement(imageId))
       }
     }
+    const canvasVideo = canvasVideos.pendingDisplaySeconds(newMarkerCanvasVideoId.value)
+    if (canvasVideo.found) elements.push({ kind: 'canvasVideo', seconds: canvasVideo.seconds })
     const videoId = newMarkerVideoId.value
     const video = isSet(videoId) ? videoGallery.value.find((v) => v.id === videoId) : undefined
     if (video) {
@@ -987,6 +1023,7 @@ export function useBeatMarkers(
     applyTextAction(action)
     applyShapeAction(action)
     applyImageAction(action)
+    canvasVideos.apply(action)
   }
 
   /**
@@ -1092,16 +1129,20 @@ export function useBeatMarkers(
     for (const id of referencedShapeIds()) shapeStore.setMarkerHidden(id, true)
     const mim = multiImageManager.value
     if (mim) for (const id of referencedImageIds()) mim.setMarkerHidden(id, true)
+    canvasVideos.activate()
 
-    // Letzter Auslöse-Zeitpunkt je Text bzw. Bild
+    // Letzter Auslöse-Zeitpunkt je Text, Bild bzw. Canvas-Video
     const textTriggeredAt = new Map<TextObject['id'], number>()
     const imageTriggeredAt = new Map<CanvasImage['id'], number>()
+    const videoTriggeredAt = new Map<VideoObject['id'], number>()
     for (const m of passed) {
       const action = m.action as MarkerAction | undefined
       if (!action) continue
       applyTextAction(action, false)
       applyShapeAction(action)
       if (mim) applyImageAction(action, false)
+      const vid = canvasVideos.apply(action, false)
+      if (vid !== null) videoTriggeredAt.set(vid, m.time)
       const tid = action.textId
       if (tid !== undefined && tid !== null && tid !== '') textTriggeredAt.set(tid, m.time)
       const iid = action.imageId
@@ -1117,6 +1158,7 @@ export function useBeatMarkers(
       for (const [id, at] of imageTriggeredAt) mim.seekImageAnimations(id, (time - at) * 1000)
       mim.redrawCallback?.()
     }
+    canvasVideos.seek(time, videoTriggeredAt)
     canvasManager.value?.redrawCallback?.()
   }
 
@@ -1188,6 +1230,7 @@ export function useBeatMarkers(
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
+    newMarkerCanvasVideoId.value = ''
     newMarkerBgImageAnimation.value = loadImageAnimation()
     newMarkerPlacedImageAnimation.value = loadImageAnimation()
     showMarkerPanel.value = true
@@ -1227,6 +1270,8 @@ export function useBeatMarkers(
           | undefined) ?? '')
       : ''
     newMarkerVideoLoop.value = isMarkerVideoLoop(marker.action?.video)
+    // Gelöschtes Canvas-Video: Auswahl leeren
+    newMarkerCanvasVideoId.value = canvasVideos.editSelection(marker.action?.canvasVideoId)
     newMarkerPlacedImageAnimation.value = loadImageAnimation()
     newMarkerBgImageAnimation.value = cloneImageAnimation(
       marker.action?.backgroundImage?.timedAnimation,
@@ -1279,6 +1324,14 @@ export function useBeatMarkers(
     // Marker-Zeitpunkt mit seinen Einstellungen und Animationen.
     const imageId = resolveMarkerImageSelection(newMarkerImageId.value)
     const imageLabel = imageId !== null ? markerImageLabel(imageId) : null
+
+    // Video auf dem Canvas (oder hochgeladenes Video, das jetzt mit den
+    // Platzierungs-Einstellungen des Video-Panels platziert wird). Das
+    // Platzieren lädt asynchron; die ID wird danach im Marker eingetragen.
+    const canvasVideoSelection = canvasVideos.resolveSelection(newMarkerCanvasVideoId.value)
+    const canvasVideoId = canvasVideoSelection.id
+    const canvasVideoLabel =
+      canvasVideoId !== null ? canvasVideos.canvasVideoLabel(canvasVideoId) : null
 
     // Hintergrund-Bild aus der Galerie: nur Verweis (id + Name) speichern, kein
     // Bildinhalt. Vorgaben des aktuellen Hintergrund-Bildes als Ersatz merken,
@@ -1345,15 +1398,36 @@ export function useBeatMarkers(
       imageLabel: imageLabel,
       backgroundImage: backgroundImage,
       video: video,
+      canvasVideoId: canvasVideoId,
+      canvasVideoLabel: canvasVideoLabel,
     }
+    let markerId: number
     if (editingMarkerId.value !== null) {
-      beatMarkerStore.updateMarker(editingMarkerId.value, {
+      markerId = editingMarkerId.value
+      beatMarkerStore.updateMarker(markerId, {
         time: pendingMarkerTime.value,
         label: newMarkerLabel.value,
         action: action,
       })
     } else {
-      beatMarkerStore.addMarker(pendingMarkerTime.value, action, newMarkerLabel.value)
+      markerId = beatMarkerStore.addMarker(pendingMarkerTime.value, action, newMarkerLabel.value).id
+    }
+    if (canvasVideoSelection.pending) {
+      const markerTime = pendingMarkerTime.value
+      void canvasVideoSelection.pending.then((placed) => {
+        if (!placed || !beatMarkerStore.markers.some((m) => m.id === markerId)) return
+        beatMarkerStore.updateMarker(markerId, {
+          action: {
+            canvasVideoId: placed.id,
+            canvasVideoLabel: canvasVideos.canvasVideoLabel(placed.id),
+          },
+        })
+        // Läuft die Wiedergabe und liegt der Marker noch vor uns, erscheint
+        // das Video erst zum Marker-Zeitpunkt.
+        if (playerStore.isPlaying && markerTime > playerStore.currentTime) {
+          canvasVideos.hideUntilMarker(placed.id)
+        }
+      })
     }
     editingMarkerId.value = null
     showMarkerPanel.value = false
@@ -1364,6 +1438,7 @@ export function useBeatMarkers(
     newMarkerBgImageId.value = ''
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
+    newMarkerCanvasVideoId.value = ''
     // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
     reconcileShapeMarkers() // Läuft die Wiedergabe schon und liegt der Marker noch vor uns, erscheint
@@ -1378,6 +1453,14 @@ export function useBeatMarkers(
       pendingMarkerTime.value > playerStore.currentTime
     ) {
       multiImageManager.value?.setMarkerHidden(imageId, true)
+    }
+    canvasVideos.reconcile()
+    if (
+      canvasVideoId !== null &&
+      playerStore.isPlaying &&
+      pendingMarkerTime.value > playerStore.currentTime
+    ) {
+      canvasVideos.hideUntilMarker(canvasVideoId)
     }
   }
 
@@ -1397,10 +1480,13 @@ export function useBeatMarkers(
     reconcileTextMarkers()
     reconcileShapeMarkers()
     reconcileImageMarkers()
+    canvasVideos.reconcile()
   }
 
   const clearAllMarkers = () => {
     if (confirm(t('player.confirmDeleteMarkers'))) {
+      // Vor dem Leeren: Marker-Videos anhalten und einblenden
+      canvasVideos.restore()
       beatMarkerStore.clearAllMarkers()
       restoreTextMarkers()
       restoreShapeMarkers()
@@ -1492,6 +1578,7 @@ export function useBeatMarkers(
           restoreTextMarkers()
           restoreShapeMarkers()
           restoreImageMarkers()
+          canvasVideos.restore()
           restoreBackgroundImageMarkers()
         } else if (playerStore.isPlaying && beatMarkerStore.markersEnabled) {
           // Sprung während der Wiedergabe: Stand der Marker bis hierher
@@ -1514,6 +1601,7 @@ export function useBeatMarkers(
         restoreTextMarkers()
         restoreShapeMarkers()
         restoreImageMarkers()
+        canvasVideos.restore()
         return
       }
       const seeked = seekedWhilePaused
@@ -1532,6 +1620,7 @@ export function useBeatMarkers(
       activateTextMarkers()
       activateShapeMarkers()
       activateImageMarkers()
+      canvasVideos.activate()
       const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
       if (triggered && triggered.action) {
         // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
@@ -1548,6 +1637,7 @@ export function useBeatMarkers(
         restoreTextMarkers()
         restoreShapeMarkers()
         restoreImageMarkers()
+        canvasVideos.restore()
         restoreBackgroundImageMarkers()
       }
     },
@@ -1588,6 +1678,7 @@ export function useBeatMarkers(
     restoreTextMarkers()
     restoreShapeMarkers()
     restoreImageMarkers()
+    canvasVideos.restore()
     restoreBackgroundImageMarkers()
   })
 
@@ -1608,6 +1699,7 @@ export function useBeatMarkers(
     newMarkerBgImageId,
     newMarkerVideoId,
     newMarkerVideoLoop,
+    newMarkerCanvasVideoId,
     newMarkerBgImageAnimation,
     newMarkerPlacedImageAnimation,
     getMarkerCanvasImage,
@@ -1621,6 +1713,9 @@ export function useBeatMarkers(
     getMarkerImageGallery,
     getMarkerGalleryImages,
     getMarkerGalleryVideos,
+    getMarkerCanvasVideos: canvasVideos.getMarkerCanvasVideos,
+    getMarkerVideoGallery: canvasVideos.getMarkerVideoGallery,
+    getMarkerCanvasVideoLabel: canvasVideos.canvasVideoLabel,
     getMarkerDuration,
     getPendingMarkerDuration,
     updateMarkerTimeFromInput,

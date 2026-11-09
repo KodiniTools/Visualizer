@@ -985,7 +985,7 @@ export default {
       'Neue Marker übernehmen die „Animation beim Hinzufügen“ aus dem Foto-Panel. Gilt für Hintergrund und Workspace-Hintergrund.',
     backgroundImageHint:
       'Bild aus deiner Galerie wird Hintergrund. Audio-Reaktiv und Format (Workspace oder Normal) übernimmt es vom vorherigen Hintergrund-Bild.',
-    markerVideo: 'Video',
+    markerVideo: 'Hintergrund-Video',
     noMarkerVideo: '-- Kein Video --',
     emptyVideoGallery: 'Keine Videos hochgeladen – Videos unter „Video“ hochladen',
     markerVideoLoop: 'In Schleife abspielen',
@@ -1016,6 +1016,14 @@ export default {
     placeFromGallery: 'Aus der Galerie platzieren',
     newPlacedImageHint:
       'Das Bild wird beim Hinzufügen mittig mit der „Animation beim Hinzufügen“ auf den Canvas gelegt (im Foto-Panel bearbeitbar) und erscheint zum Marker-Zeitpunkt.',
+    canvasVideo: 'Video auf Canvas',
+    noCanvasVideo: '-- Kein Video --',
+    canvasVideoAppears:
+      'Video erscheint zum Marker-Zeitpunkt mit seinem Einblend-Effekt und startet von vorn. Ohne „Wiederholen“ verschwindet es nach seinem Ende, sonst löst es der nächste Marker ab.',
+    placedVideos: 'Videos auf dem Canvas',
+    placeUploadedVideo: 'Hochgeladenes Video platzieren',
+    newCanvasVideoHint:
+      'Das Video wird beim Hinzufügen mit den Platzierungs-Einstellungen aus dem Video-Panel (Effekt, Dauer, Größe, Wiederholen, Stumm) auf den Canvas gelegt und erscheint erst zum Marker-Zeitpunkt.',
     transition: 'Crossfade',
     transitionHint: 'Weiche Überblendung (Crossfade) beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',

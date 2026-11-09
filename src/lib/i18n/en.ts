@@ -984,7 +984,7 @@ export default {
       'New markers take over the “Animation when adding” from the photo panel. Applies to background and workspace background.',
     backgroundImageHint:
       'An image from your gallery becomes the background. It takes audio-reactive settings and format (workspace or normal) from the previous background image.',
-    markerVideo: 'Video',
+    markerVideo: 'Background video',
     noMarkerVideo: '-- No video --',
     emptyVideoGallery: 'No videos uploaded – upload videos under “Video”',
     markerVideoLoop: 'Play in a loop',
@@ -1015,6 +1015,14 @@ export default {
     placeFromGallery: 'Place from gallery',
     newPlacedImageHint:
       'The image is placed in the center of the canvas with the “Animation when adding” when you add the marker (editable in the photo panel) and appears at the marker time.',
+    canvasVideo: 'Canvas video',
+    noCanvasVideo: '-- No video --',
+    canvasVideoAppears:
+      'Video appears at the marker time with its entrance effect and starts from the beginning. Without “Loop” it disappears when it ends, otherwise the next marker replaces it.',
+    placedVideos: 'Videos on the canvas',
+    placeUploadedVideo: 'Place uploaded video',
+    newCanvasVideoHint:
+      'The video is placed on the canvas with the placement settings from the video panel (effect, duration, size, loop, mute) when you add the marker and only appears at the marker time.',
     transition: 'Crossfade',
     transitionHint: 'Smooth crossfade when switching markers during playback',
     label: 'Label',

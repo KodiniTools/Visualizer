@@ -12,6 +12,7 @@ import { useVideoGallery, type GalleryVideo } from './videoPanel/useVideoGallery
 import { useCanvasVideos, type VideoManagerRef } from './videoPanel/useCanvasVideos'
 import { useBackgroundVideo } from './videoPanel/useBackgroundVideo'
 import type { CanvasManager } from '../lib/canvasManager'
+import type { VideoObject } from '../lib/videoManager'
 import type { CanvasManagerRef } from './types'
 import { isReleasedMedia } from '../lib/mediaElements'
 
@@ -79,40 +80,62 @@ export function useVideoPanel() {
     })
   }
 
-  function addVideoDirectly() {
-    const videoData = gallery.selectedVideo()
-    if (!videoData || !videoData.videoElement) return
+  /**
+   * Legt ein Galerie-Video mit den aktuellen Platzierungs-Einstellungen
+   * (Effekt, Dauer, Größe, Wiederholen, Stumm) auf den Canvas. Das Video
+   * startet nicht automatisch – der Nutzer bzw. ein Beat-Marker steuert die
+   * Wiedergabe.
+   * @param videoData - Galerie-Video
+   * @param options.select - false = das neue Video nicht auswählen
+   * @returns das neue Canvas-Video (null ohne VideoManager oder bei Ladefehler)
+   */
+  function placeVideoOnCanvas(
+    videoData: GalleryVideo | null | undefined,
+    { select = true }: { select?: boolean } = {},
+  ): Promise<VideoObject | null> {
+    if (!videoData || !videoData.videoElement) return Promise.resolve(null)
 
     const vm = videoManager.value
     if (!vm) {
       console.error('VideoManager nicht verfügbar')
-      return
+      return Promise.resolve(null)
     }
 
     const canvasVideo = createPlacementVideo(videoData)
 
-    canvasVideo.onloadeddata = () => {
-      // Breite: 1/3 der Canvas-Breite bei Skalierung 3
-      const baseWidth = 1 / 3
-      const scaledWidth = baseWidth * (videoScale.value / 3)
+    return new Promise((resolve) => {
+      canvasVideo.onloadeddata = () => {
+        // Breite: 1/3 der Canvas-Breite bei Skalierung 3
+        const baseWidth = 1 / 3
+        const scaledWidth = baseWidth * (videoScale.value / 3)
 
-      vm.addVideo(canvasVideo, {
-        relWidth: scaledWidth,
-        loop: videoLoop.value,
-        muted: videoMuted.value,
-        animation: selectedAnimation.value,
-        animationDuration: animationDuration.value,
-      })
-      // Nicht automatisch starten – der Nutzer steuert die Wiedergabe
-      console.log('✅ Video auf Canvas platziert')
-    }
+        Promise.resolve(
+          vm.addVideo(canvasVideo, {
+            relWidth: scaledWidth,
+            loop: videoLoop.value,
+            muted: videoMuted.value,
+            animation: selectedAnimation.value,
+            animationDuration: animationDuration.value,
+            name: videoData.name,
+            select,
+          }),
+        ).then(resolve, () => resolve(null))
+        console.log('✅ Video auf Canvas platziert')
+      }
 
-    canvasVideo.onerror = () => {
-      if (isReleasedMedia(canvasVideo)) return
-      console.error('❌ Fehler beim Laden des Videos für Canvas')
-    }
+      canvasVideo.onerror = () => {
+        if (isReleasedMedia(canvasVideo)) return
+        console.error('❌ Fehler beim Laden des Videos für Canvas')
+        resolve(null)
+      }
 
-    canvasVideo.load()
+      canvasVideo.load()
+    })
+  }
+
+  function addVideoDirectly() {
+    // Nicht automatisch starten – der Nutzer steuert die Wiedergabe
+    void placeVideoOnCanvas(gallery.selectedVideo())
   }
 
   function addVideoToCanvas() {
@@ -283,6 +306,7 @@ export function useVideoPanel() {
     formatDuration: formatTime,
     addVideoToCanvas,
     addVideoDirectly,
+    placeVideoOnCanvas,
     setVideoAsBackground,
     setVideoAsWorkspaceBackground,
     isVideoActive: canvasVideos.isVideoActive,

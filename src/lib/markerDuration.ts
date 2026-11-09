@@ -27,7 +27,13 @@ const DEFAULT_DURATION_MS = 1000
 const DEFAULT_TYPEWRITER_SPEED_MS = 50
 
 /** Art eines Marker-Elements */
-export type MarkerElementKind = 'text' | 'image' | 'backgroundImage' | 'video' | 'shape'
+export type MarkerElementKind =
+  | 'text'
+  | 'image'
+  | 'backgroundImage'
+  | 'video'
+  | 'canvasVideo'
+  | 'shape'
 
 /** Anzeigedauer eines Elements; `seconds === null` = dauerhaft */
 export interface MarkerElementDuration {

@@ -809,6 +809,17 @@ export function useBeatMarkers(
     })
 
   /**
+   * Nur der Hintergrund-Teil eines Canvas-Presets: Die Vordergrund-Elemente
+   * (Bilder, Videos, Texte, Lauftext) im Preset sind ein Stand vom Speichern.
+   * Ein Marker würde damit gelöschte Elemente zurückholen und Änderungen an
+   * Elementen überschreiben. Elemente steuert der Marker nur über seine
+   * Verweise (Text, Bild, Form) mit deren aktuellen Einstellungen.
+   */
+  const withoutCanvasElements = <T extends BackgroundSnapshot | null | undefined>(
+    snapshot: T,
+  ): T => (snapshot && snapshot.elements ? { ...snapshot, elements: null } : snapshot)
+
+  /**
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
   const applyMarkerBackground = (action: MarkerAction | null | undefined) => {
@@ -820,6 +831,8 @@ export function useBeatMarkers(
       const resolved = resolveBackgroundPreset(action.backgroundKey)
       if (resolved?.snapshot) snapshot = resolved.snapshot as unknown as BackgroundSnapshot
     }
+    // Ältere Marker haben die Elemente noch im Snapshot gespeichert.
+    snapshot = withoutCanvasElements(snapshot)
     // Mit Hintergrund-Bild bzw. Video liefert das Preset nur Farbe,
     // Gradient, Audio-Reaktiv und Elemente – sein (asynchron geladenes) Bild
     // bzw. Video würde das Galerie-Bild sonst wieder überdecken.
@@ -1056,7 +1069,7 @@ export function useBeatMarkers(
     if (newMarkerBackgroundKey.value) {
       const resolved = resolveBackgroundPreset(newMarkerBackgroundKey.value)
       if (resolved) {
-        background = resolved.snapshot
+        background = withoutCanvasElements(resolved.snapshot as unknown as BackgroundSnapshot)
         backgroundKey = resolved.key
         backgroundLabel = resolved.label
       }

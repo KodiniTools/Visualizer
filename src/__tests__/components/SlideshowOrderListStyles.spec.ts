@@ -20,7 +20,7 @@ const styles = sfc.slice(sfc.indexOf('<style scoped>'))
 
 // Auswahlfelder (Ui-Bausteine) im Template: Klasse + Tag
 const fields = [...template.matchAll(/<(UiSelect|SlideshowAudioSourceSelect)\b([\s\S]*?)\/>/g)].map(
-  (m) => ({ tag: m[1], attrs: m[2], cls: m[2].match(/\sclass="([^"]+)"/)?.[1] }),
+  (m) => ({ tag: m[1], attrs: m[2], cls: m[2]!.match(/\sclass="([^"]+)"/)?.[1] }),
 )
 
 describe('SlideshowOrderList – Auswahlfelder', () => {
@@ -39,7 +39,7 @@ describe('SlideshowOrderList – Auswahlfelder', () => {
   it.each(['order-transition', 'order-audio', 'order-audio-source'])(
     '%s: hat eine Beschriftung (label)',
     (cls) => {
-      expect(fields.find((f) => f.cls === cls).attrs).toMatch(/\s:label="/)
+      expect(fields.find((f) => f.cls === cls)!.attrs).toMatch(/\s:label="/)
     },
   )
 

@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import SlideshowPresets from '../../components/foto-panel/slideshow/SlideshowPresets.vue'
+import { stub } from '../helpers/canvasStubs'
 
-let wrapper
+let wrapper: VueWrapper
 afterEach(() => wrapper?.unmount())
 
-const mountWith = (storage) => {
+const mountWith = (storage: InstanceType<typeof SlideshowPresets>['$props']['storage']) => {
   wrapper = mount(SlideshowPresets, { props: { presets: [], storage } })
   return wrapper
 }
@@ -39,7 +40,11 @@ describe('SlideshowPresets – Speicherbelegung', () => {
   })
 
   it('ausgeblendet, wenn der Speicher nicht verfügbar ist', () => {
-    expect(mountWith({ available: false }).find('.storage-info').exists()).toBe(false)
+    expect(
+      mountWith(stub({ available: false }))
+        .find('.storage-info')
+        .exists(),
+    ).toBe(false)
   })
 })
 
@@ -54,7 +59,7 @@ describe('SlideshowPresets – Jetzt aufräumen', () => {
 
   it('während des Aufräumens gesperrt', () => {
     wrapper = mount(SlideshowPresets, { props: { presets: [], storage, cleaning: true } })
-    const btn = wrapper.find('.btn-cleanup-storage')
+    const btn = wrapper.find<HTMLInputElement>('.btn-cleanup-storage')
     expect(btn.element.disabled).toBe(true)
     expect(btn.text()).toContain('Räume auf')
   })

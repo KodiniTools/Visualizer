@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import ShapesPanel from '../../components/shapes/ShapesPanel.vue'
 import SliderControl from '../../components/ui/SliderControl.vue'
@@ -13,8 +13,8 @@ import { EMOJI_SET, SHAPE_CATEGORIES, SHAPE_GALLERY } from '../../lib/shapes/sha
 import de from '../../lib/i18n/de'
 
 describe('ShapesPanel', () => {
-  let store
-  let history
+  let store: ReturnType<typeof useShapeStore>
+  let history: ReturnType<typeof useHistoryStore>
 
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -32,14 +32,14 @@ describe('ShapesPanel', () => {
       attachTo: document.body,
     })
 
-  const slider = (w, label) =>
+  const slider = (w: VueWrapper, label: string) =>
     w.findAllComponents(SliderControl).find((c) => c.props('label') === label)
 
   it('zeigt alle Kategorien und fügt per Klick eine Form hinzu (ein Verlaufsschritt)', async () => {
     const w = mountPanel()
     const options = w.findAll('.ui-segmented__option').slice(0, SHAPE_CATEGORIES.length)
     expect(options.map((o) => o.text())).toEqual(
-      SHAPE_CATEGORIES.map((c) => de.shapes.categories[c]),
+      SHAPE_CATEGORIES.map((c) => de.shapes.categories[c as keyof typeof de.shapes.categories]),
     )
     const basic = SHAPE_GALLERY.filter((g) => g.category === 'basic')
     expect(w.findAll('.shape-grid .ui-tile')).toHaveLength(basic.length)
@@ -76,16 +76,16 @@ describe('ShapesPanel', () => {
   it('bearbeitet Deckkraft, Drehung, Text und Schrift der ausgewählten Form', async () => {
     store.addShape('textBox', 1920, 1080)
     const w = mountPanel()
-    slider(w, de.shapes.edit.opacity).vm.$emit('update:modelValue', 40)
-    slider(w, de.shapes.edit.rotation).vm.$emit('update:modelValue', 30)
+    slider(w, de.shapes.edit.opacity)!.vm.$emit('update:modelValue', 40)
+    slider(w, de.shapes.edit.rotation)!.vm.$emit('update:modelValue', 30)
     expect(store.selectedShape).toMatchObject({ opacity: 40, rotation: 30 })
 
     await w.find('[data-shape-text]').setValue('Hallo')
-    expect(store.selectedShape.text).toBe('Hallo')
+    expect(store.selectedShape!.text).toBe('Hallo')
     w.findComponent(UiSelect).vm.$emit('update:modelValue', 'Satoshi Black')
-    expect(store.selectedShape.fontFamily).toBe('Satoshi Black')
+    expect(store.selectedShape!.fontFamily).toBe('Satoshi Black')
     await w.find('.ui-segmented__option[data-value="right"]').trigger('click')
-    expect(store.selectedShape.textAlign).toBe('right')
+    expect(store.selectedShape!.textAlign).toBe('right')
     w.unmount()
   })
 
@@ -93,28 +93,28 @@ describe('ShapesPanel', () => {
     store.addShape('rect', 1920, 1080)
     const w = mountPanel()
     await w.find('.ui-segmented__option[data-value="linear"]').trigger('click')
-    expect(store.selectedShape.fillType).toBe('linear')
-    const { fillColor, fillColor2 } = store.selectedShape
+    expect(store.selectedShape!.fillType).toBe('linear')
+    const { fillColor, fillColor2 } = store.selectedShape!
     await w.find('[data-action="swap-gradient"]').trigger('click')
     expect(store.selectedShape).toMatchObject({ fillColor: fillColor2, fillColor2: fillColor })
 
-    expect(store.selectedShape.strokeWidth).toBe(0)
+    expect(store.selectedShape!.strokeWidth).toBe(0)
     await w.find('[data-toggle="fill"] [role="switch"]').trigger('click')
-    expect(store.selectedShape.filled).toBe(false)
-    expect(store.selectedShape.strokeWidth).toBeGreaterThan(0)
+    expect(store.selectedShape!.filled).toBe(false)
+    expect(store.selectedShape!.strokeWidth).toBeGreaterThan(0)
     w.unmount()
   })
 
   it('Seitenverhältnis sperren koppelt Breite und Höhe', async () => {
     store.addShape('rect', 1920, 1080)
-    const { width, height } = store.selectedShape
+    const { width, height } = store.selectedShape!
     const w = mountPanel()
     const lock = w
       .findAllComponents(UiSwitch)
       .find((c) => c.props('label') === de.shapes.edit.lockRatio)
-    await lock.find('[role="switch"]').trigger('click')
-    slider(w, de.shapes.edit.width).vm.$emit('update:modelValue', width * 2)
-    expect(store.selectedShape.height).toBe(Math.round(height * 2))
+    await lock!.find('[role="switch"]').trigger('click')
+    slider(w, de.shapes.edit.width)!.vm.$emit('update:modelValue', width * 2)
+    expect(store.selectedShape!.height).toBe(Math.round(height * 2))
     w.unmount()
   })
 
@@ -139,10 +139,10 @@ describe('ShapesPanel', () => {
     const w = mountPanel()
     expect(w.find('[data-action="forward"]').attributes('disabled')).toBeDefined()
     await w.find('[data-action="backward"]').trigger('click')
-    expect(store.shapes[0].type).toBe('star')
+    expect(store.shapes[0]!.type).toBe('star')
     await w.find('[data-action="duplicate"]').trigger('click')
     expect(store.shapes).toHaveLength(3)
-    await w.findAll('.shape-item__delete').at(0).trigger('click')
+    await w.findAll('.shape-item__delete').at(0)!.trigger('click')
     expect(store.shapes).toHaveLength(2)
     await w.find('[data-action="deselect"]').trigger('click')
     expect(store.selectedShapeId).toBeNull()
@@ -161,8 +161,8 @@ describe('ShapesPanel', () => {
 
     // Hauptschalter des Audio-Reaktiv-Panels (UiSwitch, erster Schalter)
     await section.find('[role="switch"]').trigger('click')
-    expect(store.shapes[0].audioReactive.enabled).toBe(true)
-    expect(store.shapes[0].id).toBe(shape.id)
+    expect((store.shapes[0]!.audioReactive as { enabled: boolean }).enabled).toBe(true)
+    expect(store.shapes[0]!.id).toBe(shape!.id)
     await w.vm.$nextTick()
     expect(w.find('.effect-item[data-effect-id="beatPulse"]').exists()).toBe(true)
     w.unmount()

@@ -3,10 +3,16 @@
 // Workspace). Zugriff über Beschriftungen und Rollen statt CSS-Klassen, damit
 // die Tests den Wechsel auf die Ui-Bausteine unverändert überstehen.
 import { describe, it, expect, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import SlideshowImageFill from '../../components/foto-panel/slideshow/SlideshowImageFill.vue'
-import { SLIDESHOW_IMAGE_FILL_DEFAULT } from '../../lib/slideshowImageFill'
+import {
+  SLIDESHOW_IMAGE_FILL_DEFAULT,
+  type SlideshowImageFill as ImageFill,
+  type SlideshowImageFillAudio,
+} from '../../lib/slideshowImageFill'
+import type { ImageFillCandidateItem } from '../../components/foto-panel/slideshow/useSlideshowImageFills'
+import { stub } from '../helpers/canvasStubs'
 import { useI18n } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
@@ -16,9 +22,11 @@ const candidates = [
   { id: 'u1', name: 'urlaub.jpg', thumb: 'data:,u', source: 'upload', raw: { id: 'u1' } },
   { id: 's1', name: 'Wald', thumb: 'data:,s', source: 'stock', raw: { id: 's1' } },
 ]
-let wrapper
+let wrapper: VueWrapper | null
 
-function fillOf(over = {}) {
+function fillOf(
+  over: Partial<Omit<ImageFill, 'audio'>> & { audio?: Partial<SlideshowImageFillAudio> } = {},
+) {
   return {
     ...SLIDESHOW_IMAGE_FILL_DEFAULT,
     enabled: true,
@@ -30,7 +38,7 @@ function fillOf(over = {}) {
 function mountFill(props = {}) {
   wrapper = mount(SlideshowImageFill, {
     attachTo: document.body,
-    props: { fill: fillOf(), candidates, ...props },
+    props: { fill: fillOf(), candidates: stub<ImageFillCandidateItem[]>(candidates), ...props },
   })
   return wrapper
 }
@@ -41,12 +49,12 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const root = () => wrapper.element
+const root = () => wrapper!.element
 const text = () => root().textContent.replace(/\s+/g, ' ')
 const buttons = () => [...root().querySelectorAll('button')]
-const button = (name) => buttons().find((b) => b.textContent.trim() === name)
+const button = (name: string) => buttons().find((b) => b.textContent.trim() === name)
 /** Schalter über seinen Text (Checkbox im Label oder Switch). */
-function toggle(name) {
+function toggle(name: string) {
   const cb = [...root().querySelectorAll('input[type="checkbox"]')].find(
     (i) => i.closest('label')?.textContent.trim() === name,
   )
@@ -54,16 +62,16 @@ function toggle(name) {
   const label = [...root().querySelectorAll('label')].find((l) => l.textContent.trim() === name)
   return label ? document.getElementById(label.htmlFor) : undefined
 }
-const isOn = (el) =>
+const isOn = (el: HTMLInputElement) =>
   el.type === 'checkbox' ? el.checked : el.getAttribute('aria-checked') === 'true'
 /** Auswahl über ihre Beschriftung (umschließendes Label oder label[for]). */
-function selectNamed(name) {
+function selectNamed(name: string) {
   const label = [...root().querySelectorAll('label')].find(
     (l) => l.textContent.trim().startsWith(name) || l.querySelector('span')?.textContent === name,
   )
   return label.querySelector('select') ?? document.getElementById(label.htmlFor)
 }
-const lastUpdate = () => wrapper.emitted('update')?.at(-1)?.[0]
+const lastUpdate = () => wrapper!.emitted<[Partial<ImageFill>]>('update')?.at(-1)?.[0]
 
 describe('Bild als Fläche – Schalter', () => {
   it('aus: nur der Schalter, keine Optionen', () => {
@@ -92,7 +100,7 @@ describe('Bild als Fläche – Bild wählen', () => {
     mountFill()
     expect(text()).toContain(S.imageFillNone)
     expect(button(S.imageFillRemove)).toBeUndefined()
-    await wrapper.setProps({ loading: true })
+    await wrapper!.setProps({ loading: true })
     expect(text()).toContain(S.imageFillLoading)
   })
 
@@ -101,7 +109,7 @@ describe('Bild als Fläche – Bild wählen', () => {
     expect(root().querySelector('img[src="data:,t"]')).toBeTruthy()
     expect(text()).toContain('mein.png')
     button(S.imageFillRemove).click()
-    expect(wrapper.emitted('clear')).toHaveLength(1)
+    expect(wrapper!.emitted('clear')).toHaveLength(1)
   })
 
   it('„Bild wählen“ klappt die Auswahl auf, Klick wählt und schließt', async () => {
@@ -115,7 +123,7 @@ describe('Bild als Fläche – Bild wählen', () => {
     expect(opt.querySelector('img').getAttribute('src')).toBe('data:,s')
     opt.click()
     await nextTick()
-    expect(wrapper.emitted('select')[0]).toEqual([{ id: 's1' }])
+    expect(wrapper!.emitted('select')![0]).toEqual([{ id: 's1' }])
     expect(buttons().find((b) => b.getAttribute('aria-label') === 'Wald')).toBeUndefined()
   })
 
@@ -146,8 +154,8 @@ describe('Bild als Fläche – Darstellung und Audio', () => {
     expect(text()).not.toContain(S.imageFillZoom)
     toggle(S.imageFillAudio).click()
     await nextTick()
-    expect(lastUpdate().audio).toMatchObject({ enabled: true, source: 'bass' })
-    await wrapper.setProps({ fill: fillOf({ audio: { enabled: true } }) })
+    expect(lastUpdate()!.audio).toMatchObject({ enabled: true, source: 'bass' })
+    await wrapper!.setProps({ fill: fillOf({ audio: { enabled: true } }) })
     expect(text()).toContain(S.gradientAudioSource)
     expect(text()).toContain(S.fillAudioBrightness)
     expect(text()).toContain(S.fillAudioHue)
@@ -157,7 +165,7 @@ describe('Bild als Fläche – Darstellung und Audio', () => {
     ranges[2].value = '90'
     ranges[2].dispatchEvent(new Event('input'))
     await nextTick()
-    expect(lastUpdate().audio).toMatchObject({ enabled: true, zoom: 90, brightness: 60 })
+    expect(lastUpdate()!.audio).toMatchObject({ enabled: true, zoom: 90, brightness: 60 })
   })
 
   it('Texte folgen der Sprache', async () => {

@@ -5,7 +5,7 @@
  * - Panel meldet seine Sichtbarkeit (für den Hinweis)
  */
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick, defineComponent, h, Teleport } from 'vue'
 import PlayerBarControls from '../../components/sticky-player-bar/PlayerBarControls.vue'
@@ -16,9 +16,11 @@ import {
   SLIDESHOW_POPOVER_TARGET_ID,
   useSlideshowPopover,
 } from '../../composables/useSlideshowPopover'
+import type { SlideshowSourceImage } from '../../lib/slideshowSources'
+import { stub } from '../helpers/canvasStubs'
 
-let wrappers = []
-let pinia
+let wrappers: VueWrapper[] = []
+let pinia: ReturnType<typeof createPinia>
 beforeEach(() => {
   pinia = createPinia()
   setActivePinia(pinia)
@@ -39,7 +41,7 @@ function playerBar(popover = usePlayerPopover()) {
   }
 }
 
-function mountControls(popover) {
+function mountControls(popover?: ReturnType<typeof usePlayerPopover>) {
   const w = mount(PlayerBarControls, {
     global: { plugins: [pinia], provide: { playerBar: playerBar(popover) } },
   })
@@ -51,11 +53,11 @@ describe('Sticky-Bar – Slideshow-Button', () => {
   it('sitzt direkt nach Undo/Redo und dem Trenner', () => {
     const w = mountControls()
     const first = w.findAll('.spb-actions > *').slice(0, 4)
-    expect(first[0].attributes('data-testid')).toBe('history-undo')
-    expect(first[1].attributes('data-testid')).toBe('history-redo')
-    expect(first[2].classes()).toContain('spb-divider')
-    expect(first[3].attributes('data-testid')).toBe('open-slideshow')
-    expect(first[3].attributes('title')).toBe('Bild-Slideshow')
+    expect(first[0]!.attributes('data-testid')).toBe('history-undo')
+    expect(first[1]!.attributes('data-testid')).toBe('history-redo')
+    expect(first[2]!.classes()).toContain('spb-divider')
+    expect(first[3]!.attributes('data-testid')).toBe('open-slideshow')
+    expect(first[3]!.attributes('title')).toBe('Bild-Slideshow')
   })
 
   it('schaltet das Fenster und zeigt den aktiven Zustand', async () => {
@@ -154,7 +156,7 @@ describe('Sticky-Bar – Slideshow-Fenster', () => {
       { attachTo: document.body },
     )
     wrappers.push(host)
-    expect(target.querySelector('.teleported')).not.toBeNull()
+    expect(target!.querySelector('.teleported')).not.toBeNull()
     popover.closePopover('slideshow')
     await nextTick()
     expect(unmounted).toBe(0)
@@ -162,14 +164,15 @@ describe('Sticky-Bar – Slideshow-Fenster', () => {
 })
 
 describe('SlideshowPanel – Sichtbarkeit für das Fenster', () => {
-  const img = (id) => ({ id, name: `${id}.png`, img: { src: '', width: 10, height: 10 } })
+  const img = (id: string) =>
+    stub<SlideshowSourceImage>({ id, name: `${id}.png`, img: { src: '', width: 10, height: 10 } })
 
   it('meldet sofort und bei Änderung', async () => {
     const w = mount(SlideshowPanel, { props: { images: [img('a')] }, global: { plugins: [pinia] } })
     wrappers.push(w)
-    expect(w.emitted('visibility-change')[0]).toEqual([false])
+    expect(w.emitted('visibility-change')![0]).toEqual([false])
     await w.setProps({ images: [img('a'), img('b')] })
-    expect(w.emitted('visibility-change').at(-1)).toEqual([true])
+    expect(w.emitted('visibility-change')!.at(-1)).toEqual([true])
     expect(w.find('.slideshow-panel').exists()).toBe(true)
   })
 })

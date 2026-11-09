@@ -590,10 +590,26 @@ export function useBeatMarkers(
   }
 
   /**
+   * Hat das Bild eine eigene Anzeigedauer (mindestens ein aktiver Effekt mit
+   * „Permanent anzeigen“ aus und ohne Loop)? Dann beendet seine Animation
+   * die Anzeige, nicht der nächste Bild-Marker (wie bei Texten).
+   */
+  const hasOwnImageDisplayEnd = (img: CanvasImage) => {
+    const a = img.timedAnimation
+    if (!a) return false
+    return [a.fade, a.scale, a.slide].some(
+      (cfg) => !!cfg?.enabled && cfg.permanent === false && !cfg.loop,
+    )
+  }
+
+  /**
    * Bild-Aktion eines ausgelösten Markers: Das zugewiesene Bild erscheint und
    * spielt seine Animationen von vorn ab, alle anderen von Markern
-   * gesteuerten Bilder werden ausgeblendet. Ein Marker ohne Bild blendet alle
-   * Marker-Bilder aus (wie bei Formen); Bilder ohne Marker bleiben unberührt.
+   * gesteuerten Bilder werden ausgeblendet – außer sichtbaren Bildern mit
+   * eigener Anzeigedauer: Die laufen nach ihren Einstellungen (Anzeigedauer,
+   * Ausblenden) weiter, beide Bilder sind dann gleichzeitig zu sehen. Ein
+   * Marker ohne Bild blendet die übrigen Marker-Bilder aus (wie bei Formen);
+   * Bilder ohne Marker bleiben unberührt.
    */
   const applyImageAction = (action: MarkerAction, restart = true) => {
     const mim = multiImageManager.value
@@ -603,7 +619,17 @@ export function useBeatMarkers(
       raw !== undefined && raw !== null && raw !== '' && mim.images.some((i) => i.id === raw)
         ? raw
         : null
-    for (const id of referencedImageIds()) mim.setMarkerHidden(id, id !== iid)
+    for (const id of referencedImageIds()) {
+      if (id === iid) {
+        mim.setMarkerHidden(id, false)
+        continue
+      }
+      // Bild mit eigener Anzeigedauer läuft nach seinen Einstellungen aus
+      // (bereits ausgeblendete Bilder bleiben ausgeblendet).
+      const img = mim.images.find((i) => i.id === id)
+      if (img && !mim.isMarkerHidden(id) && hasOwnImageDisplayEnd(img)) continue
+      mim.setMarkerHidden(id, true)
+    }
     if (iid !== null && restart) mim.restartImageAnimations(iid)
     else mim.redrawCallback?.()
   }

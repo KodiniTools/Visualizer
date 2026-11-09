@@ -4,7 +4,7 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import VideoPopover from '../../components/sticky-player-bar/VideoPopover.vue'
 import { useVideoPanel } from '../../composables/useVideoPanel'
-import { stub } from '../helpers/canvasStubs'
+import type { GalleryVideo } from '../../composables/videoPanel/useVideoGallery'
 
 // Attrappen für Canvas- und Video-Manager; unbekannte Zugriffe liefern eine
 // leere Mock-Funktion, Vue-interne Flags bleiben unangetastet.
@@ -82,7 +82,18 @@ describe('VideoPopover', () => {
 
   it('behält hochgeladene Videos und Einstellungen über Schließen und Öffnen', async () => {
     const vp = wrapper.vm.vp
-    vp.videoGallery.value.push(stub({ name: 'clip.mp4', url: 'blob:test' }))
+    // Galerie-Eintrag wie von useVideoGallery angelegt (src = Blob-URL)
+    const clip: GalleryVideo = {
+      id: 1,
+      name: 'clip.mp4',
+      src: 'blob:test',
+      file: new File([], 'clip.mp4', { type: 'video/mp4' }),
+      videoElement: document.createElement('video'),
+      duration: 2,
+      width: 640,
+      height: 360,
+    }
+    vp.videoGallery.value.push(clip)
     vp.videoScale.value = 5
     vp.videoMuted.value = true
     await nextTick()

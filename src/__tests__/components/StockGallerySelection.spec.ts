@@ -3,13 +3,12 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import StockGallerySection from '../../components/foto-panel/StockGallerySection.vue'
 import { useStockGallery, type StockImage } from '../../composables/useStockGallery'
-import { stub } from '../helpers/canvasStubs'
 
-const images = stub<StockImage[]>([
-  { id: 's1', name: 'Wald', thumbnail: 'data:,1' },
-  { id: 's2', name: 'Meer', thumbnail: 'data:,2' },
-  { id: 's3', name: 'Berg', thumbnail: 'data:,3' },
-])
+const images: StockImage[] = [
+  { id: 's1', name: 'Wald', file: 'g/wald.jpg', thumbnail: 'data:,1' },
+  { id: 's2', name: 'Meer', file: 'g/meer.jpg', thumbnail: 'data:,2' },
+  { id: 's3', name: 'Berg', file: 'g/berg.jpg', thumbnail: 'data:,3' },
+]
 
 let wrapper: VueWrapper
 afterEach(() => wrapper?.unmount())

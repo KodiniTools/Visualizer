@@ -7,17 +7,19 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick, ref, type Ref } from 'vue'
 import TileGalleryModal from '../../components/background-tiles/TileGalleryModal.vue'
 import { setLocale } from '../../lib/i18n'
+import type { BgGalleryCategory, BgGalleryImage } from '../../composables/bg/useBgReplace'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
 const B = de.backgroundTiles
 let wrapper: VueWrapper | null
 
-const categories = [
-  { id: 1, name: 'Natur', name_en: 'Nature', icon: '🌿' },
-  { id: 2, name: 'Muster', name_en: 'Patterns' },
+// Wie in public/gallery/gallery.json: Kategorie-IDs sind Texte
+const categories: BgGalleryCategory[] = [
+  { id: 'natur', name: 'Natur', name_en: 'Nature', icon: '🌿' },
+  { id: 'muster', name: 'Muster', name_en: 'Patterns' },
 ]
-const images = [
+const images: BgGalleryImage[] = [
   { id: 'a', file: 'g/wald.jpg', thumbnail: 'g/wald-t.jpg', name: 'Wald', name_en: 'Forest' },
   { id: 'b', file: 'g/see.jpg', name: 'See' },
 ]
@@ -27,7 +29,7 @@ function mountModal(state: Record<string, unknown> = {}) {
     showGalleryModal: ref(true),
     galleryCategories: ref(categories),
     galleryImages: ref(images),
-    selectedGalleryCategory: ref(1),
+    selectedGalleryCategory: ref('natur'),
     selectedGalleryImage: ref<(typeof images)[number] | null>(null),
     galleryLoading: ref(false),
     closeGalleryModal: vi.fn(),
@@ -90,10 +92,10 @@ describe('Kachel-Galerie – Anzeige', () => {
 })
 
 describe('Kachel-Galerie – Auswahl', () => {
-  it('Kategorie wählen meldet die ID als Text', () => {
+  it('Kategorie wählen meldet die ID', () => {
     const g = mountModal()
     button('Muster')!.click()
-    expect(g.selectGalleryCategory).toHaveBeenCalledWith('2')
+    expect(g.selectGalleryCategory).toHaveBeenCalledWith('muster')
   })
 
   it('Klick wählt das Bild, Doppelklick übernimmt', () => {

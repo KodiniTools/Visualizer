@@ -209,3 +209,17 @@ describe('SliderField – zugänglicher Name', () => {
     ).toBeUndefined()
   })
 })
+
+describe('SliderField – Breite des Zahlenfelds', () => {
+  it('bleibt bei bis zu 5 Zeichen unverändert', () => {
+    const w = mountField({ min: 500, max: 30000, modelValue: 5000, defaultValue: 5000 })
+    expect(w.get('input[type="number"]').attributes('style')).toBeUndefined()
+  })
+
+  it('wird bei 6-stelligen Grenzwerten um die fehlenden Zeichen breiter', () => {
+    const w = mountField({ min: 500, max: 120000, modelValue: 120000, defaultValue: 5000 })
+    expect(w.get('input[type="number"]').attributes('style')).toContain(
+      '--slider-field-num-extra: 1.5ch',
+    )
+  })
+})

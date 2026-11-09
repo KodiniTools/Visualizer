@@ -21,6 +21,7 @@
  *
  * @module shapes/shapeAnimation
  */
+import { DISPLAY_DURATION_MAX_S } from '../displayDuration'
 import { applyEasing } from '../textManager/animation/easing'
 import { SHAPE_KIND, drawShape, getShapeKind, type Shape } from './shapes'
 
@@ -69,7 +70,7 @@ export interface ShapeAnimation {
 export const SHAPE_ANIMATION_LIMITS = Object.freeze({
   duration: { min: 0.2, max: 10, step: 0.1 },
   intensity: { min: 0, max: 100, step: 1 },
-  delay: { min: 0, max: 30, step: 0.1 },
+  delay: { min: 0, max: DISPLAY_DURATION_MAX_S, step: 0.1 },
 })
 
 /** Startwerte je Animation (Dauer in Sekunden, Stärke in %) */

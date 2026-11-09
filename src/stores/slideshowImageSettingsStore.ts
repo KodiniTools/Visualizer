@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { isValidTransition } from '../lib/slideshowTransitions'
+import { DISPLAY_DURATION_MAX_MS, DISPLAY_DURATION_MIN_MS } from '../lib/displayDuration'
 import {
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
@@ -15,8 +16,8 @@ const MAX_ENTRIES = 500
 const FADE_MIN = 100
 const FADE_MAX = 5000
 // Grenzen der Anzeigedauer (ms)
-const DISPLAY_MIN = 500
-const DISPLAY_MAX = 60000
+const DISPLAY_MIN = DISPLAY_DURATION_MIN_MS
+const DISPLAY_MAX = DISPLAY_DURATION_MAX_MS
 
 /** Gemerkte Einstellungen eines Slideshow-Bildes (fehlende Felder = Standard). */
 export interface SlideshowImageSettings {

@@ -73,7 +73,15 @@
                 :value="secondsFor('durations', img)"
                 :placeholder="(defaultDuration / 1000).toFixed(1)"
                 :aria-label="t('slideshow.perImageDurationHint')"
-                @input="onMsInput('durations', img, $event, 500, 60000)"
+                @input="
+                  onMsInput(
+                    'durations',
+                    img,
+                    $event,
+                    DISPLAY_DURATION_MIN_MS,
+                    DISPLAY_DURATION_MAX_MS,
+                  )
+                "
                 @dragstart.prevent.stop
                 @mousedown.stop
               />
@@ -138,6 +146,7 @@
  */
 import { computed, ref } from 'vue'
 import { useI18n } from '../../../lib/i18n'
+import { DISPLAY_DURATION_MAX_MS, DISPLAY_DURATION_MIN_MS } from '../../../lib/displayDuration'
 import {
   SLIDESHOW_AUDIO_DEFAULT,
   isValidSlideshowAudioMode,

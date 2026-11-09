@@ -100,7 +100,14 @@
             :value="Number.isFinite(duration) ? duration / 1000 : ''"
             :placeholder="(defaultDuration / 1000).toFixed(1)"
             @input="
-              emit('update:duration', toMs(($event.target as HTMLInputElement).value, 500, 60000))
+              emit(
+                'update:duration',
+                toMs(
+                  ($event.target as HTMLInputElement).value,
+                  DISPLAY_DURATION_MIN_MS,
+                  DISPLAY_DURATION_MAX_MS,
+                ),
+              )
             "
           />
           <span>s</span>
@@ -158,6 +165,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { loadKeepAspect, saveKeepAspect } from '../../../lib/imagePlacementSettings'
 import { useI18n } from '../../../lib/i18n'
+import { DISPLAY_DURATION_MAX_MS, DISPLAY_DURATION_MIN_MS } from '../../../lib/displayDuration'
 import { isValidTransition } from '../../../lib/slideshowTransitions'
 import { isValidSlideshowAudioMode } from '../../../lib/slideshowAudio'
 import { audioModeOptions, transitionOptions } from './slideshowSelectOptions'

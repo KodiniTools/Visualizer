@@ -1,11 +1,11 @@
+import { clampDisplayDuration as clampDuration } from './displayDuration'
+
 /**
  * Text-Liste: einheitliche Anzeigedauer beim Abspielen aller Texte
  * (dauerhaft gespeichert, beim Laden geprüft).
  */
 export const TEXT_SEQUENCE_KEY = 'visualizer-text-sequence'
 export const TEXT_SEQUENCE_DEFAULTS = Object.freeze({ enabled: false, duration: 5000 })
-
-const clampDuration = (v: number) => Math.min(30000, Math.max(500, v))
 
 export function loadTextSequenceSettings(): TextSequenceSettings {
   try {

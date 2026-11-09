@@ -21,6 +21,7 @@
       ref="numEl"
       type="number"
       class="slider-field__num"
+      :style="numFieldStyle"
       inputmode="decimal"
       :min="min"
       :max="max"
@@ -209,6 +210,17 @@ const resetTitle = computed(() =>
   hasDefault.value ? `${t('sliderField.reset')} (${formatValue(defaultNum.value)})` : '',
 )
 
+/**
+ * Das Zahlenfeld ist auf 5 Zeichen ausgelegt. Längere Grenzwerte (z. B. 120000 ms)
+ * verbreitern es um die fehlenden Zeichen (plus etwas Luft), damit der Spinner keine Ziffer verdeckt.
+ */
+const NUM_FIELD_BASE_CHARS = 5
+const numFieldStyle = computed(() => {
+  const chars = Math.max(formatValue(minNum.value).length, formatValue(maxNum.value).length)
+  const extra = chars - NUM_FIELD_BASE_CHARS
+  return extra > 0 ? { '--slider-field-num-extra': `${extra + 0.5}ch` } : undefined
+})
+
 function formatValue(n: number) {
   return roundTo(n).toFixed(decimals.value)
 }
@@ -321,7 +333,7 @@ function reset() {
 .slider-field__num {
   flex: none;
   box-sizing: border-box;
-  width: 64px;
+  width: calc(64px + var(--slider-field-num-extra, 0px));
   height: var(--ds-control-sm);
   padding: 0 var(--ds-space-1) 0 var(--ds-space-2);
   background: var(--ds-surface-2);

@@ -5,6 +5,7 @@ import {
   isValidSlideshowAudioMode,
   isValidSlideshowAudioSource,
 } from '../lib/slideshowAudio'
+import { DISPLAY_DURATION_MAX_MS, DISPLAY_DURATION_MIN_MS } from '../lib/displayDuration'
 import { ensureAudioReactiveConfig } from '../lib/audio/audioReactiveConfig'
 import { SLIDESHOW_TRANSITION_DEFAULT, isValidTransition } from '../lib/slideshowTransitions'
 import {
@@ -220,7 +221,12 @@ export function normalizeSlideshowPreset(input: unknown) {
     version: PRESET_VERSION,
     settings: {
       fadeInDuration: clampNumber(s.fadeInDuration, 100, 5000, d.fadeInDuration),
-      displayDuration: clampNumber(s.displayDuration, 500, 30000, d.displayDuration),
+      displayDuration: clampNumber(
+        s.displayDuration,
+        DISPLAY_DURATION_MIN_MS,
+        DISPLAY_DURATION_MAX_MS,
+        d.displayDuration,
+      ),
       fadeOutDuration: clampNumber(s.fadeOutDuration, 100, 5000, d.fadeOutDuration),
       applyAudioReactive:
         typeof s.applyAudioReactive === 'boolean' ? s.applyAudioReactive : d.applyAudioReactive,
@@ -265,7 +271,8 @@ export function normalizeSlideshowPreset(input: unknown) {
       const slot = asLoose(rawSlot)
       const ms = Number(slot.displayDuration)
       return {
-        displayDuration: Number.isFinite(ms) && ms > 0 ? Math.min(ms, 60000) : null,
+        displayDuration:
+          Number.isFinite(ms) && ms > 0 ? Math.min(ms, DISPLAY_DURATION_MAX_MS) : null,
         audioMode: (isValidSlideshowAudioMode(slot.audioMode)
           ? slot.audioMode
           : SLIDESHOW_AUDIO_DEFAULT) as string,

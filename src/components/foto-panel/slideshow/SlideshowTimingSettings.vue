@@ -30,7 +30,7 @@
           class="timing-control"
           :label="t('slideshow.display')"
           :min="500"
-          :max="30000"
+          :max="DISPLAY_DURATION_MAX_MS"
           :step="500"
           :default-value="3000"
           :value-text="`${(displayDuration / 1000).toFixed(1)}s`"
@@ -72,6 +72,7 @@ import UiCallout from '../../ui/UiCallout.vue'
 import UiSelect from '../../ui/UiSelect.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
 import { useI18n } from '../../../lib/i18n'
+import { DISPLAY_DURATION_MAX_MS } from '../../../lib/displayDuration'
 import { SLIDESHOW_TRANSITIONS } from '../../../lib/slideshowTransitions'
 
 withDefaults(defineProps<{ hasSavedSettings?: boolean }>(), { hasSavedSettings: false })

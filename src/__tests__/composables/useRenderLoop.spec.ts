@@ -10,10 +10,13 @@ import { createPinia, setActivePinia } from 'pinia'
  * exakter Reihenfolge. Die Snapshots sichern Refactorings der Render-Pipeline ab.
  */
 
-const log = []
-const L = (...parts) => log.push(parts.map(fmt).join(' '))
+const log: string[] = []
+const L = (...parts: unknown[]) => log.push(parts.map(fmt).join(' '))
 
-function fmt(v) {
+/** Protokollierte Attrappen tragen ein Etikett (__label) oder einen Tag */
+type Labeled = { __label?: string; tag?: string }
+
+function fmt(v: unknown): string {
   if (v === null) return 'null'
   if (v === undefined) return 'undef'
   if (typeof v === 'number') return String(Math.round(v * 1e4) / 1e4)
@@ -24,8 +27,9 @@ function fmt(v) {
     return `u8[${v.length}:${sum}]`
   }
   if (typeof v === 'object') {
-    if (v.__label) return `<${v.__label}>`
-    if (v.tag) return `<${v.tag}>`
+    const o = v as Labeled
+    if (o.__label) return `<${o.__label}>`
+    if (o.tag) return `<${o.tag}>`
     return JSON.stringify(v, (k, x) =>
       x instanceof Uint8Array
         ? fmt(x)
@@ -38,18 +42,35 @@ function fmt(v) {
 }
 
 let canvasSeq = 0
-function makeCanvas(label, width = 0, height = 0) {
-  const canvas = { __label: label, width, height, isConnected: true }
-  const state = { __label: `${label}.ctx`, canvas, globalAlpha: 1 }
+/** Canvas-Attrappe: protokolliert jede Kontext-Operation */
+interface FakeCanvasEl {
+  __label: string
+  width: number
+  height: number
+  isConnected: boolean
+  getContext?: () => unknown
+  toBlob?: (cb: (blob: unknown) => void) => void
+}
+
+function makeCanvas(label: string, width = 0, height = 0): HTMLCanvasElement {
+  const canvas: FakeCanvasEl = { __label: label, width, height, isConnected: true }
+  const state: Record<string | symbol, unknown> = {
+    __label: `${label}.ctx`,
+    canvas,
+    globalAlpha: 1,
+  }
   const ctx = new Proxy(state, {
     get(t, p) {
       if (p in t) return t[p]
       if (typeof p !== 'string' || p === 'then') return undefined
-      return (...args) => {
+      return (...args: unknown[]) => {
         L(`${label}.${p}`, ...args)
         if (p.startsWith('create')) {
           const g = `${label}.${p}#${++canvasSeq}`
-          return { __label: g, addColorStop: (o, c) => L(`${g}.addColorStop`, o, c) }
+          return {
+            __label: g,
+            addColorStop: (o: unknown, c: unknown) => L(`${g}.addColorStop`, o, c),
+          }
         }
         return undefined
       }
@@ -62,7 +83,7 @@ function makeCanvas(label, width = 0, height = 0) {
   })
   canvas.getContext = () => ctx
   canvas.toBlob = (cb) => cb({ tag: 'blob' })
-  return canvas
+  return stub(canvas)
 }
 
 // ─── Modul-Attrappen ────────────────────────────────────────────────────────
@@ -70,10 +91,18 @@ function makeCanvas(label, width = 0, height = 0) {
 vi.mock('../../lib/visualizers/index', async () => {
   // Globaler Zustand, den Visualizer beim Zeichnen lesen (Bild, Onset-Effekte)
   const { visualizerState } = await import('../../lib/visualizers/core/state')
-  const mk = (id, extra = {}) => ({
-    init: (w, h) => L(`viz.${id}.init`, w, h),
+  const mk = (id: string, extra: Record<string, unknown> = {}) => ({
+    init: (w: number, h: number) => L(`viz.${id}.init`, w, h),
     cleanup: () => L(`viz.${id}.cleanup`),
-    draw: (ctx, data, len, w, h, color, opacity) =>
+    draw: (
+      ctx: unknown,
+      data: unknown,
+      len: unknown,
+      w: unknown,
+      h: unknown,
+      color: unknown,
+      opacity: unknown,
+    ) =>
       L(
         `viz.${id}.draw`,
         ctx,
@@ -104,34 +133,37 @@ vi.mock('../../lib/visualizers/index', async () => {
   }
 })
 
-const workerState = { available: false, frameCb: null }
+const workerState: { available: boolean; frameCb: ((frame: unknown) => void) | null } = {
+  available: false,
+  frameCb: null,
+}
 vi.mock('../../lib/workerManager', () => ({
   workerManager: {
-    initVisualizerWorker: (w, h) => {
+    initVisualizerWorker: (w: number, h: number) => {
       L('worker.init', w, h)
       return Promise.resolve(workerState.available)
     },
-    onVisualizerFrame: (cb) => {
+    onVisualizerFrame: (cb: (frame: unknown) => void) => {
       workerState.frameCb = cb
     },
     cleanupVisualizerState: () => L('worker.cleanupState'),
-    resizeVisualizerCanvas: (w, h) => L('worker.resize', w, h),
-    renderVisualizerFrame: (msg) => L('worker.renderFrame', msg),
-    setVisualizerImage: (b) => L('worker.setImage', b),
+    resizeVisualizerCanvas: (w: number, h: number) => L('worker.resize', w, h),
+    renderVisualizerFrame: (msg: unknown) => L('worker.renderFrame', msg),
+    setVisualizerImage: (b: unknown) => L('worker.setImage', b),
   },
 }))
 
 let procSeq = 0
 vi.mock('../../lib/postfx/index', () => ({
-  createPostProcessor: (w, h) => {
+  createPostProcessor: (w: number, h: number) => {
     const id = `proc${++procSeq}`
     L('postfx.create', id, w, h)
     return {
       __label: id,
       width: w,
       height: h,
-      apply: (canvas, cfg, q) => L(`${id}.apply`, canvas, cfg, q),
-      resize(w2, h2) {
+      apply: (canvas: unknown, cfg: unknown, q: unknown) => L(`${id}.apply`, canvas, cfg, q),
+      resize(w2: number, h2: number) {
         this.width = w2
         this.height = h2
         L(`${id}.resize`, w2, h2)
@@ -140,8 +172,10 @@ vi.mock('../../lib/postfx/index', () => ({
       dispose: () => L(`${id}.dispose`),
     }
   },
-  shouldRunPostFx: (cfg, q) => !!cfg?.enabled && q >= 0.5,
+  shouldRunPostFx: (cfg: { enabled?: boolean } | null | undefined, q: number) =>
+    !!cfg?.enabled && q >= 0.5,
   FrameMonitor: class {
+    declare qualityLevel: number
     constructor() {
       this.qualityLevel = 1
     }
@@ -150,36 +184,37 @@ vi.mock('../../lib/postfx/index', () => ({
 }))
 
 vi.mock('../../lib/visualizers/imageRegistry', () => ({
-  getVisualizerImageSource: (id) => (id ? { tag: `src:${id}` } : null),
-  resolveEffectiveImageId: (id) => id ?? 'auto-img',
+  getVisualizerImageSource: (id: string | null) => (id ? { tag: `src:${id}` } : null),
+  resolveEffectiveImageId: (id: string | null) => id ?? 'auto-img',
 }))
 
 import { getCanvasScreenshot } from '../../lib/canvasScreenshotBridge'
 import { useRenderLoop } from '../../composables/useRenderLoop'
-import { setAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { setAudioAnalysisData } from '../helpers/audioStubs'
+import { stub } from '../helpers/canvasStubs'
 
 // ─── Test-Umgebung ──────────────────────────────────────────────────────────
 
 let frame = 0
-function makeAnalyser(label, bins = 8) {
+function makeAnalyser(label: string, bins = 8) {
   return {
     frequencyBinCount: bins,
-    getByteFrequencyData: (arr) => {
+    getByteFrequencyData: (arr: Uint8Array) => {
       for (let i = 0; i < arr.length; i++) arr[i] = (i * 17 + frame * 31) % 256
     },
-    getByteTimeDomainData: (arr) => {
+    getByteTimeDomainData: (arr: Uint8Array) => {
       L(`${label}.getTimeDomain`)
       for (let i = 0; i < arr.length; i++) arr[i] = 128 + ((i + frame) % 5)
     },
   }
 }
 
-function makeVisualizerStore(overrides = {}) {
+function makeVisualizerStore(overrides: Record<string, unknown> = {}) {
   return {
     showVisualizer: true,
     multiLayerMode: false,
-    visibleLayers: [],
-    visualizerLayers: [],
+    visibleLayers: [] as object[],
+    visualizerLayers: [] as object[],
     selectedVisualizer: 'bars',
     visualizerScale: 0.8,
     visualizerX: 0.5,
@@ -187,7 +222,7 @@ function makeVisualizerStore(overrides = {}) {
     visualizerColor: '#ff0000',
     visualizerOpacity: 0.9,
     colorOpacity: 0.7,
-    visualizerImageId: null,
+    visualizerImageId: null as string | null,
     postFxConfig: { enabled: false },
     adaptiveQuality: false,
     beatPunchEnabled: false,
@@ -198,15 +233,22 @@ function makeVisualizerStore(overrides = {}) {
     onsetFlourishStrength: 50,
     reactSource: 'spectrum',
     reactStrength: 0,
-    layerEffects: (layer) => layer.fx || {},
-    layerPostFxConfig: (layer) => layer.postFx || { enabled: false },
-    markVisualizerWorking: (id) => L('store.markWorking', id),
+    layerEffects: (layer: { fx?: object }) => layer.fx || {},
+    layerPostFxConfig: (layer: { postFx?: object }) => layer.postFx || { enabled: false },
+    markVisualizerWorking: (id: string) => L('store.markWorking', id),
     fallbackToLastWorking: () => L('store.fallback'),
     ...overrides,
   }
 }
 
-function setup(opts = {}) {
+function setup(
+  opts: {
+    workspace?: boolean
+    selectedImage?: unknown
+    visualizer?: Record<string, unknown>
+    noAnalyser?: boolean
+  } = {},
+) {
   const main = makeCanvas('main', 400, 200)
   const rec = makeCanvas('rec', 200, 100)
   const workspace = opts.workspace
@@ -215,29 +257,30 @@ function setup(opts = {}) {
   const canvasManager = {
     canvas: main,
     workspacePreset: workspace?.preset ?? null,
-    set isRecording(v) {
+    set isRecording(v: boolean) {
       L('cm.isRecording=', v)
     },
     get isRecording() {
       return false
     },
-    drawScene: (ctx) => L('cm.drawScene', ctx),
+    drawScene: (ctx: unknown) => L('cm.drawScene', ctx),
     getWorkspaceBounds: () => workspace?.bounds ?? null,
-    updateCanvas: (c) => L('cm.updateCanvas', c),
-    drawFadedTextMarkers: (ctx) => L('cm.drawFadedTextMarkers', ctx),
-    drawInteractiveElements: (ctx) => L('cm.drawInteractiveElements', ctx),
-    drawWorkspaceOutline: (ctx) => L('cm.drawWorkspaceOutline', ctx),
-    drawTextSelectionRect: (ctx) => L('cm.drawTextSelectionRect', ctx),
-    drawTextPositionPreview: (ctx) => L('cm.drawTextPositionPreview', ctx),
+    updateCanvas: (c: unknown) => L('cm.updateCanvas', c),
+    drawFadedTextMarkers: (ctx: unknown) => L('cm.drawFadedTextMarkers', ctx),
+    drawInteractiveElements: (ctx: unknown) => L('cm.drawInteractiveElements', ctx),
+    drawWorkspaceOutline: (ctx: unknown) => L('cm.drawWorkspaceOutline', ctx),
+    drawTextSelectionRect: (ctx: unknown) => L('cm.drawTextSelectionRect', ctx),
+    drawTextPositionPreview: (ctx: unknown) => L('cm.drawTextPositionPreview', ctx),
   }
   const multiImageManager = {
-    drawImages: (ctx, o) => L('mim.drawImages', ctx, o),
+    drawImages: (ctx: unknown, o: unknown) => L('mim.drawImages', ctx, o),
     getSelectedImage: () => opts.selectedImage ?? null,
-    drawInteractiveElements: (ctx) => L('mim.drawInteractiveElements', ctx),
+    drawInteractiveElements: (ctx: unknown) => L('mim.drawInteractiveElements', ctx),
     getAllImages: () => [],
   }
-  const renderer = (name) => ({
-    render: (ctx, w, h, data, state) => L(`${name}.render`, ctx, w, h, state),
+  const renderer = (name: string) => ({
+    render: (ctx: unknown, w: unknown, h: unknown, data: unknown, state: unknown) =>
+      L(`${name}.render`, ctx, w, h, state),
   })
   const stores = {
     visualizerStore: makeVisualizerStore(opts.visualizer),
@@ -251,42 +294,49 @@ function setup(opts = {}) {
   const analyser = makeAnalyser('analyser')
   const micAnalyser = makeAnalyser('mic')
   const micCtx = { state: 'suspended', resume: () => L('mic.resume') }
-  const loop = useRenderLoop({
-    canvasRef: { value: main },
-    canvasManagerInstance: { value: canvasManager },
-    multiImageManagerInstance: { value: multiImageManager },
-    videoManagerInstance: { value: { drawVideos: (ctx) => L('video.drawVideos', ctx) } },
-    gridManagerInstance: { value: { drawGrid: (ctx) => L('grid.drawGrid', ctx) } },
-    getTextManager: () => ({ draw: (ctx, w, h) => L('text.draw', ctx, w, h) }),
-    getRecordingCanvas: () => rec,
-    ...stores,
-    beatDropRenderer: renderer('beatDrop'),
-    audioFxRenderer: renderer('audioFx'),
-    tickerRenderer: renderer('ticker'),
-    markerTransitionRenderer: {
-      render: (ctx, w, h, target) => L('marker.render', ctx, w, h, target),
-    },
-    getAnalyser: () => (opts.noAnalyser ? null : analyser),
-    getMicrophoneAnalyser: () => micAnalyser,
-    getMicrophoneAudioContext: () => micCtx,
-    updateGlobalAudioData: (data, len) => L('updateGlobalAudioData', data, len),
-  })
+  const loop = useRenderLoop(
+    stub({
+      canvasRef: { value: main },
+      canvasManagerInstance: { value: canvasManager },
+      multiImageManagerInstance: { value: multiImageManager },
+      videoManagerInstance: { value: { drawVideos: (ctx: unknown) => L('video.drawVideos', ctx) } },
+      gridManagerInstance: { value: { drawGrid: (ctx: unknown) => L('grid.drawGrid', ctx) } },
+      getTextManager: () => ({
+        draw: (ctx: unknown, w: unknown, h: unknown) => L('text.draw', ctx, w, h),
+      }),
+      getRecordingCanvas: () => rec,
+      ...stores,
+      beatDropRenderer: renderer('beatDrop'),
+      audioFxRenderer: renderer('audioFx'),
+      tickerRenderer: renderer('ticker'),
+      markerTransitionRenderer: {
+        render: (ctx: unknown, w: unknown, h: unknown, target: unknown) =>
+          L('marker.render', ctx, w, h, target),
+      },
+      getAnalyser: () => (opts.noAnalyser ? null : analyser),
+      getMicrophoneAnalyser: () => micAnalyser,
+      getMicrophoneAudioContext: () => micCtx,
+      updateGlobalAudioData: (data: unknown, len: unknown) => L('updateGlobalAudioData', data, len),
+    }),
+  )
   return { loop, main, rec, canvasManager, ...stores }
 }
 
-function runFrames(loop, n) {
+function runFrames(loop: ReturnType<typeof useRenderLoop>, n: number) {
   for (let i = 0; i < n; i++) {
     frame++
-    setAudioAnalysisData({
-      onsetBass: (frame % 3) / 2,
-      onsetMid: 0.25,
-      onsetTreble: 0.1,
-      onsetAll: (frame % 2) * 0.8,
-      bass: 0.6,
-      mid: 0.4,
-      treble: 0.2,
-      beat: frame % 2 === 0,
-    })
+    setAudioAnalysisData(
+      stub({
+        onsetBass: (frame % 3) / 2,
+        onsetMid: 0.25,
+        onsetTreble: 0.1,
+        onsetAll: (frame % 2) * 0.8,
+        bass: 0.6,
+        mid: 0.4,
+        treble: 0.2,
+        beat: frame % 2 === 0,
+      }),
+    )
     L(`--- frame ${frame}`)
     loop.draw()
   }
@@ -316,9 +366,9 @@ beforeEach(() => {
     L('raf')
     return 1
   })
-  vi.stubGlobal('cancelAnimationFrame', (id) => L('cancelRaf', id))
+  vi.stubGlobal('cancelAnimationFrame', (id: unknown) => L('cancelRaf', id))
   const origCreate = document.createElement.bind(document)
-  vi.spyOn(document, 'createElement').mockImplementation((tag) =>
+  vi.spyOn(document, 'createElement').mockImplementation((tag: string) =>
     tag === 'canvas' ? makeCanvas(`c${++canvasSeq}`) : origCreate(tag),
   )
 })
@@ -445,7 +495,7 @@ describe('useRenderLoop – Charakterisierung', () => {
 
   it('Worker-Pfad: Frame-Nachricht, Bitmap, Portrait-Bild', async () => {
     workerState.available = true
-    vi.stubGlobal('createImageBitmap', async (src) => ({
+    vi.stubGlobal('createImageBitmap', async (src: Labeled) => ({
       tag: `bmp:${src.tag}`,
       close: () => L('bmp.close'),
     }))
@@ -454,14 +504,14 @@ describe('useRenderLoop – Charakterisierung', () => {
     runFrames(loop, 1)
     await flushPromises()
     runFrames(loop, 1)
-    workerState.frameCb({
+    workerState.frameCb!({
       tag: 'bitmap1',
       width: 400,
       height: 200,
       close: () => L('bitmap1.close'),
     })
     runFrames(loop, 1)
-    workerState.frameCb({
+    workerState.frameCb!({
       tag: 'bitmap2',
       width: 400,
       height: 200,
@@ -512,9 +562,9 @@ describe('useRenderLoop – Charakterisierung', () => {
     runFrames(loop, 1)
     const target = makeCanvas('target', 200, 100)
     const cb = loop.buildVisualizerCallback(target)
-    loop.renderRecordingScene(target.getContext('2d'), 200, 100, cb)
-    loop.renderRecordingScene(target.getContext('2d'), 200, 100, null)
-    loop.renderScene(target.getContext('2d'), 200, 100, cb)
+    loop.renderRecordingScene(target.getContext('2d')!, 200, 100, cb)
+    loop.renderRecordingScene(target.getContext('2d')!, 200, 100, null)
+    loop.renderScene(target.getContext('2d')!, 200, 100, cb)
     visualizerStore.showVisualizer = false
     expect(loop.buildVisualizerCallback(target)).toBeNull()
     expect(log).toMatchSnapshot()
@@ -523,9 +573,11 @@ describe('useRenderLoop – Charakterisierung', () => {
   it('Screenshot mit Workspace-Format', async () => {
     const { loop, canvasManager } = setup({ workspace: true })
     runFrames(loop, 1)
-    loop.registerScreenshot({ value: canvasManager })
-    expect(window.takeCanvasScreenshot).toBeUndefined()
-    const blob = await getCanvasScreenshot()('image/jpeg', 0.8)
+    loop.registerScreenshot(stub({ value: canvasManager }))
+    expect(
+      (window as unknown as { takeCanvasScreenshot?: unknown }).takeCanvasScreenshot,
+    ).toBeUndefined()
+    const blob = await getCanvasScreenshot()!('image/jpeg', 0.8)
     expect(blob).toEqual({ tag: 'blob' })
     // Zielgröße = Workspace-Preset (300×150), nicht die Canvas-Größe (400×200)
     expect(log).toContain('c4.clearRect 0 0 300 150')
@@ -545,7 +597,7 @@ describe('useRenderLoop – Charakterisierung', () => {
 })
 
 describe('useRenderLoop – Multi-Layer-Caches', () => {
-  function layer(id, visualizerId, extra = {}) {
+  function layer(id: string, visualizerId: string, extra: Record<string, unknown> = {}) {
     return {
       id,
       visualizerId,
@@ -559,7 +611,7 @@ describe('useRenderLoop – Multi-Layer-Caches', () => {
     }
   }
 
-  function setupLayers(layers) {
+  function setupLayers(layers: object[]) {
     const env = setup()
     Object.assign(env.visualizerStore, {
       multiLayerMode: true,
@@ -569,7 +621,7 @@ describe('useRenderLoop – Multi-Layer-Caches', () => {
     return env
   }
 
-  const drawTargets = (id) =>
+  const drawTargets = (id: string) =>
     log.filter((l) => l.startsWith(`viz.${id}.draw`)).map((l) => l.split(' ')[1])
 
   it('bleiben über Frames erhalten: ein Canvas, init() nur einmal', () => {
@@ -616,7 +668,7 @@ describe('useRenderLoop – Multi-Layer-Caches', () => {
     runFrames(a.loop, 3)
     const continuous = log
       .filter((l) => l.startsWith('viz.bars.draw'))
-      .at(-1)
+      .at(-1)!
       .split(' ')[2]
     // Frisch: gleicher Frame 3, aber neue Instanz ohne Vorgeschichte
     log.length = 0
@@ -625,7 +677,7 @@ describe('useRenderLoop – Multi-Layer-Caches', () => {
     runFrames(b.loop, 1)
     const fresh = log
       .filter((l) => l.startsWith('viz.bars.draw'))
-      .at(-1)
+      .at(-1)!
       .split(' ')[2]
     expect(continuous).not.toBe(fresh)
   })

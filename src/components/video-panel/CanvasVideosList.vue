@@ -119,6 +119,13 @@
         @update:model-value="updateVideoVolume($event)"
       />
       <p class="volume-hint">{{ t('videoPanel.audioRecordHint') }}</p>
+
+      <!-- Ebene des ausgewählten Videos (wie bei Bildern) -->
+      <UiSwitch
+        :model-value="selectedVideoBehindVisualizer"
+        :label="t('foto.renderBehindVisualizer')"
+        @update:model-value="setVideoBehindVisualizer"
+      />
     </div>
 
     <!--
@@ -156,6 +163,8 @@ const {
   selectedVideoCurrentTime,
   selectedVideoDuration,
   selectedVideoVolume,
+  selectedVideoBehindVisualizer,
+  setVideoBehindVisualizer,
   videoLoop,
   videoMuted,
   isVideoActive,

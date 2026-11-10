@@ -442,6 +442,46 @@ describe('useVideoPanel – Canvas-Videos', () => {
   })
 })
 
+describe('useVideoPanel – hinter dem Visualizer', () => {
+  it('Platzierung übergibt die Voreinstellung an addVideo', async () => {
+    const { vm } = mountPanel()
+    await uploadVideo('clip.mp4')
+    const opts: unknown[] = []
+    vm!.addVideo = (_el: unknown, o: unknown) => {
+      opts.push(o)
+      return { id: 'cv' }
+    }
+    vp.videoBehindVisualizer.value = true
+    const pending = vp.placeVideoOnCanvas(vp.videoGallery.value[0])
+    created.at(-1)!.onloadeddata()
+    await pending
+    expect(opts.at(-1)).toMatchObject({ renderBehindVisualizer: true })
+  })
+
+  it('ausgewähltes Canvas-Video umschalten', async () => {
+    const { vm } = mountPanel()
+    const v1 = stub<VideoObject>({
+      id: 1,
+      type: 'video',
+      videoElement: fakeVideo('cv1'),
+      isPlaying: false,
+      fotoSettings: { renderBehindVisualizer: false },
+    })
+    vm!.videos.push(v1)
+    expect(vp.selectedVideoBehindVisualizer.value).toBe(false)
+    vp.setVideoBehindVisualizer(true) // ohne Auswahl → nichts
+    expect(v1.fotoSettings!.renderBehindVisualizer).toBe(false)
+
+    vp.selectCanvasVideo(v1)
+    await nextTick()
+    vp.setVideoBehindVisualizer(true)
+    expect(v1.fotoSettings!.renderBehindVisualizer).toBe(true)
+    expect(vp.selectedVideoBehindVisualizer.value).toBe(true)
+    vp.setVideoBehindVisualizer(false)
+    expect(vp.selectedVideoBehindVisualizer.value).toBe(false)
+  })
+})
+
 /** Lose Sicht auf die API für Zugriffe über Namen aus der Tabelle */
 type LooseApi = Record<string, ((...args: unknown[]) => unknown) & { value: unknown }>
 

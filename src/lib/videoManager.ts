@@ -94,6 +94,13 @@ export interface VideoAddOptions {
   name?: string
   /** false = neues Video nicht auswählen (z. B. vom Beat-Marker angelegt) */
   select?: boolean
+  /** true = hinter dem Visualizer zeichnen (fotoSettings.renderBehindVisualizer) */
+  renderBehindVisualizer?: boolean
+}
+
+export interface DrawVideosOptions {
+  /** null = alle, true = nur hinter dem Visualizer, false = nur davor (wie bei Bildern) */
+  behindVisualizer?: boolean | null
 }
 
 export interface VideoBounds {
@@ -350,6 +357,9 @@ export class VideoManager {
 
     // FotoSettings initialisieren
     this.initializeVideoSettings(newVideo)
+    if (options.renderBehindVisualizer && newVideo.fotoSettings) {
+      newVideo.fotoSettings.renderBehindVisualizer = true
+    }
 
     // Video-Einstellungen anwenden
     videoElement.loop = newVideo.loop
@@ -667,16 +677,31 @@ export class VideoManager {
   /**
    * Zeichnet alle Videos auf den Canvas
    */
-  drawVideos(ctx: CanvasRenderingContext2D | null | undefined): void {
+  drawVideos(
+    ctx: CanvasRenderingContext2D | null | undefined,
+    { behindVisualizer = null }: DrawVideosOptions = {},
+  ): void {
     if (!ctx || this.videos.length === 0) return
 
-    // Audio-Synchronisation wenn aktiviert
-    if (this.syncWithAudio && this.audioElement && !this.audioElement.paused) {
+    // Audio-Synchronisation wenn aktiviert (nur einmal pro Frame: nicht im
+    // zweiten Durchgang „vor dem Visualizer“)
+    if (
+      behindVisualizer !== false &&
+      this.syncWithAudio &&
+      this.audioElement &&
+      !this.audioElement.paused
+    ) {
       this.syncAllVideosToAudio()
     }
 
     this.videos.forEach((videoData) => {
       if (this.markerHiddenIds.has(videoData.id)) return
+      if (
+        behindVisualizer !== null &&
+        (videoData.fotoSettings?.renderBehindVisualizer || false) !== behindVisualizer
+      ) {
+        return
+      }
       this._drawSingleVideo(ctx, videoData)
     })
   }

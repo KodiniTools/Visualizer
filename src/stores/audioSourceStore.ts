@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export type AudioSourceType = 'player' | 'microphone'
+/** Was der Analyser bei Quelle „Player“ auswertet: Player, Video-Ton oder beides. */
+export type AnalysisInput = 'player' | 'video' | 'mix'
+export const ANALYSIS_INPUTS: readonly AnalysisInput[] = Object.freeze(['player', 'video', 'mix'])
 export type MicrophonePermission = 'prompt' | 'granted' | 'denied' | 'error'
 
 export interface AudioInputDevice {
@@ -19,6 +22,9 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
 
   // Audio source type: 'player' or 'microphone'
   const sourceType = ref<AudioSourceType>('player')
+
+  // Analyse-Eingang bei Quelle Player (bewusst nicht gespeichert, wie sourceType)
+  const analysisInput = ref<AnalysisInput>('player')
 
   // Microphone stream reference
   const microphoneStream = ref<MediaStream | null>(null)
@@ -197,6 +203,15 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
     console.log('[AudioSourceStore] Source type changed to:', type)
   }
 
+  /** Analyse-Eingang setzen; unbekannte Werte werden ignoriert. */
+  function setAnalysisInput(input: string) {
+    if (!(ANALYSIS_INPUTS as readonly string[]).includes(input)) {
+      console.warn('[AudioSourceStore] Invalid analysis input:', input)
+      return
+    }
+    analysisInput.value = input as AnalysisInput
+  }
+
   /**
    * Toggle between player and microphone
    */
@@ -222,6 +237,7 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
   function reset() {
     stopMicrophone()
     sourceType.value = 'player'
+    analysisInput.value = 'player'
     clearError()
   }
 
@@ -238,6 +254,7 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
   return {
     // State
     sourceType,
+    analysisInput,
     microphoneStream,
     microphonePermission,
     isMicrophoneActive,
@@ -257,6 +274,7 @@ export const useAudioSourceStore = defineStore('audioSource', () => {
     startMicrophone,
     stopMicrophone,
     setSourceType,
+    setAnalysisInput,
     toggleSource,
     reset,
     setError,

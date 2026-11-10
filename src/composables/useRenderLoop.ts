@@ -42,6 +42,8 @@ export interface RenderLoopDeps
   markerTransitionRenderer?: MarkerTransitionRenderer | null
   getAnalyser: () => AnalyserNode | null | undefined
   getMicrophoneAnalyser: () => AnalyserNode | null | undefined
+  /** Läuft ein hörbares Video, dessen Ton in die Analyse gehen kann? */
+  isVideoAudioPlaying?: () => boolean
   getMicrophoneAudioContext: () => AudioContext | null | undefined
   updateGlobalAudioData: (data: Uint8Array | null, bufferLength: number) => void
 }
@@ -81,6 +83,7 @@ export function useRenderLoop({
   markerTransitionRenderer,
   getAnalyser,
   getMicrophoneAnalyser,
+  isVideoAudioPlaying,
   getMicrophoneAudioContext,
   updateGlobalAudioData,
 }: RenderLoopDeps) {
@@ -263,7 +266,13 @@ export function useRenderLoop({
   function analyzeAudio(): FrameAudio {
     const isMicActive = audioSourceStore.isMicrophoneActive
     const analyser = isMicActive ? getMicrophoneAnalyser() : getAnalyser()
-    const audioRunning = playerStore.isPlaying || recorderStore.isRecording || isMicActive
+    // Analyse über Video-Ton: auch zeichnen, wenn nur ein Video läuft
+    const videoRunning =
+      !isMicActive &&
+      (audioSourceStore.analysisInput ?? 'player') !== 'player' &&
+      !!isVideoAudioPlaying?.()
+    const audioRunning =
+      playerStore.isPlaying || recorderStore.isRecording || isMicActive || videoRunning
 
     if (isMicActive) {
       const micCtx = getMicrophoneAudioContext()

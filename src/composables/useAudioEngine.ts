@@ -1,6 +1,6 @@
 import { watch, type Ref } from 'vue'
 import { registerAudioEngine, type AudioEngineApi } from '../lib/audioEngineBridge'
-import type { useAudioSourceStore } from '../stores/audioSourceStore'
+import type { AnalysisInput, useAudioSourceStore } from '../stores/audioSourceStore'
 import type { usePlayerStore } from '../stores/playerStore'
 
 const SILENT_GAIN = 0.0001
@@ -44,6 +44,11 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
 
   const videoSourceNodes = new Map<HTMLMediaElement, VideoAudioNodes>()
   let videoRecordingGain: GainNode | null = null
+
+  // Analyse-Eingang: Player und Video-Ton laufen über je einen Gain in den
+  // Analyser; audioSourceStore.analysisInput schaltet sie (Player/Video/Mix).
+  let playerAnalysisGain: GainNode | null = null
+  let videoAnalysisGain: GainNode | null = null
 
   function getAnalyser() {
     return analyser
@@ -93,12 +98,39 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     bassFilter.connect(trebleFilter)
     trebleFilter.connect(outputGain)
     outputGain.connect(audioContext.destination)
-    sourceNode.connect(analyser)
+
+    playerAnalysisGain = audioContext.createGain()
+    videoAnalysisGain = audioContext.createGain()
+    applyAnalysisInput()
+    sourceNode.connect(playerAnalysisGain)
+    playerAnalysisGain.connect(analyser)
+    videoAnalysisGain.connect(analyser)
 
     trebleFilter.connect(recordingGain)
     recordingGain.connect(recordingMixer)
     micRecordingGain.connect(recordingMixer)
     recordingMixer.connect(recordingDest)
+  }
+
+  /** Analyse-Quelle anwenden: Player, Video-Ton oder beides (Mix). */
+  function applyAnalysisInput() {
+    const input: AnalysisInput = audioSourceStore.analysisInput ?? 'player'
+    if (playerAnalysisGain) playerAnalysisGain.gain.value = input === 'video' ? 0 : ACTIVE_GAIN
+    if (videoAnalysisGain) videoAnalysisGain.gain.value = input === 'player' ? 0 : ACTIVE_GAIN
+  }
+  watch(() => audioSourceStore.analysisInput, applyAnalysisInput)
+
+  /**
+   * Läuft gerade ein Video, dessen Ton in der Engine hängt (hörbar, nicht
+   * pausiert)? Der Render-Loop zeichnet dann auch ohne laufenden Player.
+   */
+  function isVideoAudioPlaying(): boolean {
+    for (const [video, nodes] of videoSourceNodes) {
+      if (!video.paused && !video.ended && !video.muted && nodes.gainNode.gain.value > 0) {
+        return true
+      }
+    }
+    return false
   }
 
   /** Stumm (playerStore.isMuted) nur auf den Lautsprecher-Ausgang anwenden. */
@@ -329,6 +361,8 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
       videoSource.connect(gainNode)
       gainNode.connect(ctx.destination)
       gainNode.connect(videoRecordingGain)
+      // Analyse hinter der Lautstärke: ausgewertet wird, was man vom Video hört
+      if (videoAnalysisGain) gainNode.connect(videoAnalysisGain)
       videoSourceNodes.set(videoElement, { sourceNode: videoSource, gainNode })
       return true
     } catch (error) {
@@ -436,5 +470,6 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     getMicrophoneAnalyser,
     getMicrophoneAudioContext,
     getAudioContext,
+    isVideoAudioPlaying,
   }
 }

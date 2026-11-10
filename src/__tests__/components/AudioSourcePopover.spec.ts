@@ -112,6 +112,51 @@ describe('AudioSourcePopover', () => {
   })
 })
 
+describe('AudioSourcePopover – Visualizer reagiert auf (Player / Video / Beides)', () => {
+  const radio = (label: string) =>
+    [...(root() as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="radio"]')].find(
+      (b) => b.textContent!.trim() === label,
+    )!
+
+  it('zeigt die Auswahl bei Quelle Player, Player ist gewählt, kein Hinweis', async () => {
+    await mountPopover()
+    expect(wrapper!.text()).toContain(P.analysisInput)
+    const group = root().querySelector('[role="radiogroup"]')!
+    expect(group.getAttribute('aria-label')).toBe(P.analysisInput)
+    expect(radio(P.analysisPlayer).getAttribute('aria-checked')).toBe('true')
+    expect(root().querySelector('.analysis-hint')).toBeNull()
+  })
+
+  it('Klick setzt den Analyse-Eingang und zeigt den Hinweis', async () => {
+    await mountPopover()
+    radio(P.analysisVideo).click()
+    await nextTick()
+    expect(store.analysisInput).toBe('video')
+    expect(radio(P.analysisVideo).getAttribute('aria-checked')).toBe('true')
+    expect(root().querySelector('.analysis-hint')!.textContent!.trim()).toBe(P.analysisVideoHint)
+    radio(P.analysisMix).click()
+    await nextTick()
+    expect(store.analysisInput).toBe('mix')
+  })
+
+  it('bei Quelle Mikrofon ausgeblendet', async () => {
+    store.sourceType = 'microphone'
+    await mountPopover()
+    expect(root().querySelector('[role="radiogroup"]')).toBeNull()
+  })
+
+  it('Texte folgen der Sprache', async () => {
+    store.analysisInput = 'mix'
+    await setLocale('en')
+    await mountPopover()
+    expect(wrapper!.text()).toContain(en.player.analysisInput)
+    expect(radio(en.player.analysisMix).getAttribute('aria-checked')).toBe('true')
+    expect(root().querySelector('.analysis-hint')!.textContent!.trim()).toBe(
+      en.player.analysisVideoHint,
+    )
+  })
+})
+
 describe('AudioSourcePopover – Ui-Bausteine und Sprache', () => {
   it('Quellen-Knöpfe melden ihren Zustand, Gerät hat ein Label', async () => {
     store.sourceType = 'microphone'

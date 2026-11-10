@@ -46,6 +46,20 @@
       </button>
     </div>
 
+    <template v-if="audioSourceStore.isPlayerSource">
+      <span class="section-label">{{ t('player.analysisInput') }}</span>
+      <UiSegmentedControl
+        :model-value="audioSourceStore.analysisInput"
+        size="sm"
+        :label="t('player.analysisInput')"
+        :options="analysisOptions"
+        @update:model-value="audioSourceStore.setAnalysisInput"
+      />
+      <p v-if="audioSourceStore.analysisInput !== 'player'" class="analysis-hint">
+        {{ t('player.analysisVideoHint') }}
+      </p>
+    </template>
+
     <div v-if="audioSourceStore.isMicrophoneSource" class="mic-status">
       <div v-if="audioSourceStore.isMicrophoneActive" class="mic-active">
         <span class="mic-indicator"></span>
@@ -74,6 +88,7 @@ import { useI18n } from '../../lib/i18n'
 import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { vPopoverDrag } from '../../directives/popoverDrag'
 import UiSelect from '../ui/UiSelect.vue'
+import UiSegmentedControl from '../ui/UiSegmentedControl.vue'
 
 const { t } = useI18n()
 const audioSourceStore = useAudioSourceStore()
@@ -90,6 +105,13 @@ const deviceOptions = computed(() =>
     label: d.label || t('player.microphoneN').replace('{n}', String(i + 1)),
   })),
 )
+
+// Analyse-Eingang bei Quelle Player: Player, Video-Ton oder beides
+const analysisOptions = computed(() => [
+  { value: 'player', label: t('player.analysisPlayer') },
+  { value: 'video', label: t('player.analysisVideo') },
+  { value: 'mix', label: t('player.analysisMix') },
+])
 
 // Fehlertext in der aktuellen Sprache; technische Browser-Meldung als Zusatz
 const micError = computed(() => {
@@ -136,6 +158,11 @@ const micError = computed(() => {
 }
 .source-btn.listening {
   border-color: var(--ds-success);
+}
+.analysis-hint {
+  margin: 0;
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
 }
 .mic-status {
   font-size: var(--ds-text-xs);

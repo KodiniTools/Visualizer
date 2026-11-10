@@ -247,6 +247,7 @@ function setup(
     selectedImage?: unknown
     visualizer?: Record<string, unknown>
     noAnalyser?: boolean
+    videoPlaying?: boolean
   } = {},
 ) {
   const main = makeCanvas('main', 400, 200)
@@ -286,7 +287,7 @@ function setup(
     visualizerStore: makeVisualizerStore(opts.visualizer),
     recorderStore: { isRecording: false },
     playerStore: { isPlaying: true, notifyFrame: () => L('player.notifyFrame') },
-    audioSourceStore: { isMicrophoneActive: false },
+    audioSourceStore: { isMicrophoneActive: false, analysisInput: 'player' },
     audioFxStore: { $state: { fx: 1 } },
     beatDropStore: { $state: { bd: 1 } },
     tickerStore: { $state: { tk: 1 } },
@@ -315,6 +316,7 @@ function setup(
       },
       getAnalyser: () => (opts.noAnalyser ? null : analyser),
       getMicrophoneAnalyser: () => micAnalyser,
+      isVideoAudioPlaying: () => !!opts.videoPlaying,
       getMicrophoneAudioContext: () => micCtx,
       updateGlobalAudioData: (data: unknown, len: unknown) => L('updateGlobalAudioData', data, len),
     }),
@@ -434,6 +436,31 @@ describe('useRenderLoop – Charakterisierung', () => {
     visualizerStore.selectedVisualizer = 'broken'
     runFrames(loop, 1)
     expect(log).toMatchSnapshot()
+  })
+
+  it('Analyse über Video-Ton: zeichnet auch ohne laufenden Player', () => {
+    const analysed = () => log.some((l) => l.startsWith('updateGlobalAudioData'))
+    const { loop, playerStore, audioSourceStore } = setup({ videoPlaying: true })
+    playerStore.isPlaying = false
+
+    // Analyse nur über den Player: ein laufendes Video reicht nicht
+    runFrames(loop, 1)
+    expect(analysed()).toBe(false)
+
+    for (const input of ['video', 'mix']) {
+      log.length = 0
+      audioSourceStore.analysisInput = input
+      runFrames(loop, 1)
+      expect(analysed()).toBe(true)
+    }
+  })
+
+  it('Analyse über Video-Ton: ohne laufendes Video kein Visualizer', () => {
+    const { loop, playerStore, audioSourceStore } = setup({ videoPlaying: false })
+    playerStore.isPlaying = false
+    audioSourceStore.analysisInput = 'video'
+    runFrames(loop, 1)
+    expect(log.some((l) => l.startsWith('updateGlobalAudioData'))).toBe(false)
   })
 
   it('Mikrofon: eigener Analyser, AudioContext wird fortgesetzt', () => {

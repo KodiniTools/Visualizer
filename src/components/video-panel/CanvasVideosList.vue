@@ -120,6 +120,13 @@
       />
       <p class="volume-hint">{{ t('videoPanel.audioRecordHint') }}</p>
 
+      <!-- Position & Größe exakt per Regler/Zahl (wie bei Bildern) -->
+      <PositionSizeControls
+        :key="selectedCanvasVideo.id"
+        :image="selectedCanvasVideo"
+        :api="videoBoundsApi"
+      />
+
       <!-- Ebene des ausgewählten Videos (wie bei Bildern) -->
       <UiSwitch
         :model-value="selectedVideoBehindVisualizer"
@@ -151,6 +158,7 @@ import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import VideoAudioReactive from './VideoAudioReactive.vue'
+import PositionSizeControls from '../foto-panel/image-filters/PositionSizeControls.vue'
 import { computed, inject } from 'vue'
 import type { VideoPanelApi } from '../../composables/useVideoPanel'
 import { useI18n } from '../../lib/i18n'
@@ -165,6 +173,7 @@ const {
   selectedVideoVolume,
   selectedVideoBehindVisualizer,
   setVideoBehindVisualizer,
+  videoBoundsApi,
   videoLoop,
   videoMuted,
   isVideoActive,

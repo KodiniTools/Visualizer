@@ -366,6 +366,7 @@ const renderLoop = useRenderLoop({
   markerTransitionRenderer,
   getAnalyser: audioEngine.getAnalyser,
   getMicrophoneAnalyser: audioEngine.getMicrophoneAnalyser,
+  isVideoAudioPlaying: audioEngine.isVideoAudioPlaying,
   getMicrophoneAudioContext: audioEngine.getMicrophoneAudioContext,
   updateGlobalAudioData: globalAudioData.updateGlobalAudioData,
 })

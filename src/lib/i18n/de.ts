@@ -953,6 +953,12 @@ export default {
     microphoneStartFailed: 'Mikrofon konnte nicht gestartet werden',
     microphoneUnknownError: 'Unbekannter Mikrofon-Fehler',
     microphoneN: 'Mikrofon {n}',
+    analysisInput: 'Visualizer reagiert auf',
+    analysisPlayer: 'Player',
+    analysisVideo: 'Video',
+    analysisMix: 'Beides',
+    analysisVideoHint:
+      'Ausgewertet wird der Ton aller Videos, die gerade hörbar laufen (nicht stumm).',
     // Player controls
     prev: 'Zurück',
     play: 'Play',

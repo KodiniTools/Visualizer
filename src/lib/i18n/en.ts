@@ -952,6 +952,11 @@ export default {
     microphoneStartFailed: 'Could not start the microphone',
     microphoneUnknownError: 'Unknown microphone error',
     microphoneN: 'Microphone {n}',
+    analysisInput: 'Visualizer reacts to',
+    analysisPlayer: 'Player',
+    analysisVideo: 'Video',
+    analysisMix: 'Both',
+    analysisVideoHint: 'Uses the sound of every video that is currently playing and not muted.',
     // Player controls
     prev: 'Previous',
     play: 'Play',

@@ -51,6 +51,22 @@ export function useCanvasVideos(
     return el ? displayVolume(el) : 1
   })
 
+  /** Wird das ausgewählte Canvas-Video hinter dem Visualizer gezeichnet? */
+  const selectedVideoBehindVisualizer = computed(() => {
+    void tick.value
+    return !!selectedCanvasVideo.value?.fotoSettings?.renderBehindVisualizer
+  })
+
+  /** Ausgewähltes Canvas-Video hinter (true) oder vor (false) den Visualizer legen. */
+  function setVideoBehindVisualizer(value: boolean) {
+    const video = selectedCanvasVideo.value
+    if (!video) return
+    if (!video.fotoSettings) videoManager.value?.initializeVideoSettings(video)
+    if (!video.fotoSettings) return
+    video.fotoSettings.renderBehindVisualizer = value
+    tick.value++
+  }
+
   function isVideoActive(video: VideoObject) {
     const cm = canvasManager.value
     if (!cm) return false
@@ -128,6 +144,8 @@ export function useCanvasVideos(
     selectedVideoCurrentTime,
     selectedVideoDuration,
     selectedVideoVolume,
+    selectedVideoBehindVisualizer,
+    setVideoBehindVisualizer,
     isVideoActive,
     selectCanvasVideo,
     togglePlayVideo,

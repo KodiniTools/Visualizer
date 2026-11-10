@@ -46,6 +46,8 @@ export function useVideoPanel() {
   const videoScale = ref(3)
   const videoLoop = ref(true)
   const videoMuted = ref(false)
+  // Platzierung: neues Canvas-Video hinter dem Visualizer zeichnen (wie bei Bildern)
+  const videoBehindVisualizer = ref(false)
 
   // Wird alle 250 ms erhöht → Zeit-/Lautstärke-Anzeigen lesen die Videos neu
   const videoTimeUpdateKey = ref(0)
@@ -114,6 +116,7 @@ export function useVideoPanel() {
             relWidth: scaledWidth,
             loop: videoLoop.value,
             muted: videoMuted.value,
+            renderBehindVisualizer: videoBehindVisualizer.value,
             animation: selectedAnimation.value,
             animationDuration: animationDuration.value,
             name: videoData.name,
@@ -278,12 +281,15 @@ export function useVideoPanel() {
     videoScale,
     videoLoop,
     videoMuted,
+    videoBehindVisualizer,
     videoTimeUpdateKey,
     canvasVideos: canvasVideos.canvasVideos,
     selectedCanvasVideo: canvasVideos.selectedCanvasVideo,
     selectedVideoCurrentTime: canvasVideos.selectedVideoCurrentTime,
     selectedVideoDuration: canvasVideos.selectedVideoDuration,
     selectedVideoVolume: canvasVideos.selectedVideoVolume,
+    selectedVideoBehindVisualizer: canvasVideos.selectedVideoBehindVisualizer,
+    setVideoBehindVisualizer: canvasVideos.setVideoBehindVisualizer,
     videoBackground: bg.entry,
     workspaceVideoBackground: wsBg.entry,
     hasVideoBackground,

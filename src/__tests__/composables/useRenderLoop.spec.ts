@@ -300,7 +300,9 @@ function setup(
       canvasRef: { value: main },
       canvasManagerInstance: { value: canvasManager },
       multiImageManagerInstance: { value: multiImageManager },
-      videoManagerInstance: { value: { drawVideos: (ctx: unknown) => L('video.drawVideos', ctx) } },
+      videoManagerInstance: {
+        value: { drawVideos: (ctx: unknown, o: unknown) => L('video.drawVideos', ctx, o) },
+      },
       gridManagerInstance: { value: { drawGrid: (ctx: unknown) => L('grid.drawGrid', ctx) } },
       getTextManager: () => ({
         draw: (ctx: unknown, w: unknown, h: unknown) => L('text.draw', ctx, w, h),

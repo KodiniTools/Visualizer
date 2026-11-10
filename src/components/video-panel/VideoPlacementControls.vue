@@ -34,6 +34,7 @@
     <div class="placement-switches">
       <UiSwitch v-model="videoLoop" :label="t('videoPanel.loop')" />
       <UiSwitch v-model="videoMuted" :label="t('videoPanel.muted')" />
+      <UiSwitch v-model="videoBehindVisualizer" :label="t('foto.renderBehindVisualizer')" />
     </div>
 
     <UiButton variant="primary" size="sm" block class="btn-place" @click="addVideoDirectly">
@@ -61,6 +62,7 @@ const {
   videoScale,
   videoLoop,
   videoMuted,
+  videoBehindVisualizer,
   addVideoDirectly,
 } = inject('videoPanel') as VideoPanelApi
 
@@ -101,6 +103,7 @@ const animationOptions = computed(() => placementAnimationOptions(t))
 
 .placement-switches {
   display: flex;
-  gap: var(--ds-space-4);
+  flex-wrap: wrap;
+  gap: var(--ds-space-2) var(--ds-space-4);
 }
 </style>

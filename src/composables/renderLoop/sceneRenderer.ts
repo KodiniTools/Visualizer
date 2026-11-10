@@ -83,9 +83,10 @@ export function createSceneRenderer({
     }
 
     multiImageManagerInstance.value?.drawImages(ctx, { behindVisualizer: true })
+    videoManagerInstance.value?.drawVideos(ctx, { behindVisualizer: true })
     drawVisualizer()
     multiImageManagerInstance.value?.drawImages(ctx, { behindVisualizer: false })
-    videoManagerInstance.value?.drawVideos(ctx)
+    videoManagerInstance.value?.drawVideos(ctx, { behindVisualizer: false })
     drawShapes?.(ctx)
 
     const textManager = getTextManager()

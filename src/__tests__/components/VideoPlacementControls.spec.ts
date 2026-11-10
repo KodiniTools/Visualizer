@@ -20,6 +20,7 @@ interface FakeVideoPanel {
   videoScale: Ref<number>
   videoLoop: Ref<boolean>
   videoMuted: Ref<boolean>
+  videoBehindVisualizer: Ref<boolean>
   addVideoDirectly: Mock
 }
 let vp: FakeVideoPanel
@@ -50,6 +51,7 @@ async function mountControls({
     videoScale: ref(3),
     videoLoop: ref(true),
     videoMuted: ref(false),
+    videoBehindVisualizer: ref(false),
     addVideoDirectly: vi.fn(),
   }
   wrapper = mount(VideoPlacementControls, {
@@ -153,7 +155,16 @@ describe('Video-Platzierung – Ui-Bausteine', () => {
     expect([...select!.options].map((o) => o.textContent!.trim())).toEqual(
       ANIMATIONS.map((a) => de.placement.animations[a]),
     )
-    expect(body().querySelectorAll('[role="switch"]')).toHaveLength(2)
+    expect(body().querySelectorAll('[role="switch"]')).toHaveLength(3)
     expect(body().querySelectorAll('input[type="checkbox"]')).toHaveLength(0)
+  })
+})
+
+describe('Video-Platzierung – hinter dem Visualizer', () => {
+  it('Schalter setzt die Voreinstellung für neue Canvas-Videos', async () => {
+    await mountControls()
+    expect(text()).toContain(de.foto.renderBehindVisualizer)
+    await clickLabel(de.foto.renderBehindVisualizer)
+    expect(vp.videoBehindVisualizer.value).toBe(true)
   })
 })

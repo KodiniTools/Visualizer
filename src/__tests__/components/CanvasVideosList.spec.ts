@@ -24,6 +24,8 @@ function makePanel(videos: FakeVideo[]) {
     selectedVideoCurrentTime: ref(12),
     selectedVideoDuration: ref(60),
     selectedVideoVolume: ref(0.5),
+    selectedVideoBehindVisualizer: ref(false),
+    setVideoBehindVisualizer: vi.fn(),
     videoLoop: ref(true),
     videoMuted: ref(false),
     isVideoActive: (v: FakeVideo) => selectedCanvasVideo.value === v,
@@ -174,13 +176,32 @@ describe('Canvas-Videoliste', () => {
   })
 })
 
+describe('Canvas-Videoliste – hinter dem Visualizer rendern', () => {
+  it('Schalter erst mit ausgewähltem Video; zeigt und setzt die Ebene', async () => {
+    mountList()
+    const label = de.foto.renderBehindVisualizer
+    expect(body().textContent).not.toContain(label)
+
+    vp.selectedCanvasVideo.value = vp.canvasVideos.value[0]!
+    await flushPromises()
+    expect(body().textContent).toContain(label)
+    await clickLabel(label)
+    expect(vp.setVideoBehindVisualizer).toHaveBeenCalledWith(true)
+
+    vp.selectedVideoBehindVisualizer.value = true
+    await flushPromises()
+    const sw = [...body().querySelectorAll('[role="switch"]')].at(-1)!
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+  })
+})
+
 describe('Canvas-Videoliste – Ui-Bausteine', () => {
   it('Schalter, Icon-Buttons mit Labels, Lautstärke als Slider-Zeile', async () => {
     mountList()
     vp.selectedCanvasVideo.value = vp.canvasVideos.value[0]!
     await flushPromises()
     const switches = [...body().querySelectorAll('[role="switch"]')]
-    expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'false'])
+    expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false'])
     expect(body().querySelectorAll('input[type="checkbox"]')).toHaveLength(0)
     for (const label of [V.play, V.pause, V.seekBack5, V.seekForward5]) {
       expect(buttons(label).length, label).toBeGreaterThan(0)

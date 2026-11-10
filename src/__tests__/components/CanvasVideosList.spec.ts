@@ -25,6 +25,7 @@ function makePanel(videos: FakeVideo[]) {
     selectedVideoDuration: ref(60),
     selectedVideoVolume: ref(0.5),
     selectedVideoBehindVisualizer: ref(false),
+    videoBoundsApi: { getCanvas: () => null },
     setVideoBehindVisualizer: vi.fn(),
     videoLoop: ref(true),
     videoMuted: ref(false),
@@ -54,7 +55,10 @@ function mountList(
   vp = makePanel(videos)
   wrapper = mount(CanvasVideosList, {
     attachTo: document.body,
-    global: { provide: { videoPanel: vp }, stubs: { VideoAudioReactive: true } },
+    global: {
+      provide: { videoPanel: vp },
+      stubs: { VideoAudioReactive: true, PositionSizeControls: true },
+    },
   })
   return wrapper
 }
@@ -173,6 +177,19 @@ describe('Canvas-Videoliste', () => {
     expect(body().textContent).toContain(V.volume)
     expect(body().textContent).toContain('50%')
     expect(body().textContent).toContain(V.audioRecordHint)
+  })
+})
+
+describe('Canvas-Videoliste – Position & Größe', () => {
+  it('erst mit ausgewähltem Video; bekommt Video und Bounds-API', async () => {
+    mountList()
+    expect(wrapper!.findComponent({ name: 'PositionSizeControls' }).exists()).toBe(false)
+    vp.selectedCanvasVideo.value = vp.canvasVideos.value[1]!
+    await flushPromises()
+    const psc = wrapper!.findComponent({ name: 'PositionSizeControls' })
+    expect(psc.exists()).toBe(true)
+    expect(psc.props('image')).toEqual(vp.canvasVideos.value[1])
+    expect(psc.props('api')).toBe(vp.videoBoundsApi)
   })
 })
 

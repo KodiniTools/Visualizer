@@ -156,6 +156,41 @@ describe('PositionSizeControls', () => {
   })
 })
 
+describe('PositionSizeControls – Canvas-Video', () => {
+  // 640×360-Video (16:9) auf 1000×500-Canvas, ohne imageObject
+  function makeVideo() {
+    return {
+      id: 7,
+      type: 'video',
+      imageObject: null,
+      videoElement: { videoWidth: 640, videoHeight: 360 },
+      relX: 0.1,
+      relY: 0.1,
+      relWidth: 0.4,
+      relHeight: 0.45,
+    }
+  }
+
+  it('Position per Zahl, Einpassen und ↺ nutzen die Video-Abmessungen', async () => {
+    const { w, image } = mountControls(makeVideo() as unknown as ReturnType<typeof makeImage>)
+    const nx = w.findAll<HTMLInputElement>('input[type="number"]')[0]
+    nx!.element.value = '25'
+    await nx!.trigger('input')
+    expect(image.relX + image.relWidth / 2).toBeCloseTo(0.25)
+
+    // Einpassen: 16:9 in 2:1 → volle Höhe, Breite 0.889 der Canvas-Breite
+    await w.find('.image-fit-contain').trigger('click')
+    expect(image.relHeight).toBeCloseTo(1)
+    expect(image.relWidth).toBeCloseTo(0.889, 3)
+    expect(image.relX + image.relWidth / 2).toBeCloseTo(0.5)
+
+    // ↺ Breite: Standardgröße beim Platzieren (1/3 Breite, Seitenverhältnis des Videos)
+    await w.findAll('.slider-field__reset')[2]!.trigger('click')
+    expect(image.relWidth).toBeCloseTo(0.333, 3)
+    expect(image.relHeight).toBeCloseTo(0.375, 3)
+  })
+})
+
 describe('ImageFiltersPanel – Position & Größe', () => {
   function mountPanel(currentActiveImage: object | null) {
     setActivePinia(createPinia())

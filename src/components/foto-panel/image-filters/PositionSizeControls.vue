@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 /**
- * Position- und Größenregler für ein normales Canvas-Bild (Slider + Spinner).
+ * Position- und Größenregler für ein normales Canvas-Bild oder Canvas-Video (Slider + Spinner).
  * - Position = Mittelpunkt in % der Canvas (0–100, ↺ = Mitte)
  * - Größe = Breite/Höhe in % der Canvas (1–200, ↺ = Standardgröße beim Platzieren)
  * Schreibt direkt in relX/relY/relWidth/relHeight des Bildes; der History-
@@ -77,14 +77,20 @@ interface PositionSizeImage {
   relY?: number
   relWidth?: number
   relHeight?: number
-  imageObject?: HTMLImageElement | null
+  /** Bild-Element (Canvas-Bild); bei Canvas-Videos null */
+  imageObject?: unknown
+  /** Canvas-Video: Seitenverhältnis kommt aus videoWidth/videoHeight */
+  videoElement?: { videoWidth: number; videoHeight: number } | null
 }
 
 type Axis = 'x' | 'y' | 'width' | 'height'
 
+/** Abmessungen, wie getDefaultImageSize/fitBoundsToArea sie lesen */
+type MediaSize = { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number }
+
 const props = withDefaults(
   defineProps<{
-    /** Ausgewähltes Canvas-Bild ({ relX, relY, relWidth, relHeight, imageObject }) */
+    /** Ausgewähltes Canvas-Bild oder -Video ({ relX, relY, relWidth, relHeight, imageObject | videoElement }) */
     image: PositionSizeImage
     /** { getCanvas(): HTMLCanvasElement|null, redraw(): void } – optional */
     api?: ImageBoundsApi | null
@@ -123,6 +129,14 @@ function rawImage() {
   return toRaw(props.image)
 }
 
+/** Pixelgröße des Inhalts: Bild-Element oder (Canvas-Video) Video-Abmessungen. */
+function mediaSize(): MediaSize | null {
+  const img = rawImage()
+  if (img?.imageObject) return img.imageObject as MediaSize
+  const v = img?.videoElement
+  return v ? { width: v.videoWidth, height: v.videoHeight } : null
+}
+
 function readBounds() {
   const img = rawImage()
   if (!img) return null
@@ -149,7 +163,7 @@ function percent(value: number) {
 
 function defaultPercent(axis: Axis) {
   if (axis === 'x' || axis === 'y') return 50
-  const size = getDefaultImageSize(rawImage()?.imageObject, props.api?.getCanvas?.())
+  const size = getDefaultImageSize(mediaSize(), props.api?.getCanvas?.())
   return size ? percent(size[axis]) : undefined
 }
 
@@ -174,7 +188,7 @@ function fit(mode: ImageFitMode) {
   const img = rawImage()
   if (!img || !readBounds()) return
   const next = fitBoundsToArea(
-    img.imageObject,
+    mediaSize(),
     props.api?.getCanvas?.(),
     mode,
     props.api?.getFitArea?.() ?? null,

@@ -442,6 +442,19 @@ describe('useVideoPanel – Canvas-Videos', () => {
   })
 })
 
+describe('useVideoPanel – Position & Größe', () => {
+  it('videoBoundsApi: Canvas des VideoManagers, Workspace als Füll-Fläche', () => {
+    const { cm, vm } = mountPanel()
+    expect(vp.videoBoundsApi.getCanvas!()).toBe(vm!.canvas ?? null)
+    const ws = { x: 10, y: 20, width: 300, height: 400 }
+    cm.getWorkspaceBounds = () => ws
+    expect(vp.videoBoundsApi.getFitArea!()).toBe(ws)
+    const before = vp.videoTimeUpdateKey.value
+    vp.videoBoundsApi.redraw!()
+    expect(vp.videoTimeUpdateKey.value).toBe(before + 1)
+  })
+})
+
 describe('useVideoPanel – hinter dem Visualizer', () => {
   it('Platzierung übergibt die Voreinstellung an addVideo', async () => {
     const { vm } = mountPanel()

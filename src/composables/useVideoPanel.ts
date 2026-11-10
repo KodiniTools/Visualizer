@@ -15,6 +15,7 @@ import type { CanvasManager } from '../lib/canvasManager'
 import type { VideoObject } from '../lib/videoManager'
 import type { CanvasManagerRef } from './types'
 import { isReleasedMedia } from '../lib/mediaElements'
+import type { ImageBoundsApi } from '../components/foto-panel/image-filters/imageFilterContext'
 
 /** Optionen für setBackgroundFromGallery */
 interface BackgroundFromGalleryOptions {
@@ -52,6 +53,17 @@ export function useVideoPanel() {
   // Wird alle 250 ms erhöht → Zeit-/Lautstärke-Anzeigen lesen die Videos neu
   const videoTimeUpdateKey = ref(0)
   let timeUpdateInterval: ReturnType<typeof setInterval> | null = null
+
+  // Position & Größe des ausgewählten Canvas-Videos (PositionSizeControls wie bei Bildern)
+  const videoBoundsApi: ImageBoundsApi = {
+    getCanvas: () => videoManager.value?.canvas ?? null,
+    // Der Render-Loop zeichnet ohnehin jeden Frame neu
+    redraw: () => {
+      videoTimeUpdateKey.value++
+    },
+    // Mit aktivem Workspace-Preset füllt „Füllen“ den Workspace (exportierter Bereich)
+    getFitArea: () => canvasManager.value?.getWorkspaceBounds?.() ?? null,
+  }
 
   const gallery = useVideoGallery()
   const canvasVideos = useCanvasVideos(canvasManager, videoManager, videoTimeUpdateKey)
@@ -282,6 +294,7 @@ export function useVideoPanel() {
     videoLoop,
     videoMuted,
     videoBehindVisualizer,
+    videoBoundsApi,
     videoTimeUpdateKey,
     canvasVideos: canvasVideos.canvasVideos,
     selectedCanvasVideo: canvasVideos.selectedCanvasVideo,

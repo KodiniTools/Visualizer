@@ -100,3 +100,69 @@ describe('isOutsidePopoverClick', () => {
     expect(isOutsidePopoverClick(document.createElement('div'), bar)).toBe(false)
   })
 })
+
+describe('usePlayerPopover – Fenster in den Vordergrund holen', () => {
+  it('zuletzt geöffnetes Fenster liegt vorn', () => {
+    const p = usePlayerPopover()
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.onBarClick('visualizer', stub({ detail: 1 }))
+    expect(p.isFront('visualizer')).toBe(true)
+    expect(p.isFront('video')).toBe(false)
+    expect(p.zIndexOf('visualizer')).toBeGreaterThan(p.zIndexOf('video'))
+  })
+
+  it('Klick in der Leiste auf ein verdecktes offenes Fenster holt es nach vorn, ohne es zu schließen', () => {
+    const p = usePlayerPopover()
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.onBarClick('visualizer', stub({ detail: 1 }))
+    p.onBarClick('effects', stub({ detail: 1 }))
+    p.onBarClick('video', stub({ detail: 1 }))
+    expect(p.isOpen('video')).toBe(true)
+    expect(p.isFront('video')).toBe(true)
+    expect(p.stackOrder.value).toEqual(['visualizer', 'effects', 'video'])
+    // Kaskadenposition (Öffnungsreihenfolge) bleibt unverändert.
+    expect(p.openPopovers.value).toEqual(['video', 'visualizer', 'effects'])
+  })
+
+  it('zweiter Klick eines Doppelklicks ändert die Reihenfolge nicht', () => {
+    const p = usePlayerPopover()
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.onBarClick('effects', stub({ detail: 1 }))
+    p.onBarClick('video', stub({ detail: 2 }))
+    expect(p.isFront('effects')).toBe(true)
+  })
+
+  it('bringToFront ignoriert ausgeblendete Fenster', () => {
+    const p = usePlayerPopover()
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.bringToFront('effects')
+    expect(p.stackOrder.value).toEqual(['video'])
+    expect(p.zIndexOf('effects')).toBe(0)
+  })
+
+  it('Schließen, Ausblenden und Klick daneben räumen die Reihenfolge auf', () => {
+    const p = usePlayerPopover()
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.onBarClick('effects', stub({ detail: 1 }))
+    p.onBarClick('gallery', stub({ detail: 1 }))
+    p.onBarDblClick('gallery')
+    expect(p.isFront('effects')).toBe(true)
+    p.hidePopover('effects')
+    expect(p.isFront('video')).toBe(true)
+    p.hideAllPopovers()
+    expect(p.stackOrder.value).toEqual([])
+    p.onBarClick('effects', stub({ detail: 1 }))
+    expect(p.isFront('effects')).toBe(true)
+  })
+
+  it('cascadeOffset liefert die Stapel-Anbindung für v-popover-drag', () => {
+    const p = usePlayerPopover()
+    p.onBarClick('video', stub({ detail: 1 }))
+    p.onBarClick('effects', stub({ detail: 1 }))
+    const { stack } = p.cascadeOffset('video')
+    expect(stack.isFront()).toBe(false)
+    stack.raise()
+    expect(stack.isFront()).toBe(true)
+    expect(stack.zIndex()).toBe(2)
+  })
+})

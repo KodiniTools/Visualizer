@@ -28,9 +28,19 @@
 // same stacking context (the sticky player bar), so raising an element's
 // z-index above the others reliably brings it to the front — regardless of the
 // fixed DOM/template order in which the popovers are rendered.
-import type { Directive } from 'vue'
+import { watchEffect, type Directive } from 'vue'
 
 let topZ = 1
+
+/**
+ * Stapelreihenfolge von außen (usePlayerPopover): Ist sie gesetzt, bestimmt
+ * sie z-index und Vordergrund-Klasse; ein Klick ins Fenster ruft `raise`.
+ */
+export interface PopoverStack {
+  raise: () => void
+  zIndex: () => number
+  isFront: () => boolean
+}
 
 /** Popover-Element mit Aufräum-Funktion der Direktive */
 type PopoverDragElement = HTMLElement & { __popoverDragCleanup?: () => void }
@@ -43,6 +53,8 @@ export interface PopoverDragOffset {
   y?: number
   /** Beim Öffnen mittig über der Leiste platzieren */
   center?: boolean
+  /** Gemeinsame Stapelreihenfolge (sonst eigener Zähler) */
+  stack?: PopoverStack
 }
 
 interface ResizeHandleSpec {
@@ -121,12 +133,25 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
     const MARGIN = 8
 
     // Bring this popover in front of all others (newest-opened wins, and any
-    // click on a popover raises it again).
+    // click on a popover raises it again). With a shared `stack` the order is
+    // kept by the caller and mirrored here reactively (z-index + front class);
+    // without one a module-wide counter is used.
+    const stack = binding.value?.stack
+    let stopStack: (() => void) | null = null
     const bringToFront = () => {
-      el.style.zIndex = String(++topZ)
+      if (stack) stack.raise()
+      else el.style.zIndex = String(++topZ)
     }
-    // A freshly opened popover starts on top.
-    bringToFront()
+    if (stack) {
+      stopStack = watchEffect(() => {
+        const z = stack.zIndex()
+        el.style.zIndex = z > 0 ? String(z) : ''
+        el.classList.toggle('spb-popover-front', stack.isFront())
+      })
+    } else {
+      // A freshly opened popover starts on top.
+      bringToFront()
+    }
     // Raise on interaction anywhere within the popover (pointerdown bubbles up
     // from child controls, so this covers the whole surface, not just the
     // header). Capture phase so it fires before the drag handler.
@@ -431,6 +456,7 @@ export const vPopoverDrag: Directive<PopoverDragElement, PopoverDragOffset | nul
     el.__popoverDragCleanup = () => {
       header.removeEventListener('pointerdown', onDown)
       el.removeEventListener('pointerdown', bringToFront, true)
+      stopStack?.()
       window.removeEventListener('resize', reclamp)
       if (resizeObserver) resizeObserver.disconnect()
       onUp()

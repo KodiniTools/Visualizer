@@ -21,6 +21,15 @@
   flex-direction: column;
   gap: var(--ds-space-3);
   animation: popIn var(--ds-duration) var(--ds-ease);
+  transition: filter var(--ds-duration) var(--ds-ease);
+}
+/* Mehrere offene Fenster: das vorderste (spb-popover-front, gesetzt von
+   v-popover-drag) bleibt voll hell, die verdeckten treten leicht zurück. */
+.spb-popover:not(.spb-popover-front) {
+  filter: brightness(var(--ds-overlay-dim));
+}
+.spb-popover.spb-popover-front {
+  border-color: var(--ds-border-strong);
 }
 @keyframes popIn {
   from {

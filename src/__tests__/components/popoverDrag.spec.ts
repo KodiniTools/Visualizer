@@ -175,3 +175,49 @@ describe('v-popover-drag – mittig öffnen (center)', () => {
     w.unmount()
   })
 })
+
+describe('v-popover-drag – gemeinsame Stapelreihenfolge (stack)', () => {
+  it('spiegelt z-index und Vordergrund-Klasse und meldet Klicks per raise', async () => {
+    const { usePlayerPopover } = await import('../../composables/usePlayerPopover')
+    const { nextTick } = await import('vue')
+    const p = usePlayerPopover()
+    p.openPopover('a')
+    p.openPopover('b')
+    const make = (name: string) =>
+      defineComponent({
+        directives: { popoverDrag: vPopoverDrag },
+        setup: () => ({ offset: p.cascadeOffset(name) }),
+        template: `
+          <div v-popover-drag="offset" class="spb-popover">
+            <div class="spb-popover-header"><span>Kopf</span></div>
+            <button class="inner">x</button>
+          </div>`,
+      })
+    const wa = mount(make('a'), { attachTo: document.body })
+    const wb = mount(make('b'), { attachTo: document.body })
+    const ea = wa.element as HTMLElement
+    const eb = wb.element as HTMLElement
+    await nextTick()
+    expect(ea.style.zIndex).toBe('1')
+    expect(eb.style.zIndex).toBe('2')
+    expect(eb.classList.contains('spb-popover-front')).toBe(true)
+    expect(ea.classList.contains('spb-popover-front')).toBe(false)
+
+    // Klick in das verdeckte Fenster holt es nach vorn.
+    pointer(ea.querySelector('.inner')!, 'pointerdown', 5, 5)
+    await nextTick()
+    expect(p.isFront('a')).toBe(true)
+    expect(ea.style.zIndex).toBe('2')
+    expect(ea.classList.contains('spb-popover-front')).toBe(true)
+    expect(eb.classList.contains('spb-popover-front')).toBe(false)
+
+    // Klick in der Leiste (openPopover) auf das offene, verdeckte Fenster.
+    p.openPopover('b')
+    await nextTick()
+    expect(eb.classList.contains('spb-popover-front')).toBe(true)
+    expect(eb.style.zIndex).toBe('2')
+
+    wa.unmount()
+    wb.unmount()
+  })
+})

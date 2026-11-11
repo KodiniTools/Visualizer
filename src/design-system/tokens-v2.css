@@ -45,6 +45,9 @@
   /* Effekte (theme-abhängig) */
   --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-accent);
   --ds-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.35);
+  /* Helligkeit verdeckter Overlays (filter: brightness) – das vorderste
+     Fenster wirkt dadurch heller als die Fenster dahinter. */
+  --ds-overlay-dim: 0.78;
 
   /* === Typografie === */
   --ds-font-sans: 'Supreme', sans-serif;
@@ -139,6 +142,7 @@
 
   --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-accent);
   --ds-shadow-overlay: 0 8px 24px rgba(20, 33, 58, 0.12);
+  --ds-overlay-dim: 0.93;
 }
 
 /* === Light (SSI-Partials, spiegelt .light-theme vollständig) === */
@@ -168,4 +172,5 @@
 
   --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-accent);
   --ds-shadow-overlay: 0 8px 24px rgba(20, 33, 58, 0.12);
+  --ds-overlay-dim: 0.93;
 }

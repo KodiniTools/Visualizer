@@ -1242,6 +1242,7 @@ export default {
     noResultsFor: 'No results for',
     favorites: 'Favorites',
     showFavorites: 'Show favorites only',
+    showAll: 'Show all',
     addFavorite: 'Add to favorites',
     removeFavorite: 'Remove from favorites',
     noFavorites: 'No favorites yet. Mark visualizers in the list with the star.',

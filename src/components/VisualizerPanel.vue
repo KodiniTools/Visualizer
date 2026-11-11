@@ -77,7 +77,11 @@
     <!-- Scrollbereich: Liste, Effekte, Layer -->
     <div class="panel-scroll">
       <!-- Kategorisierte Visualizer-Auswahl bzw. Suchergebnisse -->
-      <VisualizerTypeList :search-query="searchQuery" :favorites-only="favoritesOnly" />
+      <VisualizerTypeList
+        :search-query="searchQuery"
+        :favorites-only="favoritesOnly"
+        @show-all="favoritesOnly = false"
+      />
 
       <!-- Effekte und Multi-Layer liegen in eigenen Popovern der Player-Leiste -->
     </div>

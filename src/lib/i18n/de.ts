@@ -1244,6 +1244,7 @@ export default {
     noResultsFor: 'Keine Ergebnisse für',
     favorites: 'Favoriten',
     showFavorites: 'Nur Favoriten anzeigen',
+    showAll: 'Alle anzeigen',
     addFavorite: 'Zu Favoriten hinzufügen',
     removeFavorite: 'Aus Favoriten entfernen',
     noFavorites: 'Noch keine Favoriten. Markiere Visualizer in der Liste mit dem Stern.',

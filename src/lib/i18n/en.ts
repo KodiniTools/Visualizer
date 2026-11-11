@@ -1240,6 +1240,11 @@ export default {
     visualizerType: 'Visualizer Type',
     effects: 'effects',
     noResultsFor: 'No results for',
+    favorites: 'Favorites',
+    showFavorites: 'Show favorites only',
+    addFavorite: 'Add to favorites',
+    removeFavorite: 'Remove from favorites',
+    noFavorites: 'No favorites yet. Mark visualizers in the list with the star.',
     categories: {
       gpu: 'GPU Presets',
       laser: 'Laser',

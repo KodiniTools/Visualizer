@@ -35,22 +35,49 @@
         <span v-if="!store.showVisualizer" class="status-hint">{{ t('visualizer.disabled') }}</span>
       </div>
 
-      <!-- Suchfeld -->
+      <!-- Suchfeld + Favoriten-Umschalter -->
       <div class="control-section">
         <span class="section-label">{{ t('visualizer.search') }}</span>
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('visualizer.searchPlaceholder')"
-          class="search-input"
-        />
+        <div class="search-row">
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="t('visualizer.searchPlaceholder')"
+            class="search-input"
+          />
+          <UiButton
+            class="favorites-toggle"
+            :class="{ active: favoritesOnly }"
+            variant="secondary"
+            size="sm"
+            :aria-pressed="favoritesOnly"
+            :title="t('visualizer.showFavorites')"
+            @click="favoritesOnly = !favoritesOnly"
+          >
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                :fill="favoritesOnly ? 'currentColor' : 'none'"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.9l-5.25 2.7 1-5.8L3.5 9.7l5.9-.9z"
+                />
+              </svg>
+            </template>
+            {{ t('visualizer.favorites') }}
+            <span class="favorites-count">{{ favoritesStore.favoriteIds.length }}</span>
+          </UiButton>
+        </div>
       </div>
     </div>
 
     <!-- Scrollbereich: Liste, Effekte, Layer -->
     <div class="panel-scroll">
       <!-- Kategorisierte Visualizer-Auswahl bzw. Suchergebnisse -->
-      <VisualizerTypeList :search-query="searchQuery" />
+      <VisualizerTypeList :search-query="searchQuery" :favorites-only="favoritesOnly" />
 
       <!-- Effekte und Multi-Layer liegen in eigenen Popovern der Player-Leiste -->
     </div>
@@ -61,13 +88,18 @@
 import { ref, inject } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useVisualizerStore } from '../stores/visualizerStore'
+import { useVisualizerFavoritesStore } from '../stores/visualizerFavoritesStore'
+import { UiButton } from './ui'
 import HelpTooltip from './HelpTooltip.vue'
 import VisualizerTypeList from './visualizer-panel/VisualizerTypeList.vue'
 import type { PlayerBarContext } from './sticky-player-bar/playerBarContext'
 
 const { t } = useI18n()
 const store = useVisualizerStore()
+const favoritesStore = useVisualizerFavoritesStore()
 const searchQuery = ref('')
+/** Nur Favoriten anzeigen (Bereich „Favoriten“ neben der Suche). */
+const favoritesOnly = ref(false)
 // Player-Leiste (Popover-Verwaltung); null, wenn das Panel außerhalb der
 // Leiste gemountet wird – dann entfällt nur der Schnellzugriff-Button.
 const playerBar = inject<PlayerBarContext | null>('playerBar', null)
@@ -163,8 +195,34 @@ h4 {
   font-weight: var(--ds-weight-medium);
 }
 
+/* Suche + Favoriten-Umschalter in einer Zeile */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.favorites-toggle {
+  flex-shrink: 0;
+}
+
+.favorites-toggle.active {
+  border-color: var(--ds-accent);
+  color: var(--ds-accent);
+}
+
+.favorites-count {
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  background-color: var(--ds-accent-soft);
+  padding: 1px 5px;
+  border-radius: var(--ds-radius-md);
+}
+
 /* Search Input */
 .search-input {
+  flex: 1;
+  min-width: 0;
   width: 100%;
   padding: 6px 10px;
   background-color: var(--secondary-bg);

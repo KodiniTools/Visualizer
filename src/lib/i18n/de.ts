@@ -1242,6 +1242,11 @@ export default {
     visualizerType: 'Visualizer-Typ',
     effects: 'Effekte',
     noResultsFor: 'Keine Ergebnisse für',
+    favorites: 'Favoriten',
+    showFavorites: 'Nur Favoriten anzeigen',
+    addFavorite: 'Zu Favoriten hinzufügen',
+    removeFavorite: 'Aus Favoriten entfernen',
+    noFavorites: 'Noch keine Favoriten. Markiere Visualizer in der Liste mit dem Stern.',
     categories: {
       gpu: 'GPU-Presets',
       laser: 'Laser',

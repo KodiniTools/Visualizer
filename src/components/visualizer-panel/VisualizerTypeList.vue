@@ -1,9 +1,14 @@
 <template>
   <!-- Kategorisierte Visualizer-Auswahl -->
   <div class="control-section">
-    <span v-if="favoritesOnly" class="section-label"
-      >{{ t('visualizer.favorites') }} ({{ favoriteVisualizers.length }})</span
-    >
+    <div v-if="favoritesOnly" class="favorites-header">
+      <span class="section-label"
+        >{{ t('visualizer.favorites') }} ({{ favoriteVisualizers.length }})</span
+      >
+      <UiButton class="show-all-btn" variant="ghost" size="sm" @click="emit('showAll')">
+        {{ t('visualizer.showAll') }}
+      </UiButton>
+    </div>
     <span v-else class="section-label"
       >{{ t('visualizer.visualizerType') }} ({{ totalCount }} {{ t('visualizer.effects') }})</span
     >
@@ -103,6 +108,7 @@ import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
 import { useVisualizerFavoritesStore } from '../../stores/visualizerFavoritesStore'
 import VisualizerTypeRow from './VisualizerTypeRow.vue'
+import { UiButton } from '../ui'
 
 const props = withDefaults(
   defineProps<{
@@ -113,6 +119,11 @@ const props = withDefaults(
   }>(),
   { searchQuery: '', favoritesOnly: false },
 )
+
+const emit = defineEmits<{
+  /** Favoriten-Ansicht verlassen und wieder alle Visualizer zeigen. */
+  showAll: []
+}>()
 
 const { t } = useI18n()
 const store = useVisualizerStore()
@@ -263,6 +274,18 @@ const totalCount = computed(() => store.availableVisualizers.length)
   gap: 2px;
   padding: 3px;
   background-color: var(--card-bg);
+}
+
+.favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.favorites-header .section-label {
+  margin-bottom: 0;
 }
 
 .category-presets {

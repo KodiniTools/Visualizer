@@ -313,6 +313,20 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
       expect(wrapper.find('.category-list').exists()).toBe(true)
     })
 
+    it('führt über "Alle anzeigen" aus den Favoriten zurück zum ganzen Verzeichnis', async () => {
+      useVisualizerFavoritesStore().addFavorite(store.availableVisualizers[0]!.id)
+      const toggle = wrapper.find('.favorites-toggle')
+      expect(wrapper.find('.show-all-btn').exists()).toBe(false)
+      await toggle.trigger('click')
+      const showAll = wrapper.find('.show-all-btn')
+      expect(showAll.text()).toBe('Alle anzeigen')
+
+      await showAll.trigger('click')
+      expect(wrapper.find('.category-list').exists()).toBe(true)
+      expect(wrapper.find('.favorites-list').exists()).toBe(false)
+      expect(toggle.attributes('aria-pressed')).toBe('false')
+    })
+
     it('zeigt einen Hinweis, wenn es noch keine Favoriten gibt', async () => {
       await wrapper.find('.favorites-toggle').trigger('click')
       expect(wrapper.find('.favorites-empty').exists()).toBe(true)

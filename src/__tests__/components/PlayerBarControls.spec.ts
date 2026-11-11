@@ -165,6 +165,24 @@ describe('Player-Leiste – Popover-Knöpfe', () => {
     expect(byTitle(P.openRecorder).querySelector('.spb-rec-dot')).toBeTruthy()
   })
 
+  it('Lautstärke sitzt neben der Playersteuerung, vor Undo/Redo', async () => {
+    await mountBar()
+    const volume = byTitleStart(P.openVolume)!
+    const progress = root().querySelector('.spb-progress')!
+    expect(volume.parentElement).toBe(progress)
+    // direkt nach der Gesamtzeit
+    expect(volume.previousElementSibling?.classList.contains('time-display')).toBe(true)
+    expect(root().querySelector('.spb-actions .spb-volume-btn')).toBeNull()
+    // vor dem Undo-Knopf im Dokument
+    const undo = root().querySelector('[data-testid="history-undo"]')!
+    expect(volume.compareDocumentPosition(undo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    volume.click()
+    await nextTick()
+    expect(popover.isOpen('volume')).toBe(true)
+    expect(popover.isFront('volume')).toBe(true)
+  })
+
   it('Texte folgen der Sprache', async () => {
     const { setLocale } = useI18n()
     await setLocale('en')

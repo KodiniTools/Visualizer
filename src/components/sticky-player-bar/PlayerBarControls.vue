@@ -81,6 +81,21 @@
         </div>
       </div>
       <span class="time-display">{{ formatTime(playerStore.duration) }}</span>
+      <!-- Lautstärke & EQ gehört zur Wiedergabe: direkt neben Fortschritt/Zeit -->
+      <UiIconButton
+        class="spb-icon-btn spb-volume-btn"
+        :class="{ active: isActive('volume'), muted: playerStore.isMuted }"
+        v-bind="toggleProps('volume')"
+        :label="
+          playerStore.isMuted
+            ? `${t('player.openVolume')} (${t('player.muted')})`
+            : t('player.openVolume')
+        "
+        @click="onBarClick('volume', $event)"
+        @dblclick="onBarDblClick('volume')"
+      >
+        <PlayerIcon :icon="playerStore.isMuted ? ICONS.volumeMuted : ICONS.volume" />
+      </UiIconButton>
     </div>
 
     <!-- Right actions: popover toggles -->
@@ -133,21 +148,6 @@
         <span v-if="beatMarkerStore.markerCount > 0" class="spb-badge">{{
           beatMarkerStore.markerCount
         }}</span>
-      </UiIconButton>
-
-      <UiIconButton
-        class="spb-icon-btn spb-volume-btn"
-        :class="{ active: isActive('volume'), muted: playerStore.isMuted }"
-        v-bind="toggleProps('volume')"
-        :label="
-          playerStore.isMuted
-            ? `${t('player.openVolume')} (${t('player.muted')})`
-            : t('player.openVolume')
-        "
-        @click="onBarClick('volume', $event)"
-        @dblclick="onBarDblClick('volume')"
-      >
-        <PlayerIcon :icon="playerStore.isMuted ? ICONS.volumeMuted : ICONS.volume" />
       </UiIconButton>
 
       <UiIconButton
@@ -261,7 +261,7 @@ interface PopoverButton {
   badge?: number
 }
 
-/** Popover-Knöpfe zwischen Lautstärke und Aufnahme, in Anzeigereihenfolge. */
+/** Popover-Knöpfe zwischen Beat-Markern und Aufnahme, in Anzeigereihenfolge. */
 const popoverButtons = computed((): PopoverButton[] => [
   { id: 'playlist', label: 'player.openPlaylist', badge: playerStore.playlist.length },
   { id: 'gallery', label: 'player.openGallery' },

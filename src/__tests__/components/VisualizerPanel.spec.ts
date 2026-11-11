@@ -4,6 +4,10 @@ import { createPinia, setActivePinia } from 'pinia'
 import VisualizerPanel from '../../components/VisualizerPanel.vue'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
+import {
+  FAVORITES_STORAGE_KEY,
+  useVisualizerFavoritesStore,
+} from '../../stores/visualizerFavoritesStore'
 
 // Schwere Nachbar-Panels und das Bild-Picker-Widget werden gestubbt; getestet
 // wird das Zusammenspiel von VisualizerPanel mit seinen Sektionen.
@@ -250,5 +254,99 @@ describe('VisualizerPanel (aufgeteilt in Sektionen)', () => {
     expect(hits).toHaveLength(1)
     expect(hits[0]!.text()).toContain('Sonnenaufgang')
     expect(wrapper.find('.no-results').exists()).toBe(false)
+  })
+
+  describe('Favoriten', () => {
+    const rowOf = (name: string) =>
+      wrapper.findAll('.viz-row').find((r) => r.find('.visualizer-btn').text() === name)
+
+    it('hat pro Visualizer einen Stern, der Favoriten hinzufügt und entfernt', async () => {
+      const fav = useVisualizerFavoritesStore()
+      const first = Object.values(store.categorizedVisualizers)[0]![0]!
+      const selectedBefore = store.selectedVisualizer
+      const row = rowOf(first.name)!
+      const star = row.find('.fav-toggle')
+      expect(star.attributes('aria-pressed')).toBe('false')
+      expect(star.attributes('aria-label')).toBe('Zu Favoriten hinzufügen')
+
+      await star.trigger('click')
+      expect(fav.isFavorite(first.id)).toBe(true)
+      expect(star.attributes('aria-pressed')).toBe('true')
+      expect(star.attributes('aria-label')).toBe('Aus Favoriten entfernen')
+      // Der Stern wählt den Visualizer nicht aus
+      expect(store.selectedVisualizer).toBe(selectedBefore)
+
+      await star.trigger('click')
+      expect(fav.isFavorite(first.id)).toBe(false)
+    })
+
+    it('zeigt im Bereich Favoriten nur die gemerkten Visualizer und wählt per Klick aus', async () => {
+      const fav = useVisualizerFavoritesStore()
+      const [a, b] = store.availableVisualizers.filter((v) => v.id !== store.selectedVisualizer)
+      fav.addFavorite(b!.id)
+      fav.addFavorite(a!.id)
+      fav.addFavorite('entfernter-visualizer')
+      await wrapper.vm.$nextTick()
+
+      const toggle = wrapper.find('.favorites-toggle')
+      expect(toggle.text()).toContain('Favoriten')
+      expect(toggle.attributes('aria-pressed')).toBe('false')
+      await toggle.trigger('click')
+      expect(toggle.attributes('aria-pressed')).toBe('true')
+
+      expect(wrapper.find('.category-list').exists()).toBe(false)
+      const names = wrapper.findAll('.favorites-list .visualizer-btn').map((x) => x.text())
+      // Reihenfolge des Merkens, unbekannte IDs ausgelassen
+      expect(names).toEqual([b!.name, a!.name])
+      expect(wrapper.find('.panel-scroll .section-label').text()).toBe('Favoriten (2)')
+
+      await wrapper.findAll('.favorites-list .visualizer-btn')[1]!.trigger('click')
+      expect(store.selectedVisualizer).toBe(a!.id)
+
+      // Entfernen im Favoriten-Bereich nimmt den Eintrag sofort heraus
+      await wrapper.findAll('.favorites-list .fav-toggle')[0]!.trigger('click')
+      expect(wrapper.findAll('.favorites-list .visualizer-btn').map((x) => x.text())).toEqual([
+        a!.name,
+      ])
+
+      await toggle.trigger('click')
+      expect(wrapper.find('.category-list').exists()).toBe(true)
+    })
+
+    it('zeigt einen Hinweis, wenn es noch keine Favoriten gibt', async () => {
+      await wrapper.find('.favorites-toggle').trigger('click')
+      expect(wrapper.find('.favorites-empty').exists()).toBe(true)
+      expect(wrapper.findAll('.favorites-list .visualizer-btn')).toHaveLength(0)
+    })
+
+    it('filtert Favoriten mit dem Suchbegriff', async () => {
+      const fav = useVisualizerFavoritesStore()
+      const [a, b] = store.availableVisualizers
+      fav.addFavorite(a!.id)
+      fav.addFavorite(b!.id)
+      await wrapper.find('.favorites-toggle').trigger('click')
+      await wrapper.find('.search-input').setValue(b!.id)
+      const names = wrapper.findAll('.favorites-list .visualizer-btn').map((x) => x.text())
+      expect(names).toContain(b!.name)
+      expect(names).not.toContain(a!.name)
+
+      await wrapper.find('.search-input').setValue('xyz-gibt-es-nicht')
+      expect(wrapper.find('.favorites-list .no-results').exists()).toBe(true)
+      expect(wrapper.find('.favorites-empty').exists()).toBe(false)
+    })
+
+    it('lädt gespeicherte Favoriten aus dem localStorage', async () => {
+      wrapper.unmount()
+      const id = store.availableVisualizers[3]!.id
+      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([id]))
+      setActivePinia(createPinia())
+      const s = useVisualizerStore()
+      wrapper = mount(VisualizerPanel, { global: { stubs } })
+      expect(wrapper.find('.favorites-count').text()).toBe('1')
+      await wrapper.find('.favorites-toggle').trigger('click')
+      expect(wrapper.find('.favorites-list .visualizer-btn').text()).toBe(
+        s.availableVisualizers.find((v) => v.id === id)!.name,
+      )
+    })
   })
 })

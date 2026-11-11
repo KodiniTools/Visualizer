@@ -1,0 +1,65 @@
+/* Buttons der Visualizer-Liste (VisualizerTypeList + VisualizerTypeRow).
+   Per <style scoped src> eingebunden, damit die Klassen in beiden Scopes gelten. */
+
+/* Visualizer Buttons */
+.visualizer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.visualizer-btn {
+  width: 100%;
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--ds-radius-sm);
+  padding: 6px 10px;
+  font-size: var(--ds-text-xs);
+  cursor: pointer;
+  transition: all var(--ds-duration) var(--ds-ease);
+  text-align: left;
+  font-weight: var(--ds-weight-medium);
+}
+
+.visualizer-btn:hover {
+  background-color: var(--btn-hover);
+  border-color: var(--accent-primary);
+}
+
+.visualizer-btn.active {
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
+  border-color: var(--accent-primary);
+  font-weight: var(--ds-weight-semibold);
+}
+
+.visualizer-btn.active:hover {
+  background-color: var(--accent-tertiary);
+}
+
+.preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preset-btn .preset-badge {
+  margin-left: auto;
+  font-size: var(--ds-text-xs);
+  color: var(--text-muted);
+  background-color: var(--ds-accent-soft);
+  padding: 1px 5px;
+  border-radius: var(--ds-radius-md);
+}
+.preset-btn.active .preset-badge {
+  color: var(--accent-text);
+  background-color: color-mix(in srgb, var(--ds-surface-1) 20%, transparent);
+}
+
+[data-theme='light'] .visualizer-btn {
+  border-color: var(--border-color);
+}
+
+[data-theme='light'] .visualizer-btn.active:hover {
+  background-color: var(--accent-primary);
+}

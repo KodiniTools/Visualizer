@@ -1,12 +1,26 @@
 <template>
   <!-- Kategorisierte Visualizer-Auswahl -->
   <div class="control-section">
-    <span class="section-label"
+    <span v-if="favoritesOnly" class="section-label"
+      >{{ t('visualizer.favorites') }} ({{ favoriteVisualizers.length }})</span
+    >
+    <span v-else class="section-label"
       >{{ t('visualizer.visualizerType') }} ({{ totalCount }} {{ t('visualizer.effects') }})</span
     >
 
+    <!-- Favoriten (Umschalter neben der Suche); Suchbegriff filtert innerhalb -->
+    <div v-if="favoritesOnly" class="visualizer-buttons favorites-list">
+      <VisualizerTypeRow v-for="viz in shownFavorites" :key="viz.id" :viz="viz" />
+      <div v-if="favoriteVisualizers.length === 0" class="no-results favorites-empty">
+        {{ t('visualizer.noFavorites') }}
+      </div>
+      <div v-else-if="shownFavorites.length === 0" class="no-results">
+        {{ t('visualizer.noResultsFor') }} "{{ searchQuery }}"
+      </div>
+    </div>
+
     <!-- Suchergebnisse -->
-    <div v-if="searchQuery.trim()" class="visualizer-buttons">
+    <div v-else-if="searchQuery.trim()" class="visualizer-buttons">
       <button
         v-for="preset in filteredPresets"
         :key="preset.id"
@@ -18,15 +32,7 @@
         {{ preset.name }}
         <span class="preset-badge">{{ preset.layers.length }}</span>
       </button>
-      <button
-        v-for="viz in filteredVisualizers"
-        :key="viz.id"
-        class="visualizer-btn"
-        :class="{ active: !store.multiLayerMode && store.selectedVisualizer === viz.id }"
-        @click="store.selectVisualizer(viz.id)"
-      >
-        {{ viz.name }}
-      </button>
+      <VisualizerTypeRow v-for="viz in filteredVisualizers" :key="viz.id" :viz="viz" />
       <div
         v-if="filteredVisualizers.length === 0 && filteredPresets.length === 0"
         class="no-results"
@@ -83,15 +89,7 @@
           <span class="category-caret" aria-hidden="true"></span>
         </summary>
         <div class="category-content">
-          <button
-            v-for="viz in visualizers"
-            :key="viz.id"
-            class="visualizer-btn"
-            :class="{ active: !store.multiLayerMode && store.selectedVisualizer === viz.id }"
-            @click="store.selectVisualizer(viz.id)"
-          >
-            {{ viz.name }}
-          </button>
+          <VisualizerTypeRow v-for="viz in visualizers" :key="viz.id" :viz="viz" />
         </div>
       </details>
     </div>
@@ -103,18 +101,23 @@ import { ref, computed, nextTick } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { useVisualizerStore } from '../../stores/visualizerStore'
 import { useLayerPresetStore } from '../../stores/layerPresetStore'
+import { useVisualizerFavoritesStore } from '../../stores/visualizerFavoritesStore'
+import VisualizerTypeRow from './VisualizerTypeRow.vue'
 
 const props = withDefaults(
   defineProps<{
     /** Aktueller Suchbegriff; nicht-leer schaltet von Kategorien auf Trefferliste um. */
     searchQuery?: string
+    /** true = nur die gemerkten Favoriten zeigen (statt Kategorien). */
+    favoritesOnly?: boolean
   }>(),
-  { searchQuery: '' },
+  { searchQuery: '', favoritesOnly: false },
 )
 
 const { t } = useI18n()
 const store = useVisualizerStore()
 const layerPresetStore = useLayerPresetStore()
+const favoritesStore = useVisualizerFavoritesStore()
 
 // Schlüssel der Kategorie "Eigene Presets" (kein Visualizer-Kategorie-Key)
 const USER_PRESETS_CATEGORY = 'Eigene Presets'
@@ -154,14 +157,33 @@ function toggleCategory(category: string, event?: Event) {
   }
 }
 
+function matchesQuery(viz: { id: string; name: string }, query: string) {
+  return viz.name.toLowerCase().includes(query) || viz.id.toLowerCase().includes(query)
+}
+
 // Gefilterte Visualizer für Suche
 const filteredVisualizers = computed(() => {
   const query = props.searchQuery.toLowerCase().trim()
   if (!query) return []
 
-  return store.availableVisualizers.filter(
-    (viz) => viz.name.toLowerCase().includes(query) || viz.id.toLowerCase().includes(query),
-  )
+  return store.availableVisualizers.filter((viz) => matchesQuery(viz, query))
+})
+
+// Favoriten in der Reihenfolge des Merkens; unbekannte IDs (entfernte
+// Visualizer) werden ausgelassen, bleiben aber gespeichert.
+const favoriteVisualizers = computed(() => {
+  const byId = new Map(store.availableVisualizers.map((viz) => [viz.id, viz]))
+  return favoritesStore.favoriteIds.flatMap((id) => {
+    const viz = byId.get(id)
+    return viz ? [viz] : []
+  })
+})
+
+// Favoriten nach Suchbegriff gefiltert
+const shownFavorites = computed(() => {
+  const query = props.searchQuery.toLowerCase().trim()
+  if (!query) return favoriteVisualizers.value
+  return favoriteVisualizers.value.filter((viz) => matchesQuery(viz, query))
 })
 
 // Gespeicherte Layer-Presets, die zum Suchbegriff passen
@@ -176,6 +198,7 @@ const totalCount = computed(() => store.availableVisualizers.length)
 </script>
 
 <style scoped src="./visualizerPanelShared.css"></style>
+<style scoped src="./visualizerTypeButtons.css"></style>
 <style scoped>
 /* Category List */
 .category-list {
@@ -242,60 +265,6 @@ const totalCount = computed(() => store.availableVisualizers.length)
   background-color: var(--card-bg);
 }
 
-/* Visualizer Buttons */
-.visualizer-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.visualizer-btn {
-  width: 100%;
-  background-color: var(--secondary-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-sm);
-  padding: 6px 10px;
-  font-size: var(--ds-text-xs);
-  cursor: pointer;
-  transition: all var(--ds-duration) var(--ds-ease);
-  text-align: left;
-  font-weight: var(--ds-weight-medium);
-}
-
-.visualizer-btn:hover {
-  background-color: var(--btn-hover);
-  border-color: var(--accent-primary);
-}
-
-.visualizer-btn.active {
-  background-color: var(--accent-primary);
-  color: var(--accent-text);
-  border-color: var(--accent-primary);
-  font-weight: var(--ds-weight-semibold);
-}
-
-.visualizer-btn.active:hover {
-  background-color: var(--accent-tertiary);
-}
-
-.preset-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.preset-btn .preset-badge {
-  margin-left: auto;
-  font-size: var(--ds-text-xs);
-  color: var(--text-muted);
-  background-color: var(--ds-accent-soft);
-  padding: 1px 5px;
-  border-radius: var(--ds-radius-md);
-}
-.preset-btn.active .preset-badge {
-  color: var(--accent-text);
-  background-color: color-mix(in srgb, var(--ds-surface-1) 20%, transparent);
-}
 .category-presets {
   border-color: var(--ds-accent);
 }
@@ -316,13 +285,5 @@ const totalCount = computed(() => store.availableVisualizers.length)
 
 [data-theme='light'] .category-count {
   background-color: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-}
-
-[data-theme='light'] .visualizer-btn {
-  border-color: var(--border-color);
-}
-
-[data-theme='light'] .visualizer-btn.active:hover {
-  background-color: var(--accent-primary);
 }
 </style>

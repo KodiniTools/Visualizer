@@ -9,7 +9,7 @@ import { localeRef } from '../lib/i18n'
 
 const BASE = 'https://kodinitools.com/visualizer'
 
-const routes = [
+export const routes = [
   {
     path: '/',
     name: 'Landing',
@@ -62,10 +62,16 @@ const routes = [
     name: 'Visualizer',
     component: VisualizerApp,
     meta: {
-      title: 'App – Audio Visualizer Pro',
-      description: 'Audio Visualizer Pro – Musik-Visualisierung direkt im Browser.',
+      title: 'Audio Visualizer Pro – App: Musik visualisieren & als MP4 exportieren',
+      description:
+        'Audio Visualizer Pro direkt im Browser starten: Audio hochladen, aus 169 Visualizern wählen, Text und Bilder platzieren und das Ergebnis als MP4 exportieren – ohne Installation.',
       canonical: `${BASE}/app`,
-      robots: 'noindex, follow',
+      robots: 'index, follow',
+      en: {
+        title: 'Audio Visualizer Pro – App: Visualize Music & Export as MP4',
+        description:
+          'Launch Audio Visualizer Pro in your browser: upload audio, pick from 169 visualizers, place text and images and export the result as MP4 – no installation needed.',
+      },
     },
   },
 ]

@@ -1,6 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { fillSyntheticSpectrum, SYNTHETIC_BPM } from '../../../lib/landing/syntheticSpectrum'
-import { HERO_SHOWCASE, nextShowcaseIndex } from '../../../lib/landing/heroShowcase'
+import {
+  fillSyntheticSpectrum,
+  fillSyntheticWaveform,
+  SYNTHETIC_BPM,
+} from '../../../lib/landing/syntheticSpectrum'
+import {
+  HERO_SHOWCASE,
+  HERO_SHOWCASE_INTERVAL_MS,
+  nextShowcaseIndex,
+  shuffledOrder,
+} from '../../../lib/landing/heroShowcase'
 
 const avg = (a: Uint8Array, from: number, to: number) => {
   let s = 0
@@ -37,7 +46,53 @@ describe('fillSyntheticSpectrum', () => {
   })
 })
 
+describe('fillSyntheticWaveform', () => {
+  it('schwingt um die Ruhelage 128 und bleibt im Bytebereich', () => {
+    const a = fillSyntheticWaveform(new Uint8Array(1024), 2.5)
+    const mean = a.reduce((s, v) => s + v, 0) / a.length
+    expect(Math.abs(mean - 128)).toBeLessThan(10)
+    expect(Math.max(...a)).toBeGreaterThan(160)
+    expect(Math.min(...a)).toBeLessThan(96)
+  })
+
+  it('verändert sich über die Zeit', () => {
+    const a = Array.from(fillSyntheticWaveform(new Uint8Array(256), 1))
+    const b = Array.from(fillSyntheticWaveform(new Uint8Array(256), 1.1))
+    expect(a).not.toEqual(b)
+  })
+})
+
 describe('heroShowcase', () => {
+  it('shuffledOrder liefert jede Position genau einmal', () => {
+    let seed = 7
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
+    const order = shuffledOrder(15, rnd)
+    expect([...order].sort((x, y) => x - y)).toEqual(Array.from({ length: 15 }, (_, i) => i))
+    expect(shuffledOrder(0)).toEqual([])
+    expect(shuffledOrder(3, () => Number.NaN).sort()).toEqual([0, 1, 2])
+  })
+
+  it('enthält die 15 gewünschten Visualizer mit 5 s Anzeigedauer', () => {
+    expect(HERO_SHOWCASE.map((e) => e.id)).toEqual([
+      'glWaveform',
+      'glBars',
+      'glMandala',
+      'glRings',
+      'glLightRays',
+      'glTerrain',
+      'glPendulumSnake',
+      'glVuMeter',
+      'glLaserTunnel',
+      'glLaserBurst',
+      'glLedSunstrip',
+      'glLedDigit1',
+      'glLedLetterA',
+      'glLedFrameVu',
+      'glLaserGrid',
+    ])
+    expect(HERO_SHOWCASE_INTERVAL_MS).toBe(5000)
+  })
+
   it('nextShowcaseIndex läuft zyklisch und fängt ungültige Werte ab', () => {
     expect(nextShowcaseIndex(0, 5)).toBe(1)
     expect(nextShowcaseIndex(4, 5)).toBe(0)

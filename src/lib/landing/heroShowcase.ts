@@ -20,33 +20,84 @@ export interface HeroShowcaseEntry {
 }
 
 /** Wie lange jeder Visualizer zu sehen ist, bevor der nächste kommt */
-export const HERO_SHOWCASE_INTERVAL_MS = 8000
+export const HERO_SHOWCASE_INTERVAL_MS = 5000
 
+/** Auswahl von Kodini (2026-11-12); Reihenfolge wird pro Besuch gemischt. */
 export const HERO_SHOWCASE: readonly HeroShowcaseEntry[] = [
   {
-    id: 'glAurora',
-    color: '#e06cb0',
-    load: () => import('../visualizers/gl/presets/glAurora').then((m) => m.glAurora),
-  },
-  {
-    id: 'glRadialBars',
-    color: '#e0a955',
-    load: () => import('../visualizers/gl/presets/glRadialBars').then((m) => m.glRadialBars),
-  },
-  {
-    id: 'glGalaxy',
-    color: '#8b7cf6',
-    load: () => import('../visualizers/gl/presets/glGalaxy').then((m) => m.glGalaxy),
-  },
-  {
-    id: 'glSphere',
+    id: 'glWaveform',
     color: '#4fd1c5',
-    load: () => import('../visualizers/gl/presets/glSphere').then((m) => m.glSphere),
+    load: () => import('../visualizers/gl/presets/glWaveform').then((m) => m.glWaveform),
   },
   {
-    id: 'glStageLights',
+    id: 'glBars',
     color: '#e0a955',
-    load: () => import('../visualizers/gl/presets/glStageLights').then((m) => m.glStageLights),
+    load: () => import('../visualizers/gl/presets/glBars').then((m) => m.glBars),
+  },
+  {
+    id: 'glMandala',
+    color: '#e06cb0',
+    load: () => import('../visualizers/gl/presets/glMandala').then((m) => m.glMandala),
+  },
+  {
+    id: 'glRings',
+    color: '#8b7cf6',
+    load: () => import('../visualizers/gl/presets/glRings').then((m) => m.glRings),
+  },
+  {
+    id: 'glLightRays',
+    color: '#e0a955',
+    load: () => import('../visualizers/gl/presets/glLightRays').then((m) => m.glLightRays),
+  },
+  {
+    id: 'glTerrain',
+    color: '#4fd1c5',
+    load: () => import('../visualizers/gl/presets/glTerrain').then((m) => m.glTerrain),
+  },
+  {
+    id: 'glPendulumSnake',
+    color: '#e06cb0',
+    load: () => import('../visualizers/gl/presets/glPendulumSnake').then((m) => m.glPendulumSnake),
+  },
+  {
+    id: 'glVuMeter',
+    color: '#4ade80',
+    load: () => import('../visualizers/gl/presets/glVuMeter').then((m) => m.glVuMeter),
+  },
+  {
+    id: 'glLaserTunnel',
+    color: '#8b7cf6',
+    load: () => import('../visualizers/gl/presets/glLaserTunnel').then((m) => m.glLaserTunnel),
+  },
+  {
+    id: 'glLaserBurst',
+    color: '#ef4444',
+    load: () => import('../visualizers/gl/presets/glLaserBurst').then((m) => m.glLaserBurst),
+  },
+  {
+    id: 'glLedSunstrip',
+    color: '#f59e0b',
+    load: () => import('../visualizers/gl/presets/glLedSunstrip').then((m) => m.glLedSunstrip),
+  },
+  {
+    id: 'glLedDigit1',
+    color: '#ef4444',
+    load: () => import('../visualizers/gl/presets/glLedDigits').then((m) => m.glLedDigit1),
+  },
+  {
+    id: 'glLedLetterA',
+    color: '#4fd1c5',
+    load: () => import('../visualizers/gl/presets/glLedDigits').then((m) => m.glLedLetterA),
+  },
+  {
+    id: 'glLedFrameVu',
+    color: '#4ade80',
+    load: () => import('../visualizers/gl/presets/glLedFrames').then((m) => m.glLedFrameVu),
+  },
+  {
+    id: 'glLaserGrid',
+    color: '#22d3ee',
+    load: () => import('../visualizers/gl/presets/glLaserGrid').then((m) => m.glLaserGrid),
   },
 ]
 
@@ -55,4 +106,22 @@ export function nextShowcaseIndex(current: number, length: number): number {
   if (!Number.isInteger(length) || length <= 0) return 0
   if (!Number.isInteger(current) || current < 0) return 0
   return (current + 1) % length
+}
+
+/**
+ * Zufällige Reihenfolge der Indizes 0…length-1 (Fisher-Yates). Jeder
+ * Visualizer kommt einmal dran, bevor sich die Runde wiederholt.
+ * @param random - Zufallsquelle [0, 1) (Tests)
+ */
+export function shuffledOrder(length: number, random: () => number = Math.random): number[] {
+  const n = Number.isInteger(length) && length > 0 ? length : 0
+  const order = Array.from({ length: n }, (_, i) => i)
+  for (let i = n - 1; i > 0; i--) {
+    const r = random()
+    const j = Math.min(i, Math.max(0, Math.floor((Number.isFinite(r) ? r : 0) * (i + 1))))
+    const tmp = order[i] as number
+    order[i] = order[j] as number
+    order[j] = tmp
+  }
+  return order
 }

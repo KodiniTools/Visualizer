@@ -91,11 +91,12 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from '../../lib/i18n'
 import { UiIconButton } from '../ui'
-import { fillSyntheticSpectrum } from '../../lib/landing/syntheticSpectrum'
+import { fillSyntheticSpectrum, fillSyntheticWaveform } from '../../lib/landing/syntheticSpectrum'
 import {
   HERO_SHOWCASE,
   HERO_SHOWCASE_INTERVAL_MS,
   nextShowcaseIndex,
+  shuffledOrder,
   type HeroShowcaseEntry,
 } from '../../lib/landing/heroShowcase'
 import type { VisualizerDefinition } from '../../lib/visualizers/core/types'
@@ -106,8 +107,14 @@ const props = withDefaults(
     entries?: readonly HeroShowcaseEntry[]
     /** Anzeigedauer je Visualizer in ms */
     intervalMs?: number
+    /** Zufallsquelle für die Reihenfolge (Tests); Standard Math.random */
+    random?: () => number
   }>(),
-  { entries: () => HERO_SHOWCASE, intervalMs: HERO_SHOWCASE_INTERVAL_MS },
+  {
+    entries: () => HERO_SHOWCASE,
+    intervalMs: HERO_SHOWCASE_INTERVAL_MS,
+    random: () => Math.random(),
+  },
 )
 
 const { t } = useI18n()
@@ -134,6 +141,10 @@ const currentEntry = computed(() => props.entries[index.value])
 const currentName = computed(() =>
   currentEntry.value ? t(`hero.showcase.names.${currentEntry.value.id}`) : '',
 )
+
+// Zufällige Reihenfolge pro Besuch; jeder Eintrag einmal pro Runde.
+const order = shuffledOrder(props.entries.length, props.random)
+let orderPos = 0
 
 const data = new Uint8Array(BUFFER_LENGTH)
 const loaded = new Map<string, VisualizerDefinition>()
@@ -189,7 +200,7 @@ async function activate(i: number): Promise<void> {
     /* Vorschau läuft auch ohne init */
   }
   // Nächsten Eintrag schon vorladen, damit der Wechsel ohne Lücke klappt.
-  const upcoming = props.entries[nextShowcaseIndex(i, props.entries.length)]
+  const upcoming = props.entries[order[nextShowcaseIndex(orderPos, order.length)] ?? 0]
   if (upcoming) void loadVisualizer(upcoming)
   if (!playing.value) renderStill()
 }
@@ -218,7 +229,8 @@ function drawFrame(dtMs: number): void {
   const { width: w, height: h } = canvas
 
   elapsed += dtMs / 1000
-  fillSyntheticSpectrum(data, elapsed)
+  if (active.needsTimeData) fillSyntheticWaveform(data, elapsed)
+  else fillSyntheticSpectrum(data, elapsed)
   if (sharedState) sharedState._dtMs = dtMs
 
   ctx.save()
@@ -285,7 +297,8 @@ function togglePlaying(): void {
 /** Zum nächsten Visualizer wechseln (mit kurzer Überblendung). */
 function showNext(): void {
   if (fading.value || props.entries.length < 2) return
-  const target = nextShowcaseIndex(index.value, props.entries.length)
+  orderPos = nextShowcaseIndex(orderPos, order.length)
+  const target = order[orderPos] ?? 0
   fading.value = true
   shownMs = 0
   if (fadeTimer) clearTimeout(fadeTimer)
@@ -327,7 +340,7 @@ onMounted(async () => {
     intersection.observe(rootEl.value)
   }
 
-  await activate(0)
+  await activate(order[0] ?? 0)
   updateLoop()
 })
 

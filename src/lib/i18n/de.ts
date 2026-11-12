@@ -54,9 +54,11 @@ export default {
     ],
   },
   video: {
-    title: 'Der Podcast-Visualizer: So einfach funktioniert es',
+    title: 'Dein Podcast, sichtbar gemacht',
     subtitle:
-      'Schau dir an, wie du aus deinen Audio-Aufnahmen im Handumdrehen packende visuelle Erlebnisse für deine Hörer machst',
+      'So sieht ein Podcast mit dem Visualizer aus: Die Audio-Welle bewegt sich mit jeder Stimme und macht aus eurem Gespräch ein Video für YouTube, Instagram und TikTok.',
+    imageAlt:
+      'Zwei Personen im Podcast-Studio, zwischen ihnen bewegt sich eine leuchtende Audio-Welle im Takt des Gesprächs',
     placeholder: 'Demo-Video kommt bald',
   },
   faq: {

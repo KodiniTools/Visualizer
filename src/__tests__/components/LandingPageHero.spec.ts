@@ -59,3 +59,18 @@ describe('LandingPage – Hero-Visual', () => {
     expect(fig().attributes('aria-label')).toBe(en.hero.showcase.label)
   })
 })
+
+describe('LandingPage – Podcast-Abschnitt', () => {
+  it('zeigt den Podcast-Text statt des Tutorial-Texts und ein beschriebenes Bild', async () => {
+    const section = () => wrapper.find('.video-section')
+    expect(section().find('.section-title').text()).toBe(de.video.title)
+    expect(section().find('.section-subtitle').text()).toBe(de.video.subtitle)
+    expect(section().find('img').attributes('alt')).toBe(de.video.imageAlt)
+    expect(de.video.title).not.toMatch(/funktioniert/)
+
+    await setLocale('en')
+    await flushPromises()
+    expect(section().find('.section-title').text()).toBe(en.video.title)
+    expect(section().find('img').attributes('alt')).toBe(en.video.imageAlt)
+  })
+})

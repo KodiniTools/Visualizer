@@ -8,8 +8,19 @@ export default {
       'Create stunning audio visualizations for social media, music videos and more. Free, directly in your browser.',
     cta: 'Start Visualizer',
     learnMore: 'Learn more',
-    imageAlt:
-      'Runner between glowing pink and turquoise light waves, symbolizing audio visualization',
+    showcase: {
+      label: 'Live preview of selected visualizers',
+      pause: 'Pause preview',
+      play: 'Play preview',
+      next: 'Next visualizer',
+      names: {
+        glAurora: 'Aurora',
+        glRadialBars: 'Radial Bars',
+        glGalaxy: 'Galaxy',
+        glSphere: 'Audio Sphere',
+        glStageLights: 'Stage Lights',
+      },
+    },
   },
   features: {
     title: 'Powerful Features',

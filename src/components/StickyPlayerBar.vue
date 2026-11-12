@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { ref, provide, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { usePlayerPopover, isOutsidePopoverClick } from '../composables/usePlayerPopover'
 import { usePlayerVolumeEq } from '../composables/usePlayerVolumeEq'
 import { usePlayMode } from '../composables/usePlayMode'
@@ -45,29 +45,73 @@ import { usePlaylistManager } from '../composables/usePlaylistManager'
 import { useBgSettings } from '../composables/useBgSettings'
 import { useVideoPanel } from '../composables/useVideoPanel'
 import TextManagerPopover from './sticky-player-bar/TextManagerPopover.vue'
-import AudioSourcePopover from './sticky-player-bar/AudioSourcePopover.vue'
-import VolumeEqPopover from './sticky-player-bar/VolumeEqPopover.vue'
-import BeatMarkerPopover from './sticky-player-bar/BeatMarkerPopover.vue'
-import PlaylistPopover from './sticky-player-bar/PlaylistPopover.vue'
-import GalleryPopover from './sticky-player-bar/GalleryPopover.vue'
-import PresetsPopover from './sticky-player-bar/PresetsPopover.vue'
-import AudioReactivePopover from './sticky-player-bar/AudioReactivePopover.vue'
-import TextAudioReactivePopover from './sticky-player-bar/TextAudioReactivePopover.vue'
-import ShapesPopover from './sticky-player-bar/ShapesPopover.vue'
-import CanvasFormatPopover from './sticky-player-bar/CanvasFormatPopover.vue'
-import ScreenshotPopover from './sticky-player-bar/ScreenshotPopover.vue'
-import VisualizerPopover from './sticky-player-bar/VisualizerPopover.vue'
-import VisualizerControlsPopover from './sticky-player-bar/VisualizerControlsPopover.vue'
-import MultiLayerPopover from './sticky-player-bar/MultiLayerPopover.vue'
-import EffectsPopover from './sticky-player-bar/EffectsPopover.vue'
-import CanvasControlPopover from './sticky-player-bar/CanvasControlPopover.vue'
-import VideoPopover from './sticky-player-bar/VideoPopover.vue'
-import RecorderPopover from './sticky-player-bar/RecorderPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
 import { SLIDESHOW_EDIT_EVENT } from '../lib/slideshowEditRequest'
 import { SHAPES_OPEN_EVENT } from '../lib/shapes/shapeInteraction'
 import type { PlayerBarContext } from './sticky-player-bar/playerBarContext'
+
+// Popover, die nur bei Bedarf (v-if) gerendert werden, liegen in eigenen
+// Chunks: ihr JS und CSS gehört nicht in den kritischen Ladepfad von /app.
+// Bei der ersten Interaktion mit der Seite (Zeiger, Tastatur, Fokus) werden
+// sie vorgeladen, damit das erste Öffnen nicht auf das Netz wartet. Erst dann,
+// weil das Auswerten der Chunks samt CSS sonst den Seitenstart belastet.
+const popoverLoaders = {
+  AudioSourcePopover: () => import('./sticky-player-bar/AudioSourcePopover.vue'),
+  VolumeEqPopover: () => import('./sticky-player-bar/VolumeEqPopover.vue'),
+  BeatMarkerPopover: () => import('./sticky-player-bar/BeatMarkerPopover.vue'),
+  PlaylistPopover: () => import('./sticky-player-bar/PlaylistPopover.vue'),
+  GalleryPopover: () => import('./sticky-player-bar/GalleryPopover.vue'),
+  PresetsPopover: () => import('./sticky-player-bar/PresetsPopover.vue'),
+  AudioReactivePopover: () => import('./sticky-player-bar/AudioReactivePopover.vue'),
+  TextAudioReactivePopover: () => import('./sticky-player-bar/TextAudioReactivePopover.vue'),
+  ShapesPopover: () => import('./sticky-player-bar/ShapesPopover.vue'),
+  CanvasFormatPopover: () => import('./sticky-player-bar/CanvasFormatPopover.vue'),
+  ScreenshotPopover: () => import('./sticky-player-bar/ScreenshotPopover.vue'),
+  VisualizerPopover: () => import('./sticky-player-bar/VisualizerPopover.vue'),
+  VisualizerControlsPopover: () => import('./sticky-player-bar/VisualizerControlsPopover.vue'),
+  MultiLayerPopover: () => import('./sticky-player-bar/MultiLayerPopover.vue'),
+  EffectsPopover: () => import('./sticky-player-bar/EffectsPopover.vue'),
+  CanvasControlPopover: () => import('./sticky-player-bar/CanvasControlPopover.vue'),
+  VideoPopover: () => import('./sticky-player-bar/VideoPopover.vue'),
+  RecorderPopover: () => import('./sticky-player-bar/RecorderPopover.vue'),
+}
+const AudioSourcePopover = defineAsyncComponent(popoverLoaders.AudioSourcePopover)
+const VolumeEqPopover = defineAsyncComponent(popoverLoaders.VolumeEqPopover)
+const BeatMarkerPopover = defineAsyncComponent(popoverLoaders.BeatMarkerPopover)
+const PlaylistPopover = defineAsyncComponent(popoverLoaders.PlaylistPopover)
+const GalleryPopover = defineAsyncComponent(popoverLoaders.GalleryPopover)
+const PresetsPopover = defineAsyncComponent(popoverLoaders.PresetsPopover)
+const AudioReactivePopover = defineAsyncComponent(popoverLoaders.AudioReactivePopover)
+const TextAudioReactivePopover = defineAsyncComponent(popoverLoaders.TextAudioReactivePopover)
+const ShapesPopover = defineAsyncComponent(popoverLoaders.ShapesPopover)
+const CanvasFormatPopover = defineAsyncComponent(popoverLoaders.CanvasFormatPopover)
+const ScreenshotPopover = defineAsyncComponent(popoverLoaders.ScreenshotPopover)
+const VisualizerPopover = defineAsyncComponent(popoverLoaders.VisualizerPopover)
+const VisualizerControlsPopover = defineAsyncComponent(popoverLoaders.VisualizerControlsPopover)
+const MultiLayerPopover = defineAsyncComponent(popoverLoaders.MultiLayerPopover)
+const EffectsPopover = defineAsyncComponent(popoverLoaders.EffectsPopover)
+const CanvasControlPopover = defineAsyncComponent(popoverLoaders.CanvasControlPopover)
+const VideoPopover = defineAsyncComponent(popoverLoaders.VideoPopover)
+const RecorderPopover = defineAsyncComponent(popoverLoaders.RecorderPopover)
+
+const PREFETCH_EVENTS = ['pointerover', 'pointerdown', 'keydown', 'focusin', 'touchstart'] as const
+let popoversPrefetched = false
+
+function prefetchPopovers() {
+  if (popoversPrefetched) return
+  popoversPrefetched = true
+  removePrefetchListeners()
+  for (const load of Object.values(popoverLoaders)) {
+    load().catch((error: unknown) =>
+      console.warn('[StickyPlayerBar] Popover-Vorladen fehlgeschlagen:', error),
+    )
+  }
+}
+
+function removePrefetchListeners() {
+  for (const type of PREFETCH_EVENTS) document.removeEventListener(type, prefetchPopovers, true)
+}
 
 const barRef = ref<HTMLElement | null>(null)
 
@@ -135,8 +179,14 @@ onMounted(() => {
   window.addEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.addEventListener('openTextEditorWithChar', openTextManager)
   window.addEventListener(SLIDESHOW_EDIT_EVENT, openSlideshow)
+  if (!popoversPrefetched) {
+    for (const type of PREFETCH_EVENTS) {
+      document.addEventListener(type, prefetchPopovers, { capture: true, passive: true })
+    }
+  }
 })
 onUnmounted(() => {
+  removePrefetchListeners()
   document.removeEventListener('pointerdown', onDocumentPointerDown, true)
   window.removeEventListener(SHAPES_OPEN_EVENT, openShapes)
   window.removeEventListener('openTextEditorWithChar', openTextManager)

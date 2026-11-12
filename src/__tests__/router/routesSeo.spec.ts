@@ -32,3 +32,15 @@ describe('Route-Meta: Indexierung', () => {
     expect(meta.en.description.length).toBeGreaterThan(50)
   })
 })
+
+describe('Route-Komponenten: Code-Splitting', () => {
+  it('Landing, Blog und Interner Bereich werden erst bei Bedarf geladen', () => {
+    for (const path of ['/', '/blog', '/internal']) {
+      expect(typeof routes.find((r) => r.path === path)!.component).toBe('function')
+    }
+  })
+
+  it('/app bleibt statisch eingebunden (kein zusätzlicher Request)', () => {
+    expect(typeof routes.find((r) => r.path === '/app')!.component).toBe('object')
+  })
+})

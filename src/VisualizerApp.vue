@@ -7,8 +7,10 @@
     <div class="layout-grid">
       <aside class="left-toolbar" :class="{ 'mobile-visible': mobilePanel === 'left' }">
         <!-- Text-Manager liegt in einem eigenen Popover der Player-Leiste -->
-        <TickerPanel />
-        <FotoPanel />
+        <template v-if="sidePanelsReady">
+          <TickerPanel />
+          <FotoPanel />
+        </template>
         <!-- Video liegt in einem eigenen Popover der Player-Leiste -->
       </aside>
 
@@ -73,7 +75,7 @@
           @accept="acceptHandoff"
           @reject="rejectHandoff"
         />
-        <FileUploadPanel />
+        <FileUploadPanel v-if="sidePanelsReady" />
         <!-- Canvas-Steuerung liegt in einem eigenen Popover der Player-Leiste -->
       </aside>
     </div>
@@ -158,6 +160,7 @@ import ImagePreviewModal from './components/canvas-bar/ImagePreviewModal.vue'
 import ReplaceGalleryModal from './components/canvas-bar/ReplaceGalleryModal.vue'
 
 import { CUSTOM_FONTS } from './lib/fonts'
+import { yieldToMain } from './utils/yieldToMain'
 import { FontManager } from './lib/fontManager'
 import { startLazyFontLoading } from './composables/visualizerApp/lazyFonts'
 import { bindAudioElementEvents } from './composables/visualizerApp/audioElementEvents'
@@ -412,7 +415,14 @@ watch(
 )
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
+// Die Seitenleisten werden einen Task nach dem Grundgerüst gerendert, damit
+// der erste Mount nicht als ein einziger langer Task den Main-Thread blockiert.
+const sidePanelsReady = ref(false)
+
 onMounted(async () => {
+  void yieldToMain().then(() => {
+    sidePanelsReady.value = true
+  })
   // Canvas availability watcher — register before any await. initializeCanvas
   // is idempotent, so calling it whenever the canvas appears is safe.
   watch(
@@ -425,6 +435,9 @@ onMounted(async () => {
 
   // Workers + Audio data
   await globalAudioData.init()
+  // Die folgende Einrichtung ist ein großer synchroner Block; vorher den
+  // Main-Thread freigeben, damit er nicht an die Worker-Antwort angehängt wird.
+  await yieldToMain()
 
   // Fonts – erst bei der ersten Interaktion laden (siehe lazyFonts.js)
   fontManagerInstance.value = new FontManager()
@@ -469,6 +482,7 @@ onMounted(async () => {
   })
 
   await recorderSetup.initializeRecorder()
+  await yieldToMain()
 
   // Sync recording canvas size with display canvas
   watchRecordingCanvasSize({ canvasRef, getRecordingCanvas })

@@ -77,7 +77,7 @@
       <div class="video-container">
         <img
           :src="`${baseUrl}gallery/videos/podcast.gif`"
-          alt="Visualizer Demo"
+          :alt="t('video.imageAlt')"
           class="demo-gif"
           loading="lazy"
         />

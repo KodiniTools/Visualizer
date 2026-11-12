@@ -54,8 +54,11 @@ export default {
     ],
   },
   video: {
-    title: 'How it works',
-    subtitle: 'See how easy it is to create stunning visualizations',
+    title: 'Your podcast, made visible',
+    subtitle:
+      'This is what a podcast looks like with the Visualizer: the audio wave moves with every voice and turns your conversation into a video for YouTube, Instagram and TikTok.',
+    imageAlt:
+      'Two people in a podcast studio with a glowing audio wave between them that moves with the conversation',
     placeholder: 'Demo video coming soon',
   },
   faq: {

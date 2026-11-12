@@ -47,15 +47,7 @@
         </div>
       </div>
       <div class="hero-visual">
-        <img
-          :src="`${baseUrl}visualizer.webp`"
-          :alt="t('hero.imageAlt')"
-          class="hero-image"
-          width="1200"
-          height="670"
-          fetchpriority="high"
-          decoding="async"
-        />
+        <HeroVisualizerShowcase />
       </div>
     </section>
 
@@ -230,6 +222,7 @@ import { useLandingContentStore } from '../stores/landingContent'
 import AdminPanel from './admin/AdminPanel.vue'
 import LoginModal from './admin/LoginModal.vue'
 import { UiIconButton } from './ui'
+import HeroVisualizerShowcase from './landing/HeroVisualizerShowcase.vue'
 import { getBlogArticlesNewestFirst } from '../data/blogArticles'
 
 const { t, locale } = useI18n()
@@ -629,13 +622,6 @@ function toggleFaq(index: number) {
 
 .hero-visual {
   display: none;
-}
-
-.hero-image {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--ds-radius-lg);
 }
 
 /* Section Styling */

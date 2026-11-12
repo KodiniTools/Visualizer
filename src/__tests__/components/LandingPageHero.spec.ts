@@ -7,7 +7,7 @@ import { setLocale } from '../../lib/i18n'
 import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 
-// Hero-Visual der Landing-Page: statisches Bild statt animierter Balken.
+// Hero-Visual der Landing-Page: Live-Vorschau ausgewählter Visualizer.
 const stubs = { AdminPanel: true, LoginModal: true }
 
 let wrapper: VueWrapper
@@ -43,25 +43,19 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('LandingPage – Hero-Bild', () => {
-  it('zeigt visualizer.webp statt der Balken-Animation', () => {
-    const img = wrapper.find('.hero-visual img.hero-image')
-    expect(img.exists()).toBe(true)
-    expect(img.attributes('src')).toMatch(/visualizer\.webp$/)
-    expect(img.attributes('width')).toBe('1200')
-    expect(img.attributes('height')).toBe('670')
-    expect(wrapper.find('.wave-bar').exists()).toBe(false)
-    expect(wrapper.find('.visualizer-preview').exists()).toBe(false)
+describe('LandingPage – Hero-Visual', () => {
+  it('zeigt die Live-Vorschau statt des statischen Bilds', () => {
+    expect(wrapper.find('.hero-visual .hero-showcase').exists()).toBe(true)
+    expect(wrapper.find('.hero-visual canvas').exists()).toBe(true)
+    expect(wrapper.find('.hero-visual img').exists()).toBe(false)
   })
 
-  it('setzt den alt-Text passend zur Sprache', async () => {
-    const img = () => wrapper.find('.hero-image')
-    expect(de.hero.imageAlt).toBeTruthy()
-    expect(img().attributes('alt')).toBe(de.hero.imageAlt)
+  it('beschriftet die Vorschau passend zur Sprache', async () => {
+    const fig = () => wrapper.find('.hero-showcase')
+    expect(fig().attributes('aria-label')).toBe(de.hero.showcase.label)
 
     await setLocale('en')
     await flushPromises()
-    expect(en.hero.imageAlt).toBeTruthy()
-    expect(img().attributes('alt')).toBe(en.hero.imageAlt)
+    expect(fig().attributes('aria-label')).toBe(en.hero.showcase.label)
   })
 })

@@ -622,3 +622,89 @@ describe('useVideoPanel – Zeit-Tick', () => {
     expect(vp.videoTimeUpdateKey.value).toBe(start + 4)
   })
 })
+
+describe('useVideoPanel – Galerie-Video löschen nimmt es vom Canvas', () => {
+  /** VideoManager-Attrappe, die removeVideo wirklich ausführt */
+  function realRemove(vm: FakeVm) {
+    vm.removeVideo = (id: unknown) => {
+      L('vm.removeVideo', id)
+      vm.videos = vm.videos.filter((v) => v.id !== id)
+    }
+  }
+
+  it('deleteVideo entfernt Canvas-Videos und Hintergründe dieser Quelle, andere bleiben', async () => {
+    const { cm, vm } = mountPanel()
+    realRemove(vm!)
+    await uploadVideo('a.mp4') // blob:1
+    await uploadVideo('b.mp4') // blob:2
+    const fromA = { id: 'ca', videoElement: fakeVideo('ca', { src: 'blob:1' }) }
+    const fromB = { id: 'cb', videoElement: fakeVideo('cb', { src: 'blob:2' }) }
+    const fromA2 = { id: 'ca2', videoElement: fakeVideo('ca2', { src: 'blob:1' }) }
+    vm!.videos = [fromA, fromB, fromA2]
+    cm.activeObject = fromB // Auswahl eines anderen Videos bleibt erhalten
+    const bgEl = fakeVideo('bg', { src: 'blob:1' })
+    const wsEl = fakeVideo('ws', { src: 'blob:2' })
+    cm.videoBackground = { videoElement: bgEl }
+    cm.workspaceVideoBackground = { videoElement: wsEl }
+    log.length = 0
+
+    vp.deleteVideo(0)
+
+    expect(vm!.videos.map((v) => v.id)).toEqual(['cb'])
+    expect((cm.activeObject as { id: string }).id).toBe('cb')
+    expect(cm.videoBackground).toBeNull()
+    expect(bgEl.src).toBe('')
+    expect(cm.workspaceVideoBackground).toEqual({ videoElement: wsEl })
+    expect(vp.videoGallery.value.map((v) => v.name)).toEqual(['b'])
+    expect(log).toEqual([
+      'rec.disconnect <ca>',
+      'vm.removeVideo ca',
+      'rec.disconnect <ca2>',
+      'vm.removeVideo ca2',
+      'bg.pause',
+      'bg.src= ',
+      'cm.redraw',
+      'URL.revoke blob:1',
+    ])
+  })
+
+  it('hebt die Auswahl auf, wenn das ausgewählte Video entfernt wird', async () => {
+    const { cm, vm } = mountPanel()
+    realRemove(vm!)
+    await uploadVideo('a.mp4')
+    const fromA = { id: 'ca', videoElement: fakeVideo('ca', { src: 'blob:1' }) }
+    vm!.videos = [fromA]
+    cm.activeObject = fromA
+
+    vp.deleteVideo(0)
+
+    expect(vm!.videos).toEqual([])
+    expect(cm.activeObject).toBeNull()
+  })
+
+  it('clearAllVideos entfernt alle Videos aus der Galerie vom Canvas', async () => {
+    const { cm, vm } = mountPanel()
+    realRemove(vm!)
+    await uploadVideo('a.mp4')
+    await uploadVideo('b.mp4')
+    vm!.videos = [
+      { id: 'ca', videoElement: fakeVideo('ca', { src: 'blob:1' }) },
+      { id: 'cb', videoElement: fakeVideo('cb', { src: 'blob:2' }) },
+      { id: 'fremd', videoElement: fakeVideo('fremd', { src: 'blob:99' }) },
+    ]
+    cm.workspaceVideoBackground = { videoElement: fakeVideo('ws', { src: 'blob:2' }) }
+
+    vp.clearAllVideos()
+
+    expect(vm!.videos.map((v) => v.id)).toEqual(['fremd'])
+    expect(cm.workspaceVideoBackground).toBeNull()
+    expect(vp.videoGallery.value).toEqual([])
+  })
+
+  it('ohne Video-Manager löscht nur die Galerie', async () => {
+    mountPanel({ noVm: true })
+    await uploadVideo('a.mp4')
+    vp.deleteVideo(0)
+    expect(vp.videoGallery.value).toEqual([])
+  })
+})

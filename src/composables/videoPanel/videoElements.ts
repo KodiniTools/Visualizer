@@ -40,6 +40,15 @@ export function createVideoElement(
   return video
 }
 
+/**
+ * Spielt das Element die Quelle `src` ab (z. B. die Blob-URL eines
+ * Galerie-Videos)? Leere Quellen passen nie.
+ */
+export function playsSource(video: HTMLVideoElement | null | undefined, src: string): boolean {
+  if (!video || !src) return false
+  return video.src === src || video.currentSrc === src
+}
+
 /** Zu einer Zeit springen (Wert aus einem Regler, daher parseFloat). */
 export function seekTo(video: HTMLVideoElement, time: string | number): void {
   video.currentTime = parseFloat(time as string)

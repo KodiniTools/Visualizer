@@ -6,6 +6,7 @@ import {
   seekForwardBy,
   displayVolume,
   setBackgroundVideoVolume,
+  playsSource,
 } from './videoElements'
 
 /** Schlüssel der Hintergrund-Videos im CanvasManager */
@@ -96,6 +97,13 @@ export function useBackgroundVideo(
     console.log(`🗑️ ${label} entfernt`)
   }
 
+  /** Hintergrund entfernen, falls er die Quelle `src` abspielt (gelöschtes Galerie-Video). */
+  function removeIfSource(src: string): boolean {
+    if (!playsSource(element(), src)) return false
+    remove()
+    return true
+  }
+
   return {
     entry,
     isPlaying,
@@ -108,5 +116,6 @@ export function useBackgroundVideo(
     seekForward,
     updateVolume,
     remove,
+    removeIfSource,
   }
 }

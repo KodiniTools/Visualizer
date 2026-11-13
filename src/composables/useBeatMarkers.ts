@@ -1,7 +1,11 @@
 import { ref, watch, onMounted, onUnmounted, inject, toRaw, type Ref } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { usePlayerStore } from '../stores/playerStore'
-import { useBeatMarkerStore, type BeatMarkerAction } from '../stores/beatMarkerStore'
+import {
+  useBeatMarkerStore,
+  type BeatMarker,
+  type BeatMarkerAction,
+} from '../stores/beatMarkerStore'
 import { useVisualizerStore } from '../stores/visualizerStore'
 import { useBackgroundBridgeStore, type BackgroundSnapshot } from '../stores/backgroundBridgeStore'
 import { useMarkerTransitionStore } from '../stores/markerTransitionStore'
@@ -65,11 +69,20 @@ import {
   type CanvasVideoPlacement,
   type MarkerCanvasVideoAction,
 } from './beatMarkers/useMarkerCanvasVideos'
+import {
+  markerTrackDuck,
+  markerTrackOffset,
+  markerTrackVolume,
+  useMarkerAudioTracks,
+  type MarkerAudioTrackAction,
+} from './beatMarkers/useMarkerAudioTracks'
 import type { CanvasManagerRef } from './types'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
 // dieser Zeit erneut übernehmen, damit sie nicht im nächsten Nutzer-Schritt landen.
 const MARKER_MEDIA_SETTLE_MS = 3000
+/** Standard-Lautstärke des Songs beim Ducking (%) */
+const DEFAULT_DUCK_PERCENT = 30
 
 /** Verweis eines Markers auf ein Galerie-Bild (kein Bildinhalt) */
 export interface MarkerBackgroundImageRef {
@@ -96,7 +109,8 @@ export type MarkerAction = BeatMarkerAction & {
   imageLabel?: string | null
   backgroundImage?: MarkerBackgroundImageRef | null
   video?: MarkerVideoRef | null
-} & MarkerCanvasVideoAction
+} & MarkerCanvasVideoAction &
+  MarkerAudioTrackAction
 
 /** Optionen für useBeatMarkers */
 export interface UseBeatMarkersOptions {
@@ -156,6 +170,16 @@ export function useBeatMarkers(
     formatLabel: (layer, name) =>
       `${t('videoPanel.videoLabel')} ${layer}${name ? ` — ${name}` : ''}`,
   })
+  // Playlist-Track, der am Marker zusätzlich einsetzt (gemischt)
+  const audioTracks = useMarkerAudioTracks({
+    playlist: () => playerStore.playlist,
+    markers: () =>
+      beatMarkerStore.markers.map((m) => ({
+        id: m.id,
+        time: m.time,
+        action: m.action as MarkerAction,
+      })),
+  })
 
   const showMarkerPanel = ref(false)
   const editingMarkerId = ref<number | null>(null)
@@ -198,6 +222,14 @@ export function useBeatMarkers(
   // ein hochgeladenes Video, das beim Speichern platziert wird; '' = keins).
   // Erscheint zum Marker-Zeitpunkt mit Einblend-Effekt und startet von vorn.
   const newMarkerCanvasVideoId = ref<VideoObject['id'] | ''>('')
+  // Playlist-Track (URL des Tracks, '' = keiner), der zum Marker-Zeitpunkt
+  // zusätzlich zum laufenden Song einsetzt; Lautstärke in %, Start im Track in s
+  const newMarkerAudioTrack = ref('')
+  const newMarkerAudioVolume = ref(100)
+  const newMarkerAudioOffset = ref(0)
+  // Ducking: Song während des Tracks auf newMarkerAudioDuckLevel % absenken
+  const newMarkerAudioDuck = ref(false)
+  const newMarkerAudioDuckLevel = ref(DEFAULT_DUCK_PERCENT)
   // Animation des Hintergrund-Bildes; neue Marker übernehmen die im Foto-Panel
   // eingestellte „Animation beim Hinzufügen“
   const newMarkerBgImageAnimation = ref<ImageTimedAnimation>(createImageAnimation())
@@ -724,6 +756,11 @@ export function useBeatMarkers(
       if (canvasVideo) {
         elements.push({ kind: 'canvasVideo', seconds: canvasVideos.displaySeconds(canvasVideo) })
       }
+      if (action.audioTrack) {
+        // Länge unbekannt (wird noch ermittelt) → erst danach mitzählen
+        const seconds = audioTracks.displaySeconds(action.audioTrack)
+        if (seconds !== null) elements.push({ kind: 'audioTrack', seconds })
+      }
       const video = action.video ? findGalleryVideo(videoGallery.value, action.video) : null
       if (video) {
         elements.push(videoElement(video, isMarkerVideoLoop(action.video)))
@@ -764,6 +801,15 @@ export function useBeatMarkers(
     }
     const canvasVideo = canvasVideos.pendingDisplaySeconds(newMarkerCanvasVideoId.value)
     if (canvasVideo.found) elements.push({ kind: 'canvasVideo', seconds: canvasVideo.seconds })
+    if (newMarkerAudioTrack.value) {
+      const total = audioTracks.trackDuration(newMarkerAudioTrack.value)
+      if (total !== null) {
+        elements.push({
+          kind: 'audioTrack',
+          seconds: Math.max(0, total - Math.max(0, newMarkerAudioOffset.value || 0)),
+        })
+      }
+    }
     const videoId = newMarkerVideoId.value
     const video = isSet(videoId) ? videoGallery.value.find((v) => v.id === videoId) : undefined
     if (video) {
@@ -1159,6 +1205,7 @@ export function useBeatMarkers(
       mim.redrawCallback?.()
     }
     canvasVideos.seek(time, videoTriggeredAt)
+    audioTracks.seek(time)
     canvasManager.value?.redrawCallback?.()
   }
 
@@ -1185,6 +1232,17 @@ export function useBeatMarkers(
     } else {
       applyMarkerAction(action)
     }
+  }
+
+  /**
+   * Ausgelöster Marker: Ein eingefügter Playlist-Track setzt sofort ein (auch
+   * mit Übergang, damit er exakt auf dem Drop liegt), dann folgen Szene und
+   * Elemente über runMarkerTrigger.
+   */
+  const triggerMarker = (marker: BeatMarker, allowTransition: boolean) => {
+    if (!marker.action) return
+    audioTracks.apply({ id: marker.id, time: marker.time, action: marker.action as MarkerAction })
+    runMarkerTrigger(marker.action, allowTransition)
   }
 
   /**
@@ -1231,6 +1289,11 @@ export function useBeatMarkers(
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
     newMarkerCanvasVideoId.value = ''
+    newMarkerAudioTrack.value = ''
+    newMarkerAudioVolume.value = 100
+    newMarkerAudioOffset.value = 0
+    newMarkerAudioDuck.value = false
+    newMarkerAudioDuckLevel.value = DEFAULT_DUCK_PERCENT
     newMarkerBgImageAnimation.value = loadImageAnimation()
     newMarkerPlacedImageAnimation.value = loadImageAnimation()
     showMarkerPanel.value = true
@@ -1272,6 +1335,13 @@ export function useBeatMarkers(
     newMarkerVideoLoop.value = isMarkerVideoLoop(marker.action?.video)
     // Gelöschtes Canvas-Video: Auswahl leeren
     newMarkerCanvasVideoId.value = canvasVideos.editSelection(marker.action?.canvasVideoId)
+    // Track nicht mehr in der Playlist: Auswahl leeren
+    newMarkerAudioTrack.value = audioTracks.editSelection(marker.action?.audioTrack)
+    newMarkerAudioVolume.value = Math.round(markerTrackVolume(marker.action?.audioTrack) * 100)
+    newMarkerAudioOffset.value = markerTrackOffset(marker.action?.audioTrack)
+    const duck = markerTrackDuck(marker.action?.audioTrack)
+    newMarkerAudioDuck.value = duck !== null
+    newMarkerAudioDuckLevel.value = duck !== null ? Math.round(duck * 100) : DEFAULT_DUCK_PERCENT
     newMarkerPlacedImageAnimation.value = loadImageAnimation()
     newMarkerBgImageAnimation.value = cloneImageAnimation(
       marker.action?.backgroundImage?.timedAnimation,
@@ -1400,6 +1470,12 @@ export function useBeatMarkers(
       video: video,
       canvasVideoId: canvasVideoId,
       canvasVideoLabel: canvasVideoLabel,
+      audioTrack: audioTracks.resolveSelection(
+        newMarkerAudioTrack.value,
+        newMarkerAudioVolume.value / 100,
+        newMarkerAudioOffset.value,
+        newMarkerAudioDuck.value ? newMarkerAudioDuckLevel.value / 100 : null,
+      ),
     }
     let markerId: number
     if (editingMarkerId.value !== null) {
@@ -1439,6 +1515,13 @@ export function useBeatMarkers(
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
     newMarkerCanvasVideoId.value = ''
+    newMarkerAudioTrack.value = ''
+    newMarkerAudioVolume.value = 100
+    newMarkerAudioOffset.value = 0
+    newMarkerAudioDuck.value = false
+    newMarkerAudioDuckLevel.value = DEFAULT_DUCK_PERCENT
+    // Track eines geänderten bzw. entfernten Marker-Tracks anhalten
+    audioTracks.reconcile()
     // Texte und Formen, die keinem Marker mehr zugewiesen sind, wieder einblenden.
     reconcileTextMarkers()
     reconcileShapeMarkers() // Läuft die Wiedergabe schon und liegt der Marker noch vor uns, erscheint
@@ -1481,12 +1564,14 @@ export function useBeatMarkers(
     reconcileShapeMarkers()
     reconcileImageMarkers()
     canvasVideos.reconcile()
+    audioTracks.reconcile()
   }
 
   const clearAllMarkers = () => {
     if (confirm(t('player.confirmDeleteMarkers'))) {
       // Vor dem Leeren: Marker-Videos anhalten und einblenden
       canvasVideos.restore()
+      audioTracks.stopAll()
       beatMarkerStore.clearAllMarkers()
       restoreTextMarkers()
       restoreShapeMarkers()
@@ -1535,9 +1620,7 @@ export function useBeatMarkers(
     }
     const crossed = beatMarkerStore.checkCrossing(lastFrameTime, time)
     lastFrameTime = time
-    for (const marker of crossed) {
-      if (marker.action) runMarkerTrigger(marker.action, true)
-    }
+    for (const marker of crossed) triggerMarker(marker, true)
   }
 
   const isFrameLoopAlive = () => performance.now() - lastFrameAt < FRAME_ALIVE_MS
@@ -1554,9 +1637,7 @@ export function useBeatMarkers(
       // Sprünge übernimmt der Seek-Watcher unten (resetTriggers)
       if (newTime < oldTime || newTime - oldTime > SEEK_JUMP_SECONDS) return
       const crossed = beatMarkerStore.checkCrossing(oldTime, newTime)
-      for (const marker of crossed) {
-        if (marker.action) runMarkerTrigger(marker.action, true)
-      }
+      for (const marker of crossed) triggerMarker(marker, true)
     },
   )
 
@@ -1575,6 +1656,7 @@ export function useBeatMarkers(
         // Beim Zurückspulen an den Anfang die von Markern gesteuerten Texte
         // wieder einblenden (Marker blenden sie beim nächsten Start erneut aus).
         if (newTime < 0.5) {
+          audioTracks.stopAll()
           restoreTextMarkers()
           restoreShapeMarkers()
           restoreImageMarkers()
@@ -1598,6 +1680,8 @@ export function useBeatMarkers(
       if (!isPlaying) {
         // Marker greifen nur während der Wiedergabe ein: Bei Pause/Stopp ist
         // alles sichtbar und frei bearbeitbar (Hintergrund bleibt, wie er ist).
+        // Eingefügte Playlist-Tracks halten an.
+        audioTracks.stopAll()
         restoreTextMarkers()
         restoreShapeMarkers()
         restoreImageMarkers()
@@ -1621,11 +1705,10 @@ export function useBeatMarkers(
       activateShapeMarkers()
       activateImageMarkers()
       canvasVideos.activate()
+      audioTracks.stopAll()
       const triggered = beatMarkerStore.checkTrigger(playerStore.currentTime)
-      if (triggered && triggered.action) {
-        // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
-        runMarkerTrigger(triggered.action, false)
-      }
+      // Start-Marker (0:00): sofort anwenden, ohne Übergang (nichts zum Ausblenden)
+      if (triggered) triggerMarker(triggered, false)
     },
   )
 
@@ -1634,6 +1717,7 @@ export function useBeatMarkers(
     () => beatMarkerStore.markersEnabled,
     (enabled) => {
       if (!enabled) {
+        audioTracks.stopAll()
         restoreTextMarkers()
         restoreShapeMarkers()
         restoreImageMarkers()
@@ -1674,6 +1758,7 @@ export function useBeatMarkers(
     unsubscribeFrame = null
     unsubscribeEdits?.()
     unsubscribeEdits = null
+    audioTracks.dispose()
     // Von Markern ausgeblendete Texte und Formen beim Verlassen wiederherstellen.
     restoreTextMarkers()
     restoreShapeMarkers()
@@ -1700,6 +1785,11 @@ export function useBeatMarkers(
     newMarkerVideoId,
     newMarkerVideoLoop,
     newMarkerCanvasVideoId,
+    newMarkerAudioTrack,
+    newMarkerAudioVolume,
+    newMarkerAudioOffset,
+    newMarkerAudioDuck,
+    newMarkerAudioDuckLevel,
     newMarkerBgImageAnimation,
     newMarkerPlacedImageAnimation,
     getMarkerCanvasImage,
@@ -1716,6 +1806,8 @@ export function useBeatMarkers(
     getMarkerCanvasVideos: canvasVideos.getMarkerCanvasVideos,
     getMarkerVideoGallery: canvasVideos.getMarkerVideoGallery,
     getMarkerCanvasVideoLabel: canvasVideos.canvasVideoLabel,
+    getMarkerPlaylistTracks: audioTracks.getMarkerPlaylistTracks,
+    getMarkerTrackDuration: audioTracks.trackDuration,
     getMarkerDuration,
     getPendingMarkerDuration,
     updateMarkerTimeFromInput,

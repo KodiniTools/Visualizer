@@ -17,10 +17,13 @@ import { useAudioSourceStore } from '../../stores/audioSourceStore'
 import { stub } from '../helpers/canvasStubs'
 
 const ENGINE_KEYS = [
+  'connectTrackOverlay',
   'connectVideoToRecording',
   'disconnectVideoFromRecording',
   'getAudioStreamForRecorder',
   'setBassGain',
+  'setPlayerDuck',
+  'setTrackOverlayVolume',
   'setTrebleGain',
   'setVideoVolume',
   'switchAudioSource',

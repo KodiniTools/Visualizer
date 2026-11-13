@@ -1053,6 +1053,17 @@ export default {
     placeUploadedVideo: 'Hochgeladenes Video platzieren',
     newCanvasVideoHint:
       'Das Video wird beim Hinzufügen mit den Platzierungs-Einstellungen aus dem Video-Panel (Effekt, Dauer, Größe, Wiederholen, Stumm) auf den Canvas gelegt und erscheint erst zum Marker-Zeitpunkt.',
+    markerAudioTrack: 'Track aus Playlist',
+    noMarkerAudioTrack: '-- Kein Track --',
+    emptyMarkerPlaylist: 'Playlist ist leer – zuerst Audio-Dateien hochladen',
+    markerAudioTrackHint:
+      'Der Track setzt zum Marker-Zeitpunkt zusätzlich zum laufenden Song ein (gemischt). Er ist in der Aufnahme zu hören, steuert den Visualizer mit und hält bei Pause an.',
+    markerAudioVolume: 'Lautstärke des Tracks',
+    markerAudioOffset: 'Start im Track (s)',
+    markerAudioDuck: 'Musik absenken (Ducking)',
+    markerAudioDuckLevel: 'Musik-Lautstärke während des Tracks',
+    markerAudioDuckHint:
+      'Solange der Track läuft, wird der Song weich auf diesen Wert abgesenkt und danach wieder angehoben – ideal für Sprachaufnahmen.',
     transition: 'Crossfade',
     transitionHint: 'Weiche Überblendung (Crossfade) beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',

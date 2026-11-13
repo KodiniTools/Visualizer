@@ -34,6 +34,7 @@ export type MarkerElementKind =
   | 'video'
   | 'canvasVideo'
   | 'shape'
+  | 'audioTrack'
 
 /** Anzeigedauer eines Elements; `seconds === null` = dauerhaft */
 export interface MarkerElementDuration {

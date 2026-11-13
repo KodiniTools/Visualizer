@@ -1052,6 +1052,17 @@ export default {
     placeUploadedVideo: 'Place uploaded video',
     newCanvasVideoHint:
       'The video is placed on the canvas with the placement settings from the video panel (effect, duration, size, loop, mute) when you add the marker and only appears at the marker time.',
+    markerAudioTrack: 'Playlist track',
+    noMarkerAudioTrack: '-- No track --',
+    emptyMarkerPlaylist: 'Playlist is empty – upload audio files first',
+    markerAudioTrackHint:
+      'The track starts at the marker time on top of the current song (mixed). It is included in recordings, drives the visualizer too and pauses with playback.',
+    markerAudioVolume: 'Track volume',
+    markerAudioOffset: 'Start in track (s)',
+    markerAudioDuck: 'Lower music (ducking)',
+    markerAudioDuckLevel: 'Music volume while the track plays',
+    markerAudioDuckHint:
+      'While the track plays, the song fades down to this level and back up afterwards – ideal for voice-overs.',
     transition: 'Crossfade',
     transitionHint: 'Smooth crossfade when switching markers during playback',
     label: 'Label',

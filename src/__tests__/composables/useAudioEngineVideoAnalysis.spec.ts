@@ -190,3 +190,56 @@ describe('useAudioEngine – Video-Ton in der Analyse', () => {
     expect(engine.isVideoAudioPlaying()).toBe(false)
   })
 })
+
+describe('useAudioEngine – Playlist-Track eines Beat-Markers', () => {
+  it('läuft wie der Player in Lautsprecher, Aufnahme und Analyse', async () => {
+    setupEngine()
+    const { getAudioEngine } = await import('../../lib/audioEngineBridge')
+    const api = getAudioEngine()!
+    const audio = {} as HTMLAudioElement
+    expect(api.connectTrackOverlay(audio, 0.5)).toBe(true)
+    const source = lastVideoSource()
+    expect(reaches(source, analyser)).toBe(true)
+    // Weg über den Bass-Filter → EQ, Ausgang und Aufnahme wie beim Player
+    const gain = source.targets[0] as FakeNode
+    expect(gain.gain.value).toBe(0.5)
+    expect(gain.targets.some((n) => n.kind === 'biquad')).toBe(true)
+
+    // Zweites Verbinden erzeugt keine neue Quelle, setzt nur die Lautstärke
+    const sources = created.filter((n) => n.kind === 'mediaSource').length
+    expect(api.connectTrackOverlay(audio, 0.2)).toBe(true)
+    expect(created.filter((n) => n.kind === 'mediaSource')).toHaveLength(sources)
+    expect(gain.gain.value).toBe(0.2)
+    api.setTrackOverlayVolume(audio, 0)
+    expect(reaches(source, analyser)).toBe(false)
+  })
+
+  it('Ducking senkt nur den Song, nicht Marker-Track und Analyse', async () => {
+    const { playerSource } = setupEngine()
+    const { getAudioEngine } = await import('../../lib/audioEngineBridge')
+    const api = getAudioEngine()!
+    api.connectTrackOverlay({} as HTMLAudioElement, 1)
+    const overlay = lastVideoSource()
+    const duckGain = playerSource.targets.find((n) =>
+      n.targets.some((t) => t.kind === 'biquad'),
+    ) as FakeNode
+    api.setPlayerDuck(0)
+    expect(duckGain.gain.value).toBe(0)
+    // Song erreicht den EQ nicht mehr, der Marker-Track schon
+    const biquad = duckGain.targets[0] as FakeNode
+    expect(reaches(playerSource, biquad)).toBe(false)
+    // (Bass-Filter hat gain = 0 dB → direkte Verbindung prüfen)
+    expect(overlay.targets[0]?.targets).toContain(biquad)
+    // Analyse bleibt am Song
+    expect(reaches(playerSource, analyser)).toBe(true)
+    api.setPlayerDuck(1)
+    expect(duckGain.gain.value).toBe(1)
+  })
+
+  it('ohne eingerichtete Engine: false, Element spielt direkt', async () => {
+    const engine = useAudioEngine({ audioRef: ref(null), audioSourceStore: store })
+    engine.registerEngine()
+    const { getAudioEngine } = await import('../../lib/audioEngineBridge')
+    expect(getAudioEngine()!.connectTrackOverlay({} as HTMLAudioElement, 1)).toBe(false)
+  })
+})

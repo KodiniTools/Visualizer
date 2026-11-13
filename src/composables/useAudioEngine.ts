@@ -5,6 +5,8 @@ import type { usePlayerStore } from '../stores/playerStore'
 
 const SILENT_GAIN = 0.0001
 const ACTIVE_GAIN = 1
+/** Blendzeit beim Ducking (s) */
+const DUCK_RAMP_SECONDS = 0.3
 
 /** Ältere Safari-Versionen kennen nur webkitAudioContext */
 type AudioContextCtor = typeof AudioContext
@@ -29,6 +31,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
   let analyser: AnalyserNode | null = null
   let sourceNode: MediaElementAudioSourceNode | null = null
   let outputGain: GainNode | null = null
+  // Ducking: senkt nur den Player (Haupt-Song) ab, z.B. unter Sprachaufnahmen
+  // aus Beat-Markern. Die Visualizer-Analyse bleibt unberührt.
+  let playerDuckGain: GainNode | null = null
   let recordingDest: MediaStreamAudioDestinationNode | null = null
   let recordingGain: GainNode | null = null
   let bassFilter: BiquadFilterNode | null = null
@@ -43,6 +48,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
   let microphoneAnalyser: AnalyserNode | null = null
 
   const videoSourceNodes = new Map<HTMLMediaElement, VideoAudioNodes>()
+  // Zusätzliche Playlist-Tracks (Beat-Marker): wie der Player über EQ,
+  // Ausgang (Stumm), Aufnahme und Analyse
+  const trackOverlayNodes = new Map<HTMLMediaElement, VideoAudioNodes>()
   let videoRecordingGain: GainNode | null = null
 
   // Analyse-Eingang: Player und Video-Ton laufen über je einen Gain in den
@@ -94,7 +102,10 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
 
     recordingDest = audioContext.createMediaStreamDestination()
 
-    sourceNode.connect(bassFilter)
+    playerDuckGain = audioContext.createGain()
+    playerDuckGain.gain.value = ACTIVE_GAIN
+    sourceNode.connect(playerDuckGain)
+    playerDuckGain.connect(bassFilter)
     bassFilter.connect(trebleFilter)
     trebleFilter.connect(outputGain)
     outputGain.connect(audioContext.destination)
@@ -388,6 +399,62 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
   }
 
   /**
+   * Hängt ein zusätzliches Audio-Element (Playlist-Track eines Beat-Markers)
+   * wie den Player in die Engine: Bass/Höhen, Lautsprecher (inkl. Stumm),
+   * Aufnahme und Visualizer-Analyse. Ein Element kann nur einmal verbunden
+   * werden (createMediaElementSource) – Aufrufer verwenden es daher weiter.
+   * @returns false, solange die Engine nicht eingerichtet ist
+   */
+  function connectTrackOverlay(element: HTMLMediaElement, volume = 1): boolean {
+    const existing = trackOverlayNodes.get(element)
+    if (existing) {
+      existing.gainNode.gain.value = volume
+      return true
+    }
+    if (!audioContext || !bassFilter || !playerAnalysisGain) return false
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {})
+    }
+    try {
+      const source = audioContext.createMediaElementSource(element)
+      const gainNode = audioContext.createGain()
+      gainNode.gain.value = volume
+      source.connect(gainNode)
+      gainNode.connect(bassFilter)
+      gainNode.connect(playerAnalysisGain)
+      trackOverlayNodes.set(element, { sourceNode: source, gainNode })
+      return true
+    } catch (error) {
+      console.error('[AudioEngine] Fehler beim Verbinden des Marker-Tracks:', error)
+      return false
+    }
+  }
+
+  function setTrackOverlayVolume(element: HTMLMediaElement, volume: number) {
+    const nodes = trackOverlayNodes.get(element)
+    if (nodes) nodes.gainNode.gain.value = volume
+  }
+
+  /**
+   * Ducking: Lautstärke des Haupt-Songs (Lautsprecher und Aufnahme) weich auf
+   * `level` (0–1) blenden; 1 = normal. Marker-Tracks bleiben unverändert.
+   */
+  function setPlayerDuck(level: number, rampSeconds = DUCK_RAMP_SECONDS) {
+    if (!playerDuckGain) return
+    const target = Number.isFinite(level) ? Math.min(1, Math.max(0, level)) : ACTIVE_GAIN
+    const param = playerDuckGain.gain
+    if (audioContext && typeof param.setTargetAtTime === 'function') {
+      const now = audioContext.currentTime
+      param.cancelScheduledValues(now)
+      param.setValueAtTime(param.value, now)
+      // Zeitkonstante: nach ~3τ ist das Ziel praktisch erreicht
+      param.setTargetAtTime(target, now, Math.max(0.001, rampSeconds / 3))
+    } else {
+      param.value = target
+    }
+  }
+
+  /**
    * Liefert den Audio-Stream für den Recorder.
    * @param options withMic=false verbindet das Mikrofon
    *   nicht (kein getUserMedia) – für die Initialisierung beim Seitenaufruf. Jede
@@ -448,6 +515,9 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
       connectVideoToRecording,
       disconnectVideoFromRecording,
       setVideoVolume,
+      connectTrackOverlay,
+      setTrackOverlayVolume,
+      setPlayerDuck,
       getAudioStreamForRecorder: createCombinedAudioStream,
       setBassGain,
       setTrebleGain,

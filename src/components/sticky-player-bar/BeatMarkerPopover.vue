@@ -294,6 +294,60 @@
         }}
       </p>
 
+      <!-- Track aus der Playlist, der zum Marker-Zeitpunkt dazugemischt wird -->
+      <UiSelect
+        :model-value="newMarkerAudioTrack"
+        :label="t('player.markerAudioTrack')"
+        :options="audioTrackSelectOptions"
+        :title="t('player.markerAudioTrackHint')"
+        size="sm"
+        class="marker-audio-track"
+        @update:model-value="newMarkerAudioTrack = String($event)"
+      />
+      <template v-if="newMarkerAudioTrack !== ''">
+        <p class="form-hint marker-form-hint">{{ t('player.markerAudioTrackHint') }}</p>
+        <div class="form-field">
+          <span class="form-label">{{ t('player.markerAudioVolume') }} (%)</span>
+          <SliderField
+            v-model="newMarkerAudioVolume"
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="100"
+            :aria-label="t('player.markerAudioVolume')"
+            class="marker-audio-volume"
+          />
+        </div>
+        <div class="form-field">
+          <span class="form-label">{{ t('player.markerAudioOffset') }}</span>
+          <SliderField
+            v-model="newMarkerAudioOffset"
+            :min="0"
+            :max="audioOffsetMax"
+            :step="0.1"
+            :default-value="0"
+            :aria-label="t('player.markerAudioOffset')"
+            class="marker-audio-offset"
+          />
+        </div>
+        <span class="form-switch" :title="t('player.markerAudioDuckHint')">
+          <UiSwitch v-model="newMarkerAudioDuck" :label="t('player.markerAudioDuck')" />
+        </span>
+        <div v-if="newMarkerAudioDuck" class="form-field">
+          <span class="form-label">{{ t('player.markerAudioDuckLevel') }} (%)</span>
+          <SliderField
+            v-model="newMarkerAudioDuckLevel"
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="30"
+            :aria-label="t('player.markerAudioDuckLevel')"
+            class="marker-audio-duck"
+          />
+          <span class="form-hint">{{ t('player.markerAudioDuckHint') }}</span>
+        </div>
+      </template>
+
       <UiTextField
         v-model="newMarkerLabel"
         :label="t('player.label')"
@@ -415,6 +469,13 @@
           }}</span
         >
         <span
+          v-if="marker.action.audioTrack"
+          class="marker-action marker-action-audio"
+          :title="`${marker.action.audioTrack.name} — ${t('player.markerAudioTrackHint')}`"
+          >🎵 {{ marker.action.audioTrack.name
+          }}{{ typeof marker.action.audioTrack.duck === 'number' ? ' 🔉' : '' }}</span
+        >
+        <span
           v-if="durationChip(marker)"
           class="marker-action marker-action-duration"
           :title="durationChip(marker)?.title"
@@ -508,6 +569,11 @@ const {
   newMarkerVideoId,
   newMarkerVideoLoop,
   newMarkerCanvasVideoId,
+  newMarkerAudioTrack,
+  newMarkerAudioVolume,
+  newMarkerAudioOffset,
+  newMarkerAudioDuck,
+  newMarkerAudioDuckLevel,
   newMarkerBgImageAnimation,
   newMarkerPlacedImageAnimation,
   getMarkerCanvasImage,
@@ -524,6 +590,8 @@ const {
   getMarkerCanvasVideos,
   getMarkerVideoGallery,
   getMarkerCanvasVideoLabel,
+  getMarkerPlaylistTracks,
+  getMarkerTrackDuration,
   getMarkerDuration,
   getPendingMarkerDuration,
   pendingMarkerTime,
@@ -771,6 +839,23 @@ const placedImageSelectOptions = computed(() => [
     })),
   ),
 ])
+
+// Tracks der Audio-Playlist (reaktiv auf die Playlist)
+const audioTrackSelectOptions = computed(() => {
+  const tracks = getMarkerPlaylistTracks()
+  return [
+    { value: '', label: t('player.noMarkerAudioTrack') },
+    ...(tracks.length === 0
+      ? [{ value: '__empty-playlist', label: t('player.emptyMarkerPlaylist'), disabled: true }]
+      : tracks.map((track) => ({ value: track.value, label: `${track.number}. ${track.name}` }))),
+  ]
+})
+
+// Startposition höchstens bis kurz vor Trackende; Länge unbekannt → 10 min
+const audioOffsetMax = computed(() => {
+  const total = getMarkerTrackDuration(newMarkerAudioTrack.value)
+  return total !== null ? Math.max(0, Math.floor(total * 10) / 10 - 0.1) : 600
+})
 
 const canvasVideoSelectOptions = computed(() => [
   { value: '', label: t('player.noCanvasVideo') },
@@ -1023,6 +1108,8 @@ const shapeSelectOptions = computed(() => [
 }
 .marker-label {
   flex: 1;
+  /* Label bleibt neben langen Aktions-Chips lesbar */
+  min-width: 3.5em;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1045,6 +1132,14 @@ const shapeSelectOptions = computed(() => [
 .marker-action-canvas-video {
   color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 12%, transparent);
+}
+/* Lange Dateinamen kürzen, damit das Marker-Label sichtbar bleibt */
+.marker-action-audio {
+  min-width: 0;
+  max-width: 32%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .marker-action-duration {
   flex-shrink: 0;

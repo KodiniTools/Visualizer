@@ -13,6 +13,11 @@ export interface AudioEngineApi {
   connectVideoToRecording: (video: HTMLVideoElement, volume?: number) => void
   disconnectVideoFromRecording: (video: HTMLVideoElement) => void
   setVideoVolume: (video: HTMLVideoElement, volume: number) => void
+  /** Zusätzlicher Playlist-Track (Beat-Marker) wie der Player: hörbar, Aufnahme, Analyse */
+  connectTrackOverlay: (audio: HTMLMediaElement, volume?: number) => boolean
+  setTrackOverlayVolume: (audio: HTMLMediaElement, volume: number) => void
+  /** Ducking: Haupt-Song auf `level` (0–1) absenken, 1 = normal */
+  setPlayerDuck: (level: number, rampSeconds?: number) => void
   getAudioStreamForRecorder: (options?: { withMic?: boolean }) => Promise<MediaStream | null>
   setBassGain: (gain: number) => void
   setTrebleGain: (gain: number) => void

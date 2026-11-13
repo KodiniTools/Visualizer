@@ -708,3 +708,24 @@ describe('useVideoPanel – Galerie-Video löschen nimmt es vom Canvas', () => {
     expect(vp.videoGallery.value).toEqual([])
   })
 })
+
+describe('useVideoPanel – Stumm aus nach stummem Start', () => {
+  it('hebt die Aufnahme-Lautstärke wieder an (sonst bleibt das Video stumm)', async () => {
+    const { vm } = mountPanel()
+    const cv = fakeVideo('cv', { volume: 1 })
+    const video = { id: 1, videoElement: cv, isPlaying: false }
+    vm!.videos.push(video)
+
+    vp.videoMuted.value = true
+    await nextTick()
+    // Abspielen im stummen Zustand verbindet das Video mit Lautstärke 0
+    vp.togglePlayVideo(stub<VideoObject>(video))
+    log.length = 0
+
+    vp.videoMuted.value = false
+    await nextTick()
+
+    expect(cv.muted).toBe(false)
+    expect(log).toContain('rec.setVolume <cv> 1')
+  })
+})

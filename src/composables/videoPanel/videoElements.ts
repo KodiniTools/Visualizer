@@ -111,12 +111,15 @@ export function setCanvasVideoVolume(video: HTMLVideoElement, value: string | nu
 }
 
 /**
- * Nach dem Einschalten des Tons: Lautstärke 0 auf 1 anheben und das Video mit
- * der Aufnahme verbinden.
+ * Nach dem Einschalten des Tons: Lautstärke 0 auf 1 anheben, das Video mit
+ * der Aufnahme verbinden und deren Lautstärke nachziehen. Ein Video, das
+ * stumm gestartet wurde, ist schon mit Lautstärke 0 verbunden; ohne das
+ * Nachziehen bliebe es nach dem Aufheben der Stummschaltung unhörbar.
  */
 export function ensureAudible(video: HTMLVideoElement): void {
   if (video.volume === 0) video.volume = 1
   connectToRecording(video, video.volume)
+  syncRecordingVolume(video, video.volume)
 }
 
 /** Stummschaltung anwenden (beim Einschalten des Tons: ensureAudible). */

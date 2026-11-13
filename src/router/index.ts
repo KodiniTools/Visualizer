@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory, START_LOCATION } from 'vue-router'
-import LandingPage from '../components/LandingPage.vue'
-import InternalLandingPage from '../components/InternalLandingPage.vue'
-import BlogPage from '../components/BlogPage.vue'
+// Landing, Blog und Interner Bereich werden erst bei Bedarf geladen, damit
+// /app weder deren JS noch deren CSS im kritischen Pfad hat. Die App selbst
+// bleibt statisch (kein zusätzlicher Request-Wasserfall auf /app).
+const LandingPage = () => import('../components/LandingPage.vue')
+const InternalLandingPage = () => import('../components/InternalLandingPage.vue')
+const BlogPage = () => import('../components/BlogPage.vue')
 import VisualizerApp from '../VisualizerApp.vue'
 import { watch } from 'vue'
 import { applyRouteHead } from './seoHead'

@@ -9,6 +9,7 @@ import {
   displayVolume,
   connectToRecording,
   setCanvasVideoVolume,
+  playsSource,
 } from './videoElements'
 
 /** Ref auf den VideoManager (null, solange er nicht bereit ist) */
@@ -106,6 +107,27 @@ export function useCanvasVideos(
     canvasManager.value?.setActiveObject(null)
   }
 
+  /**
+   * Entfernt alle Canvas-Videos, die die Quelle `src` abspielen (z. B. ein
+   * aus der Galerie gelöschtes Video): Audio von der Aufnahme trennen,
+   * Element freigeben, Auswahl nur aufheben, wenn sie ein entferntes Video war.
+   * @returns Anzahl entfernter Videos
+   */
+  function removeCanvasVideosWithSource(src: string): number {
+    const vm = videoManager.value
+    if (!vm || !src) return 0
+    const matches = (vm.getAllVideos() || []).filter((v) => playsSource(v.videoElement, src))
+    for (const video of matches) {
+      if (video.videoElement) {
+        getAudioEngine()?.disconnectVideoFromRecording(video.videoElement)
+      }
+      vm.removeVideo(video.id)
+      const cm = canvasManager.value
+      if (cm?.activeObject && cm.activeObject.id === video.id) cm.setActiveObject(null)
+    }
+    return matches.length
+  }
+
   function playAllVideos() {
     const vm = videoManager.value
     if (!vm) return
@@ -150,6 +172,7 @@ export function useCanvasVideos(
     selectCanvasVideo,
     togglePlayVideo,
     removeCanvasVideo,
+    removeCanvasVideosWithSource,
     playAllVideos,
     pauseAllVideos,
     seekToTime,

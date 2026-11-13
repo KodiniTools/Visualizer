@@ -215,6 +215,33 @@ export function useVideoPanel() {
     })
   }
 
+  // ─── Galerie-Video löschen ──────────────────────────────────────────────
+
+  /**
+   * Nimmt alles vom Canvas, was aus diesem Galerie-Video stammt
+   * (Canvas-Videos, Hintergrund, Workspace-Hintergrund). Ohne das bliebe das
+   * gelöschte Video sichtbar und liefe weiter, obwohl seine Blob-URL
+   * freigegeben ist.
+   */
+  function removeFromCanvas(videoData: GalleryVideo | undefined) {
+    if (!videoData?.src) return
+    canvasVideos.removeCanvasVideosWithSource(videoData.src)
+    bg.removeIfSource(videoData.src)
+    wsBg.removeIfSource(videoData.src)
+  }
+
+  /** Galerie-Video löschen und vom Canvas nehmen. */
+  function deleteVideo(index: number) {
+    removeFromCanvas(gallery.videoGallery.value[index])
+    gallery.deleteVideo(index)
+  }
+
+  /** Alle Galerie-Videos löschen und vom Canvas nehmen. */
+  function clearAllVideos() {
+    for (const videoData of gallery.videoGallery.value) removeFromCanvas(videoData)
+    gallery.clearAllVideos()
+  }
+
   // ─── Stumm / Wiederholen für alle Videos ────────────────────────────────
 
   /** Video-Elemente der Hintergründe (Haupt- und Workspace), die gesetzt sind. */
@@ -320,8 +347,8 @@ export function useVideoPanel() {
     processVideoFile: gallery.processVideoFile,
     generateThumbnail: gallery.generateThumbnail,
     selectVideo: gallery.selectVideo,
-    deleteVideo: gallery.deleteVideo,
-    clearAllVideos: gallery.clearAllVideos,
+    deleteVideo,
+    clearAllVideos,
     formatDuration: formatTime,
     addVideoToCanvas,
     addVideoDirectly,

@@ -81,12 +81,23 @@
     </noscript>
 
     <!-- Google Tag Manager (async – kein Render-Blocking) -->
+    <!-- Google Tag Manager – verzögert geladen: gtm.js (Drittanbieter-JS) wird erst
+         bei der ersten Interaktion oder 5 s nach dem load-Event eingebunden, damit
+         es den Seitenstart nicht blockiert (Total Blocking Time). Der dataLayer und
+         gtm.start werden sofort gesetzt, Ereignisse davor gehen also nicht verloren. -->
     <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;
-    f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-KBNF8DV7');
+    new Date().getTime(),event:'gtm.js'});var done=false,
+    ev=['pointerdown','keydown','touchstart','wheel','scroll'];
+    function load(){if(done)return;done=true;
+    for(var k=0;k<ev.length;k++)w.removeEventListener(ev[k],load,true);
+    var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);}
+    for(var k=0;k<ev.length;k++)w.addEventListener(ev[k],load,{capture:true,passive:true,once:true});
+    function later(){setTimeout(load,5000);}
+    if(d.readyState==='complete')later();else w.addEventListener('load',later);
+    })(window,document,'script','dataLayer','GTM-KBNF8DV7');
     </script>
 
     <style>

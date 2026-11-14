@@ -4,6 +4,7 @@
  * ✨ Verwendet modularisierte Audio-Verarbeitung
  */
 
+import { nextStackOrder } from './canvasObjects/mediaStack'
 import { calculateEffectValue } from './audio/index'
 import { makeLevelResolver } from './audio/ReactiveLevel'
 import {
@@ -95,6 +96,8 @@ export interface CanvasImage extends FotoImageObject {
   relHeight: number
   settings?: ImageBasicSettings
   animation?: ImageAnimation
+  /** Gemeinsame Ebene mit Videos (größer = weiter oben), siehe canvasObjects/mediaStack */
+  stackOrder?: number | null
   /** Animationen wie bei Texten (Fade/Scale/Slide), siehe canvasObjects/imageAnimation */
   timedAnimation?: ImageTimedAnimation | null
   isSlideshowImage?: boolean
@@ -279,6 +282,7 @@ export class MultiImageManager {
       this.fotoManager.initializeImageSettings(newImage)
     }
 
+    newImage.stackOrder = nextStackOrder()
     this.images.push(newImage)
     this.setSelectedImage(newImage)
 
@@ -372,6 +376,7 @@ export class MultiImageManager {
       this.fotoManager.initializeImageSettings(newImage)
     }
 
+    newImage.stackOrder = nextStackOrder()
     this.images.push(newImage)
     // options.select === false: nicht automatisch auswählen (z. B. Slideshow –
     // sonst bekäme jedes eingeblendete Bild eine Auswahl-Markierung)
@@ -487,6 +492,8 @@ export class MultiImageManager {
     } as CanvasImage
     // Eintritts-Animation des Originals nicht fortsetzen
     if (newImage.animation) newImage.animation.active = false
+    // Kopie liegt oben (auch über Videos)
+    newImage.stackOrder = nextStackOrder()
 
     this.images.push(newImage)
     this.setSelectedImage(newImage)
@@ -707,15 +714,28 @@ export class MultiImageManager {
 
     // ✨ Filter Bilder basierend auf Layer-Einstellung
     const { behindVisualizer = null } = options
-    const hidden = this.markerHiddenIds
-    const imagesToDraw = this.images.filter(
-      (imgData) =>
-        !hidden.has(imgData.id) &&
-        (behindVisualizer === null ||
-          (imgData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer),
+    const imagesToDraw = this.images.filter((imgData) =>
+      this.isImageDrawable(imgData, behindVisualizer),
     )
 
     imagesToDraw.forEach((imgData) => this._drawImage(ctx, imgData, renderCanvas))
+  }
+
+  /**
+   * Wird das Bild in dieser Ebene gezeichnet? (nicht vom Marker ausgeblendet,
+   * passende Ebene; null = beide Ebenen)
+   */
+  isImageDrawable(imgData: CanvasImage, behindVisualizer: boolean | null = null): boolean {
+    return (
+      !this.markerHiddenIds.has(imgData.id) &&
+      (behindVisualizer === null ||
+        (imgData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer)
+    )
+  }
+
+  /** Ein Bild zeichnen (gemeinsame Ebenen mit Videos, siehe canvasObjects/mediaStack) */
+  drawImage(ctx: CanvasRenderingContext2D, imgData: CanvasImage): void {
+    this._drawImage(ctx, imgData, ctx.canvas)
   }
 
   /**

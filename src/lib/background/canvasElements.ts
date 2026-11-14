@@ -22,6 +22,8 @@ interface PlacedObject {
   rotation?: number
   settings?: Loose | null
   fotoSettings?: Loose | null
+  /** Gemeinsame Ebene Bilder/Videos (canvasObjects/mediaStack) */
+  stackOrder?: number | null
 }
 
 interface CanvasImage extends PlacedObject {
@@ -52,6 +54,8 @@ export interface CapturedImage {
   timedAnimation?: Loose | null
   /** nur Bilder: Dateiname, falls bekannt (ältere Presets haben keinen) */
   name?: string
+  /** Gemeinsame Ebene Bilder/Videos (canvasObjects/mediaStack); ältere Presets ohne */
+  stackOrder?: number
 }
 
 export interface CapturedVideo extends CapturedImage {
@@ -121,6 +125,7 @@ function captureCanvasImages(cm: MaybeCm): CapturedImage[] {
       settings: deepClone(img.settings),
       fotoSettings: deepClone(img.fotoSettings),
       ...(img.timedAnimation ? { timedAnimation: deepClone(img.timedAnimation) } : {}),
+      ...(typeof img.stackOrder === 'number' ? { stackOrder: img.stackOrder } : {}),
     }))
     .filter((i) => i.src)
 }
@@ -146,6 +151,7 @@ function captureCanvasVideos(cm: MaybeCm): CapturedVideo[] {
       playbackRate: v.playbackRate ?? 1.0,
       startTime: v.startTime ?? 0,
       endTime: v.endTime ?? 0,
+      ...(typeof v.stackOrder === 'number' ? { stackOrder: v.stackOrder } : {}),
       settings: deepClone(v.settings),
       fotoSettings: deepClone(v.fotoSettings),
     }))
@@ -230,6 +236,7 @@ function restoreCanvasImages(cm: MaybeCm, list: unknown) {
         settings: deepClone(data.settings) || { ...DEFAULT_IMAGE_SETTINGS },
       }
       if (data.timedAnimation) imageData.timedAnimation = deepClone(data.timedAnimation)
+      if (typeof data.stackOrder === 'number') imageData.stackOrder = data.stackOrder
       if (data.fotoSettings) {
         imageData.fotoSettings = deepClone(data.fotoSettings)
       } else if (mgr.fotoManager) {
@@ -270,6 +277,7 @@ function restoreCanvasVideos(getCm: () => MaybeCm, list: unknown) {
           if (data.rotation) vid.rotation = data.rotation
           if (data.settings) vid.settings = deepClone(data.settings)
           if (data.fotoSettings) vid.fotoSettings = deepClone(data.fotoSettings)
+          if (typeof data.stackOrder === 'number') vid.stackOrder = data.stackOrder
         }
         getCm()?.redrawCallback?.()
       } catch (e) {

@@ -125,6 +125,7 @@ import { notifyMarkerTargetEdited } from '../lib/markerTargetEdits'
 import type { CanvasManagerRef } from '../composables/types'
 import type { FotoImageObject, FotoManager, FotoPresetInfo } from '../lib/fotoManager'
 import type { MultiImageManager } from '../lib/multiImageManager'
+import type { VideoManager } from '../lib/videoManager'
 import type { GalleryDragPayload } from './foto-panel/useImagePlacement'
 import type { ImageBoundsApi } from './foto-panel/image-filters/imageFilterContext'
 
@@ -137,6 +138,9 @@ const multiImageManagerRef = inject('multiImageManager') as
   | Ref<MultiImageManager | null | undefined>
   | undefined
 const canvasManagerRef = inject('canvasManager') as CanvasManagerRef | undefined
+const videoManagerRef = inject('videoManager', undefined) as
+  | Ref<VideoManager | null | undefined>
+  | undefined
 
 // Panel-Refs
 const imageFiltersPanelRef = ref<InstanceType<typeof ImageFiltersPanel> | null>(null)
@@ -267,7 +271,12 @@ const {
   onPresetChange,
   onFilterChange,
   resetFilters,
-} = useActiveImageEditing({ multiImageManagerRef, fotoManagerRef, currentActiveImage })
+} = useActiveImageEditing({
+  multiImageManagerRef,
+  videoManagerRef,
+  fotoManagerRef,
+  currentActiveImage,
+})
 
 // Position & Größe normaler Canvas-Bilder (ImageFiltersPanel → PositionSizeControls)
 const imageBoundsApi: ImageBoundsApi = {

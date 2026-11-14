@@ -1,6 +1,7 @@
 import type { Ref } from 'vue'
 import { ensureSizedCanvas, type SizedCanvas } from './canvasCache'
 import { getAudioAnalysisData } from '../../lib/audio/audioAnalysisData'
+import { drawMediaStack } from '../../lib/canvasObjects/mediaStack'
 import type { MultiImageManager } from '../../lib/multiImageManager'
 import type { VideoManager } from '../../lib/videoManager'
 import type { TextManager } from '../../lib/textManager'
@@ -61,6 +62,23 @@ export function createSceneRenderer({
   let recordingViz: SizedCanvas | null = null
 
   /**
+   * Bilder und Videos einer Ebene in ihrer gemeinsamen Reihenfolge (ein Bild
+   * kann über einem Video liegen, siehe canvasObjects/mediaStack). Manager
+   * ohne Einzel-Zeichnen (ältere Stubs) zeichnen wie bisher erst Bilder,
+   * dann Videos.
+   */
+  function drawMedia(ctx: CanvasRenderingContext2D, behindVisualizer: boolean) {
+    const mim = multiImageManagerInstance.value
+    const vm = videoManagerInstance.value
+    if (typeof mim?.drawImage === 'function' && typeof vm?.drawVideo === 'function') {
+      drawMediaStack(ctx, mim, vm, behindVisualizer)
+      return
+    }
+    mim?.drawImages(ctx, { behindVisualizer })
+    vm?.drawVideos(ctx, { behindVisualizer })
+  }
+
+  /**
    * Szene in Ebenen zeichnen; `drawVisualizer` setzt den Visualizer zwischen
    * die Bild-Ebenen. `recording` markiert den CanvasManager als aufnehmend
    * (blendet Editor-Hilfen im Hintergrund aus).
@@ -82,11 +100,9 @@ export function createSceneRenderer({
       ctx.fillRect(0, 0, width, height)
     }
 
-    multiImageManagerInstance.value?.drawImages(ctx, { behindVisualizer: true })
-    videoManagerInstance.value?.drawVideos(ctx, { behindVisualizer: true })
+    drawMedia(ctx, true)
     drawVisualizer()
-    multiImageManagerInstance.value?.drawImages(ctx, { behindVisualizer: false })
-    videoManagerInstance.value?.drawVideos(ctx, { behindVisualizer: false })
+    drawMedia(ctx, false)
     drawShapes?.(ctx)
 
     const textManager = getTextManager()

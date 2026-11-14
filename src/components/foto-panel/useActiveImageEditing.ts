@@ -1,10 +1,20 @@
 import { computed, type Ref } from 'vue'
 import type { FotoImageObject, FotoManager, FotoSettings } from '../../lib/fotoManager'
-import type { CanvasImage, MultiImageManager } from '../../lib/multiImageManager'
+import type { MultiImageManager } from '../../lib/multiImageManager'
+import type { VideoManager } from '../../lib/videoManager'
+import {
+  canMoveInStack,
+  moveInStack,
+  stackPosition,
+  type StackAction,
+  type StackObject,
+} from '../../lib/canvasObjects/mediaStack'
 
 /** Abhängigkeiten von useActiveImageEditing */
 export interface ActiveImageEditingDeps {
   multiImageManagerRef: Ref<MultiImageManager | null | undefined> | undefined
+  /** Videos teilen sich die Ebenen-Reihenfolge mit den Bildern (optional) */
+  videoManagerRef?: Ref<VideoManager | null | undefined> | undefined
   fotoManagerRef: Ref<FotoManager | null | undefined> | undefined
   currentActiveImage: Ref<FotoImageObject | null>
 }
@@ -14,9 +24,6 @@ export interface FilterChange {
   property: string
   value: unknown
 }
-
-/** Ebenen-Methoden des MultiImageManagers für das aktive Bild */
-type LayerMethod = 'bringToFront' | 'sendToBack' | 'moveUp' | 'moveDown'
 
 // Standardwerte beim Zurücksetzen der Filter. Audio-Reaktiv-Einstellungen und
 // Ebenen-Optionen (renderBehindVisualizer) gehören nicht dazu.
@@ -48,30 +55,41 @@ const DEFAULT_FILTER_SETTINGS: Readonly<Partial<FotoSettings>> = Object.freeze({
  */
 export function useActiveImageEditing({
   multiImageManagerRef,
+  videoManagerRef,
   fotoManagerRef,
   currentActiveImage,
 }: ActiveImageEditingDeps) {
-  /** Ebenen-Index/-Anzahl des aktiven Bildes (null ohne Bild/Manager). */
-  const layer = computed(() => {
-    if (!currentActiveImage.value) return null
+  /**
+   * Bilder und Videos im gemeinsamen Ebenen-Stapel (canvasObjects/mediaStack):
+   * „Nach vorne“ bringt ein Bild auch über Videos und umgekehrt.
+   */
+  const stackLists = () => {
     const multiImageManager = multiImageManagerRef?.value
     if (!multiImageManager) return null
     return {
-      // Aktives Bild kann auch Hintergrund/Video sein (dann Index -1)
-      index: multiImageManager.getImageIndex(currentActiveImage.value as CanvasImage),
-      count: multiImageManager.getImageCount(),
+      images: multiImageManager.images as StackObject[],
+      videos: (videoManagerRef?.value?.videos ?? []) as StackObject[],
     }
+  }
+  const activeStackObject = () => currentActiveImage.value as unknown as StackObject | null
+
+  /** Ebenen-Position/-Anzahl des aktiven Elements (null ohne Element/Manager). */
+  const layer = computed(() => {
+    if (!currentActiveImage.value) return null
+    const lists = stackLists()
+    if (!lists) return null
+    // Hintergründe sind nicht im Stapel (index -1)
+    return stackPosition(lists.images, lists.videos, activeStackObject())
   })
 
-  const canMoveUp = computed(() => {
-    const l = layer.value
-    return !!l && l.index !== -1 && l.index < l.count - 1
-  })
+  const canMove = (action: StackAction) => {
+    const lists = stackLists()
+    if (!lists || !layer.value || layer.value.index === -1) return false
+    return canMoveInStack(lists.images, lists.videos, activeStackObject(), action)
+  }
 
-  const canMoveDown = computed(() => {
-    const l = layer.value
-    return !!l && l.index > 0
-  })
+  const canMoveUp = computed(() => canMove('moveUp'))
+  const canMoveDown = computed(() => canMove('moveDown'))
 
   const currentLayerInfo = computed(() => {
     const l = layer.value
@@ -79,12 +97,23 @@ export function useActiveImageEditing({
     return `${l.index + 1} / ${l.count}`
   })
 
-  /** Ruft eine Ebenen-Methode des MultiImageManagers für das aktive Bild auf. */
-  function layerAction(method: LayerMethod) {
+  /** Verschiebt das aktive Bild bzw. Video im gemeinsamen Stapel. */
+  function layerAction(action: StackAction) {
     return () => {
       const multiImageManager = multiImageManagerRef?.value
+      const videoManager = videoManagerRef?.value
       if (!multiImageManager || !currentActiveImage.value) return
-      multiImageManager[method](currentActiveImage.value as CanvasImage)
+      const moved = moveInStack(
+        multiImageManager.images,
+        videoManager?.videos ?? [],
+        activeStackObject(),
+        action,
+      )
+      if (!moved) return
+      multiImageManager.redrawCallback?.()
+      // Verlauf und Thumbnail-Leisten beider Listen aktualisieren
+      multiImageManager.onImageChanged?.()
+      videoManager?.onVideoChanged?.()
     }
   }
 

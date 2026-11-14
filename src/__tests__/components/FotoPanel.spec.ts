@@ -130,6 +130,12 @@ function makeManagers() {
     sendToBack: vi.fn(),
     moveUp: vi.fn(),
     moveDown: vi.fn(),
+    redrawCallback: vi.fn(),
+    onImageChanged: vi.fn(),
+  }
+  const videoManager = {
+    videos: [] as unknown[],
+    onVideoChanged: vi.fn(),
   }
   const fotoManager = {
     defaultSettings: { brightness: 100, contrast: 100 },
@@ -144,7 +150,7 @@ function makeManagers() {
     startImageSelectionMode: vi.fn(),
     getWorkspaceBounds: vi.fn(() => ({ x: 1 })),
   }
-  return { multiImageManager, fotoManager, canvasManager }
+  return { multiImageManager, videoManager, fotoManager, canvasManager }
 }
 
 let wrapper: VueWrapper | null
@@ -163,6 +169,7 @@ async function mountPanel() {
       provide: {
         fotoManager: ref(m.fotoManager),
         multiImageManager: ref(m.multiImageManager),
+        videoManager: ref(m.videoManager),
         canvasManager: ref(m.canvasManager),
       },
       stubs: {
@@ -397,7 +404,10 @@ describe('FotoPanel – aktives Bild (Ebenen & Filter)', () => {
     await mountPanel()
     expect(filters().props('canMoveUp')).toBe(false)
     expect(filters().props('currentLayerInfo')).toBe('')
+    const below = { id: 1 }
     const active = { id: 7, fotoSettings: { brightness: 50, audioReactive: { x: 1 } } }
+    const above = { id: 9 }
+    m.multiImageManager.images.push(below, active, above)
     useImageAudioReactive().currentActiveImage.value = stub(active)
     await nextTick()
     expect(filters().props()).toMatchObject({
@@ -405,19 +415,47 @@ describe('FotoPanel – aktives Bild (Ebenen & Filter)', () => {
       canMoveDown: true,
       currentLayerInfo: '2 / 3',
     })
-    for (const [ev, fn] of [
-      ['bring-to-front', 'bringToFront'],
-      ['send-to-back', 'sendToBack'],
-      ['move-up', 'moveUp'],
-      ['move-down', 'moveDown'],
-    ] as const) {
-      filters().vm.$emit(ev)
-      expect(m.multiImageManager[fn]).toHaveBeenCalledWith(active)
-    }
-    m.multiImageManager.getImageIndex.mockReturnValue(2)
+    filters().vm.$emit('bring-to-front')
+    expect(m.multiImageManager.images.map((i) => (i as { id: number }).id)).toEqual([1, 9, 7])
+    expect(m.multiImageManager.redrawCallback).toHaveBeenCalled()
+    expect(m.multiImageManager.onImageChanged).toHaveBeenCalled()
+    expect(m.videoManager.onVideoChanged).toHaveBeenCalled()
+    filters().vm.$emit('move-down')
+    expect(m.multiImageManager.images.map((i) => (i as { id: number }).id)).toEqual([1, 7, 9])
+    filters().vm.$emit('send-to-back')
+    expect(m.multiImageManager.images.map((i) => (i as { id: number }).id)).toEqual([7, 1, 9])
+    filters().vm.$emit('move-up')
+    expect(m.multiImageManager.images.map((i) => (i as { id: number }).id)).toEqual([1, 7, 9])
     useImageAudioReactive().currentActiveImage.value = stub({ ...active })
     await nextTick()
-    expect(filters().props('canMoveUp')).toBe(false)
+    expect(filters().props('currentLayerInfo')).toBe('2 / 3')
+  })
+
+  it('Ebenen gemeinsam mit Videos: „Nach vorne“ bringt das Bild über das Video', async () => {
+    await mountPanel()
+    const active = { id: 7, fotoSettings: {} }
+    const video = { id: 'v1', fotoSettings: {} }
+    m.multiImageManager.images.push(active)
+    m.videoManager.videos.push(video)
+    useImageAudioReactive().currentActiveImage.value = stub(active)
+    await nextTick()
+    // Bisheriges Verhalten: Video ohne Ebenen-Wert liegt über dem Bild
+    expect(filters().props()).toMatchObject({
+      canMoveUp: true,
+      canMoveDown: false,
+      currentLayerInfo: '1 / 2',
+    })
+    filters().vm.$emit('bring-to-front')
+    expect((active as { stackOrder?: number }).stackOrder).toBeGreaterThan(
+      (video as { stackOrder?: number }).stackOrder as number,
+    )
+    useImageAudioReactive().currentActiveImage.value = stub({ ...active })
+    await nextTick()
+    expect(filters().props()).toMatchObject({
+      canMoveUp: false,
+      canMoveDown: true,
+      currentLayerInfo: '2 / 2',
+    })
   })
 
   it('Filter, Presets, Reset', async () => {

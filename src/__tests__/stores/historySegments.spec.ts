@@ -61,6 +61,7 @@ interface FakeImageEntry {
   fotoSettings: { rotation?: number; _cachedFilterKey?: string } & Record<string, unknown>
   timedAnimation?: FakeTimedAnimation
   name?: string | null
+  stackOrder?: number
 }
 
 interface FakeVideoEntry {
@@ -446,6 +447,47 @@ describe('History-Segmente', () => {
     expect(mgr.images[0]!.imageObject.src).toBe('data:alt')
     await store.redo()
     expect(mgr.images[0]!.name).toBe('neu.jpg')
+  })
+
+  it('Bilder und Videos: gemeinsame Ebene (stackOrder) ist Teil des Verlaufs', async () => {
+    const cm = makeCanvasManager()
+    recorder.registerSegment(
+      'images',
+      createImagesSegment(() => stub(cm)),
+    )
+    recorder.registerSegment(
+      'videos',
+      createVideosSegment(() => stub(cm)),
+    )
+    cm.multiImageManager.images.push({
+      id: 1,
+      type: 'image',
+      imageObject: fakeImage('data:a'),
+      settings: {},
+      fotoSettings: {},
+    })
+    cm.videoManager.videos.push({
+      id: 5,
+      type: 'video',
+      videoElement: fakeVideo('blob:video-1'),
+      settings: {},
+      fotoSettings: {},
+    })
+    recorder.rebase()
+
+    const img = cm.multiImageManager.images[0]!
+    const video = cm.videoManager.videos[0]!
+    // „Nach vorne“: Bild über das Video
+    img.stackOrder = 1
+    video.stackOrder = 0
+    recorder.checkpoint()
+
+    await store.undo()
+    expect(img.stackOrder).toBeUndefined()
+    expect(video.stackOrder).toBeUndefined()
+    await store.redo()
+    expect(img.stackOrder).toBe(1)
+    expect(video.stackOrder).toBe(0)
   })
 
   it('Videos: entfernte Videos werden nur pausiert, zerstörte aus der Quelle neu erzeugt', async () => {

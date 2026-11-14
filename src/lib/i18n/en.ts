@@ -2621,7 +2621,6 @@ export default {
     uploadFormats: 'MP4, WebM, MOV',
     deleteAllVideos: 'Delete all',
     deleteVideo: 'Delete video',
-    placeOnCanvas: 'Place on Canvas',
     asBackground: 'As Background',
     asWorkspaceBackground: 'Workspace Background',
   },

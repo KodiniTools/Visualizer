@@ -293,6 +293,24 @@
             : t('player.canvasVideoAppears')
         }}
       </p>
+      <template v-if="newMarkerCanvasVideoId !== ''">
+        <span class="form-switch" :title="t('player.markerVideoDuckHint')">
+          <UiSwitch v-model="newMarkerCanvasVideoDuck" :label="t('player.markerAudioDuck')" />
+        </span>
+        <div v-if="newMarkerCanvasVideoDuck" class="form-field">
+          <span class="form-label">{{ t('player.markerVideoDuckLevel') }} (%)</span>
+          <SliderField
+            v-model="newMarkerCanvasVideoDuckLevel"
+            :min="0"
+            :max="100"
+            :step="1"
+            :default-value="30"
+            :aria-label="t('player.markerVideoDuckLevel')"
+            class="marker-video-duck"
+          />
+          <span class="form-hint">{{ t('player.markerVideoDuckHint') }}</span>
+        </div>
+      </template>
 
       <!-- Track aus der Playlist, der zum Marker-Zeitpunkt dazugemischt wird -->
       <UiSelect
@@ -466,7 +484,7 @@
             getMarkerCanvasVideoLabel(marker.action.canvasVideoId) ||
             marker.action.canvasVideoLabel ||
             t('player.canvasVideo')
-          }}</span
+          }}{{ typeof marker.action.canvasVideoDuck === 'number' ? ' 🔉' : '' }}</span
         >
         <span
           v-if="marker.action.audioTrack"
@@ -569,6 +587,8 @@ const {
   newMarkerVideoId,
   newMarkerVideoLoop,
   newMarkerCanvasVideoId,
+  newMarkerCanvasVideoDuck,
+  newMarkerCanvasVideoDuckLevel,
   newMarkerAudioTrack,
   newMarkerAudioVolume,
   newMarkerAudioOffset,

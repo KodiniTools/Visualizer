@@ -10,6 +10,8 @@ import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
 import { useMarkerTransitionStore } from '../../stores/markerTransitionStore'
 import { VideoManager, type VideoObject } from '../../lib/videoManager'
 import type { GalleryVideoEntry } from '../../lib/background/markerBackgroundVideo'
+import { registerAudioEngine } from '../../lib/audioEngineBridge'
+import { createPlayerDuck } from '../../composables/beatMarkers/playerDuck'
 
 /** Video-Element-Attrappe: Wiedergabe-Zustand und `ended`-Ereignis */
 class FakeVideo extends EventTarget {
@@ -21,6 +23,8 @@ class FakeVideo extends EventTarget {
   paused = true
   loop = true
   muted = true
+  volume = 1
+  ended = false
   playbackRate = 1
   crossOrigin = ''
   src = 'blob:video'
@@ -328,6 +332,136 @@ describe('Beat-Marker „Video auf Canvas“: Wiedergabe', () => {
     wrapper!.unmount()
     wrapper = null
     expect(mgr.isMarkerHidden(looped.id)).toBe(false)
+  })
+})
+
+describe('Beat-Marker „Video auf Canvas“: Ducking', () => {
+  const setPlayerDuck = vi.fn()
+  let unregister = () => {}
+
+  /** Video mit Ton (Element und Objekt), wie nach „Stumm“ aus */
+  const unmute = (video: VideoObject) => {
+    video.muted = false
+    el(video).muted = false
+  }
+  const fire = (video: VideoObject, type: string) => el(video).dispatchEvent(new Event(type))
+
+  beforeEach(() => {
+    setPlayerDuck.mockReset()
+    unregister = registerAudioEngine(stub({ setPlayerDuck }))
+  })
+  afterEach(() => unregister())
+
+  it('neuer Marker: Ducking ist vorgeschlagen (30 %) und wird mit dem Video gespeichert', () => {
+    vm.addMarkerAtCurrentTime()
+    expect(vm.newMarkerCanvasVideoDuck).toBe(true)
+    expect(vm.newMarkerCanvasVideoDuckLevel).toBe(30)
+    vm.newMarkerCanvasVideoId = once.id
+    vm.newMarkerCanvasVideoDuckLevel = 20
+    vm.confirmAddMarker()
+    const marker = markerStore.markers.at(-1)!
+    expect(marker.action.canvasVideoDuck).toBe(0.2)
+
+    vm.startEditMarker(marker)
+    expect(vm.newMarkerCanvasVideoDuck).toBe(true)
+    expect(vm.newMarkerCanvasVideoDuckLevel).toBe(20)
+  })
+
+  it('ohne Video oder mit ausgeschaltetem Ducking wird nichts gespeichert', () => {
+    vm.addMarkerAtCurrentTime()
+    vm.confirmAddMarker()
+    expect(markerStore.markers.at(-1)!.action.canvasVideoDuck).toBeNull()
+
+    vm.addMarkerAtCurrentTime()
+    vm.newMarkerCanvasVideoId = once.id
+    vm.newMarkerCanvasVideoDuck = false
+    vm.confirmAddMarker()
+    const marker = markerStore.markers.at(-1)!
+    expect(marker.action.canvasVideoDuck).toBeNull()
+    // Bestehender Marker mit Video, aber ohne Ducking: Schalter bleibt aus
+    vm.startEditMarker(marker)
+    expect(vm.newMarkerCanvasVideoDuck).toBe(false)
+  })
+
+  it('Video mit Ton senkt den Song ab, solange es läuft; nach dem Ende wieder 100 %', async () => {
+    unmute(once)
+    markerStore.addMarker(5, { canvasVideoId: once.id, canvasVideoDuck: 0.3 })
+    await startPlaybackAtZero()
+    frame(4.99)
+    expect(setPlayerDuck).not.toHaveBeenCalled()
+    frame(5.01)
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(0.3)
+
+    el(once).paused = true
+    el(once).ended = true
+    fire(once, 'ended')
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(1)
+    expect(setPlayerDuck).toHaveBeenCalledTimes(2)
+  })
+
+  it('stummes Video senkt nicht ab; „Stumm“ aus/an während der Wiedergabe wirkt sofort', async () => {
+    markerStore.addMarker(5, { canvasVideoId: looped.id, canvasVideoDuck: 0.3 })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(setPlayerDuck).not.toHaveBeenCalled()
+
+    unmute(looped)
+    fire(looped, 'volumechange')
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(0.3)
+
+    el(looped).volume = 0
+    fire(looped, 'volumechange')
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(1)
+  })
+
+  it('Marker ohne Ducking lässt den Song unverändert', async () => {
+    unmute(once)
+    markerStore.addMarker(5, { canvasVideoId: once.id })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(setPlayerDuck).not.toHaveBeenCalled()
+  })
+
+  it('Pause hebt den Song wieder an; ein späterer Marker, der das Video ablöst, ebenfalls', async () => {
+    unmute(looped)
+    markerStore.addMarker(5, { canvasVideoId: looped.id, canvasVideoDuck: 0.4 })
+    markerStore.addMarker(8, { visualizer: null })
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(0.4)
+    frame(7.99)
+    frame(8.01)
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(1)
+
+    setPlayerDuck.mockClear()
+    playerStore.audioRef!.currentTime = 0
+    playerStore.isPlaying = false
+    await nextTick()
+    await startPlaybackAtZero()
+    frame(4.99)
+    frame(5.01)
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(0.4)
+    playerStore.isPlaying = false
+    await nextTick()
+    expect(setPlayerDuck).toHaveBeenLastCalledWith(1)
+  })
+})
+
+describe('createPlayerDuck', () => {
+  it('der niedrigste Wert aller Quellen gilt; apply nur bei Änderung', () => {
+    const apply = vi.fn()
+    const duck = createPlayerDuck(apply)
+    duck.set('tracks', 1)
+    expect(apply).not.toHaveBeenCalled()
+    duck.set('tracks', 0.5)
+    duck.set('videos', 0.3)
+    duck.set('tracks', 1)
+    expect(apply.mock.calls).toEqual([[0.5], [0.3]])
+    duck.set('videos', 1)
+    expect(apply).toHaveBeenLastCalledWith(1)
   })
 })
 

@@ -11,6 +11,19 @@ export interface MarkerCanvasVideoAction {
   /** Canvas-Video (VideoManager), das zum Marker-Zeitpunkt erscheint */
   canvasVideoId?: VideoObject['id'] | null
   canvasVideoLabel?: string | null
+  /**
+   * Ducking: Lautstärke des Haupt-Songs (0–1), solange das Video mit Ton
+   * läuft. Fehlt das Feld (oder null), bleibt der Song unverändert.
+   */
+  canvasVideoDuck?: number | null
+}
+
+/** Song-Lautstärke beim Ducking (0–1) oder null = kein Ducking */
+export const markerVideoDuck = (
+  action: MarkerCanvasVideoAction | null | undefined,
+): number | null => {
+  const duck = action?.canvasVideoDuck
+  return typeof duck === 'number' && Number.isFinite(duck) ? Math.min(1, Math.max(0, duck)) : null
 }
 
 /** Platzieren eines Galerie-Videos (aus dem Video-Panel) */
@@ -39,6 +52,8 @@ interface Options {
   placement?: CanvasVideoPlacement | null
   /** Anzeigename „Video 2 — clip“ */
   formatLabel: (layer: number, name: string) => string
+  /** Setzt die Song-Lautstärke (Ducking, 0–1; 1 = normal) */
+  setDuck?: (level: number) => void
 }
 
 const isSetId = (v: unknown): v is VideoObject['id'] => v !== '' && v !== null && v !== undefined
@@ -55,6 +70,9 @@ const isSetId = (v: unknown): v is VideoObject['id'] => v !== '' && v !== null &
  * - Pause/Stopp → alle wieder sichtbar und bearbeitbar (pausiert).
  * - Spulen → alle Marker bis zur Position nachspielen, Videos an der
  *   passenden Stelle fortsetzen.
+ * - Ducking: Solange ein Marker-Video mit `canvasVideoDuck` hörbar läuft
+ *   (nicht stumm, Lautstärke > 0), wird der Haupt-Song auf diesen Wert
+ *   abgesenkt (bei mehreren der niedrigste), danach wieder angehoben.
  */
 export function useMarkerCanvasVideos({
   videoManager,
@@ -63,6 +81,7 @@ export function useMarkerCanvasVideos({
   isPlaying,
   placement,
   formatLabel,
+  setDuck,
 }: Options) {
   /** Canvas-Videos mit Ebene (wie in „Videos auf Canvas“) */
   const placedVideos = () =>
@@ -151,12 +170,51 @@ export function useMarkerCanvasVideos({
     el.addEventListener('ended', onEnded)
   }
 
+  let appliedDuck = 1
+
+  /** Läuft das Video gerade hörbar? */
+  const isAudible = (video: VideoObject) => {
+    const el = video.videoElement
+    return !!el && !el.paused && !el.ended && !el.muted && !video.muted && el.volume > 0
+  }
+
+  /** Song-Lautstärke aus allen hörbar laufenden Marker-Videos ableiten und anwenden */
+  const updateDuck = () => {
+    if (!setDuck) return
+    let level = 1
+    const vm = videoManager.value
+    if (vm && isPlaying()) {
+      for (const action of markerActions()) {
+        const duck = markerVideoDuck(action)
+        if (duck === null) continue
+        const video = findVideo(action?.canvasVideoId)
+        if (!video || vm.isMarkerHidden(video.id) || !isAudible(video)) continue
+        level = Math.min(level, duck)
+      }
+    }
+    if (level === appliedDuck) return
+    appliedDuck = level
+    setDuck(level)
+  }
+
+  // Start, Pause, Ende und Stumm/Lautstärke eines Marker-Videos ändern das Ducking
+  const duckWatched = new WeakSet<HTMLVideoElement>()
+  const watchDuck = (video: VideoObject) => {
+    const el = video.videoElement
+    if (!el || duckWatched.has(el)) return
+    duckWatched.add(el)
+    for (const type of ['playing', 'pause', 'ended', 'volumechange']) {
+      el.addEventListener(type, updateDuck)
+    }
+  }
+
   /** Wiedergabe-Start: zugewiesene Videos bis zu ihrem Marker ausblenden. */
   const activate = () => {
     const vm = videoManager.value
     if (!vm) return
     for (const id of referencedIds()) vm.setMarkerHidden(id, true)
     vm.redrawCallback()
+    updateDuck()
   }
 
   /** Pause/Stopp: Marker-Videos wieder zeigen und anhalten. */
@@ -167,6 +225,7 @@ export function useMarkerCanvasVideos({
       if (findVideo(id)?.isPlaying) vm.pauseVideo(id)
     }
     vm.clearMarkerHidden()
+    updateDuck()
   }
 
   /** Videos einblenden, die keinem Marker mehr zugewiesen sind. */
@@ -178,6 +237,7 @@ export function useMarkerCanvasVideos({
       if (!ids.has(id)) vm.setMarkerHidden(id, false)
     }
     vm.redrawCallback()
+    updateDuck()
   }
 
   /** Neu zugewiesenes Video bis zu seinem Marker ausblenden (läuft die Wiedergabe schon). */
@@ -207,11 +267,13 @@ export function useMarkerCanvasVideos({
     if (vid !== null && restart) {
       const video = findVideo(vid) as VideoObject
       watchEnd(video)
+      watchDuck(video)
       if (!video.muted) placement?.connectAudio?.(video)
       vm.playVideoFrom(vid, 0)
     } else {
       vm.redrawCallback()
     }
+    updateDuck()
     return vid
   }
 
@@ -234,10 +296,12 @@ export function useMarkerCanvasVideos({
         continue
       }
       watchEnd(video)
+      watchDuck(video)
       if (!video.muted) placement?.connectAudio?.(video)
       vm.playVideoFrom(id, offset)
     }
     vm.redrawCallback()
+    updateDuck()
   }
 
   /** Anzeigedauer eines Canvas-Videos (null = dauerhaft) */
@@ -273,5 +337,6 @@ export function useMarkerCanvasVideos({
     seek,
     displaySeconds,
     pendingDisplaySeconds,
+    updateDuck,
   }
 }

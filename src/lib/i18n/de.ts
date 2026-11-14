@@ -126,6 +126,7 @@ export default {
     nav: {
       home: 'Startseite',
       features: 'Funktionen',
+      faq: 'FAQ',
       blog: 'Blog',
       start: 'Jetzt starten',
     },

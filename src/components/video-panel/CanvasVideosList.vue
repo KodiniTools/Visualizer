@@ -133,12 +133,8 @@
         :api="videoBoundsApi"
       />
 
-      <!-- Ebene nur des ausgewählten Videos (wie bei Bildern) -->
-      <UiSwitch
-        :model-value="selectedVideoBehindVisualizer"
-        :label="t('videoPanel.selectedBehindVisualizer')"
-        @update:model-value="setVideoBehindVisualizer"
-      />
+      <!-- Ebenen des ausgewählten Videos (wie bei Bildern, gemeinsamer Stapel) -->
+      <VideoLayerControls />
     </div>
 
     <!--
@@ -164,6 +160,7 @@ import UiButton from '../ui/UiButton.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 import UiSwitch from '../ui/UiSwitch.vue'
 import VideoAudioReactive from './VideoAudioReactive.vue'
+import VideoLayerControls from './VideoLayerControls.vue'
 import PositionSizeControls from '../foto-panel/image-filters/PositionSizeControls.vue'
 import { computed, inject } from 'vue'
 import type { VideoPanelApi } from '../../composables/useVideoPanel'
@@ -177,8 +174,6 @@ const {
   selectedVideoCurrentTime,
   selectedVideoDuration,
   selectedVideoVolume,
-  selectedVideoBehindVisualizer,
-  setVideoBehindVisualizer,
   videoBoundsApi,
   videoLoop,
   videoMuted,

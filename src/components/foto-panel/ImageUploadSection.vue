@@ -135,7 +135,17 @@
 
     <!-- Aktionen (nur mit Auswahl) -->
     <div v-if="selectedImageCount > 0" class="action-buttons">
-      <UiButton variant="primary" size="sm" block @click="$emit('add-to-canvas')">
+      <!--
+        Ein Bild: nur „Platzieren“ unter „Platzierung“ (berücksichtigt Effekt,
+        Größe und Versatz). Mehrere Bilder: alle auf einmal auf den Canvas.
+      -->
+      <UiButton
+        v-if="selectedImageCount > 1"
+        variant="primary"
+        size="sm"
+        block
+        @click="$emit('add-to-canvas')"
+      >
         {{ placeLabel }}
       </UiButton>
       <template v-if="selectedImageCount === 1">
@@ -271,11 +281,9 @@ const galleryTitle = computed(() =>
   t('foto.galleryCount').replace('{count}', String(props.imageGallery.length)),
 )
 
-/** Haupt-Aktion: ein Bild platzieren oder „N Bilder auf Canvas“. */
+/** Mehrfach-Auswahl: „N Bilder auf Canvas“. */
 const placeLabel = computed(() =>
-  props.selectedImageCount > 1
-    ? t('foto.imagesOnCanvas').replace('{count}', String(props.selectedImageCount))
-    : t('foto.placeOnCanvas'),
+  t('foto.imagesOnCanvas').replace('{count}', String(props.selectedImageCount)),
 )
 
 /** Checkbox: schaltet additiv um (wie Strg+Klick). */

@@ -147,12 +147,14 @@ describe('Bild-Upload – Galerie', () => {
 })
 
 describe('Bild-Upload – Aktionen', () => {
-  it('ein Bild: Platzieren, Hintergrund, Workspace-Hintergrund, Platzierungs-Einstellungen', () => {
+  it('ein Bild: Hintergrund, Workspace-Hintergrund, Platzierungs-Einstellungen', () => {
     mountSection({ selected: [0] })
-    button(F.placeOnCanvas).click()
+    // „Auf Canvas platzieren“ ignorierte Effekt/Größe/Versatz der Platzierung
+    // und ist entfernt – platziert wird über „Platzieren“ unter „Platzierung“
+    expect(button(F.placeOnCanvas)).toBeUndefined()
     button(F.asBackground).click()
     button(F.asWorkspaceBackground).click()
-    expect(wrapper!.emitted('add-to-canvas')).toHaveLength(1)
+    expect(wrapper!.emitted('add-to-canvas')).toBeUndefined()
     expect(wrapper!.emitted('set-as-background')).toHaveLength(1)
     expect(wrapper!.emitted('set-as-workspace-background')).toHaveLength(1)
     expect(root().querySelector('[data-placement]')).toBeTruthy()
@@ -160,7 +162,8 @@ describe('Bild-Upload – Aktionen', () => {
 
   it('zwei Bilder: „2 Bilder auf Canvas“, keine Hintergrund-Aktionen', () => {
     mountSection({ selected: [0, 1] })
-    expect(button('2 Bilder auf Canvas')).toBeTruthy()
+    button('2 Bilder auf Canvas').click()
+    expect(wrapper!.emitted('add-to-canvas')).toHaveLength(1)
     expect(button(F.asBackground)).toBeUndefined()
     expect(root().querySelector('[data-placement]')).toBeNull()
   })
@@ -194,11 +197,13 @@ describe('Bild-Upload – Ui-Bausteine', () => {
 
   it('Galerie-Knöpfe und Aktionen sind Ui-Buttons, „Alle löschen“ danger', () => {
     mountSection({ selected: [0] })
-    for (const n of [F.selectAll, F.deselectAll, F.deleteAll, F.placeOnCanvas, F.asBackground]) {
+    for (const n of [F.selectAll, F.deselectAll, F.deleteAll, F.asBackground]) {
       expect(button(n).classList.contains('ui-button'), n).toBe(true)
     }
     expect(button(F.deleteAll).classList.contains('ui-button--danger')).toBe(true)
-    expect(button(F.placeOnCanvas).classList.contains('ui-button--primary')).toBe(true)
+    wrapper!.unmount()
+    mountSection({ selected: [0, 1] })
+    expect(button('2 Bilder auf Canvas').classList.contains('ui-button--primary')).toBe(true)
   })
 
   it('Kacheln per Tastatur wählbar, Löschen als Ui-Icon-Button mit Namen', () => {

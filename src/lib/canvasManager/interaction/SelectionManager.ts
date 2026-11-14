@@ -165,30 +165,14 @@ export class SelectionManager {
       }
     }
 
-    // Dann Videos prüfen (über Bildern, unter Text)
-    if (this.manager.videoManager) {
-      const videos = this.manager.videoManager.getAllVideos()
-      for (let i = videos.length - 1; i >= 0; i--) {
-        const videoData = videos[i] as VideoObject // i < length
-        // Vom Beat-Marker ausgeblendet → unsichtbar, nicht anklickbar
-        if (this.manager.videoManager.isMarkerHidden?.(videoData.id)) continue
-        const bounds = this.manager.getObjectBounds(videoData)
-        if (bounds && this.isPointInRect(x, y, bounds)) {
-          return videoData
-        }
-      }
-    }
-
-    // Dann Bilder prüfen (über Hintergründen)
-    if (this.manager.multiImageManager) {
-      const images = this.manager.multiImageManager.getAllImages()
-      for (let i = images.length - 1; i >= 0; i--) {
-        const imgData = images[i] as CanvasImage // i < length
-        const bounds = this.manager.getObjectBounds(imgData)
-        if (bounds && this.isPointInRect(x, y, bounds)) {
-          return imgData
-        }
-      }
+    // Dann Videos und Bilder – in der Reihenfolge, in der sie gezeichnet
+    // werden (renderLoop/sceneRenderer): erst die Ebene vor dem Visualizer,
+    // dann die dahinter; je Ebene liegen Videos über Bildern. Ein Bild vor
+    // dem Visualizer liegt sichtbar über einem Video dahinter und muss dann
+    // auch den Klick bekommen.
+    for (const behindVisualizer of [false, true]) {
+      const hit = this._getMediaAtPos(x, y, behindVisualizer)
+      if (hit) return hit
     }
 
     // Dann Workspace-Hintergrund prüfen
@@ -218,6 +202,45 @@ export class SelectionManager {
   /**
    * Prüft ob ein Punkt innerhalb eines Rechtecks liegt
    */
+  /**
+   * Oberstes sichtbares Video bzw. Bild einer Zeichen-Ebene an der Position.
+   * Vom Beat-Marker ausgeblendete Elemente sind unsichtbar, also nicht
+   * anklickbar.
+   *
+   * @param behindVisualizer - true = Ebene hinter dem Visualizer
+   */
+  _getMediaAtPos(
+    x: number,
+    y: number,
+    behindVisualizer: boolean,
+  ): VideoObject | CanvasImage | null {
+    const onLayer = (obj: { fotoSettings?: { renderBehindVisualizer?: boolean } | null }) =>
+      (obj.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer
+
+    const vm = this.manager.videoManager
+    if (vm) {
+      const videos = vm.getAllVideos()
+      for (let i = videos.length - 1; i >= 0; i--) {
+        const videoData = videos[i] as VideoObject // i < length
+        if (!onLayer(videoData) || vm.isMarkerHidden?.(videoData.id)) continue
+        const bounds = this.manager.getObjectBounds(videoData)
+        if (bounds && this.isPointInRect(x, y, bounds)) return videoData
+      }
+    }
+
+    const mim = this.manager.multiImageManager
+    if (mim) {
+      const images = mim.getAllImages()
+      for (let i = images.length - 1; i >= 0; i--) {
+        const imgData = images[i] as CanvasImage // i < length
+        if (!onLayer(imgData) || mim.isMarkerHidden?.(imgData.id)) continue
+        const bounds = this.manager.getObjectBounds(imgData)
+        if (bounds && this.isPointInRect(x, y, bounds)) return imgData
+      }
+    }
+    return null
+  }
+
   isPointInRect(x: number, y: number, rect: Rect): boolean {
     return isPointInRect(x, y, rect)
   }

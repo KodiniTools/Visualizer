@@ -20,6 +20,7 @@
       :image-offset-y="imageOffsetY"
       :is-in-range-selection-mode="isInRangeSelectionMode"
       :new-image-animation="newImageAnimation"
+      :active-canvas-image="animatableActiveImage"
       @upload="handleImageUpload"
       @select-image="selectImage"
       @open-preview="openUploadedPreview"
@@ -35,6 +36,7 @@
       @update:placement-settings="updatePlacementSettings"
       @image-dragstart="onGalleryImageDragStart"
       @image-dragend="onGalleryImageDragEnd"
+      @apply-animation-to-active-image="applyNewAnimationToActiveImage"
     />
 
     <!-- Slideshow-Panel: bleibt hier gemountet (Verdrahtung mit dem Manager),
@@ -99,7 +101,7 @@
  * des aktiven Canvas-Bildes und die Verdrahtung des Slideshow-Panels.
  * Die Logik liegt in den Composables unter `foto-panel/`.
  */
-import { ref, watch, onMounted, onBeforeUnmount, inject, type Ref } from 'vue'
+import { computed, ref, toRaw, watch, onMounted, onBeforeUnmount, inject, type Ref } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useToastStore } from '../stores/toastStore'
 
@@ -118,6 +120,8 @@ import { useFotoSlideshow } from './foto-panel/useFotoSlideshow'
 import { useImagePlacement } from './foto-panel/useImagePlacement'
 import { useActiveImageEditing } from './foto-panel/useActiveImageEditing'
 import { registerFotoPanel } from '../lib/fotoPanelBridge'
+import { applyImageAnimation, type ImageAnimationTarget } from '../lib/canvasObjects/imageAnimation'
+import { notifyMarkerTargetEdited } from '../lib/markerTargetEdits'
 import type { CanvasManagerRef } from '../composables/types'
 import type { FotoImageObject, FotoManager, FotoPresetInfo } from '../lib/fotoManager'
 import type { MultiImageManager } from '../lib/multiImageManager'
@@ -184,6 +188,34 @@ const {
   addPreviewToCanvas,
   setPreviewAsBackground,
 } = useImagePlacement({ multiImageManagerRef, canvasManagerRef, gallery, toastStore, t })
+
+// „Animation beim Hinzufügen“ gilt nur für neue Bilder. Ist ein Canvas-Bild
+// (oder Bild-Hintergrund) ausgewählt, zeigt der Abschnitt einen Hinweis und
+// kann die Einstellungen darauf übertragen – gleiche Typen wie der Abschnitt
+// „Animation“ in ImageFiltersPanel.
+const ANIMATABLE_TYPES: readonly unknown[] = ['image', 'background', 'workspace-background']
+const animatableActiveImage = computed(() => {
+  const img = currentActiveImage.value
+  if (!img || !ANIMATABLE_TYPES.includes(img.type) || img.isSlideshowImage) return null
+  const name = (img as { name?: unknown }).name
+  return { name: typeof name === 'string' ? name : null }
+})
+
+function applyNewAnimationToActiveImage() {
+  const img = currentActiveImage.value
+  if (!img || !animatableActiveImage.value) return
+  applyImageAnimation(img as ImageAnimationTarget, newImageAnimation.value)
+  // Wie die Regler im Abschnitt „Animation“: Marker übernehmen die Änderung,
+  // ein vom Marker ausgeblendetes Bild wird sichtbar.
+  if (img.type === 'image') {
+    const id = (img as { id?: string | number }).id
+    if (id !== undefined) notifyMarkerTargetEdited({ kind: 'image', id })
+  } else {
+    notifyMarkerTargetEdited({ kind: 'background', object: toRaw(img) })
+  }
+  canvasManagerRef?.value?.redrawCallback?.()
+  toastStore.success(t('foto.animationAppliedToSelected'))
+}
 
 // Drag & Drop: eigenes Galerie-Bild direkt auf den Canvas ziehen (ergänzt
 // die Platzierungs-Buttons)

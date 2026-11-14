@@ -10,6 +10,10 @@ import de from '../../lib/i18n/de'
 import en from '../../lib/i18n/en'
 import { stub } from '../helpers/canvasStubs'
 import type { GalleryImage } from '../../composables/useImageGallery'
+import {
+  createImageAnimation,
+  type ImageTimedAnimation,
+} from '../../lib/canvasObjects/imageAnimation'
 
 const F = de.foto
 const gallery = [
@@ -21,7 +25,14 @@ let wrapper: VueWrapper | null
 function mountSection({
   images = gallery,
   selected = [],
-}: { images?: typeof gallery; selected?: number[] } = {}) {
+  newImageAnimation = null,
+  activeCanvasImage = null,
+}: {
+  images?: typeof gallery
+  selected?: number[]
+  newImageAnimation?: ImageTimedAnimation | null
+  activeCanvasImage?: { name?: string | null } | null
+} = {}) {
   const set = new Set(selected)
   wrapper = mount(ImageUploadSection, {
     attachTo: document.body,
@@ -29,6 +40,8 @@ function mountSection({
       imageGallery: stub<GalleryImage[]>(images),
       selectedImageIndices: set,
       selectedImageCount: set.size,
+      newImageAnimation,
+      activeCanvasImage,
     },
     global: { stubs: { PlacementSettings: { template: '<div data-placement />' } } },
   })
@@ -207,5 +220,49 @@ describe('Bild-Upload – Ui-Bausteine', () => {
     expect(cb.getAttribute('tabindex')).toBe('0')
     cb.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }))
     expect(wrapper!.emitted('select-image')![0]).toEqual([1, { ctrlKey: true }])
+  })
+})
+
+describe('Bild-Upload – „Animation beim Hinzufügen“ bei ausgewähltem Canvas-Bild', () => {
+  it('ohne ausgewähltes Canvas-Bild kein Hinweis und kein Übertragen-Button', () => {
+    mountSection({ selected: [0], newImageAnimation: createImageAnimation() })
+    expect(text()).toContain(F.newImageAnimation)
+    expect(text()).not.toContain(F.newImageAnimationSelected)
+    expect(button(F.applyAnimationToSelected)).toBeUndefined()
+  })
+
+  it('mit ausgewähltem Bild: Hinweis mit Name und Ui-Button, der das Übertragen meldet', () => {
+    mountSection({
+      selected: [0],
+      newImageAnimation: createImageAnimation(),
+      activeCanvasImage: { name: 'logo.png' },
+    })
+    expect(text()).toContain(F.newImageAnimationSelectedNamed.replace('{name}', 'logo.png'))
+    const apply = button(F.applyAnimationToSelected)
+    expect(apply.classList.contains('ui-button')).toBe(true)
+    apply.click()
+    expect(wrapper!.emitted('apply-animation-to-active-image')).toHaveLength(1)
+  })
+
+  it('ohne bekannten Namen der allgemeine Hinweis', () => {
+    mountSection({
+      selected: [0],
+      newImageAnimation: createImageAnimation(),
+      activeCanvasImage: { name: null },
+    })
+    expect(text()).toContain(F.newImageAnimationSelected)
+  })
+
+  it('Englische Texte vorhanden', () => {
+    const E = en.foto
+    for (const key of [
+      'newImageAnimationSelected',
+      'newImageAnimationSelectedNamed',
+      'applyAnimationToSelected',
+      'animationAppliedToSelected',
+    ] as const) {
+      expect(E[key], key).toBeTruthy()
+      expect(F[key], key).toBeTruthy()
+    }
   })
 })

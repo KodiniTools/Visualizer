@@ -170,7 +170,17 @@
       :hint="t('foto.newImageAnimationHint')"
       :animation="newImageAnimation"
       :restartable="false"
-    />
+    >
+      <!-- Ein Canvas-Bild ist ausgewählt: Diese Einstellungen gelten nicht
+           dafür. Hinweis + Übertragen, damit man nicht den falschen Abschnitt
+           bearbeitet. -->
+      <div v-if="activeCanvasImage" class="new-image-animation-apply">
+        <p class="hint new-image-animation-apply-hint">{{ activeImageHint }}</p>
+        <UiButton size="sm" block @click="$emit('apply-animation-to-active-image')">
+          {{ t('foto.applyAnimationToSelected') }}
+        </UiButton>
+      </div>
+    </ImageAnimationPanel>
 
     <p v-if="imageGallery.length === 0" class="empty-state">{{ t('foto.noImagesUploaded') }}</p>
   </div>
@@ -203,6 +213,11 @@ const props = withDefaults(
     isInRangeSelectionMode?: boolean
     /** Animationen für neue Bilder ({ fade, scale, slide }); wird direkt bearbeitet */
     newImageAnimation?: ImageTimedAnimation | null
+    /**
+     * Ausgewähltes Canvas-Bild bzw. Bild-Hintergrund mit eigenen Animationen
+     * (null = keins). `name` erscheint im Hinweis, falls bekannt.
+     */
+    activeCanvasImage?: { name?: string | null } | null
   }>(),
   {
     imageGallery: () => [],
@@ -215,6 +230,7 @@ const props = withDefaults(
     imageOffsetY: 0,
     isInRangeSelectionMode: false,
     newImageAnimation: null,
+    activeCanvasImage: null,
   },
 )
 
@@ -237,7 +253,16 @@ const emit = defineEmits<{
   'update:placement-settings': [settings: PlacementSettingsValue]
   'image-dragstart': [payload: GalleryDragPayload]
   'image-dragend': []
+  'apply-animation-to-active-image': []
 }>()
+
+/** Hinweis im Abschnitt „Animation beim Hinzufügen“ bei ausgewähltem Canvas-Bild */
+const activeImageHint = computed(() => {
+  const name = props.activeCanvasImage?.name
+  return name
+    ? t('foto.newImageAnimationSelectedNamed').replace('{name}', name)
+    : t('foto.newImageAnimationSelected')
+})
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -530,5 +555,20 @@ onUnmounted(() => document.removeEventListener('paste', onPaste))
   text-align: center;
   font-size: var(--ds-text-sm);
   color: var(--ds-text-3);
+}
+
+/* Hinweis + Übertragen bei ausgewähltem Canvas-Bild */
+.new-image-animation-apply {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: var(--ds-space-2) 0;
+  padding: var(--ds-space-2);
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-1);
+}
+.new-image-animation-apply-hint {
+  margin: 0;
 }
 </style>

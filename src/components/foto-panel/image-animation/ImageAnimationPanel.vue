@@ -7,6 +7,8 @@
       }}</span>
     </summary>
     <p v-if="hint" class="image-animation-hint">{{ hint }}</p>
+    <!-- Zusatzinhalt unter dem Hinweis (z. B. „Auf ausgewähltes Bild übertragen“) -->
+    <slot />
     <ImageAnimationSections
       :animation="animation"
       :restartable="restartable"

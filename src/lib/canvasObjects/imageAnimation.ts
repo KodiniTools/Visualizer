@@ -127,6 +127,24 @@ export function restartImageAnimation(
 }
 
 /**
+ * Übernimmt Animations-Einstellungen (z. B. „Animation beim Hinzufügen“) als
+ * eigene Kopie in ein vorhandenes Bild und startet sie von vorn, damit das
+ * Ergebnis sofort zu sehen ist. Spätere Änderungen an `source` wirken nicht
+ * mehr auf das Bild.
+ *
+ * @param target Canvas-Bild oder Bild-Hintergrund
+ * @param source Einstellungen; ungültig → Standardwerte (alle Effekte aus)
+ */
+export function applyImageAnimation(
+  target: ImageAnimationTarget | null | undefined,
+  source: unknown,
+): void {
+  if (!target) return
+  target.timedAnimation = cloneImageAnimation(source)
+  restartImageAnimation(target)
+}
+
+/**
  * Setzt die aktiven Effekte so, als liefen sie seit `elapsedMs` (Spulen zu
  * einer Stelle, an der ein Beat-Marker das Bild vor `elapsedMs` eingeblendet
  * hat). Inaktive Effekte bleiben unberührt.

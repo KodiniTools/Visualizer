@@ -18,15 +18,15 @@ export const routes = [
     name: 'Landing',
     component: LandingPage,
     meta: {
-      title: 'Audio Visualizer Pro – Online Musik-Visualizer & MP4-Export',
+      title: 'Audio Visualizer online – Musikvideo für TikTok erstellen',
       description:
-        'Audio Visualizer Pro – Erstelle beeindruckende Musik-Visualisierungen direkt im Browser. Tracks hochladen, Visualisierung wählen, Text/Bild hinzufügen und als MP4 exportieren.',
+        'Audio Visualizer online: Musikvideo für TikTok, Reels und YouTube erstellen. Track laden, Visualisierung wählen, Text oder Bild ergänzen, als MP4 exportieren.',
       canonical: `${BASE}/`,
       robots: 'index, follow',
       en: {
-        title: 'Audio Visualizer Pro – Online Music Visualizer & MP4 Export',
+        title: 'Music Visualizer Video Maker – Audio Visualizer Online',
         description:
-          'Audio Visualizer Pro – Create stunning music visualizations right in your browser. Upload tracks, pick a visualizer, add text or images and export as MP4.',
+          'Online music visualizer video maker: turn a song into a video for TikTok, Reels and YouTube. Load a track, pick a visualizer, add text or images, export as MP4.',
       },
       // FAQ ist nur hier sichtbar → FAQ-JSON-LD nur hier (siehe seoHead.js)
       faq: true,

@@ -349,6 +349,7 @@ export function useVideoPanel() {
     selectedVideoDuration: canvasVideos.selectedVideoDuration,
     selectedVideoVolume: canvasVideos.selectedVideoVolume,
     selectedVideoBehindVisualizer: canvasVideos.selectedVideoBehindVisualizer,
+    videoPlaybackTime: canvasVideos.videoPlaybackTime,
     setVideoBehindVisualizer,
     videoBackground: bg.entry,
     workspaceVideoBackground: wsBg.entry,

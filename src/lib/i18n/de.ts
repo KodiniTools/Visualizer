@@ -2604,6 +2604,7 @@ export default {
 
   // ========== VIDEO PANEL ==========
   videoPanel: {
+    videoTimeTitle: 'Position / Gesamtdauer',
     canvasVideosTitle: 'Videos auf Canvas',
     playAll: 'Alle abspielen',
     pauseAll: 'Alle pausieren',

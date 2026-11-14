@@ -19,6 +19,10 @@
             :title="video.isPlaying ? t('videoPanel.playing') : t('videoPanel.paused')"
           ></span>
         </div>
+        <!-- Position / Gesamtdauer, läuft während der Wiedergabe mit -->
+        <span class="video-time" :title="t('videoPanel.videoTimeTitle')">
+          {{ timeText(video) }}
+        </span>
         <div class="video-controls">
           <UiIconButton
             :label="video.isPlaying ? t('videoPanel.pause') : t('videoPanel.play')"
@@ -190,7 +194,14 @@ const {
   seekBackward,
   seekForward,
   updateVideoVolume,
+  videoPlaybackTime,
 } = inject('videoPanel') as VideoPanelApi
+
+/** „m:ss / m:ss“ (Position / Gesamtdauer) eines Canvas-Videos */
+function timeText(video: (typeof canvasVideos.value)[number]): string {
+  const { current, duration } = videoPlaybackTime(video)
+  return `${formatTime(current)} / ${formatTime(duration)}`
+}
 
 // Ziel des Audio-Reaktiv-Panels: ausgewähltes Video, sonst das erste Canvas-Video
 const audioTargetVideo = computed(() => selectedCanvasVideo.value || canvasVideos.value[0] || null)
@@ -299,6 +310,20 @@ const audioTargetLabel = computed(() => {
 
 .video-status.playing {
   background: var(--ds-success);
+}
+
+.video-time {
+  margin-left: auto;
+  padding: 0 var(--ds-space-2);
+  font-size: var(--ds-text-xs);
+  font-family: var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-text-2);
+  white-space: nowrap;
+}
+
+.canvas-video-item.active .video-time {
+  color: var(--ds-text);
 }
 
 .video-controls {

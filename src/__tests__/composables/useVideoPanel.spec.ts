@@ -494,6 +494,22 @@ describe('useVideoPanel – hinter dem Visualizer', () => {
     expect(vp.selectedVideoBehindVisualizer.value).toBe(false)
   })
 
+  it('videoPlaybackTime: Position und Dauer, unbekannte Werte = 0', () => {
+    mountPanel()
+    const el = fakeVideo('pt1', { currentTime: 12.5, duration: 90 })
+    const v = stub<VideoObject>({ id: 9, type: 'video', videoElement: el, isPlaying: true })
+    expect(vp.videoPlaybackTime(v)).toEqual({ current: 12.5, duration: 90 })
+    el.duration = Infinity // Live-Stream / Metadaten noch unvollständig
+    expect(vp.videoPlaybackTime(v)).toEqual({ current: 12.5, duration: 0 })
+    el.duration = NaN
+    expect(vp.videoPlaybackTime(v).duration).toBe(0)
+    expect(vp.videoPlaybackTime(null)).toEqual({ current: 0, duration: 0 })
+    expect(vp.videoPlaybackTime(stub<VideoObject>({ id: 10 }))).toEqual({
+      current: 0,
+      duration: 0,
+    })
+  })
+
   /** Canvas-Video mit Ebene (wie vom VideoManager angelegt) */
   const canvasVideo = (id: number, behind = false) =>
     stub<VideoObject>({

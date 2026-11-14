@@ -58,14 +58,41 @@ export function useCanvasVideos(
     return !!selectedCanvasVideo.value?.fotoSettings?.renderBehindVisualizer
   })
 
+  /** Ebene eines Canvas-Videos setzen (legt fehlende fotoSettings an). */
+  function applyBehindVisualizer(video: VideoObject, value: boolean): boolean {
+    if (!video.fotoSettings) videoManager.value?.initializeVideoSettings?.(video)
+    if (!video.fotoSettings) return false
+    video.fotoSettings.renderBehindVisualizer = value
+    return true
+  }
+
   /** Ausgewähltes Canvas-Video hinter (true) oder vor (false) den Visualizer legen. */
   function setVideoBehindVisualizer(value: boolean) {
     const video = selectedCanvasVideo.value
     if (!video) return
-    if (!video.fotoSettings) videoManager.value?.initializeVideoSettings(video)
-    if (!video.fotoSettings) return
-    video.fotoSettings.renderBehindVisualizer = value
+    if (applyBehindVisualizer(video, value)) tick.value++
+  }
+
+  /**
+   * Alle Canvas-Videos hinter (true) oder vor (false) den Visualizer legen –
+   * auch einem Beat-Marker zugewiesene, gerade ausgeblendete oder laufende.
+   */
+  function setAllVideosBehindVisualizer(value: boolean) {
+    for (const video of videoManager.value?.getAllVideos() ?? []) {
+      applyBehindVisualizer(video, value)
+    }
     tick.value++
+  }
+
+  /**
+   * Gemeinsame Ebene aller Canvas-Videos: true/false, wenn alle gleich
+   * liegen; null ohne Videos oder bei gemischten Ebenen.
+   */
+  function commonBehindVisualizer(): boolean | null {
+    const videos = videoManager.value?.getAllVideos() ?? []
+    if (videos.length === 0) return null
+    const first = !!videos[0]!.fotoSettings?.renderBehindVisualizer
+    return videos.every((v) => !!v.fotoSettings?.renderBehindVisualizer === first) ? first : null
   }
 
   function isVideoActive(video: VideoObject) {
@@ -168,6 +195,8 @@ export function useCanvasVideos(
     selectedVideoVolume,
     selectedVideoBehindVisualizer,
     setVideoBehindVisualizer,
+    setAllVideosBehindVisualizer,
+    commonBehindVisualizer,
     isVideoActive,
     selectCanvasVideo,
     togglePlayVideo,

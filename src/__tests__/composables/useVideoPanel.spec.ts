@@ -493,6 +493,88 @@ describe('useVideoPanel – hinter dem Visualizer', () => {
     vp.setVideoBehindVisualizer(false)
     expect(vp.selectedVideoBehindVisualizer.value).toBe(false)
   })
+
+  /** Canvas-Video mit Ebene (wie vom VideoManager angelegt) */
+  const canvasVideo = (id: number, behind = false) =>
+    stub<VideoObject>({
+      id,
+      type: 'video',
+      videoElement: fakeVideo(`cv${id}`),
+      isPlaying: true,
+      fotoSettings: { renderBehindVisualizer: behind },
+    })
+  const layers = (vm: FakeVm) =>
+    (vm.videos as unknown as VideoObject[]).map((v) => v.fotoSettings!.renderBehindVisualizer)
+
+  it('gemeinsamer Schalter gilt sofort für alle Canvas-Videos – bei jedem Umschalten', () => {
+    const { vm } = mountPanel()
+    // direkt platziert, von einem Beat-Marker angelegt (nicht ausgewählt) und gemischt
+    vm!.videos.push(canvasVideo(1), canvasVideo(2, true), canvasVideo(3))
+    for (const value of [true, false, true, true, false, false, true]) {
+      vp.videoBehindVisualizer.value = value
+      expect(layers(vm!)).toEqual([value, value, value])
+    }
+  })
+
+  it('wirkt auch ohne Auswahl und legt fehlende Foto-Einstellungen an', () => {
+    const { vm } = mountPanel()
+    const bare = stub<VideoObject>({ id: 9, type: 'video', videoElement: fakeVideo('cv9') })
+    vm!.videos.push(bare)
+    vm!.initializeVideoSettings = (v: VideoObject) => {
+      v.fotoSettings = stub({ renderBehindVisualizer: false })
+    }
+    expect(cmRef.value!.activeObject).toBeNull()
+    vp.videoBehindVisualizer.value = true
+    expect(bare.fotoSettings!.renderBehindVisualizer).toBe(true)
+  })
+
+  it('ein einzelnes Video umschalten; sind dann alle gleich, folgt der gemeinsame Schalter', async () => {
+    const { vm } = mountPanel()
+    const v1 = canvasVideo(1)
+    const v2 = canvasVideo(2)
+    vm!.videos.push(v1, v2)
+
+    vp.selectCanvasVideo(v1)
+    await nextTick()
+    vp.setVideoBehindVisualizer(true) // nur v1, Ebenen gemischt
+    expect(layers(vm!)).toEqual([true, false])
+    expect(vp.videoBehindVisualizer.value).toBe(false)
+
+    vp.selectCanvasVideo(v2)
+    await nextTick()
+    vp.setVideoBehindVisualizer(true) // jetzt alle hinten
+    expect(layers(vm!)).toEqual([true, true])
+    expect(vp.videoBehindVisualizer.value).toBe(true)
+
+    // Gemeinsamer Schalter aus → alle wieder davor
+    vp.videoBehindVisualizer.value = false
+    expect(layers(vm!)).toEqual([false, false])
+  })
+
+  it('neu platzierte Videos (auch vom Beat-Marker) übernehmen den aktuellen Schalter', async () => {
+    const { vm } = mountPanel()
+    await uploadVideo('clip.mp4')
+    const opts: unknown[] = []
+    vm!.addVideo = (_el: unknown, o: unknown) => {
+      opts.push(o)
+      return { id: 'cv' }
+    }
+    for (const value of [true, false]) {
+      vp.videoBehindVisualizer.value = value
+      // Beat-Marker platzieren ohne Auswahl
+      const pending = vp.placeVideoOnCanvas(vp.videoGallery.value[0], { select: false })
+      created.at(-1)!.onloadeddata()
+      await pending
+      expect(opts.at(-1)).toMatchObject({ renderBehindVisualizer: value, select: false })
+    }
+  })
+
+  it('ohne VideoManager wirft der Schalter nicht', () => {
+    mountPanel({ noVm: true })
+    expect(() => {
+      vp.videoBehindVisualizer.value = true
+    }).not.toThrow()
+  })
 })
 
 /** Lose Sicht auf die API für Zugriffe über Namen aus der Tabelle */

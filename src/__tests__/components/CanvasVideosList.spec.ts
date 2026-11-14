@@ -29,6 +29,7 @@ function makePanel(videos: FakeVideo[]) {
     setVideoBehindVisualizer: vi.fn(),
     videoLoop: ref(true),
     videoMuted: ref(false),
+    videoBehindVisualizer: ref(false),
     isVideoActive: (v: FakeVideo) => selectedCanvasVideo.value === v,
     selectCanvasVideo: vi.fn((v: FakeVideo) => {
       selectedCanvasVideo.value = v
@@ -194,16 +195,37 @@ describe('Canvas-Videoliste – Position & Größe', () => {
 })
 
 describe('Canvas-Videoliste – hinter dem Visualizer rendern', () => {
-  it('Schalter erst mit ausgewähltem Video; zeigt und setzt die Ebene', async () => {
-    mountList()
-    const label = de.foto.renderBehindVisualizer
-    expect(body().textContent).not.toContain(label)
+  const ALL = de.foto.renderBehindVisualizer
+  const ONE = V.selectedBehindVisualizer
 
+  it('gemeinsamer Schalter für alle Videos ist immer sichtbar – auch ohne Auswahl', async () => {
+    mountList()
+    expect(vp.selectedCanvasVideo.value).toBeNull()
+    expect(body().textContent).toContain(ALL)
+    expect(body().textContent).not.toContain(ONE)
+    for (const expected of [true, false, true]) {
+      await clickLabel(ALL)
+      expect(vp.videoBehindVisualizer.value).toBe(expected)
+    }
+  })
+
+  it('zeigt den Stand des gemeinsamen Schalters', async () => {
+    mountList()
+    vp.videoBehindVisualizer.value = true
+    await flushPromises()
+    const label = [...body().querySelectorAll('label')].find((l) => l.textContent!.trim() === ALL)
+    const sw = document.getElementById(label!.htmlFor)!
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('Schalter „nur dieses Video“ erst mit Auswahl; zeigt und setzt die Ebene', async () => {
+    mountList()
     vp.selectedCanvasVideo.value = vp.canvasVideos.value[0]!
     await flushPromises()
-    expect(body().textContent).toContain(label)
-    await clickLabel(label)
+    expect(body().textContent).toContain(ONE)
+    await clickLabel(ONE)
     expect(vp.setVideoBehindVisualizer).toHaveBeenCalledWith(true)
+    expect(vp.videoBehindVisualizer.value).toBe(false) // gemeinsamer Schalter unberührt
 
     vp.selectedVideoBehindVisualizer.value = true
     await flushPromises()
@@ -218,7 +240,12 @@ describe('Canvas-Videoliste – Ui-Bausteine', () => {
     vp.selectedCanvasVideo.value = vp.canvasVideos.value[0]!
     await flushPromises()
     const switches = [...body().querySelectorAll('[role="switch"]')]
-    expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false'])
+    expect(switches.map((s) => s.getAttribute('aria-checked'))).toEqual([
+      'true',
+      'false',
+      'false',
+      'false',
+    ])
     expect(body().querySelectorAll('input[type="checkbox"]')).toHaveLength(0)
     for (const label of [V.play, V.pause, V.seekBack5, V.seekForward5]) {
       expect(buttons(label).length, label).toBeGreaterThan(0)

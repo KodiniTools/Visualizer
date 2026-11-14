@@ -63,6 +63,8 @@
     <div class="global-video-settings">
       <UiSwitch v-model="videoLoop" :label="t('videoPanel.loop')" />
       <UiSwitch v-model="videoMuted" :label="t('videoPanel.muted')" />
+      <!-- Ebene aller Canvas-Videos (gleicher Schalter wie bei der Platzierung) -->
+      <UiSwitch v-model="videoBehindVisualizer" :label="t('foto.renderBehindVisualizer')" />
     </div>
 
     <!-- Seek-Steuerung für ausgewähltes Video -->
@@ -127,10 +129,10 @@
         :api="videoBoundsApi"
       />
 
-      <!-- Ebene des ausgewählten Videos (wie bei Bildern) -->
+      <!-- Ebene nur des ausgewählten Videos (wie bei Bildern) -->
       <UiSwitch
         :model-value="selectedVideoBehindVisualizer"
-        :label="t('foto.renderBehindVisualizer')"
+        :label="t('videoPanel.selectedBehindVisualizer')"
         @update:model-value="setVideoBehindVisualizer"
       />
     </div>
@@ -176,6 +178,7 @@ const {
   videoBoundsApi,
   videoLoop,
   videoMuted,
+  videoBehindVisualizer,
   isVideoActive,
   selectCanvasVideo,
   togglePlayVideo,
@@ -320,7 +323,8 @@ const audioTargetLabel = computed(() => {
 
 .global-video-settings {
   display: flex;
-  gap: var(--ds-space-4);
+  flex-wrap: wrap;
+  gap: var(--ds-space-2) var(--ds-space-4);
   padding: var(--ds-space-2) var(--ds-space-3);
   background: var(--ds-surface-2);
   border: var(--ds-border-width) solid var(--ds-border);

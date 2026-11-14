@@ -36,6 +36,11 @@ interface Options {
   markers: () => MarkerLike[]
   /** Erzeugt das Audio-Element (Tests) */
   createAudio?: () => HTMLAudioElement
+  /**
+   * Setzt die Song-Lautstärke (Ducking). Standard: direkt über die Engine;
+   * useBeatMarkers mischt hier die Wünsche von Tracks und Videos.
+   */
+  setDuck?: (level: number) => void
 }
 
 const clamp01 = (v: unknown, fallback: number) =>
@@ -91,6 +96,7 @@ export function useMarkerAudioTracks({
   playlist,
   markers,
   createAudio = () => new Audio(),
+  setDuck = (level) => getAudioEngine()?.setPlayerDuck(level),
 }: Options) {
   /** Ein Audio-Element je Marker; wird wiederverwendet (nur einmal mit der Engine verbindbar) */
   const players = new Map<number, HTMLAudioElement>()
@@ -108,7 +114,7 @@ export function useMarkerAudioTracks({
     }
     if (level === appliedDuck) return
     appliedDuck = level
-    getAudioEngine()?.setPlayerDuck(level)
+    setDuck(level)
   }
 
   /** Bekannte Track-Längen (s) je URL; reaktiv für die Dauer-Anzeige */

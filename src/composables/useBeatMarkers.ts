@@ -65,6 +65,7 @@ import { seekTextAnimation } from '../lib/textManager/animation/seek'
 import type { CanvasImage, MultiImageManager } from '../lib/multiImageManager'
 import type { VideoManager, VideoObject } from '../lib/videoManager'
 import {
+  markerVideoDuck,
   useMarkerCanvasVideos,
   type CanvasVideoPlacement,
   type MarkerCanvasVideoAction,
@@ -76,6 +77,8 @@ import {
   useMarkerAudioTracks,
   type MarkerAudioTrackAction,
 } from './beatMarkers/useMarkerAudioTracks'
+import { createPlayerDuck } from './beatMarkers/playerDuck'
+import { getAudioEngine } from '../lib/audioEngineBridge'
 import type { CanvasManagerRef } from './types'
 
 // Marker-Hintergründe laden Bilder/Videos per Callback nach → Baseline nach
@@ -161,7 +164,11 @@ export function useBeatMarkers(
   const multiImageManager = inject('multiImageManager', ref(null)) as Ref<MultiImageManager | null>
   // Videos auf dem Canvas (Video-Panel) – für „Video auf Canvas“
   const videoManager = inject('videoManager', ref(null)) as Ref<VideoManager | null>
+  // Ducking: Marker-Tracks und Marker-Videos senken den Haupt-Song gemeinsam
+  // ab (der niedrigste Wert gilt)
+  const playerDuck = createPlayerDuck((level) => getAudioEngine()?.setPlayerDuck(level))
   const canvasVideos = useMarkerCanvasVideos({
+    setDuck: (level) => playerDuck.set('videos', level),
     videoManager,
     videoGallery,
     markerActions: () => beatMarkerStore.markers.map((m) => m.action as MarkerAction),
@@ -172,6 +179,7 @@ export function useBeatMarkers(
   })
   // Playlist-Track, der am Marker zusätzlich einsetzt (gemischt)
   const audioTracks = useMarkerAudioTracks({
+    setDuck: (level) => playerDuck.set('tracks', level),
     playlist: () => playerStore.playlist,
     markers: () =>
       beatMarkerStore.markers.map((m) => ({
@@ -222,6 +230,10 @@ export function useBeatMarkers(
   // ein hochgeladenes Video, das beim Speichern platziert wird; '' = keins).
   // Erscheint zum Marker-Zeitpunkt mit Einblend-Effekt und startet von vorn.
   const newMarkerCanvasVideoId = ref<VideoObject['id'] | ''>('')
+  // Ducking: Song auf newMarkerCanvasVideoDuckLevel % absenken, solange das
+  // Marker-Video mit Ton läuft (neue Marker: an)
+  const newMarkerCanvasVideoDuck = ref(true)
+  const newMarkerCanvasVideoDuckLevel = ref(DEFAULT_DUCK_PERCENT)
   // Playlist-Track (URL des Tracks, '' = keiner), der zum Marker-Zeitpunkt
   // zusätzlich zum laufenden Song einsetzt; Lautstärke in %, Start im Track in s
   const newMarkerAudioTrack = ref('')
@@ -1289,6 +1301,8 @@ export function useBeatMarkers(
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
     newMarkerCanvasVideoId.value = ''
+    newMarkerCanvasVideoDuck.value = true
+    newMarkerCanvasVideoDuckLevel.value = DEFAULT_DUCK_PERCENT
     newMarkerAudioTrack.value = ''
     newMarkerAudioVolume.value = 100
     newMarkerAudioOffset.value = 0
@@ -1335,6 +1349,11 @@ export function useBeatMarkers(
     newMarkerVideoLoop.value = isMarkerVideoLoop(marker.action?.video)
     // Gelöschtes Canvas-Video: Auswahl leeren
     newMarkerCanvasVideoId.value = canvasVideos.editSelection(marker.action?.canvasVideoId)
+    // Marker ohne Video: Ducking wie bei einem neuen Marker vorschlagen
+    const videoDuck = markerVideoDuck(marker.action as MarkerAction)
+    newMarkerCanvasVideoDuck.value = videoDuck !== null || newMarkerCanvasVideoId.value === ''
+    newMarkerCanvasVideoDuckLevel.value =
+      videoDuck !== null ? Math.round(videoDuck * 100) : DEFAULT_DUCK_PERCENT
     // Track nicht mehr in der Playlist: Auswahl leeren
     newMarkerAudioTrack.value = audioTracks.editSelection(marker.action?.audioTrack)
     newMarkerAudioVolume.value = Math.round(markerTrackVolume(marker.action?.audioTrack) * 100)
@@ -1470,6 +1489,10 @@ export function useBeatMarkers(
       video: video,
       canvasVideoId: canvasVideoId,
       canvasVideoLabel: canvasVideoLabel,
+      canvasVideoDuck:
+        newMarkerCanvasVideoId.value !== '' && newMarkerCanvasVideoDuck.value
+          ? Math.min(1, Math.max(0, newMarkerCanvasVideoDuckLevel.value / 100))
+          : null,
       audioTrack: audioTracks.resolveSelection(
         newMarkerAudioTrack.value,
         newMarkerAudioVolume.value / 100,
@@ -1515,6 +1538,8 @@ export function useBeatMarkers(
     newMarkerVideoId.value = ''
     newMarkerVideoLoop.value = true
     newMarkerCanvasVideoId.value = ''
+    newMarkerCanvasVideoDuck.value = true
+    newMarkerCanvasVideoDuckLevel.value = DEFAULT_DUCK_PERCENT
     newMarkerAudioTrack.value = ''
     newMarkerAudioVolume.value = 100
     newMarkerAudioOffset.value = 0
@@ -1785,6 +1810,8 @@ export function useBeatMarkers(
     newMarkerVideoId,
     newMarkerVideoLoop,
     newMarkerCanvasVideoId,
+    newMarkerCanvasVideoDuck,
+    newMarkerCanvasVideoDuckLevel,
     newMarkerAudioTrack,
     newMarkerAudioVolume,
     newMarkerAudioOffset,

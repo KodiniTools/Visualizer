@@ -1064,6 +1064,9 @@ export default {
     markerAudioDuckLevel: 'Musik-Lautstärke während des Tracks',
     markerAudioDuckHint:
       'Solange der Track läuft, wird der Song weich auf diesen Wert abgesenkt und danach wieder angehoben – ideal für Sprachaufnahmen.',
+    markerVideoDuckLevel: 'Musik-Lautstärke während des Videos',
+    markerVideoDuckHint:
+      'Solange das Video mit Ton läuft, wird der Song weich auf diesen Wert abgesenkt und danach wieder angehoben. Bei stummem Video bleibt der Song unverändert.',
     transition: 'Crossfade',
     transitionHint: 'Weiche Überblendung (Crossfade) beim Marker-Wechsel während der Wiedergabe',
     label: 'Label',

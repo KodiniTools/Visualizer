@@ -1063,6 +1063,9 @@ export default {
     markerAudioDuckLevel: 'Music volume while the track plays',
     markerAudioDuckHint:
       'While the track plays, the song fades down to this level and back up afterwards – ideal for voice-overs.',
+    markerVideoDuckLevel: 'Music volume while the video plays',
+    markerVideoDuckHint:
+      'While the video plays with sound, the song fades down to this level and back up afterwards. A muted video leaves the song unchanged.',
     transition: 'Crossfade',
     transitionHint: 'Smooth crossfade when switching markers during playback',
     label: 'Label',

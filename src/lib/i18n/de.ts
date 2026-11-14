@@ -2085,7 +2085,7 @@ export default {
       'Wie bei Texten: Einblenden, Hereingleiten oder Skalieren. Startet, sobald das Bild erscheint.',
     newImageAnimation: 'Animation beim Hinzufügen',
     newImageAnimationHint:
-      'Gilt für Bilder, die du ab jetzt hinzufügst: auf den Canvas (Button, Platzieren, Zeichnen, Drag & Drop), als Hintergrund oder als Workspace-Hintergrund.',
+      'Gilt für Bilder, die du ab jetzt hinzufügst: auf den Canvas (Platzieren, Zeichnen, Drag & Drop, mehrere Bilder auf einmal), als Hintergrund oder als Workspace-Hintergrund.',
     newImageAnimationSelected:
       'Für das ausgewählte Canvas-Bild gelten diese Einstellungen nicht. Seine eigene Animation steht unten im Abschnitt „Animation“.',
     newImageAnimationSelectedNamed:

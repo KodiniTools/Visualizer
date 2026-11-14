@@ -121,6 +121,14 @@ describe('Video-Upload', () => {
     expect(vp.selectVideo).toHaveBeenCalledTimes(1)
   })
 
+  it('kein eigener „Auf Canvas platzieren“-Button (doppelt zu „Platzieren“)', async () => {
+    await mountSection(1)
+    vp.selectedVideoIndex.value = 0
+    await flushPromises()
+    expect(text()).not.toContain('Auf Canvas platzieren')
+    expect(vp.addVideoToCanvas).not.toHaveBeenCalled()
+  })
+
   it('„Alle löschen“', async () => {
     await mountSection(2)
     button('Alle löschen')!.click()
@@ -129,13 +137,11 @@ describe('Video-Upload', () => {
 
   it('Aktionen erscheinen erst nach Auswahl und rufen die Funktionen', async () => {
     await mountSection(1)
-    expect(text()).not.toContain('Auf Canvas platzieren')
+    expect(text()).not.toContain('Als Hintergrund')
     vp.selectedVideoIndex.value = 0
     await flushPromises()
-    button('Auf Canvas platzieren')!.click()
     button('Als Hintergrund')!.click()
     button('Workspace-Hintergrund')!.click()
-    expect(vp.addVideoToCanvas).toHaveBeenCalled()
     expect(vp.setVideoAsBackground).toHaveBeenCalled()
     expect(vp.setVideoAsWorkspaceBackground).toHaveBeenCalled()
   })
@@ -145,7 +151,7 @@ describe('Video-Upload', () => {
     vp.selectedVideoIndex.value = 0
     await flushPromises()
     expect(button('Delete all')).toBeTruthy()
-    expect(button('Place on Canvas')).toBeTruthy()
+    expect(text()).not.toContain('Place on Canvas')
     expect(button('As Background')).toBeTruthy()
     expect(button('Workspace Background')).toBeTruthy()
   })

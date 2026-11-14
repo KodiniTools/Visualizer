@@ -2604,6 +2604,7 @@ export default {
 
   // ========== VIDEO PANEL ==========
   videoPanel: {
+    videoTimeTitle: 'Position / Gesamtdauer',
     canvasVideosTitle: 'Videos auf Canvas',
     playAll: 'Alle abspielen',
     pauseAll: 'Alle pausieren',
@@ -2630,7 +2631,6 @@ export default {
     uploadFormats: 'MP4, WebM, MOV',
     deleteAllVideos: 'Alle löschen',
     deleteVideo: 'Video löschen',
-    placeOnCanvas: 'Auf Canvas platzieren',
     asBackground: 'Als Hintergrund',
     asWorkspaceBackground: 'Workspace-Hintergrund',
   },

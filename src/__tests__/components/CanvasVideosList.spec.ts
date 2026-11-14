@@ -13,11 +13,12 @@ const V = de.videoPanel
 let wrapper: VueWrapper | null
 let vp: ReturnType<typeof makePanel>
 
-type FakeVideo = { id: string; isPlaying: boolean }
+type FakeVideo = { id: string; isPlaying: boolean; current?: number; duration?: number }
 
 function makePanel(videos: FakeVideo[]) {
   const canvasVideos = ref(videos)
   const selectedCanvasVideo = ref<FakeVideo | null>(null)
+  const tick = ref(0)
   return {
     canvasVideos,
     selectedCanvasVideo,
@@ -44,11 +45,17 @@ function makePanel(videos: FakeVideo[]) {
     seekBackward: vi.fn(),
     seekForward: vi.fn(),
     updateVideoVolume: vi.fn(),
+    // Liest `tick` wie das Original, damit die Anzeige mitläuft
+    tick,
+    videoPlaybackTime: (v: FakeVideo) => {
+      void tick.value
+      return { current: v.current ?? 0, duration: v.duration ?? 0 }
+    },
   }
 }
 
 function mountList(
-  videos = [
+  videos: FakeVideo[] = [
     { id: 'a', isPlaying: false },
     { id: 'b', isPlaying: true },
   ],
@@ -178,6 +185,34 @@ describe('Canvas-Videoliste', () => {
     expect(body().textContent).toContain(V.volume)
     expect(body().textContent).toContain('50%')
     expect(body().textContent).toContain(V.audioRecordHint)
+  })
+})
+
+describe('Canvas-Videoliste – Videodauer', () => {
+  it('zeigt je Video Position / Gesamtdauer', () => {
+    mountList([
+      { id: 'a', isPlaying: false, current: 0, duration: 90 },
+      { id: 'b', isPlaying: true, current: 65, duration: 3725 },
+    ])
+    const times = [...body().querySelectorAll('[title]')].filter(
+      (el) => el.getAttribute('title') === V.videoTimeTitle,
+    )
+    expect(times.map((el) => el.textContent!.trim())).toEqual(['0:00 / 1:30', '1:05 / 62:05'])
+  })
+
+  it('unbekannte Dauer (Metadaten fehlen) zeigt 0:00', () => {
+    mountList([{ id: 'a', isPlaying: false }])
+    expect(row(`${V.videoLabel} 1`)!.textContent).toContain('0:00 / 0:00')
+  })
+
+  it('läuft während der Wiedergabe mit', async () => {
+    const videos = [{ id: 'a', isPlaying: true, current: 1, duration: 30 }]
+    mountList(videos)
+    expect(row(`${V.videoLabel} 1`)!.textContent).toContain('0:01 / 0:30')
+    videos[0]!.current = 14
+    vp.tick.value++
+    await flushPromises()
+    expect(row(`${V.videoLabel} 1`)!.textContent).toContain('0:14 / 0:30')
   })
 })
 

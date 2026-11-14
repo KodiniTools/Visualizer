@@ -104,11 +104,11 @@
       </div>
     </div>
 
-    <!-- Aktionen für das gewählte Video -->
+    <!--
+      Aktionen für das gewählte Video. Auf den Canvas legt „Platzieren“ im
+      Abschnitt „Platzierung“ (direkt unter den Einstellungen, die er anwendet).
+    -->
     <div v-if="selectedVideoIndex !== null" class="action-buttons">
-      <UiButton variant="primary" size="sm" block class="action-main" @click="addVideoToCanvas">
-        {{ t('videoPanel.placeOnCanvas') }}
-      </UiButton>
       <UiButton variant="secondary" size="sm" @click="setVideoAsBackground">
         {{ t('videoPanel.asBackground') }}
       </UiButton>
@@ -140,7 +140,6 @@ const {
   deleteVideo,
   clearAllVideos,
   formatDuration,
-  addVideoToCanvas,
   setVideoAsBackground,
   setVideoAsWorkspaceBackground,
 } = inject('videoPanel') as VideoPanelApi
@@ -350,9 +349,5 @@ const {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--ds-space-2);
-}
-
-.action-main {
-  grid-column: 1 / -1;
 }
 </style>

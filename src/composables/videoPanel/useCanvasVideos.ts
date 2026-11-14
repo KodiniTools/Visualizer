@@ -46,6 +46,22 @@ export function useCanvasVideos(
     () => selectedCanvasVideo.value?.videoElement?.duration || 0,
   )
 
+  /**
+   * Wiedergabe-Position und Gesamtdauer eines Canvas-Videos in Sekunden
+   * (Anzeige in der Liste „Videos auf Canvas“). Unbekannte Werte sind 0.
+   * Liest `tick`, damit die Anzeige während der Wiedergabe mitläuft.
+   */
+  function videoPlaybackTime(video: VideoObject | null | undefined): {
+    current: number
+    duration: number
+  } {
+    void tick.value
+    const el = video?.videoElement
+    if (!el) return { current: 0, duration: 0 }
+    const duration = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0
+    return { current: el.currentTime || 0, duration }
+  }
+
   const selectedVideoVolume = computed(() => {
     void tick.value
     const el = selectedCanvasVideo.value?.videoElement
@@ -194,6 +210,7 @@ export function useCanvasVideos(
     selectedVideoDuration,
     selectedVideoVolume,
     selectedVideoBehindVisualizer,
+    videoPlaybackTime,
     setVideoBehindVisualizer,
     setAllVideosBehindVisualizer,
     commonBehindVisualizer,

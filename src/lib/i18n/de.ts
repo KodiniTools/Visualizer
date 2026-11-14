@@ -2086,6 +2086,12 @@ export default {
     newImageAnimation: 'Animation beim Hinzufügen',
     newImageAnimationHint:
       'Gilt für Bilder, die du ab jetzt hinzufügst: auf den Canvas (Button, Platzieren, Zeichnen, Drag & Drop), als Hintergrund oder als Workspace-Hintergrund.',
+    newImageAnimationSelected:
+      'Für das ausgewählte Canvas-Bild gelten diese Einstellungen nicht. Seine eigene Animation steht unten im Abschnitt „Animation“.',
+    newImageAnimationSelectedNamed:
+      'Für das ausgewählte Canvas-Bild „{name}“ gelten diese Einstellungen nicht. Seine eigene Animation steht unten im Abschnitt „Animation“.',
+    applyAnimationToSelected: 'Auf ausgewähltes Bild übertragen',
+    animationAppliedToSelected: 'Animation auf das ausgewählte Bild übertragen',
     rotation: 'Rotation',
     opacity: 'Deckkraft',
     filters: 'Filter',

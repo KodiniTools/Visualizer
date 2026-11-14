@@ -4,6 +4,7 @@
  *
  * Videos werden als HTMLVideoElement gehalten und Frame-by-Frame auf Canvas gezeichnet
  */
+import { nextStackOrder } from './canvasObjects/mediaStack'
 import { EFFECT_NAMES } from './audio/AudioReactiveEffects'
 import { computeAudioReactiveValues, type AudioReactiveValues } from './audio/audioReactiveEngine'
 import {
@@ -57,6 +58,8 @@ export interface VideoObject extends FotoImageObject {
   id: number | string
   type: 'video'
   videoElement: HTMLVideoElement
+  /** Gemeinsame Ebene mit Bildern (größer = weiter oben), siehe canvasObjects/mediaStack */
+  stackOrder?: number | null
   relX: number
   relY: number
   relWidth: number
@@ -369,6 +372,8 @@ export class VideoManager {
     // CORS für Canvas-Rendering
     videoElement.crossOrigin = 'anonymous'
 
+    // Gemeinsame Ebene mit Bildern: neues Video liegt oben
+    newVideo.stackOrder = nextStackOrder()
     this.videos.push(newVideo)
     if (options.select !== false) this.setSelectedVideo(newVideo)
 
@@ -683,8 +688,20 @@ export class VideoManager {
   ): void {
     if (!ctx || this.videos.length === 0) return
 
-    // Audio-Synchronisation wenn aktiviert (nur einmal pro Frame: nicht im
-    // zweiten Durchgang „vor dem Visualizer“)
+    this.beginVideoFrame(behindVisualizer)
+
+    this.videos.forEach((videoData) => {
+      if (!this.isVideoDrawable(videoData, behindVisualizer)) return
+      this._drawSingleVideo(ctx, videoData)
+    })
+  }
+
+  /**
+   * Vor dem Zeichnen einer Ebene: Audio-Synchronisation, wenn aktiviert (nur
+   * einmal pro Frame: nicht im zweiten Durchgang „vor dem Visualizer“).
+   */
+  beginVideoFrame(behindVisualizer: boolean | null = null): void {
+    if (this.videos.length === 0) return
     if (
       behindVisualizer !== false &&
       this.syncWithAudio &&
@@ -693,17 +710,20 @@ export class VideoManager {
     ) {
       this.syncAllVideosToAudio()
     }
+  }
 
-    this.videos.forEach((videoData) => {
-      if (this.markerHiddenIds.has(videoData.id)) return
-      if (
-        behindVisualizer !== null &&
-        (videoData.fotoSettings?.renderBehindVisualizer || false) !== behindVisualizer
-      ) {
-        return
-      }
-      this._drawSingleVideo(ctx, videoData)
-    })
+  /** Wird das Video in dieser Ebene gezeichnet? (null = beide Ebenen) */
+  isVideoDrawable(videoData: VideoObject, behindVisualizer: boolean | null = null): boolean {
+    if (this.markerHiddenIds.has(videoData.id)) return false
+    return (
+      behindVisualizer === null ||
+      (videoData.fotoSettings?.renderBehindVisualizer || false) === behindVisualizer
+    )
+  }
+
+  /** Ein Video zeichnen (gemeinsame Ebenen mit Bildern, siehe canvasObjects/mediaStack) */
+  drawVideo(ctx: CanvasRenderingContext2D, videoData: VideoObject): void {
+    this._drawSingleVideo(ctx, videoData)
   }
 
   /**

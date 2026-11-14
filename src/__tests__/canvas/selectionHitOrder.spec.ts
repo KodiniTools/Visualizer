@@ -12,6 +12,7 @@ import type { CanvasManager } from '../../lib/canvasManager'
 interface FakeMedia {
   id: string
   type: string
+  stackOrder?: number
   bounds: { x: number; y: number; width: number; height: number }
   fotoSettings?: { renderBehindVisualizer?: boolean }
 }
@@ -88,5 +89,13 @@ describe('SelectionManager.getObjectAtPos – Zeichen-Reihenfolge', () => {
   it('oberste Ebene innerhalb der Bilder gewinnt', () => {
     const sm = setup({ images: [media('unten', 'image'), media('oben', 'image')] })
     expect(hitId(sm)).toBe('oben')
+  })
+
+  it('gemeinsame Ebenen: Bild mit höherem stackOrder schlägt Video derselben Ebene', () => {
+    const img = { ...media('img', 'image'), stackOrder: 5 }
+    const vid = { ...media('vid', 'video'), stackOrder: 4 }
+    expect(hitId(setup({ images: [img], videos: [vid] }))).toBe('img')
+    vid.stackOrder = 6
+    expect(hitId(setup({ images: [img], videos: [vid] }))).toBe('vid')
   })
 })

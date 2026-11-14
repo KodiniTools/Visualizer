@@ -48,11 +48,15 @@ export interface HistoryImageObject extends FotoSettingsTarget {
   /** Animationen wie bei Texten (canvasObjects/imageAnimation) */
   timedAnimation?: Loose | null
   isSlideshowImage?: boolean
+  /** Gemeinsame Ebene mit Videos (canvasObjects/mediaStack) */
+  stackOrder?: number | null
 }
 
 export interface HistoryVideoObject extends FotoSettingsTarget {
   id: ObjectId
   videoElement: HTMLVideoElement | null
+  /** Gemeinsame Ebene mit Bildern (canvasObjects/mediaStack) */
+  stackOrder?: number | null
   relX?: number
   relY?: number
   relWidth?: number
@@ -100,6 +104,7 @@ interface ImageSnapshot {
   settings: Loose | null
   fotoSettings: Loose | null
   timedAnimation: Loose | null
+  stackOrder: number | null
 }
 
 interface VideoSnapshot {
@@ -114,6 +119,7 @@ interface VideoSnapshot {
   endTime?: number
   settings: Loose | null
   fotoSettings: Loose | null
+  stackOrder: number | null
 }
 
 /**
@@ -294,6 +300,7 @@ function captureImage(img: HistoryImageObject): ImageSnapshot {
     settings: clone(img.settings ?? null),
     fotoSettings: cleanFotoSettings(img.fotoSettings),
     timedAnimation: clone(img.timedAnimation ?? null),
+    stackOrder: img.stackOrder ?? null,
   }
 }
 
@@ -355,6 +362,9 @@ export function createImagesSegment(
         if (!snap.timedAnimation) delete obj.timedAnimation
         else if (obj.timedAnimation) assignDeep(obj.timedAnimation, snap.timedAnimation)
         else obj.timedAnimation = clone(snap.timedAnimation)
+        // Gemeinsame Ebene mit Videos (älterer Snapshot ohne Wert → keiner)
+        if (snap.stackOrder == null) delete obj.stackOrder
+        else obj.stackOrder = snap.stackOrder
         // Eintritts-Animation eines wiederhergestellten Bildes nicht erneut abspielen
         if (obj.animation?.active) obj.animation.active = false
         pool.set(obj.id, obj)
@@ -394,6 +404,7 @@ function captureVideo(video: HistoryVideoObject): VideoSnapshot {
     endTime: video.endTime,
     settings: clone(video.settings ?? null),
     fotoSettings: cleanFotoSettings(video.fotoSettings),
+    stackOrder: video.stackOrder ?? null,
   }
 }
 
@@ -457,6 +468,8 @@ export function createVideosSegment(
           else obj.settings = clone(snap.settings)
         }
         applyFotoSettings(obj, snap.fotoSettings)
+        if (snap.stackOrder == null) delete obj.stackOrder
+        else obj.stackOrder = snap.stackOrder
         if (!wasLive && mgr.isPlaying) obj.videoElement?.play?.().catch(() => {})
         pool.set(obj.id, obj)
         result.push(obj)

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { reactive, ref, toRaw } from 'vue'
 import {
+  applyImageAnimation,
   cloneImageAnimation,
   createImageAnimation,
   getImageAnimationTransform,
@@ -156,5 +157,37 @@ describe('MultiImageManager + Bild-Animationen', () => {
     expect(t.translateY).toBe(-500)
     expect(t.rotation).toBe(0)
     expect(t.opacity).toBe(1)
+  })
+})
+
+describe('applyImageAnimation', () => {
+  it('kopiert die Einstellungen (keine geteilte Referenz) und startet neu', () => {
+    const source = createImageAnimation()
+    source.fade.enabled = true
+    source.fade.permanent = false
+    source.fade.displayDuration = 4800
+    const target: { timedAnimation?: ReturnType<typeof createImageAnimation> | null } = {}
+    const base = 1_000_000
+    // laufende Animation: nach dem Übertragen beginnt sie von vorn
+    target.timedAnimation = cloneImageAnimation(source)
+    getImageAnimationTransform(target, { width: 100, height: 100 }, base)
+    applyImageAnimation(target, source)
+    expect(target.timedAnimation).toEqual(source)
+    expect(target.timedAnimation).not.toBe(source)
+    source.fade.permanent = true
+    expect(target.timedAnimation?.fade.permanent).toBe(false)
+    // Neustart: beim nächsten Frame Fortschritt 0 (Fade = unsichtbar)
+    const later = base + 60_000
+    expect(getImageAnimationTransform(target, { width: 100, height: 100 }, later).opacity).toBe(0)
+    expect(
+      getImageAnimationTransform(target, { width: 100, height: 100 }, later + 1_000).opacity,
+    ).toBeGreaterThan(0)
+  })
+
+  it('ohne Ziel wirkungslos, ungültige Quelle ergibt Standardwerte', () => {
+    expect(() => applyImageAnimation(null, createImageAnimation())).not.toThrow()
+    const target: { timedAnimation?: ReturnType<typeof createImageAnimation> | null } = {}
+    applyImageAnimation(target, 'kaputt')
+    expect(target.timedAnimation).toEqual(createImageAnimation())
   })
 })

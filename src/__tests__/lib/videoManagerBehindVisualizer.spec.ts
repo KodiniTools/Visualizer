@@ -2,6 +2,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { stub } from '../helpers/canvasStubs'
 import { VideoManager, type VideoObject } from '../../lib/videoManager'
+import { ref } from 'vue'
+import { createSceneRenderer, type SceneEffects } from '../../composables/renderLoop/sceneRenderer'
 
 class FakeVideo extends EventTarget {
   readyState = 4
@@ -76,5 +78,46 @@ describe('VideoManager – hinter dem Visualizer', () => {
     mgr.drawVideos(ctx, { behindVisualizer: true })
     mgr.drawVideos(ctx, { behindVisualizer: false })
     expect(sync).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Szene – Ebene folgt dem Schalter in jedem Frame', () => {
+  /** Ein Live-Frame: Reihenfolge von Videos und Visualizer */
+  function frame() {
+    drawn = []
+    const scene = createSceneRenderer({
+      canvasRef: ref(null),
+      canvasManagerInstance: ref(null),
+      multiImageManagerInstance: ref(null),
+      videoManagerInstance: ref(mgr),
+      getTextManager: () => null,
+      drawWithPunch: (cb, ctx, w, h) => cb?.(ctx, w, h),
+      effects: stub<SceneEffects>({}),
+    })
+    const ctx = stub<CanvasRenderingContext2D>({ canvas: CANVAS, fillRect: () => {} })
+    scene.renderScene(ctx, 1000, 500, () => void drawn.push('VIZ'))
+    return drawn
+  }
+
+  it('beliebig oft umschalten – auch während der Wiedergabe und für Marker-Videos', () => {
+    const placed = add('placed')
+    const marker = add('marker')
+    placed.isPlaying = true
+    // Marker-Video: bis zum Marker ausgeblendet, dann eingeblendet
+    mgr.setMarkerHidden(marker.id, true)
+    expect(frame()).toEqual(['VIZ', 'placed'])
+
+    for (const behind of [true, false, true, false, true]) {
+      placed.fotoSettings!.renderBehindVisualizer = behind
+      marker.fotoSettings!.renderBehindVisualizer = behind
+      mgr.setMarkerHidden(marker.id, false)
+      expect(frame()).toEqual(behind ? ['placed', 'marker', 'VIZ'] : ['VIZ', 'placed', 'marker'])
+    }
+  })
+
+  it('Video ohne fotoSettings liegt vor dem Visualizer (kein Absturz)', () => {
+    const v = add('bare')
+    delete (v as { fotoSettings?: unknown }).fotoSettings
+    expect(frame()).toEqual(['VIZ', 'bare'])
   })
 })

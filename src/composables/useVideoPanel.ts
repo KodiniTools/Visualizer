@@ -294,6 +294,26 @@ export function useVideoPanel() {
     }
   })
 
+  // ─── Hinter dem Visualizer ──────────────────────────────────────────────
+
+  // Der Schalter „Hinter Visualizer rendern“ (Platzierung und „Videos auf
+  // Canvas“) gilt wie Stumm/Wiederholen sofort für ALLE Canvas-Videos – egal ob
+  // direkt platziert oder von einem Beat-Marker angelegt – und für jedes neu
+  // platzierte Video. `sync`, damit auch schnelles Hin- und Herschalten
+  // jeden Zustand sofort anwendet.
+  watch(videoBehindVisualizer, (behind) => canvasVideos.setAllVideosBehindVisualizer(behind), {
+    flush: 'sync',
+  })
+
+  /**
+   * Nur das ausgewählte Canvas-Video umschalten. Liegen danach alle Videos auf
+   * derselben Ebene, zeigt der gemeinsame Schalter diesen Stand.
+   */
+  function setVideoBehindVisualizer(value: boolean) {
+    canvasVideos.setVideoBehindVisualizer(value)
+    if (canvasVideos.commonBehindVisualizer() === value) videoBehindVisualizer.value = value
+  }
+
   // ─── Lebenszyklus ───────────────────────────────────────────────────────
 
   onMounted(() => {
@@ -329,7 +349,7 @@ export function useVideoPanel() {
     selectedVideoDuration: canvasVideos.selectedVideoDuration,
     selectedVideoVolume: canvasVideos.selectedVideoVolume,
     selectedVideoBehindVisualizer: canvasVideos.selectedVideoBehindVisualizer,
-    setVideoBehindVisualizer: canvasVideos.setVideoBehindVisualizer,
+    setVideoBehindVisualizer,
     videoBackground: bg.entry,
     workspaceVideoBackground: wsBg.entry,
     hasVideoBackground,

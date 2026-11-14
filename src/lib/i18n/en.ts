@@ -2606,6 +2606,7 @@ export default {
     paused: 'Paused',
     seekBack5: 'Back 5 s',
     seekForward5: 'Forward 5 s',
+    selectedBehindVisualizer: 'Only this video behind visualizer',
     audioTargetHint: 'Applies to the first video. Click another video in the list to edit it.',
     wsBgLabel: 'Workspace Background',
     videosTitle: 'Videos',

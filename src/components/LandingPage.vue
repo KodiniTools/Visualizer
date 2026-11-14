@@ -1,5 +1,5 @@
 <template>
-  <div class="landing-page" :class="{ 'light-theme': !isDark }">
+  <div ref="pageEl" class="landing-page" :class="{ 'light-theme': !isDark }">
     <!-- Header with Controls -->
     <header class="landing-header" :class="{ scrolled: isScrolled }">
       <div class="header-content">
@@ -7,8 +7,11 @@
           <span>Visualizer</span>
         </div>
         <nav class="header-nav">
-          <router-link to="/" class="nav-link active">{{ t('blog.nav.home') }}</router-link>
+          <router-link to="/" class="nav-link active" @click="scrollToTop">{{
+            t('blog.nav.home')
+          }}</router-link>
           <router-link to="/blog" class="nav-link">{{ t('blog.nav.features') }}</router-link>
+          <a href="#faq" class="nav-link">{{ t('blog.nav.faq') }}</a>
           <a href="#blog" class="nav-link">{{ t('blog.nav.blog') }}</a>
         </nav>
       </div>
@@ -85,7 +88,7 @@
     </section>
 
     <!-- FAQ Section -->
-    <section class="faq-section">
+    <section id="faq" class="faq-section">
       <div class="section-header">
         <h2 class="section-title">{{ content.faq.title }}</h2>
         <p class="section-subtitle">{{ content.faq.subtitle }}</p>
@@ -255,6 +258,18 @@ async function checkContentChanges() {
 const baseUrl = import.meta.env.BASE_URL
 
 const activeFaq = ref<number | null>(null)
+
+/** Die Landing scrollt in `.landing-page`, nicht im Fenster. */
+const pageEl = ref<HTMLElement | null>(null)
+
+/**
+ * „Startseite“ auf der Startseite: Der Router navigiert nicht (gleiche
+ * Route) bzw. scrollt nur das Fenster – deshalb hier selbst nach oben.
+ */
+function scrollToTop() {
+  pageEl.value?.scrollTo({ top: 0, behavior: 'smooth' })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 const isScrolled = ref(false)
 
 /**
@@ -769,6 +784,7 @@ function toggleFaq(index: number) {
   padding: 100px 24px;
   max-width: 800px;
   margin: 0 auto;
+  scroll-margin-top: 60px; /* Anker #faq: Titel knapp unter der Navigation */
 }
 
 .faq-list {

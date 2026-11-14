@@ -11,6 +11,13 @@ import {
   setCanvasVideoVolume,
   playsSource,
 } from './videoElements'
+import {
+  canMoveInStack,
+  moveInStack,
+  stackPosition,
+  type StackAction,
+  type StackObject,
+} from '../../lib/canvasObjects/mediaStack'
 
 /** Ref auf den VideoManager (null, solange er nicht bereit ist) */
 export type VideoManagerRef = Ref<VideoManager | null | undefined>
@@ -109,6 +116,52 @@ export function useCanvasVideos(
     if (videos.length === 0) return null
     const first = !!videos[0]!.fotoSettings?.renderBehindVisualizer
     return videos.every((v) => !!v.fotoSettings?.renderBehindVisualizer === first) ? first : null
+  }
+
+  /**
+   * Bilder und Videos im gemeinsamen Ebenen-Stapel (canvasObjects/mediaStack)
+   * – wie die Ebenen-Steuerung der Bilder im Foto-Panel.
+   */
+  function stackLists(): { images: StackObject[]; videos: StackObject[] } | null {
+    const vm = videoManager.value
+    if (!vm) return null
+    return {
+      images: (canvasManager.value?.multiImageManager?.images ?? []) as StackObject[],
+      videos: vm.videos as StackObject[],
+    }
+  }
+
+  /** „N / M“ des ausgewählten Videos im gemeinsamen Stapel ('' ohne Auswahl) */
+  const selectedVideoLayerInfo = computed(() => {
+    void tick.value
+    const lists = stackLists()
+    const video = selectedCanvasVideo.value
+    if (!lists || !video) return ''
+    const { index, count } = stackPosition(lists.images, lists.videos, video)
+    return index === -1 ? '' : `${index + 1} / ${count}`
+  })
+
+  /** Kann das ausgewählte Video per `action` verschoben werden? */
+  function canMoveSelectedVideo(action: StackAction): boolean {
+    void tick.value
+    const lists = stackLists()
+    const video = selectedCanvasVideo.value
+    if (!lists || !video) return false
+    return canMoveInStack(lists.images, lists.videos, video, action)
+  }
+
+  /** Verschiebt das ausgewählte Video im gemeinsamen Stapel (auch über Bilder). */
+  function moveSelectedVideo(action: StackAction): void {
+    const vm = videoManager.value
+    const video = selectedCanvasVideo.value
+    if (!vm || !video) return
+    const mim = canvasManager.value?.multiImageManager
+    if (!moveInStack(mim?.images ?? [], vm.videos, video, action)) return
+    mim?.redrawCallback?.()
+    // Verlauf und Thumbnail-Leisten beider Listen aktualisieren
+    mim?.onImageChanged?.()
+    vm.onVideoChanged?.()
+    tick.value++
   }
 
   function isVideoActive(video: VideoObject) {
@@ -213,6 +266,9 @@ export function useCanvasVideos(
     videoPlaybackTime,
     setVideoBehindVisualizer,
     setAllVideosBehindVisualizer,
+    selectedVideoLayerInfo,
+    canMoveSelectedVideo,
+    moveSelectedVideo,
     commonBehindVisualizer,
     isVideoActive,
     selectCanvasVideo,

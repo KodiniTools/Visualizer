@@ -54,6 +54,7 @@ import { useI18n } from '../../../lib/i18n'
 import type { ImageFilterContext } from './imageFilterContext'
 import UiButton from '../../ui/UiButton.vue'
 import UiSwitch from '../../ui/UiSwitch.vue'
+import { LAYER_ACTION_DEFS } from './layerActions'
 
 const { t } = useI18n()
 const ifc = inject('imageFilterControls') as ImageFilterContext
@@ -69,23 +70,9 @@ const {
   sendToBack,
 } = ifc
 
+const RUN = { bringToFront, moveUp, moveDown, sendToBack }
 /** Reihenfolge wie bisher: ganz nach vorne, eins hoch, eins runter, ganz nach hinten. */
-const LAYER_ACTIONS = [
-  {
-    key: 'bringToFront',
-    up: true,
-    run: bringToFront,
-    path: 'M3 2.5h10M8 13.5V6M4.5 9.5 8 6l3.5 3.5',
-  },
-  { key: 'moveUp', up: true, run: moveUp, path: 'M8 13V3M4 7l4-4 4 4' },
-  { key: 'moveDown', up: false, run: moveDown, path: 'M8 3v10M4 9l4 4 4-4' },
-  {
-    key: 'sendToBack',
-    up: false,
-    run: sendToBack,
-    path: 'M3 13.5h10M8 2.5V10M4.5 6.5 8 10l3.5-3.5',
-  },
-]
+const LAYER_ACTIONS = LAYER_ACTION_DEFS.map((a) => ({ ...a, run: RUN[a.key] }))
 </script>
 
 <style scoped src="./image-filters-shared.css"></style>

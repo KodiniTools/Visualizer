@@ -2623,6 +2623,8 @@ export default {
     seekBack5: '5 s zurück',
     seekForward5: '5 s vor',
     selectedBehindVisualizer: 'Nur dieses Video hinter Visualizer',
+    behindLayerHint:
+      'Hinter dem Visualizer liegt das Video unter allen Bildern davor. Schalter ausschalten, um es nach vorne zu holen.',
     audioTargetHint:
       'Gilt für das erste Video. Ein anderes Video in der Liste anklicken, um es zu bearbeiten.',
     wsBgLabel: 'Workspace-Hintergrund',

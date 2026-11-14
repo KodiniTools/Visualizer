@@ -2614,6 +2614,8 @@ export default {
     seekBack5: 'Back 5 s',
     seekForward5: 'Forward 5 s',
     selectedBehindVisualizer: 'Only this video behind visualizer',
+    behindLayerHint:
+      'Behind the visualizer, the video stays below all images in front of it. Turn the switch off to bring it forward.',
     audioTargetHint: 'Applies to the first video. Click another video in the list to edit it.',
     wsBgLabel: 'Workspace Background',
     videosTitle: 'Videos',

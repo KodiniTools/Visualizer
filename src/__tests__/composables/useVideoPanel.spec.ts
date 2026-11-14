@@ -593,6 +593,83 @@ describe('useVideoPanel – hinter dem Visualizer', () => {
   })
 })
 
+describe('useVideoPanel – Ebenen des ausgewählten Videos', () => {
+  const vid = (id: number, stackOrder: number, behind = false) =>
+    stub<VideoObject>({
+      id,
+      type: 'video',
+      videoElement: fakeVideo(`cv${id}`),
+      stackOrder,
+      fotoSettings: { renderBehindVisualizer: behind },
+    })
+  const img = (id: string, stackOrder: number, behind = false) => ({
+    id,
+    stackOrder,
+    fotoSettings: { renderBehindVisualizer: behind },
+  })
+
+  function withImages(images: ReturnType<typeof img>[]) {
+    const mim = {
+      images,
+      redrawCallback: vi.fn(),
+      onImageChanged: vi.fn(),
+    }
+    cmRef.value!.multiImageManager = mim
+    return mim
+  }
+
+  it('Video unter Bildern: „Nach vorne“ holt es über die Bilder', async () => {
+    const { vm } = mountPanel()
+    const v = vid(1, 0)
+    vm!.videos.push(v)
+    vm!.onVideoChanged = vi.fn()
+    const mim = withImages([img('a', 1), img('b', 2)])
+    expect(vp.selectedVideoLayerInfo.value).toBe('') // ohne Auswahl
+    expect(vp.canMoveSelectedVideo('bringToFront')).toBe(false)
+
+    vp.selectCanvasVideo(v)
+    await nextTick()
+    expect(vp.selectedVideoLayerInfo.value).toBe('1 / 3')
+    expect(vp.canMoveSelectedVideo('sendToBack')).toBe(false)
+    expect(vp.canMoveSelectedVideo('bringToFront')).toBe(true)
+
+    vp.moveSelectedVideo('bringToFront')
+    expect(vp.selectedVideoLayerInfo.value).toBe('3 / 3')
+    expect(v.stackOrder).toBeGreaterThan(mim.images[1]!.stackOrder)
+    expect(mim.redrawCallback).toHaveBeenCalledOnce()
+    expect(mim.onImageChanged).toHaveBeenCalledOnce()
+    expect(vm!.onVideoChanged).toHaveBeenCalledOnce()
+
+    vp.moveSelectedVideo('moveDown')
+    expect(vp.selectedVideoLayerInfo.value).toBe('2 / 3')
+  })
+
+  it('hinter dem Visualizer: Bilder davor sind keine Nachbarn – nichts zu verschieben', async () => {
+    const { vm } = mountPanel()
+    const v = vid(1, 0, true)
+    vm!.videos.push(v)
+    const mim = withImages([img('a', 1), img('b', 2)])
+    vp.selectCanvasVideo(v)
+    await nextTick()
+    expect(vp.canMoveSelectedVideo('bringToFront')).toBe(false)
+    vp.moveSelectedVideo('bringToFront')
+    expect(mim.redrawCallback).not.toHaveBeenCalled()
+    expect(v.stackOrder).toBe(0)
+  })
+
+  it('ohne Bild-Manager: Videos untereinander verschieben', async () => {
+    const { vm } = mountPanel()
+    const v1 = vid(1, 0)
+    const v2 = vid(2, 1)
+    vm!.videos.push(v1, v2)
+    vp.selectCanvasVideo(v1)
+    await nextTick()
+    vp.moveSelectedVideo('moveUp')
+    expect(vm!.videos.map((v) => v.id)).toEqual([2, 1])
+    expect(vp.selectedVideoLayerInfo.value).toBe('2 / 2')
+  })
+})
+
 /** Lose Sicht auf die API für Zugriffe über Namen aus der Tabelle */
 type LooseApi = Record<string, ((...args: unknown[]) => unknown) & { value: unknown }>
 

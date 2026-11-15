@@ -95,6 +95,11 @@ export default {
         answer:
           'Klicke einfach auf den "Aufnehmen"-Button, spiele deine Musik ab, und der Visualizer nimmt automatisch alles auf. Nach dem Stoppen wird das Video als MP4-Datei heruntergeladen.',
       },
+      {
+        question: 'Kann ich den Visualizer ohne Musik abspielen?',
+        answer:
+          'Ja. Füge unter „Audiodateien“ oder in der Playlist Stille in der gewünschten Länge hinzu. Der Player läuft dann ohne Ton, Visualizer und Beat-Drop-Marker laufen ab, und Ton schaltest du über Marker mit Track oder Video ein, zum Beispiel für Sprachaufnahmen in Tutorials.',
+      },
     ],
   },
   cta: {
@@ -943,6 +948,16 @@ export default {
     selectImage: 'Bild auswählen',
     newImagePreview: 'Neues Bild Vorschau',
     confirmReplace: 'Ersetzen bestätigen',
+  },
+
+  // ========== OHNE TRACK ABSPIELEN (STILLE) ==========
+  silentTrack: {
+    title: 'Ohne Track abspielen',
+    hint: 'Fügt Stille als Zeitachse hinzu. Visualizer und Beat-Drop-Marker laufen ab, Ton kommt über Marker mit Track oder Video.',
+    duration: 'Länge der Stille',
+    add: 'Stille hinzufügen',
+    trackName: 'Stille ({duration})',
+    added: '{name} hinzugefügt – Ton über Beat-Drop-Marker einschalten',
   },
 
   // ========== FILE UPLOAD PANEL ==========

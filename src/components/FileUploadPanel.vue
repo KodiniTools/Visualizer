@@ -79,6 +79,9 @@
       @change="onSelectFiles"
     />
 
+    <!-- Ohne Track abspielen: Stille als Zeitachse, Ton über Beat-Drop-Marker -->
+    <SilentTrackControl />
+
     <!-- Tracks Info -->
     <div v-if="playerStore.hasTracks" class="tracks-info">
       <div class="info-row">
@@ -101,6 +104,7 @@ import { useI18n } from '../lib/i18n'
 import { usePlayerStore } from '../stores/playerStore'
 import { useToastStore } from '../stores/toastStore'
 import UiButton from './ui/UiButton.vue'
+import SilentTrackControl from './SilentTrackControl.vue'
 
 const { t } = useI18n()
 

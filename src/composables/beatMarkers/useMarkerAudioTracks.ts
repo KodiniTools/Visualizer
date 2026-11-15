@@ -61,19 +61,26 @@ export const markerTrackOffset = (ref: MarkerAudioTrackRef | null | undefined) =
   nonNegative(ref?.offset)
 
 /**
+ * Tracks, die ein Marker einfügen kann. Stille (Zeitachse für „Ohne Track
+ * abspielen“) hat keinen Ton und fehlt deshalb.
+ */
+const insertableTracks = (playlist: readonly PlaylistTrack[]) => playlist.filter((t) => !t.silent)
+
+/**
  * Track der Playlist zu einem Verweis: zuerst über die URL (eindeutig in der
- * Sitzung), sonst über den Dateinamen.
+ * Sitzung), sonst über den Dateinamen. Stille Tracks zählen nicht.
  */
 export function findPlaylistTrack(
   playlist: readonly PlaylistTrack[],
   ref: MarkerAudioTrackRef | null | undefined,
 ): PlaylistTrack | null {
   if (!ref) return null
+  const tracks = insertableTracks(playlist)
   if (ref.url) {
-    const byUrl = playlist.find((t) => t.url === ref.url)
+    const byUrl = tracks.find((t) => t.url === ref.url)
     if (byUrl) return byUrl
   }
-  return ref.name ? (playlist.find((t) => t.name === ref.name) ?? null) : null
+  return ref.name ? (tracks.find((t) => t.name === ref.name) ?? null) : null
 }
 
 /**
@@ -247,7 +254,10 @@ export function useMarkerAudioTracks({
 
   /** Playlist-Tracks für das Marker-Formular */
   const getMarkerPlaylistTracks = () =>
-    playlist().map((t, i) => ({ value: t.url, number: i + 1, name: t.name }))
+    playlist()
+      .map((t, i) => ({ track: t, number: i + 1 }))
+      .filter(({ track }) => !track.silent)
+      .map(({ track, number }) => ({ value: track.url, number, name: track.name }))
 
   /** Auswahl beim Bearbeiten: Track nicht mehr in der Playlist → leer */
   const editSelection = (ref: MarkerAudioTrackRef | null | undefined): string =>
@@ -261,7 +271,7 @@ export function useMarkerAudioTracks({
     duck: number | null = null,
   ): MarkerAudioTrackRef | null => {
     if (typeof url !== 'string' || !url) return null
-    const track = playlist().find((t) => t.url === url)
+    const track = insertableTracks(playlist()).find((t) => t.url === url)
     if (!track) return null
     return {
       url: track.url,

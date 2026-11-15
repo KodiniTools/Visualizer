@@ -282,3 +282,26 @@ describe('useMarkerAudioTracks', () => {
     expect(el.getAttribute('src')).toBeNull()
   })
 })
+
+describe('useMarkerAudioTracks – Stille („Ohne Track abspielen“)', () => {
+  const withSilence: PlaylistTrack[] = [
+    { name: 'Stille (2:00)', url: 'blob:silence', silent: true },
+    ...playlist,
+  ]
+
+  it('Stille ist im Marker-Formular nicht wählbar, die Nummern bleiben die der Playlist', () => {
+    const t = useMarkerAudioTracks({ playlist: () => withSilence, markers: () => [] })
+    expect(t.getMarkerPlaylistTracks()).toEqual([
+      { value: 'blob:song', number: 2, name: 'song.mp3' },
+      { value: 'blob:drop', number: 3, name: 'drop.wav' },
+    ])
+    expect(t.resolveSelection('blob:silence', 1, 0)).toBeNull()
+  })
+
+  it('ein Verweis auf Stille spielt nichts ab', () => {
+    expect(
+      findPlaylistTrack(withSilence, { url: 'blob:silence', name: 'Stille (2:00)' }),
+    ).toBeNull()
+    expect(findPlaylistTrack(withSilence, dropRef())?.url).toBe('blob:drop')
+  })
+})

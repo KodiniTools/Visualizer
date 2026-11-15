@@ -1,10 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { clampSilentSeconds, createSilentWav } from '../lib/audio/silentTrack'
 
 export interface PlaylistTrack {
   name: string
   /** Object-URL der Audiodatei */
   url: string
+  /**
+   * Stiller Track („Ohne Track abspielen“): liefert nur die Zeitachse,
+   * Ton kommt über Beat-Drop-Marker. Fehlt bei normalen Tracks.
+   */
+  silent?: boolean
 }
 
 export type PlayMode = 'none' | 'sequence' | 'repeat-one' | 'repeat-all' | 'shuffle'
@@ -237,6 +243,33 @@ export const usePlayerStore = defineStore('player', () => {
     return added
   }
 
+  /**
+   * Fügt einen stillen Track hinzu, damit der Player ohne Musik läuft
+   * (Visualizer, Beat-Drop-Marker und Aufnahme folgen seiner Zeitachse).
+   * Wie bei Dateien: Ist die Playlist leer, wird er geladen, aber nicht
+   * gestartet.
+   * @param seconds - Länge (1–3600 s, wird gerundet)
+   * @param name - Anzeigename in der Playlist
+   * @returns der neue Track oder null bei ungültiger Länge
+   */
+  function addSilentTrack(seconds: number, name: string): PlaylistTrack | null {
+    const length = clampSilentSeconds(seconds)
+    if (length === null) {
+      console.warn('[PlayerStore] Invalid silent track length:', seconds)
+      return null
+    }
+    const wasEmpty = !hasTracks.value
+    const track: PlaylistTrack = {
+      name,
+      url: URL.createObjectURL(createSilentWav(length)),
+      silent: true,
+    }
+    playlist.value.push(track)
+    if (wasEmpty) loadTrack(0)
+    console.log('[PlayerStore] Silent track added:', name)
+    return track
+  }
+
   function loadTrack(index: number) {
     const track = playlist.value[index]
     if (!audioRef.value || index < 0 || !track) {
@@ -444,6 +477,7 @@ export const usePlayerStore = defineStore('player', () => {
     setAudioRef,
     addTracks,
     addTracksFromBlobs,
+    addSilentTrack,
     loadTrack,
     playTrack,
     togglePlayPause,

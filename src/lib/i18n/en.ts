@@ -95,6 +95,11 @@ export default {
         answer:
           'Simply click the "Record" button, play your music, and the Visualizer will automatically record everything. After stopping, the video will be downloaded as an MP4 file.',
       },
+      {
+        question: 'Can I play the Visualizer without music?',
+        answer:
+          'Yes. Add silence of the length you need under "Audio Files" or in the playlist. The player then runs without sound, visualizers and beat drop markers play, and you switch on sound with markers that have a track or video, for example for voice recordings in tutorials.',
+      },
     ],
   },
   cta: {
@@ -943,6 +948,16 @@ export default {
     selectImage: 'Select Image',
     newImagePreview: 'New Image Preview',
     confirmReplace: 'Confirm Replace',
+  },
+
+  // ========== PLAY WITHOUT A TRACK (SILENCE) ==========
+  silentTrack: {
+    title: 'Play without a track',
+    hint: 'Adds silence as a timeline. Visualizers and beat drop markers run, sound comes in through markers with a track or video.',
+    duration: 'Length of silence',
+    add: 'Add silence',
+    trackName: 'Silence ({duration})',
+    added: '{name} added – switch on sound with beat drop markers',
   },
 
   // ========== FILE UPLOAD PANEL ==========

@@ -61,6 +61,7 @@
         </button>
       </li>
     </ul>
+    <SilentTrackControl class="playlist-silent" compact />
   </div>
 </template>
 
@@ -70,6 +71,7 @@ import type { PlayerBarContext } from './playerBarContext'
 import { useI18n } from '../../lib/i18n'
 import { usePlayerStore } from '../../stores/playerStore'
 import { vPopoverDrag } from '../../directives/popoverDrag'
+import SilentTrackControl from '../SilentTrackControl.vue'
 
 const { t } = useI18n()
 const playerStore = usePlayerStore()
@@ -199,6 +201,9 @@ const {
   border-color: var(--ds-success);
   background-color: color-mix(in srgb, var(--ds-success) 15%, transparent) !important;
   transform: scale(1.02);
+}
+.playlist-silent {
+  margin-top: var(--ds-space-2);
 }
 .playlist-item-empty {
   padding: 14px;

@@ -52,6 +52,7 @@
         </div>
       </li>
     </ul>
+    <p class="canvas-click-hint">{{ t('videoPanel.canvasClickHint') }}</p>
 
     <!-- Globale Video-Steuerung -->
     <div class="global-video-controls">
@@ -209,7 +210,8 @@ const audioTargetLabel = computed(() => {
 </script>
 
 <style scoped>
-.audio-target-hint {
+.audio-target-hint,
+.canvas-click-hint {
   margin: var(--ds-space-1) 0 0;
   font-size: var(--ds-text-xs);
   color: var(--ds-text-3);

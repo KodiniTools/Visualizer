@@ -214,11 +214,23 @@ export class SelectionManager {
     y: number,
     behindVisualizer: boolean,
   ): VideoObject | CanvasImage | null {
+    return this._getAllMediaAtPos(x, y, behindVisualizer)[0] ?? null
+  }
+
+  /**
+   * Alle sichtbaren Videos und Bilder einer Zeichen-Ebene an der Position,
+   * oben zuerst (gemeinsame Ebenen-Reihenfolge, canvasObjects/mediaStack).
+   */
+  _getAllMediaAtPos(
+    x: number,
+    y: number,
+    behindVisualizer: boolean,
+  ): (VideoObject | CanvasImage)[] {
     const vm = this.manager.videoManager
     const mim = this.manager.multiImageManager
     const videos = (vm?.getAllVideos() ?? []) as VideoObject[]
     const images = (mim?.getAllImages() ?? []) as CanvasImage[]
-    // Gemeinsame Ebenen-Reihenfolge (canvasObjects/mediaStack), oben zuerst
+    const hits: (VideoObject | CanvasImage)[] = []
     const stack = stackMedia(images, videos)
     for (let i = stack.length - 1; i >= 0; i--) {
       const { kind, obj } = stack[i]!
@@ -226,9 +238,29 @@ export class SelectionManager {
       const hidden = kind === 'video' ? vm?.isMarkerHidden?.(obj.id) : mim?.isMarkerHidden?.(obj.id)
       if (hidden) continue
       const bounds = this.manager.getObjectBounds(obj as VideoObject | CanvasImage)
-      if (bounds && this.isPointInRect(x, y, bounds)) return obj as VideoObject | CanvasImage
+      if (bounds && this.isPointInRect(x, y, bounds)) hits.push(obj as VideoObject | CanvasImage)
     }
-    return null
+    return hits
+  }
+
+  /**
+   * Alle anklickbaren Elemente (Texte, Bilder, Videos) an der Position, oben
+   * zuerst – in derselben Reihenfolge wie getObjectAtPos, ohne Hintergründe.
+   * Grundlage für Alt+Klick (darunterliegendes Element auswählen).
+   */
+  getObjectsAtPos(x: number, y: number): CanvasObject[] {
+    const hits: CanvasObject[] = []
+    const texts = this.manager.textManager?.textObjects ?? []
+    for (let i = texts.length - 1; i >= 0; i--) {
+      const textObj = texts[i] as CanvasTextObject // i < length
+      if (textObj.offCanvas) continue
+      const bounds = this.manager.getObjectBounds(textObj)
+      if (bounds && this.isPointInRect(x, y, bounds)) hits.push(textObj)
+    }
+    for (const behindVisualizer of [false, true]) {
+      hits.push(...(this._getAllMediaAtPos(x, y, behindVisualizer) as CanvasObject[]))
+    }
+    return hits
   }
 
   isPointInRect(x: number, y: number, rect: Rect): boolean {

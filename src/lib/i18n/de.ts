@@ -2622,6 +2622,8 @@ export default {
   videoPanel: {
     videoTimeTitle: 'Position / Gesamtdauer',
     canvasVideosTitle: 'Videos auf Canvas',
+    canvasClickHint:
+      'Klick auf den Canvas wählt das oberste Element. Alt+Klick wählt das darunterliegende.',
     playAll: 'Alle abspielen',
     pauseAll: 'Alle pausieren',
     loop: 'Wiederholen',

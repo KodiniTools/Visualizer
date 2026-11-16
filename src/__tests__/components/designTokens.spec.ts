@@ -85,7 +85,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
   it('nur die drei Radien (sm, md, lg) und full', () => {
     const hits = find(
       /border(-[a-z]+)*-radius:\s*([^;]+)/g,
-      (m) => !/^calc\(/.test(m[2]!.trim()) && /\b[1-9][0-9]*(px|%|rem)/.test(m[2]!),
+      (m) => !m[2]!.trim().startsWith('calc(') && /\b[1-9][0-9]*(px|%|rem)/.test(m[2]!),
     )
     expect(hits).toEqual([])
   })

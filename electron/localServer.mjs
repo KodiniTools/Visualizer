@@ -76,6 +76,18 @@ export async function startLocalServer(options) {
     res.status(404).json({ error: 'Not Found', path: req.path })
   })
 
+  // Fertige Exporte (MP4, GIF, HQ-Video, Vorschaubilder): im Web liefert sie
+  // server/index.js bzw. NGINX unter /visualizer/files/ aus (src/lib/videoApi.ts).
+  app.use(
+    `${BASE_PATH}/files`,
+    express.static(filesDir, {
+      index: false,
+      setHeaders: (res) => {
+        res.set('Cross-Origin-Resource-Policy', 'same-origin')
+      },
+    }),
+  )
+
   // Schriften liegen im Web auf /fonts/ der Domain (siehe src/lib/fontUrl.ts)
   app.use('/fonts', express.static(path.join(distDir, 'fonts')))
   app.use(BASE_PATH, express.static(distDir, { index: false }))

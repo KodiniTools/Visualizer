@@ -89,7 +89,7 @@ function normalizeAudio(
   value: unknown,
   fallback: Partial<SlideshowImageFillAudio> | null | undefined,
 ): SlideshowImageFillAudio {
-  const base = { ...SLIDESHOW_IMAGE_FILL_AUDIO_DEFAULT, ...(fallback || {}) }
+  const base = { ...SLIDESHOW_IMAGE_FILL_AUDIO_DEFAULT, ...fallback }
   const src: Loose =
     value && typeof value === 'object' && !Array.isArray(value) ? (value as Loose) : {}
   return {
@@ -115,7 +115,7 @@ export function normalizeSlideshowImageFill(
   value: unknown,
   fallback: Partial<SlideshowImageFill> | null = SLIDESHOW_IMAGE_FILL_DEFAULT,
 ): SlideshowImageFill {
-  const base = { ...SLIDESHOW_IMAGE_FILL_DEFAULT, ...(fallback || {}) }
+  const base = { ...SLIDESHOW_IMAGE_FILL_DEFAULT, ...fallback }
   const src: Loose =
     value && typeof value === 'object' && !Array.isArray(value) ? (value as Loose) : {}
   const hasRef = 'stock' in src || 'upload' in src

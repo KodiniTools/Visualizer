@@ -1,6 +1,6 @@
 {
   "name": "visualizer-desktop",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.1",
   "private": true,
   "description": "Visualizer als Desktop-App (Beta)",
   "author": "KodiniTools",
@@ -12,6 +12,7 @@
     "build": "node stage.mjs && electron-builder --win --publish never"
   },
   "dependencies": {
+    "electron-updater": "^6.8.11",
     "express": "^4.22.1",
     "multer": "^1.4.5-lts.1"
   },

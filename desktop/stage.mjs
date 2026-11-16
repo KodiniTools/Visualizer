@@ -23,6 +23,7 @@ const parts = [
   ['server/services', 'server/services'],
   ['electron/main.mjs', 'electron/main.mjs'],
   ['electron/localServer.mjs', 'electron/localServer.mjs'],
+  ['electron/updater.mjs', 'electron/updater.mjs'],
 ]
 
 try {

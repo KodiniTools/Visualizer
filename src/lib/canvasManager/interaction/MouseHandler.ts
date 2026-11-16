@@ -1,12 +1,30 @@
 // MouseHandler.js - Maus-Event-Handling
 import { requestSlideshowImageEdit } from '../../slideshowEditRequest'
-import type { CanvasManager } from '../../canvasManager'
-import type { ResizeHandleKey } from './SelectionManager'
+import type { CanvasManager, CanvasObject } from '../../canvasManager'
 import type { SizedTextObject } from './DragDropHandler'
 import type { CanvasImage } from '../../multiImageManager'
 import type { VideoObject } from '../../videoManager'
 
 type WindowMouseListener = (e: MouseEvent) => void
+
+/**
+ * Dasselbe Canvas-Objekt? Per Typ und ID statt per Referenz – die Auswahl
+ * kann ein reaktiver Proxy oder das Rohobjekt sein.
+ */
+export function isSameObject(
+  a: CanvasObject | null | undefined,
+  b: CanvasObject | null | undefined,
+): boolean {
+  if (!a || !b) return false
+  if (a === b) return true
+  const idA = (a as { id?: unknown }).id
+  return a.type === b.type && idA !== undefined && idA === (b as { id?: unknown }).id
+}
+
+/** Texte, Bilder und Videos – keine Hintergründe (die liegen unter allem). */
+function isSelectableObject(obj: CanvasObject): boolean {
+  return obj.type === 'text' || obj.type === 'image' || obj.type === 'video'
+}
 type SlideshowEditTarget = Parameters<typeof requestSlideshowImageEdit>[0]
 
 /**
@@ -83,6 +101,16 @@ export class MouseHandler {
       return
     }
 
+    // Alt+Klick: das nächste darunterliegende Element an dieser Stelle
+    // auswählen – so bleiben auch verdeckte Videos/Bilder per Klick erreichbar.
+    if (e.altKey && !e.shiftKey) {
+      const below = this._nextObjectBelow(x, y)
+      if (below) {
+        this._selectAndStartMove(below, x, y)
+        return
+      }
+    }
+
     if (this.manager.activeObject) {
       const bounds = this.manager.getObjectBounds(this.manager.activeObject)
       if (bounds) {
@@ -110,15 +138,17 @@ export class MouseHandler {
         }
 
         if (this.manager.selectionManager.isPointInRect(x, y, bounds)) {
-          // FIX: Prüfe ob ein Text-Objekt mit höherer Priorität an dieser Position liegt
-          const textAtPos = this.manager.selectionManager.getTextAtPos(x, y)
-          if (textAtPos && this.manager.activeObject !== textAtPos) {
-            // Text gefunden - wechsle zu diesem Text-Objekt
-            this.manager.setActiveObject(textAtPos)
-            this.manager.currentAction = 'move'
-            this.manager.dragStartPos = { x, y }
-            this._startDragListeners()
-            this.manager.canvas.style.cursor = 'grabbing'
+          // Liegt an dieser Stelle ein anderes Element ÜBER dem ausgewählten
+          // (Text oder ein Bild/Video weiter oben im Stapel), bekommt es den
+          // Klick. Sonst bliebe z. B. bei zwei canvasfüllenden Videos das
+          // hintere ausgewählt und das vordere wäre nie anklickbar.
+          const topAtPos = this.manager.selectionManager.getObjectAtPos(x, y)
+          if (
+            topAtPos &&
+            isSelectableObject(topAtPos) &&
+            !isSameObject(topAtPos, this.manager.activeObject)
+          ) {
+            this._selectAndStartMove(topAtPos, x, y)
             return
           }
 
@@ -173,6 +203,32 @@ export class MouseHandler {
     }
 
     this.manager.redrawCallback()
+  }
+
+  /**
+   * Wählt `obj` aus und beginnt das Verschieben (wie ein normaler Klick).
+   */
+  _selectAndStartMove(obj: CanvasObject, x: number, y: number): void {
+    this.manager.setActiveObject(obj)
+    // Pausierte Slideshow: Einstellungen des angeklickten Bildes öffnen
+    requestSlideshowImageEdit(obj as SlideshowEditTarget)
+    this.manager.currentAction = 'move'
+    this.manager.dragStartPos = { x, y }
+    this._startDragListeners()
+    this.manager.canvas.style.cursor = 'grabbing'
+    this.manager.redrawCallback()
+  }
+
+  /**
+   * Alt+Klick: Element unter dem ausgewählten an der Position (oben → unten,
+   * am Ende wieder von oben). Ohne Auswahl an dieser Stelle: das oberste.
+   */
+  _nextObjectBelow(x: number, y: number): CanvasObject | null {
+    const hits = this.manager.selectionManager.getObjectsAtPos(x, y)
+    if (hits.length === 0) return null
+    const active = this.manager.activeObject
+    const idx = hits.findIndex((obj) => isSameObject(obj, active))
+    return hits[(idx + 1) % hits.length] ?? null
   }
 
   /**

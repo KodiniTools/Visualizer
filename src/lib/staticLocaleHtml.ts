@@ -59,6 +59,22 @@ function setMetaContent(html: string, attr: 'name' | 'property', key: string, va
 }
 
 /**
+ * Entfernt das <script id="ld-faq">-Element samt Einrückung und Zeilenumbruch.
+ * Per Index statt Regex: schneidet genau den Block bis zum zugehörigen </script>.
+ */
+function removeFaqScript(html: string): string {
+  const start = html.indexOf('<script id="ld-faq"')
+  if (start === -1) return html
+  const close = html.indexOf('</script>', start)
+  if (close === -1) throw new Error('index.html: <script id="ld-faq"> ohne </script>')
+  const lineStart = html.lastIndexOf('\n', start) + 1
+  const from = /^[ \t]*$/.test(html.slice(lineStart, start)) ? lineStart : start
+  let to = close + '</script>'.length
+  if (html[to] === '\n') to += 1
+  return html.slice(0, from) + html.slice(to)
+}
+
+/**
  * Baut die statische Sprachvariante einer Seite.
  * @param html gebaute index.html (deutsch)
  * @param meta Route-Meta der Seite (mit `en`-Texten)
@@ -118,7 +134,7 @@ export function renderStaticLocaleHtml(
   out = `${out.slice(0, insertAt)}\n    ${links.join('\n    ')}${out.slice(insertAt)}`
 
   // FAQ-JSON-LD nur auf der Seite, die die FAQ zeigt (wie setFaqMarkup).
-  if (!meta.faq) out = out.replace(/[ \t]*<script\s+id="ld-faq"[^>]*>[\s\S]*?<\/script>\n?/, '')
+  if (!meta.faq) out = removeFaqScript(out)
 
   out = out.replace(
     /(<noscript>[\s\S]*?<p>)[^<]*(<\/p>)/,

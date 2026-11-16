@@ -26,7 +26,7 @@ function setup() {
 describe('MultiImageManager.duplicateImage', () => {
   it('erzeugt eine vollständige, unabhängige Kopie mit demselben Bild-Element', () => {
     const { mim, el, original, onImageChanged } = setup()
-    original!.fotoSettings = stub({ ...original!.fotoSettings, brightness: 120 })
+    original!.fotoSettings = stub({ ...(original!.fotoSettings || {}), brightness: 120 })
     onImageChanged.mockClear()
 
     const copy = mim.duplicateImage(original)

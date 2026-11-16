@@ -110,7 +110,7 @@ export function normalizeSlideshowGradient(
   value: unknown,
   fallback: Partial<SlideshowGradient> | null = SLIDESHOW_GRADIENT_DEFAULT,
 ): SlideshowGradient {
-  const base = { ...SLIDESHOW_GRADIENT_DEFAULT, ...fallback }
+  const base = { ...SLIDESHOW_GRADIENT_DEFAULT, ...(fallback || {}) }
   const src: Record<string, unknown> =
     value && typeof value === 'object' && !Array.isArray(value)
       ? (value as Record<string, unknown>)

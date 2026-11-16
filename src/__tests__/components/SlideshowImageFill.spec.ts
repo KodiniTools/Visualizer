@@ -31,7 +31,7 @@ function fillOf(
     ...SLIDESHOW_IMAGE_FILL_DEFAULT,
     enabled: true,
     ...over,
-    audio: { ...SLIDESHOW_IMAGE_FILL_DEFAULT.audio, ...over.audio },
+    audio: { ...SLIDESHOW_IMAGE_FILL_DEFAULT.audio, ...(over.audio || {}) },
   }
 }
 

@@ -48,7 +48,7 @@ export function normalizeSlideshowFillAudio(
   value: unknown,
   fallback: Partial<SlideshowFillAudio> | null = SLIDESHOW_FILL_AUDIO_DEFAULT,
 ): SlideshowFillAudio {
-  const base = { ...SLIDESHOW_FILL_AUDIO_DEFAULT, ...fallback }
+  const base = { ...SLIDESHOW_FILL_AUDIO_DEFAULT, ...(fallback || {}) }
   const src: Record<string, unknown> =
     value && typeof value === 'object' && !Array.isArray(value)
       ? (value as Record<string, unknown>)

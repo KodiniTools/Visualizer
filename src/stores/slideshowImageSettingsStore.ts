@@ -150,7 +150,7 @@ export const useSlideshowImageSettingsStore = defineStore('slideshowImageSetting
     partial: SlideshowImageSettingsInput,
   ) {
     if (!key) return
-    setImageSettings(key, { ...getImageSettings(key), ...partial })
+    setImageSettings(key, { ...(getImageSettings(key) || {}), ...partial })
   }
 
   /** Entfernt ein Feld (z. B. 'bounds') bei allen Bildern. */

@@ -22,7 +22,7 @@ export default defineConfigWithVueTs(
     files: ['**/*.{js,mjs,jsx,ts,mts,tsx,vue}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', 'desktop/app/**']),
 
   // Browser globals for Vue/frontend source files
   {
@@ -38,6 +38,8 @@ export default defineConfigWithVueTs(
   {
     files: [
       'server/**/*.{js,mjs}',
+      'electron/**/*.{js,mjs}',
+      'desktop/*.mjs',
       'scripts/**/*.{js,mjs}',
       '*.config.{js,mjs,cjs,ts}',
       '*.config.cjs',

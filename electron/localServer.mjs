@@ -46,7 +46,8 @@ export async function startLocalServer(options) {
   const filesDir = path.join(dataDir, 'files')
   await fs.mkdir(uploadsDir, { recursive: true })
   await fs.mkdir(filesDir, { recursive: true })
-  await fs.access(path.join(distDir, 'index.html'))
+  // Einmal lesen statt bei jeder Anfrage: der Build ändert sich zur Laufzeit nicht
+  const indexHtml = await fs.readFile(path.join(distDir, 'index.html'), 'utf8')
 
   // Die Routen lesen ihre Pfade beim Laden – deshalb erst setzen, dann importieren.
   process.env.VISUALIZER_UPLOADS_DIR = uploadsDir
@@ -83,7 +84,7 @@ export async function startLocalServer(options) {
   // (fehlende Dateien wie /assets/x.js bleiben 404 statt HTML zu liefern).
   app.get([BASE_PATH, `${BASE_PATH}/*`], (req, res, next) => {
     if (path.extname(req.path)) return next()
-    res.sendFile(path.join(distDir, 'index.html'))
+    res.type('html').send(indexHtml)
   })
   app.get('/', (req, res) => res.redirect(`${BASE_PATH}/app`))
   app.use((req, res) => {

@@ -278,6 +278,7 @@ const popoverButtons = computed((): PopoverButton[] => [
   { id: 'canvasControl', label: 'player.openCanvasControl' },
   { id: 'video', label: 'player.openVideo' },
   { id: 'screenshot', label: 'player.openScreenshot' },
+  { id: 'project', label: 'player.openProject' },
 ])
 
 const seekToPosition = (event: MouseEvent) => {

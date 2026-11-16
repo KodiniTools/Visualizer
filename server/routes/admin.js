@@ -109,7 +109,7 @@ loadLandingContent()
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-function requireAuth(req, res, next) {
+export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ ok: false, error: 'Nicht autorisiert' })

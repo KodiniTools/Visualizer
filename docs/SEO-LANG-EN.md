@@ -17,11 +17,13 @@ ein erwartetes Tag, bricht der Build ab, statt halb übersetztes HTML zu liefern
 
 ## nginx
 
-Annahme: der Visualizer läuft wie der Bildkonverter mit `root` auf
-`/var/www/kodinitools.com` und
-`try_files $uri $uri/ /visualizer/index.html;` im `location /visualizer/`.
+Geprüft gegen die echte Server-Konfiguration (`/etc/nginx/sites-enabled/kodinitools.com`):
+`location ^~ /visualizer/` mit `alias /var/www/kodinitools.com/visualizer/;` und
+`try_files $uri $uri/ /visualizer/index.html;`. Die Zeile unten funktioniert mit
+`alias` unverändert (lokal mit nginx nachgestellt, inklusive SSI und `sub_filter`).
 
-**1. Im `http`-Block** (z. B. als `/etc/nginx/conf.d/visualizer-lang.conf`):
+**1. Im `http`-Kontext**: ganz oben in `/etc/nginx/sites-enabled/kodinitools.com`,
+vor dem ersten `server {` (nicht in einem `server`-Block):
 
 ```nginx
 # ?lang=en → statische englische Variante; alles andere bleibt wie bisher.
@@ -35,7 +37,7 @@ map "$uri:$arg_lang" $visualizer_lang_html {
 }
 ```
 
-**2. Die eine Zeile im `location /visualizer/`**: `$visualizer_lang_html` vorn
+**2. Die eine Zeile im `location ^~ /visualizer/`**: `$visualizer_lang_html` vorn
 in die bestehende `try_files`-Zeile setzen:
 
 ```nginx

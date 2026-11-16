@@ -1,6 +1,12 @@
 # Visualizer Desktop (Beta) – Windows-Installer. Siehe DESKTOP.md.
 appId: com.kodinitools.visualizer
 productName: Visualizer Beta
+# Quelle für das Auto-Update (electron-updater liest latest.yml aus dem neuesten Release).
+# Der Workflow lädt die Dateien selbst hoch; electron-builder erzeugt nur latest.yml.
+publish:
+  provider: github
+  owner: KodiniTools
+  repo: Visualizer
 directories:
   output: ../dist-desktop
 files:

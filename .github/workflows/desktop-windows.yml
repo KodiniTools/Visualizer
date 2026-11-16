@@ -1,15 +1,26 @@
 name: Windows-Desktop-App (Beta)
+# In der Liste der Läufe sofort sichtbar, ob ein Release entsteht
+run-name: ${{ (github.event_name == 'workflow_dispatch' && inputs.release) && 'Windows-Desktop-App – mit Release' || 'Windows-Desktop-App – nur Build' }}
 
 # Baut den Visualizer als Windows-App (Electron): NSIS-Installer (.exe).
 # Läuft auf einem Windows-Runner, damit FFmpeg/FFprobe für Windows eingepackt
 # werden. Der Web-Build/Deploy ist davon unabhängig. Siehe DESKTOP.md.
 #
 # Auslöser:
-#   - manuell (Actions → Windows-Desktop-App (Beta) → Run workflow)
+#   - manuell (Actions → Windows-Desktop-App (Beta) → Run workflow): Installer als
+#     Artefakt; mit Haken bei „Als GitHub-Release veröffentlichen“ zusätzlich ein
+#     Release desktop-v<Version aus desktop/package.json>. Installierte Apps
+#     holen sich dieses Release beim nächsten Start selbst (Auto-Update).
 #   - Pull Requests, die die Desktop-Hülle ändern: Probe-Build
 
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Als GitHub-Release veröffentlichen (Tag desktop-v<Version aus desktop/package.json>)'
+        type: boolean
+        required: false
+        default: false
   pull_request:
     paths:
       - 'electron/**'
@@ -42,17 +53,58 @@ jobs:
         working-directory: desktop
       # Baut zuerst das Frontend (vite build), dann App und Installer
       - run: npm run desktop:build
-      # electron-builder warnt nur, wenn FFmpeg fehlt – hier hart prüfen
-      - name: FFmpeg im Paket prüfen
+      # electron-builder warnt nur, wenn FFmpeg fehlt – hier hart prüfen.
+      # latest.yml und die Blockmap braucht das Auto-Update.
+      - name: Paket prüfen
         shell: pwsh
         run: |
           foreach ($exe in 'ffmpeg.exe', 'ffprobe.exe') {
             $file = "dist-desktop/win-unpacked/resources/bin/$exe"
             if (-not (Test-Path $file)) { throw "$exe fehlt im Paket" }
           }
+          if (-not (Test-Path 'dist-desktop/latest.yml')) { throw 'latest.yml fehlt' }
+          if (-not (Get-ChildItem 'dist-desktop/*.exe.blockmap')) { throw 'Blockmap fehlt' }
+          Get-Content 'dist-desktop/latest.yml'
       - uses: actions/upload-artifact@v4
         with:
           name: visualizer-beta-windows
-          path: dist-desktop/*.exe
+          path: |
+            dist-desktop/*.exe
+            dist-desktop/*.exe.blockmap
+            dist-desktop/latest.yml
           if-no-files-found: error
           retention-days: 30
+
+  release:
+    name: GitHub-Release anlegen
+    if: github.event_name == 'workflow_dispatch' && inputs.release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Nur desktop/package.json, für die Versionsnummer
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: desktop/package.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: visualizer-beta-windows
+          path: release
+      - name: Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p "require('./desktop/package.json').version")"
+          tag="desktop-v${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::Release $tag gibt es schon. Zuerst die Version in desktop/package.json erhöhen."
+            exit 1
+          fi
+          grep -q "^version: ${version}$" release/latest.yml
+          gh release create "$tag" release/*.exe release/*.exe.blockmap release/latest.yml \
+            --target "$GITHUB_SHA" \
+            --title "Visualizer Beta ${version}" \
+            --notes "Windows-Installer der Desktop-App. Installierte Versionen ab 0.1.1 aktualisieren sich beim nächsten Start selbst." \
+            --latest

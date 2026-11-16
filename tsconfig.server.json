@@ -14,6 +14,7 @@
   "include": [
     "server/**/*.js",
     "electron/localServer.mjs",
+    "electron/updater.mjs",
     "electron/__tests__/*.js",
     "desktop/stage.mjs",
     "ecosystem.config.cjs"

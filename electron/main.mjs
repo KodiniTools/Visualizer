@@ -11,6 +11,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { startLocalServer } from './localServer.mjs'
+import { setupAutoUpdate } from './updater.mjs'
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 // Die FFmpeg-Pakete sind CommonJS und liefern nur einen Dateipfad
@@ -107,6 +108,34 @@ async function start() {
     if (!mainWindow) createWindow(server.appUrl, server.origin)
   })
   createWindow(server.appUrl, server.origin)
+  void checkForUpdates()
+}
+
+/** Prüft auf GitHub nach einer neueren Version (nur in der installierten App). */
+async function checkForUpdates() {
+  // electron-updater ist CommonJS und nur in der installierten App nötig
+  const { autoUpdater } = nodeRequire('electron-updater')
+  await setupAutoUpdate({
+    autoUpdater,
+    isPackaged: app.isPackaged,
+    log: (message, error) => console.warn(message, error ?? ''),
+    confirmRestart: async ({ version }) => {
+      const options = {
+        type: /** @type {const} */ ('info'),
+        title: 'Visualizer Beta',
+        message: `Version ${version} ist bereit.`,
+        detail:
+          'Jetzt neu starten, um das Update zu installieren? Nicht gespeicherte Arbeit geht dabei verloren. Bei „Später“ wird es beim nächsten Beenden installiert.',
+        buttons: ['Jetzt neu starten', 'Später'],
+        defaultId: 1,
+        cancelId: 1,
+      }
+      const { response } = mainWindow
+        ? await dialog.showMessageBox(mainWindow, options)
+        : await dialog.showMessageBox(options)
+      return response === 0
+    },
+  })
 }
 
 if (!app.requestSingleInstanceLock()) {

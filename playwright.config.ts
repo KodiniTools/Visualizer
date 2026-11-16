@@ -39,8 +39,8 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
-    /* Only on CI systems run the tests headless */
-    headless: !!process.env.CI,
+    /* Headless auf CI oder mit PW_HEADLESS=1 (z. B. in Containern ohne Display) */
+    headless: !!process.env.CI || !!process.env.PW_HEADLESS,
   },
 
   /* Configure projects for major browsers */
@@ -49,6 +49,12 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        launchOptions: {
+          // Audio/Video ohne Nutzer-Geste starten (Wiedergabe- und Export-Tests)
+          args: ['--autoplay-policy=no-user-gesture-required'],
+          // Optional: vorinstalliertes Chromium statt des Playwright-Downloads
+          executablePath: process.env.PW_CHROMIUM_PATH || undefined,
+        },
       },
     },
     {

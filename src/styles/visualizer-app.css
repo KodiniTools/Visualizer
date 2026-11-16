@@ -35,6 +35,19 @@ body {
   padding-bottom: var(--sticky-player-bar-height);
 }
 
+/* Mittlere Breiten: Die Player-Leiste bricht in zwei Zeilen um (Aktionen in
+   eigener Zeile, siehe PlayerBarControls.vue), unter 1000px in drei. */
+@media (min-width: 769px) and (max-width: 1759px) {
+  :root {
+    --sticky-player-bar-height: 101px;
+  }
+}
+@media (min-width: 769px) and (max-width: 999px) {
+  :root {
+    --sticky-player-bar-height: 145px;
+  }
+}
+
 @media (max-width: 768px) {
   #app-container {
     padding-bottom: var(--sticky-player-bar-height-mobile);

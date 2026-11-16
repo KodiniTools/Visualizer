@@ -28,13 +28,10 @@ test('Landing mit source=audiokonverter leitet zum Visualizer weiter', async ({ 
   await expect(page.locator('#app-container')).toBeVisible()
 })
 
-test('Hero-Navigation enthält den Blog-Link, der in neuem Tab öffnet', async ({ page }) => {
+test('Hero-Navigation führt zur Blog-Seite', async ({ page }) => {
   await page.goto('/')
-  const blogLink = page.locator(
-    '.header-nav a[href="https://kodinitools.com/blog/musik-video-tiktok/"]',
-  )
+  const blogLink = page.locator('.header-nav a[href="/blog"]')
   await expect(blogLink).toBeVisible()
-  await expect(blogLink).toHaveAttribute('target', '_blank')
-  await expect(blogLink).toHaveAttribute('rel', /noopener/)
-  await expect(blogLink).toHaveText(/Blog/)
+  await blogLink.click()
+  await expect(page).toHaveURL(/\/blog$/)
 })

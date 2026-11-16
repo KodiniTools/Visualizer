@@ -13,3 +13,7 @@ server/uploads/
 server/files/
 server/data/
 logs/
+
+# Playwright
+test-results/
+playwright-report/

@@ -548,6 +548,26 @@ const onSeekKeydown = (event: KeyboardEvent) => {
 }
 
 /* Responsive */
+/* Mittlere Breiten (Laptops): Die Aktionen passen nicht mehr neben den
+   Fortschrittsbalken. Sie bekommen eine eigene Zeile, damit kein Button aus dem
+   Fenster rutscht und der Balken bedienbar breit bleibt. */
+@media (min-width: 769px) and (max-width: 1759px) {
+  .spb-bar {
+    flex-wrap: wrap;
+    row-gap: var(--ds-space-2);
+    padding-top: var(--ds-space-2);
+    padding-bottom: var(--ds-space-2);
+  }
+  .spb-progress {
+    flex: 1 1 240px;
+  }
+  .spb-actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
 @media (max-width: 768px) {
   .spb-bar {
     flex-wrap: wrap;

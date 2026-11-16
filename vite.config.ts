@@ -1,6 +1,33 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { readFile, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import type { Plugin } from 'vite'
+import { renderStaticLocaleHtml, staticLocaleFileName } from './src/lib/staticLocaleHtml'
+import { SITE_BASE, appSeo, blogSeo, internalSeo, landingSeo } from './src/router/routeSeo'
+
+/**
+ * Schreibt nach dem Build für jede indexierbare Seite mit englischen Texten eine
+ * englische HTML-Variante neben index.html (index.en.html, blog.en.html,
+ * app.en.html). nginx liefert sie bei ?lang=en aus (siehe docs/SEO-LANG-EN.md).
+ * index.html selbst bleibt unverändert (Deutsch, Fallback für alle Routen).
+ */
+function staticLocalePages(): Plugin {
+  return {
+    name: 'visualizer:static-locale-pages',
+    apply: 'build',
+    async writeBundle(options) {
+      const outDir = options.dir ?? 'dist'
+      const html = await readFile(join(outDir, 'index.html'), 'utf8')
+      for (const meta of [landingSeo, blogSeo, appSeo, internalSeo]) {
+        if (!meta.en || !meta.canonical || /\bnoindex\b/i.test(meta.robots ?? '')) continue
+        const file = staticLocaleFileName(meta.canonical, SITE_BASE, 'en')
+        await writeFile(join(outDir, file), renderStaticLocaleHtml(html, meta, 'en'))
+      }
+    },
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,7 +35,7 @@ export default defineConfig({
   // FÜR DEPLOYMENT: base: '/visualizer/'
   base: process.env.NODE_ENV === 'production' ? '/visualizer/' : '/',
 
-  plugins: [vue()],
+  plugins: [vue(), staticLocalePages()],
 
   // Font-Dateien aus public/fonts werden im Build auf den gemeinsamen
   // Font-Ordner der Domain (/fonts/, nicht /visualizer/fonts/) verwiesen –

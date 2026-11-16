@@ -8,75 +8,14 @@ const BlogPage = () => import('../components/BlogPage.vue')
 import VisualizerApp from '../VisualizerApp.vue'
 import { watch } from 'vue'
 import { applyRouteHead } from './seoHead'
+import { appSeo, blogSeo, internalSeo, landingSeo } from './routeSeo'
 import { localeRef } from '../lib/i18n'
 
-const BASE = 'https://kodinitools.com/visualizer'
-
 export const routes = [
-  {
-    path: '/',
-    name: 'Landing',
-    component: LandingPage,
-    meta: {
-      title: 'Audio Visualizer online – Musikvideo für TikTok erstellen',
-      description:
-        'Audio Visualizer online: Musikvideo für TikTok, Reels und YouTube erstellen. Track laden, Visualisierung wählen, Text oder Bild ergänzen, als MP4 exportieren.',
-      canonical: `${BASE}/`,
-      robots: 'index, follow',
-      en: {
-        title: 'Music Visualizer Video Maker – Audio Visualizer Online',
-        description:
-          'Online music visualizer video maker: turn a song into a video for TikTok, Reels and YouTube. Load a track, pick a visualizer, add text or images, export as MP4.',
-      },
-      // FAQ ist nur hier sichtbar → FAQ-JSON-LD nur hier (siehe seoHead.js)
-      faq: true,
-    },
-  },
-  {
-    path: '/internal',
-    name: 'InternalLanding',
-    component: InternalLandingPage,
-    meta: {
-      title: 'Audio Visualizer Pro – Interner Bereich',
-      description: 'Interner Bereich des Audio Visualizer Pro.',
-      canonical: `${BASE}/internal`,
-      robots: 'noindex, nofollow',
-    },
-  },
-  {
-    path: '/blog',
-    name: 'Blog',
-    component: BlogPage,
-    meta: {
-      title: 'Funktionen – Audio Visualizer Pro',
-      description:
-        'Alle Funktionen des Audio Visualizer Pro im Überblick: 169 Visualizer, Multi-Layer, Bild-Slideshow, Text- und Lauftext-Effekte, audio-reaktive Bilder und MP4-/GIF-Export.',
-      canonical: `${BASE}/blog`,
-      robots: 'index, follow',
-      en: {
-        title: 'Features – Audio Visualizer Pro',
-        description:
-          'All Audio Visualizer Pro features at a glance: 169 visualizers, multi-layer, image slideshow, text and ticker effects, audio-reactive images and MP4/GIF export.',
-      },
-    },
-  },
-  {
-    path: '/app',
-    name: 'Visualizer',
-    component: VisualizerApp,
-    meta: {
-      title: 'Audio Visualizer Pro – App: Musik visualisieren & als MP4 exportieren',
-      description:
-        'Audio Visualizer Pro direkt im Browser starten: Audio hochladen, aus 169 Visualizern wählen, Text und Bilder platzieren und das Ergebnis als MP4 exportieren – ohne Installation.',
-      canonical: `${BASE}/app`,
-      robots: 'index, follow',
-      en: {
-        title: 'Audio Visualizer Pro – App: Visualize Music & Export as MP4',
-        description:
-          'Launch Audio Visualizer Pro in your browser: upload audio, pick from 169 visualizers, place text and images and export the result as MP4 – no installation needed.',
-      },
-    },
-  },
+  { path: '/', name: 'Landing', component: LandingPage, meta: landingSeo },
+  { path: '/internal', name: 'InternalLanding', component: InternalLandingPage, meta: internalSeo },
+  { path: '/blog', name: 'Blog', component: BlogPage, meta: blogSeo },
+  { path: '/app', name: 'Visualizer', component: VisualizerApp, meta: appSeo },
 ]
 
 const router = createRouter({

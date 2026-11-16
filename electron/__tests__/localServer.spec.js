@@ -62,6 +62,16 @@ describe('startLocalServer', () => {
     expect(font.status).toBe(200)
   })
 
+  it('liefert fertige Exporte unter /visualizer/files aus (MP4-Download)', async () => {
+    await fs.writeFile(path.join(tmp, 'data', 'files', 'converted_1.mp4'), 'mp4-daten')
+    const res = await fetch(`${server.origin}${BASE_PATH}/files/converted_1.mp4`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('video/mp4')
+    expect(await res.text()).toBe('mp4-daten')
+    const missing = await fetch(`${server.origin}${BASE_PATH}/files/fehlt.mp4`)
+    expect(missing.status).toBe(404)
+  })
+
   it('antwortet für fehlende Dateien mit 404 statt mit der index.html', async () => {
     const res = await fetch(`${server.origin}${BASE_PATH}/assets/fehlt.js`)
     expect(res.status).toBe(404)

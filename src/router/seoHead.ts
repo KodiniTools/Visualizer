@@ -10,8 +10,8 @@ import { localeUrls } from '../lib/localeSeo'
 // aus dem <head> genommen und bei Rückkehr wieder eingehängt.
 let faqScript: HTMLElement | null = null
 
-/** SEO-Felder der Route-Meta */
-export interface RouteHeadMeta {
+/** SEO-Felder der Route-Meta (type statt interface: muss zu vue-routers RouteMeta passen) */
+export type RouteHeadMeta = {
   title?: string
   description?: string
   canonical?: string

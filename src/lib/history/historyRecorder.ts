@@ -240,6 +240,36 @@ export function createHistoryRecorder({
     return token
   }
 
+  /**
+   * Zustand aller Segmente als JSON-fähige Kopie (z. B. zum Speichern als
+   * Projekt). Gehaltene Segmente werden mit ihrem aktuellen Stand erfasst.
+   */
+  function captureAll(): Record<string, unknown> {
+    const out: Record<string, unknown> = {}
+    for (const id of orderedIds()) {
+      const snap = serialize(id)
+      if (snap !== undefined) out[id] = JSON.parse(snap)
+    }
+    return out
+  }
+
+  /**
+   * Stellt gespeicherte Segment-Zustände wieder her (Reihenfolge nach order),
+   * ohne einen Verlaufsschritt anzulegen. Unbekannte IDs werden übergangen,
+   * Segmente ohne Eintrag bleiben unverändert.
+   * @returns IDs der angewendeten Segmente
+   */
+  async function applyAll(snapshots: Record<string, unknown>): Promise<string[]> {
+    cancelScheduled()
+    cancelLate()
+    const ids = orderedIds().filter((id) => Object.prototype.hasOwnProperty.call(snapshots, id))
+    await applyChanges(
+      ids.map((id) => ({ id, before: '', after: JSON.stringify(snapshots[id] ?? null) })),
+      'after',
+    )
+    return ids
+  }
+
   function cancelScheduled() {
     if (timer !== null) {
       clearTimer(timer)
@@ -512,6 +542,8 @@ export function createHistoryRecorder({
   return {
     registerSegment,
     checkpoint,
+    captureAll,
+    applyAll,
     scheduleCheckpoint,
     flush,
     rebase,

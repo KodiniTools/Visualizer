@@ -28,6 +28,7 @@
     <CanvasControlPopover v-if="popover.isOpen('canvasControl')" />
     <VideoPopover v-if="popover.isOpen('video')" />
     <RecorderPopover v-if="popover.isOpen('recorder')" />
+    <ProjectPopover v-if="popover.isOpen('project')" />
 
     <!-- ══════════════ THE BAR ══════════════ -->
     <PlayerBarControls />
@@ -44,6 +45,7 @@ import { useBeatMarkers } from '../composables/useBeatMarkers'
 import { usePlaylistManager } from '../composables/usePlaylistManager'
 import { useBgSettings } from '../composables/useBgSettings'
 import { useVideoPanel } from '../composables/useVideoPanel'
+import { useProjectSetup } from '../composables/useProjectSetup'
 import TextManagerPopover from './sticky-player-bar/TextManagerPopover.vue'
 import PlayerBarControls from './sticky-player-bar/PlayerBarControls.vue'
 import SlideshowPopover from './sticky-player-bar/SlideshowPopover.vue'
@@ -75,6 +77,7 @@ const popoverLoaders = {
   CanvasControlPopover: () => import('./sticky-player-bar/CanvasControlPopover.vue'),
   VideoPopover: () => import('./sticky-player-bar/VideoPopover.vue'),
   RecorderPopover: () => import('./sticky-player-bar/RecorderPopover.vue'),
+  ProjectPopover: () => import('./sticky-player-bar/ProjectPopover.vue'),
 }
 const AudioSourcePopover = defineAsyncComponent(popoverLoaders.AudioSourcePopover)
 const VolumeEqPopover = defineAsyncComponent(popoverLoaders.VolumeEqPopover)
@@ -94,6 +97,7 @@ const EffectsPopover = defineAsyncComponent(popoverLoaders.EffectsPopover)
 const CanvasControlPopover = defineAsyncComponent(popoverLoaders.CanvasControlPopover)
 const VideoPopover = defineAsyncComponent(popoverLoaders.VideoPopover)
 const RecorderPopover = defineAsyncComponent(popoverLoaders.RecorderPopover)
+const ProjectPopover = defineAsyncComponent(popoverLoaders.ProjectPopover)
 
 const PREFETCH_EVENTS = ['pointerover', 'pointerdown', 'keydown', 'focusin', 'touchstart'] as const
 let popoversPrefetched = false
@@ -139,6 +143,8 @@ const markers = useBeatMarkers(() => popover.openPopover('markers'), {
   },
 })
 const playlist = usePlaylistManager()
+// Galerien und Playlist als Teile eines gespeicherten Projekts anmelden
+useProjectSetup({ videoGallery: videoPanel })
 
 // Hintergrund-/Canvas-Zustand hier erzeugen, nicht im Panel: die Leiste ist
 // immer gemountet, das Canvas-Steuerung-Popover dagegen nur bei Bedarf. So

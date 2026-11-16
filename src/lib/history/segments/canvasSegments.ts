@@ -66,6 +66,7 @@ export interface HistoryVideoObject extends FotoSettingsTarget {
   endTime?: number
   loop?: boolean
   muted?: boolean
+  name?: string
   settings?: Loose | null
 }
 
@@ -120,6 +121,10 @@ interface VideoSnapshot {
   settings: Loose | null
   fotoSettings: Loose | null
   stackOrder: number | null
+  /** ab Projekt-Speicherung: nötig, um ein Video ohne vorhandenes Objekt neu anzulegen */
+  loop?: boolean
+  muted?: boolean
+  name?: string
 }
 
 /**
@@ -405,7 +410,53 @@ function captureVideo(video: HistoryVideoObject): VideoSnapshot {
     settings: clone(video.settings ?? null),
     fotoSettings: cleanFotoSettings(video.fotoSettings),
     stackOrder: video.stackOrder ?? null,
+    ...(typeof video.loop === 'boolean' ? { loop: video.loop } : {}),
+    ...(typeof video.muted === 'boolean' ? { muted: video.muted } : {}),
+    ...(typeof video.name === 'string' && video.name ? { name: video.name } : {}),
   }
+}
+
+/**
+ * Legt ein Canvas-Video aus einem Snapshot neu an (z. B. beim Öffnen eines
+ * gespeicherten Projekts: es gibt noch kein Objekt im Pool). Felder wie bei
+ * videoManager._createVideoObject.
+ */
+function createVideoFromSnapshot(snap: VideoSnapshot, src: string): HistoryVideoObject {
+  const loop = snap.loop ?? true
+  const muted = snap.muted ?? true
+  const videoElement = recreateVideoElement(src, {
+    loop,
+    muted,
+    playbackRate: snap.playbackRate ?? 1,
+  })
+  const obj: HistoryVideoObject & Loose = {
+    id: snap.id,
+    type: 'video',
+    videoElement,
+    duration: snap.endTime ?? 0,
+    loop,
+    muted,
+    isPlaying: false,
+    imageObject: null,
+    settings: {
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
+      opacity: 100,
+      blur: 0,
+      preset: null,
+    },
+    animation: { type: 'none', active: false, startTime: 0, duration: 500, progress: 0 },
+    ...(snap.name ? { name: snap.name } : {}),
+  }
+  videoElement.addEventListener?.(
+    'loadedmetadata',
+    () => {
+      if (Number.isFinite(videoElement.duration)) obj.duration = videoElement.duration
+    },
+    { once: true },
+  )
+  return obj
 }
 
 export function createVideosSegment(
@@ -439,8 +490,13 @@ export function createVideosSegment(
       }
 
       for (const snap of snapshot) {
-        const obj = liveById.get(snap.id) ?? pool.get(snap.id)
-        if (!obj) continue // ohne Element kein sinnvolles Wiederherstellen
+        let obj = liveById.get(snap.id) ?? pool.get(snap.id)
+        if (!obj) {
+          // Unbekanntes Video (geladenes Projekt): aus der Quelle neu anlegen
+          const src = mediaRegistry.resolve(snap.media)
+          if (!src) continue
+          obj = createVideoFromSnapshot(snap, src)
+        }
         const wasLive = liveById.has(snap.id)
 
         if (!isLiveVideo(obj.videoElement)) {
@@ -458,6 +514,15 @@ export function createVideosSegment(
         obj.relWidth = snap.relWidth
         obj.relHeight = snap.relHeight
         obj.playbackRate = snap.playbackRate
+        // Wiederholen/Stumm (seit Projekt-Speicherung im Snapshot)
+        if (typeof snap.loop === 'boolean') {
+          obj.loop = snap.loop
+          if (obj.videoElement) obj.videoElement.loop = snap.loop
+        }
+        if (typeof snap.muted === 'boolean') {
+          obj.muted = snap.muted
+          if (obj.videoElement) obj.videoElement.muted = snap.muted
+        }
         obj.startTime = snap.startTime
         obj.endTime = snap.endTime
         if (obj.videoElement && typeof snap.playbackRate === 'number') {
@@ -468,6 +533,11 @@ export function createVideosSegment(
           else obj.settings = clone(snap.settings)
         }
         applyFotoSettings(obj, snap.fotoSettings)
+        if (!obj.fotoSettings) {
+          const init = (mgr as { initializeVideoSettings?: (v: unknown) => void })
+            .initializeVideoSettings
+          init?.call(mgr, obj)
+        }
         if (snap.stackOrder == null) delete obj.stackOrder
         else obj.stackOrder = snap.stackOrder
         if (!wasLive && mgr.isPlaying) obj.videoElement?.play?.().catch(() => {})

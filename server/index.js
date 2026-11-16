@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url'
 import fs from 'fs/promises'
 import apiRoutes from './routes/api.js'
 import adminRoutes from './routes/admin.js'
+import projectRoutes from './routes/projects.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -93,6 +94,9 @@ app.get('/health', (req, res) => {
 // Admin & Landing-Content Routes (Login + Landing-Page-Inhalt)
 // Vor den FFmpeg-Routes gemountet; überschneidungsfreie Pfade.
 app.use('/api', adminRoutes)
+
+// Projekt-Ablage (nur Admin, Body wird gestreamt – nicht über express.json)
+app.use('/api', projectRoutes)
 
 // API Routes
 app.use('/api', apiRoutes)

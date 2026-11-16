@@ -527,6 +527,43 @@ describe('History-Segmente', () => {
     expect(mgr.videos.length).toBe(0)
   })
 
+  it('Videos: unbekanntes Video (geladenes Projekt) wird aus der Quelle neu angelegt', async () => {
+    const cm = makeCanvasManager()
+    const mgr = cm.videoManager
+    const segment = createVideosSegment(() => stub(cm))
+    mgr.videos.push({
+      id: 9,
+      type: 'video',
+      videoElement: fakeVideo('blob:video-9'),
+      relX: 0.1,
+      relY: 0.2,
+      relWidth: 0.5,
+      relHeight: 0.5,
+      playbackRate: 1,
+      startTime: 0,
+      endTime: 4,
+      loop: false,
+      muted: false,
+      name: 'clip',
+      settings: {},
+      fotoSettings: { opacity: 50 },
+    } as (typeof mgr.videos)[number])
+    const snap = segment.capture()
+    expect(snap?.[0]).toMatchObject({ loop: false, muted: false, name: 'clip' })
+
+    // Neue Sitzung: leerer Manager, kein Pool
+    const cm2 = makeCanvasManager()
+    await createVideosSegment(() => stub(cm2)).apply(snap)
+    const restored = cm2.videoManager.videos[0] as unknown as Record<string, unknown> & {
+      videoElement: HTMLVideoElement
+    }
+    expect(cm2.videoManager.videos).toHaveLength(1)
+    expect(restored).toMatchObject({ id: 9, relX: 0.1, loop: false, muted: false, name: 'clip' })
+    expect(restored.fotoSettings).toMatchObject({ opacity: 50 })
+    expect(restored.videoElement.getAttribute('src')).toBe('blob:video-9')
+    expect(restored.videoElement.loop).toBe(false)
+  })
+
   it('Hintergrund: Farbe, Gradient und Bild-Hintergrund', async () => {
     const cm = makeCanvasManager()
     const refs = {

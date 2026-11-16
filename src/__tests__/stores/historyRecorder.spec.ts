@@ -389,4 +389,32 @@ describe('historyRecorder – hängende Eingaben', () => {
     recorder.destroy()
     vi.useRealTimers()
   })
+
+  it('captureAll/applyAll: Projekt-Zustand ohne Verlaufsschritt', async () => {
+    setActivePinia(createPinia())
+    const store = useHistoryStore()
+    const recorder = createHistoryRecorder({ historyStore: store })
+    const a = makeSegment({ size: 1 })
+    const b = makeSegment({ color: '#000' })
+    recorder.registerSegment('a', a.adapter)
+    recorder.registerSegment('b', b.adapter)
+
+    const snaps = recorder.captureAll()
+    expect(snaps).toEqual({ a: { size: 1 }, b: { color: '#000' } })
+
+    a.state.size = 5
+    b.state.color = '#fff'
+    recorder.checkpoint()
+    expect(store.history.length).toBe(1)
+
+    // nur 'a' anwenden, unbekannte IDs ignorieren
+    const applied = await recorder.applyAll({ a: { size: 1 }, unknown: { x: 1 } })
+    expect(applied).toEqual(['a'])
+    expect(a.state.size).toBe(1)
+    expect(b.state.color).toBe('#fff')
+    // kein neuer Schritt, Baseline übernommen
+    expect(recorder.checkpoint()).toBeNull()
+    expect(store.history.length).toBe(1)
+    recorder.destroy()
+  })
 })

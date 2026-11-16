@@ -29,8 +29,9 @@ const router = express.Router()
 // KONFIGURATION
 // ═══════════════════════════════════════════════════════════════════
 
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads')
-const FILES_DIR = path.join(__dirname, '..', 'files')
+// Überschreibbar, weil das Programmverzeichnis der Desktop-App schreibgeschützt ist
+const UPLOADS_DIR = process.env.VISUALIZER_UPLOADS_DIR || path.join(__dirname, '..', 'uploads')
+const FILES_DIR = process.env.VISUALIZER_FILES_DIR || path.join(__dirname, '..', 'files')
 
 // Job-Tracking (in Produktion: Redis oder DB verwenden)
 const jobs = new Map()

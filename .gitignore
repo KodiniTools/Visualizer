@@ -17,3 +17,8 @@ logs/
 # Playwright
 test-results/
 playwright-report/
+
+# Desktop-App (Electron)
+dist-desktop/
+desktop/app/
+desktop/node_modules/

@@ -11,5 +11,11 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["server/**/*.js", "ecosystem.config.cjs"]
+  "include": [
+    "server/**/*.js",
+    "electron/localServer.mjs",
+    "electron/__tests__/*.js",
+    "desktop/stage.mjs",
+    "ecosystem.config.cjs"
+  ]
 }

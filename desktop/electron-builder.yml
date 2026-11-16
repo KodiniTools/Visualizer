@@ -1,0 +1,23 @@
+# Visualizer Desktop (Beta) – Windows-Installer. Siehe DESKTOP.md.
+appId: com.kodinitools.visualizer
+productName: Visualizer Beta
+directories:
+  output: ../dist-desktop
+files:
+  - app/**
+  - package.json
+# FFmpeg/FFprobe liegen außerhalb des Archivs, damit sie ausführbar sind
+extraResources:
+  - from: node_modules/ffmpeg-static/ffmpeg.exe
+    to: bin/ffmpeg.exe
+  - from: node_modules/ffprobe-static/bin/win32/x64/ffprobe.exe
+    to: bin/ffprobe.exe
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: Visualizer-Beta-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: Visualizer Beta

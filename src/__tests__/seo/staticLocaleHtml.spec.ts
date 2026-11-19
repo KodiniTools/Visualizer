@@ -76,7 +76,7 @@ describe('renderStaticLocaleHtml (en)', () => {
     expect(out).toContain('<!--#include virtual="/partials/nav.html" -->')
     expect(out).toContain('<div id="app"></div>')
     expect(out).toContain('src="/src/main.ts"')
-    expect(out).toContain("'GTM-KBNF8DV7'")
+    expect(out).not.toMatch(/googletagmanager|GTM-/)
   })
 
   it('escaped Sonderzeichen in Attributen und Titel', () => {

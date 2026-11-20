@@ -445,11 +445,9 @@ describe('useRenderLoop – Charakterisierung', () => {
     const { loop, playerStore, audioSourceStore } = setup({ videoPlaying: true })
     playerStore.isPlaying = false
 
-    // Analyse nur über den Player: ein laufendes Video reicht nicht
-    runFrames(loop, 1)
-    expect(analysed()).toBe(false)
-
-    for (const input of ['video', 'mix']) {
+    // Regression: auch bei „Player“ (Standard, kein Track) reicht ein
+    // hörbar laufendes Video – die Engine legt den Video-Ton dann an.
+    for (const input of ['player', 'video', 'mix']) {
       log.length = 0
       audioSourceStore.analysisInput = input
       runFrames(loop, 1)
@@ -460,9 +458,12 @@ describe('useRenderLoop – Charakterisierung', () => {
   it('Analyse über Video-Ton: ohne laufendes Video kein Visualizer', () => {
     const { loop, playerStore, audioSourceStore } = setup({ videoPlaying: false })
     playerStore.isPlaying = false
-    audioSourceStore.analysisInput = 'video'
-    runFrames(loop, 1)
-    expect(log.some((l) => l.startsWith('updateGlobalAudioData'))).toBe(false)
+    for (const input of ['player', 'video']) {
+      log.length = 0
+      audioSourceStore.analysisInput = input
+      runFrames(loop, 1)
+      expect(log.some((l) => l.startsWith('updateGlobalAudioData'))).toBe(false)
+    }
   })
 
   it('Mikrofon: eigener Analyser, AudioContext wird fortgesetzt', () => {

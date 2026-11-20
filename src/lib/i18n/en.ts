@@ -1000,6 +1000,7 @@ export default {
     analysisPlayer: 'Player',
     analysisVideo: 'Video',
     analysisMix: 'Both',
+    analysisPlayerHint: 'While no track is playing, the visualizer reacts to audible videos.',
     analysisVideoHint: 'Uses the sound of every video that is currently playing and not muted.',
     // Player controls
     prev: 'Previous',

@@ -55,8 +55,14 @@
         :options="analysisOptions"
         @update:model-value="audioSourceStore.setAnalysisInput"
       />
-      <p v-if="audioSourceStore.analysisInput !== 'player'" class="analysis-hint">
-        {{ t('player.analysisVideoHint') }}
+      <p class="analysis-hint">
+        {{
+          t(
+            audioSourceStore.analysisInput === 'player'
+              ? 'player.analysisPlayerHint'
+              : 'player.analysisVideoHint',
+          )
+        }}
       </p>
     </template>
 

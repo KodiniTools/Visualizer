@@ -123,13 +123,21 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     recordingMixer.connect(recordingDest)
   }
 
-  /** Analyse-Quelle anwenden: Player, Video-Ton oder beides (Mix). */
+  /**
+   * Analyse-Quelle anwenden: Player, Video-Ton oder beides (Mix).
+   * „Player“ nimmt den Video-Ton dazu, solange der Player nicht spielt (z. B.
+   * kein Track geladen): Der Player liefert dann ohnehin Stille, und ein
+   * hörbar laufendes Video soll den Visualizer trotzdem bewegen.
+   */
   function applyAnalysisInput() {
     const input: AnalysisInput = audioSourceStore.analysisInput ?? 'player'
+    const videoFallback = input === 'player' && !playerStore?.isPlaying
     if (playerAnalysisGain) playerAnalysisGain.gain.value = input === 'video' ? 0 : ACTIVE_GAIN
-    if (videoAnalysisGain) videoAnalysisGain.gain.value = input === 'player' ? 0 : ACTIVE_GAIN
+    if (videoAnalysisGain) {
+      videoAnalysisGain.gain.value = input !== 'player' || videoFallback ? ACTIVE_GAIN : 0
+    }
   }
-  watch(() => audioSourceStore.analysisInput, applyAnalysisInput)
+  watch(() => [audioSourceStore.analysisInput, playerStore?.isPlaying], applyAnalysisInput)
 
   /**
    * Läuft gerade ein Video, dessen Ton in der Engine hängt (hörbar, nicht

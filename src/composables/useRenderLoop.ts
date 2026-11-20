@@ -266,11 +266,9 @@ export function useRenderLoop({
   function analyzeAudio(): FrameAudio {
     const isMicActive = audioSourceStore.isMicrophoneActive
     const analyser = isMicActive ? getMicrophoneAnalyser() : getAnalyser()
-    // Analyse über Video-Ton: auch zeichnen, wenn nur ein Video läuft
-    const videoRunning =
-      !isMicActive &&
-      (audioSourceStore.analysisInput ?? 'player') !== 'player' &&
-      !!isVideoAudioPlaying?.()
+    // Video-Ton: auch zeichnen, wenn nur ein Video läuft. Bei „Player“ hängt
+    // der Video-Ton am Analyser, solange der Player nicht spielt (Engine).
+    const videoRunning = !isMicActive && !!isVideoAudioPlaying?.()
     const audioRunning =
       playerStore.isPlaying || recorderStore.isRecording || isMicActive || videoRunning
 

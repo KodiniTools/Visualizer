@@ -4,7 +4,7 @@
  * über je einen Gain zum Analyser; audioSourceStore.analysisInput schaltet sie.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAudioEngine } from '../../composables/useAudioEngine'
 import { useAudioSourceStore } from '../../stores/audioSourceStore'
@@ -102,10 +102,14 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function setupEngine() {
+/** Player-Zustand, wie ihn die Engine liest (Standard: Track läuft) */
+type PlayerState = { isPlaying: boolean; isMuted: boolean }
+
+function setupEngine(player: PlayerState = reactive({ isPlaying: true, isMuted: false })) {
   const engine = useAudioEngine({
     audioRef: ref({} as HTMLAudioElement),
     audioSourceStore: store,
+    playerStore: player as unknown as Parameters<typeof useAudioEngine>[0]['playerStore'],
   })
   engine.setupAudioContext()
   engine.registerEngine()
@@ -145,6 +149,37 @@ describe('useAudioEngine – Video-Ton in der Analyse', () => {
     await nextTick()
     expect(reaches(playerSource, analyser)).toBe(true)
     expect(reaches(videoSource, analyser)).toBe(true)
+  })
+
+  it('Regression: bei „Player“ ohne laufenden Track reagiert der Analyser auf den Video-Ton', async () => {
+    const player = reactive({ isPlaying: false, isMuted: false })
+    const { playerSource } = setupEngine(player)
+    const { getAudioEngine } = await import('../../lib/audioEngineBridge')
+    getAudioEngine()!.connectVideoToRecording(fakeVideo(), 1)
+    const videoSource = lastVideoSource()
+    expect(store.analysisInput).toBe('player')
+
+    // Kein Track / pausiert: Video-Ton geht in die Analyse
+    expect(reaches(videoSource, analyser)).toBe(true)
+    expect(reaches(playerSource, analyser)).toBe(true)
+
+    // Track startet: nur noch der Player
+    player.isPlaying = true
+    await nextTick()
+    expect(reaches(videoSource, analyser)).toBe(false)
+    expect(reaches(playerSource, analyser)).toBe(true)
+
+    // Track pausiert: wieder der Video-Ton
+    player.isPlaying = false
+    await nextTick()
+    expect(reaches(videoSource, analyser)).toBe(true)
+
+    // „Video“ explizit: Player bleibt draußen, egal ob er spielt
+    store.setAnalysisInput('video')
+    player.isPlaying = true
+    await nextTick()
+    expect(reaches(videoSource, analyser)).toBe(true)
+    expect(reaches(playerSource, analyser)).toBe(false)
   })
 
   it('Video-Lautstärke 0 oder Trennen nimmt das Video aus der Analyse', async () => {

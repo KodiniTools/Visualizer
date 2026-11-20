@@ -118,13 +118,13 @@ describe('AudioSourcePopover – Visualizer reagiert auf (Player / Video / Beide
       (b) => b.textContent!.trim() === label,
     )!
 
-  it('zeigt die Auswahl bei Quelle Player, Player ist gewählt, kein Hinweis', async () => {
+  it('zeigt die Auswahl bei Quelle Player, Player ist gewählt, Video-Ton-Ausweich-Hinweis', async () => {
     await mountPopover()
     expect(wrapper!.text()).toContain(P.analysisInput)
     const group = root().querySelector('[role="radiogroup"]')!
     expect(group.getAttribute('aria-label')).toBe(P.analysisInput)
     expect(radio(P.analysisPlayer).getAttribute('aria-checked')).toBe('true')
-    expect(root().querySelector('.analysis-hint')).toBeNull()
+    expect(root().querySelector('.analysis-hint')!.textContent!.trim()).toBe(P.analysisPlayerHint)
   })
 
   it('Klick setzt den Analyse-Eingang und zeigt den Hinweis', async () => {

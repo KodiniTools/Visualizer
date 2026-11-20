@@ -41,6 +41,16 @@ export function createVideoElement(
 }
 
 /**
+ * Hat das Video eine Bildspur, die der Browser darstellen kann? Bei einem
+ * nicht unterstützten Video-Codec (z. B. HEVC/H.265 ohne Decoder) lädt der
+ * Browser nur den Ton: Dauer und `loadeddata` sind da, aber Breite und Höhe
+ * bleiben 0 – auf dem Canvas würde nichts erscheinen.
+ */
+export function hasPicture(video: Pick<HTMLVideoElement, 'videoWidth' | 'videoHeight'>): boolean {
+  return video.videoWidth > 0 && video.videoHeight > 0
+}
+
+/**
  * Spielt das Element die Quelle `src` ab (z. B. die Blob-URL eines
  * Galerie-Videos)? Leere Quellen passen nie.
  */

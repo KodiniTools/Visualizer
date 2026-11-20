@@ -6,6 +6,7 @@ import {
   applyMuted,
   ensureAudible,
   connectToRecording,
+  hasPicture,
   type VideoElementOptions,
 } from './videoPanel/videoElements'
 import { useVideoGallery, type GalleryVideo } from './videoPanel/useVideoGallery'
@@ -15,6 +16,7 @@ import type { CanvasManager } from '../lib/canvasManager'
 import type { VideoObject } from '../lib/videoManager'
 import type { CanvasManagerRef } from './types'
 import { isReleasedMedia } from '../lib/mediaElements'
+import { useToastStore } from '../stores/toastStore'
 import type { ImageBoundsApi } from '../components/foto-panel/image-filters/imageFilterContext'
 
 /** Optionen für setBackgroundFromGallery */
@@ -35,7 +37,8 @@ interface BackgroundFromGalleryOptions {
 export type VideoPanelApi = ReturnType<typeof useVideoPanel>
 
 export function useVideoPanel() {
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
+  const toastStore = useToastStore()
 
   // Werden von der App bereitgestellt (provide)
   const canvasManager = inject('canvasManager') as CanvasManagerRef
@@ -65,7 +68,42 @@ export function useVideoPanel() {
     getFitArea: () => canvasManager.value?.getWorkspaceBounds?.() ?? null,
   }
 
-  const gallery = useVideoGallery()
+  // ─── Videos ohne darstellbare Bildspur ──────────────────────────────────
+
+  /** Text: Bildspur von `name` kann der Browser nicht darstellen (nur Ton). */
+  function noPictureMessage(name: string): string {
+    return t('videoPanel.noPicture').replace('{name}', name)
+  }
+
+  /**
+   * Meldet ein Video ohne darstellbare Bildspur. Ohne diese Meldung legten
+   * „Platzieren“ und „Als (Workspace-)Hintergrund“ unsichtbare Videos an –
+   * die Knöpfe wirkten tot.
+   */
+  function reportNoPicture(name: string): void {
+    console.warn('⚠️ Video ohne darstellbare Bildspur (Codec nicht unterstützt?):', name)
+    toastStore.error(noPictureMessage(name), { duration: 8000 })
+  }
+
+  const gallery = useVideoGallery({
+    // Schon beim Hochladen warnen, nicht erst beim Platzieren
+    onAdded: (video) => {
+      if (video.width === 0 || video.height === 0) reportNoPicture(video.name)
+    },
+  })
+
+  /** Hinweis für das gewählte Galerie-Video ohne Bildspur ('' wenn alles gut ist). */
+  const selectedVideoNoPictureHint = computed(() => {
+    const video = gallery.selectedVideo()
+    if (!video || (video.width > 0 && video.height > 0)) return ''
+    return noPictureMessage(video.name)
+  })
+
+  /** Ladeelement ohne Bildspur freigeben (onerror erkennt das Freigeben). */
+  function releaseElement(video: HTMLVideoElement): void {
+    video.pause()
+    video.src = ''
+  }
   const canvasVideos = useCanvasVideos(canvasManager, videoManager, videoTimeUpdateKey)
   const bg = useBackgroundVideo(
     canvasManager,
@@ -119,6 +157,12 @@ export function useVideoPanel() {
 
     return new Promise((resolve) => {
       canvasVideo.onloadeddata = () => {
+        if (!hasPicture(canvasVideo)) {
+          releaseElement(canvasVideo)
+          reportNoPicture(videoData.name)
+          resolve(null)
+          return
+        }
         // Breite: 1/3 der Canvas-Breite bei Skalierung 3
         const baseWidth = 1 / 3
         const scaledWidth = baseWidth * (videoScale.value / 3)
@@ -184,6 +228,11 @@ export function useVideoPanel() {
     const video = createPlacementVideo(videoData, { volume: 1 })
 
     video.onloadeddata = () => {
+      if (!hasPicture(video)) {
+        releaseElement(video)
+        reportNoPicture(videoData.name)
+        return
+      }
       apply(cm, video)
       if (!video.muted) connectToRecording(video, video.volume)
       console.log(`✅ Video als ${label} gesetzt, Muted:`, video.muted)
@@ -335,6 +384,7 @@ export function useVideoPanel() {
     fileInputRef: gallery.fileInputRef,
     videoGallery: gallery.videoGallery,
     selectedVideoIndex: gallery.selectedVideoIndex,
+    selectedVideoNoPictureHint,
     selectedAnimation,
     animationDuration,
     videoScale,

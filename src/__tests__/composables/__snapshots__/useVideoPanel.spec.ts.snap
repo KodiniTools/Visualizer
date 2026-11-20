@@ -47,6 +47,7 @@ exports[`useVideoPanel – API > liefert unverändert alle Schlüssel 1`] = `
   "selectedVideoDuration",
   "selectedVideoIndex",
   "selectedVideoLayerInfo",
+  "selectedVideoNoPictureHint",
   "selectedVideoVolume",
   "setVideoAsBackground",
   "setVideoAsWorkspaceBackground",

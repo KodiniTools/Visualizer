@@ -2669,6 +2669,8 @@ export default {
     },
   },
   videoPanel: {
+    noPicture:
+      '„{name}“: Das Bild dieses Videos kann dein Browser nicht anzeigen, nur den Ton (Video-Codec nicht unterstützt, oft HEVC/H.265). Speichere es als MP4 (H.264) oder WebM und lade es erneut hoch.',
     videoTimeTitle: 'Position / Gesamtdauer',
     canvasVideosTitle: 'Videos auf Canvas',
     canvasClickHint:

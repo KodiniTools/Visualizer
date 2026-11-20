@@ -175,3 +175,27 @@ describe('Video-Upload – Ui-Bausteine und Tastatur', () => {
     expect(body().textContent).not.toContain('✕')
   })
 })
+
+describe('Video-Upload – Video ohne darstellbare Bildspur', () => {
+  it('zeigt den Hinweis des Panels als Warnung, sonst nichts', async () => {
+    await mountSection(1)
+    const hint = ref('')
+    ;(vp as Record<string, unknown>).selectedVideoNoPictureHint = hint
+    wrapper!.unmount()
+    wrapper = mount(VideoUploadSection, {
+      attachTo: document.body,
+      global: { provide: { videoPanel: vp } },
+    })
+    vp.selectedVideoIndex.value = 0
+    await flushPromises()
+    expect(body().querySelector('[data-testid="video-no-picture"]')).toBeNull()
+
+    hint.value = '„clip-1“: kein Bild'
+    await flushPromises()
+    const el = body().querySelector('[data-testid="video-no-picture"]')
+    expect(el?.textContent).toContain('„clip-1“: kein Bild')
+    expect(el?.className).toContain('ui-callout--warning')
+    // Die Knöpfe bleiben bedienbar (der Klick meldet den Grund)
+    expect(button('Als Hintergrund')).toBeTruthy()
+  })
+})

@@ -2658,6 +2658,8 @@ export default {
     },
   },
   videoPanel: {
+    noPicture:
+      '“{name}”: your browser cannot show the picture of this video, only its sound (unsupported video codec, often HEVC/H.265). Save it as MP4 (H.264) or WebM and upload it again.',
     videoTimeTitle: 'Position / total duration',
     canvasVideosTitle: 'Videos on Canvas',
     canvasClickHint:

@@ -20,7 +20,12 @@ export interface GalleryVideo {
  * Galerie hochgeladener Videos (Blob-URLs): Upload per Dialog oder Drop,
  * Auswahl, Löschen. Blob-URLs werden beim Entfernen freigegeben.
  */
-export function useVideoGallery() {
+export function useVideoGallery({
+  onAdded,
+}: {
+  /** Nach dem Hinzufügen eines Videos (z. B. Hinweis bei fehlender Bildspur) */
+  onAdded?: (video: GalleryVideo) => void
+} = {}) {
   const fileInputRef = ref<HTMLInputElement | null>(null)
   const videoGallery = ref<GalleryVideo[]>([])
   const selectedVideoIndex = ref<number | null>(null)
@@ -78,6 +83,7 @@ export function useVideoGallery() {
         `${videoData.width}x${videoData.height}`,
         `${videoData.duration.toFixed(1)}s`,
       )
+      onAdded?.(videoData)
     }
 
     video.onerror = () => {

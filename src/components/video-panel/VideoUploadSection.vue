@@ -116,6 +116,11 @@
         {{ t('videoPanel.asWorkspaceBackground') }}
       </UiButton>
     </div>
+
+    <!-- Bildspur nicht darstellbar: sonst blieben die Knöpfe scheinbar ohne Wirkung -->
+    <UiCallout v-if="selectedVideoNoPictureHint" type="warning" data-testid="video-no-picture">{{
+      selectedVideoNoPictureHint
+    }}</UiCallout>
   </div>
 </template>
 
@@ -124,6 +129,7 @@ import { inject } from 'vue'
 import type { VideoPanelApi } from '../../composables/useVideoPanel'
 import { useI18n } from '../../lib/i18n'
 import UiButton from '../ui/UiButton.vue'
+import UiCallout from '../ui/UiCallout.vue'
 import UiIconButton from '../ui/UiIconButton.vue'
 
 const { t } = useI18n()
@@ -132,6 +138,7 @@ const {
   fileInputRef,
   videoGallery,
   selectedVideoIndex,
+  selectedVideoNoPictureHint,
   triggerFileInput,
   handleDrop,
   handleVideoUpload,

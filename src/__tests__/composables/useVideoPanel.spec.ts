@@ -7,6 +7,7 @@ import { useVideoPanel } from '../../composables/useVideoPanel'
 import type { VideoObject } from '../../lib/videoManager'
 import { registerAudioEngine } from '../../lib/audioEngineBridge'
 import { stub } from '../helpers/canvasStubs'
+import { useToastStore } from '../../stores/toastStore'
 
 /**
  * Verhaltenstest für useVideoPanel: protokolliert alle Zugriffe auf
@@ -902,5 +903,129 @@ describe('useVideoPanel – Stumm aus nach stummem Start', () => {
 
     expect(cv.muted).toBe(false)
     expect(log).toContain('rec.setVolume <cv> 1')
+  })
+})
+
+describe('useVideoPanel – Video ohne darstellbare Bildspur (Codec nicht unterstützt)', () => {
+  /** Hochladen wie uploadVideo, aber mit Bildgröße 0 (Browser lädt nur den Ton) */
+  async function uploadSoundOnly(name: string) {
+    vp.processVideoFile(file(name))
+    const el = created.at(-1)!
+    Object.assign(el, { duration: 316, videoWidth: 0, videoHeight: 0 })
+    el.onloadedmetadata()
+    await nextTick()
+    return el
+  }
+  /** Ladeelement der nächsten Platzierung: ebenfalls ohne Bild */
+  function loadWithoutPicture() {
+    const el = created.at(-1)!
+    Object.assign(el, { videoWidth: 0, videoHeight: 0 })
+    el.onloadeddata()
+    return el
+  }
+  const errors = () =>
+    useToastStore()
+      .toasts.filter((t) => t.type === 'error')
+      .map((t) => t.message)
+
+  it('warnt schon beim Hochladen und zeigt den Hinweis für das gewählte Video', async () => {
+    mountPanel()
+    await uploadSoundOnly('Most-i-covjek.mp4')
+    expect(errors()).toHaveLength(1)
+    expect(errors()[0]).toContain('Most-i-covjek')
+    expect(vp.selectedVideoNoPictureHint.value).toContain('Most-i-covjek')
+  })
+
+  it('normales Video: keine Meldung, kein Hinweis', async () => {
+    mountPanel()
+    await uploadVideo('ok.mp4')
+    vp.addVideoToCanvas()
+    created.at(-1)!.onloadeddata()
+    expect(errors()).toEqual([])
+    expect(vp.selectedVideoNoPictureHint.value).toBe('')
+    expect(log.some((l) => l.startsWith('vm.addVideo'))).toBe(true)
+  })
+
+  it('„Platzieren“ legt kein unsichtbares Video an, sondern meldet den Grund', async () => {
+    const { vm } = mountPanel()
+    await uploadSoundOnly('clip.mp4')
+    useToastStore().clearAll()
+    log.length = 0
+
+    const pending = vp.placeVideoOnCanvas(vp.videoGallery.value[0])
+    const el = loadWithoutPicture()
+    await expect(pending).resolves.toBeNull()
+    expect(log.some((l) => l.startsWith('vm.addVideo'))).toBe(false)
+    expect(vm!.videos).toEqual([])
+    expect(el.src).toBe('') // Element freigegeben …
+    vi.mocked(console.error).mockClear()
+    el.onerror() // … und das Freigeben gilt nicht als Ladefehler
+    expect(console.error).not.toHaveBeenCalled()
+    expect(errors()).toHaveLength(1)
+    expect(errors()[0]).toContain('clip')
+
+    // Gleiches über den Knopf
+    vp.addVideoDirectly()
+    loadWithoutPicture()
+    await nextTick()
+    expect(log.some((l) => l.startsWith('vm.addVideo'))).toBe(false)
+    expect(errors()).toHaveLength(2)
+  })
+
+  it('„Als Hintergrund“ und „Workspace-Hintergrund“ setzen keinen leeren Hintergrund', async () => {
+    const { cm } = mountPanel()
+    cm.workspacePreset = { width: 1080, height: 1080 }
+    await uploadSoundOnly('clip.mp4')
+    useToastStore().clearAll()
+    log.length = 0
+
+    vp.setVideoAsBackground()
+    loadWithoutPicture()
+    vp.setVideoAsWorkspaceBackground()
+    loadWithoutPicture()
+
+    expect(log.some((l) => l.startsWith('cm.setVideoBackground'))).toBe(false)
+    expect(log.some((l) => l.startsWith('cm.setWorkspaceVideoBackground'))).toBe(false)
+    expect(log.some((l) => l.startsWith('rec.connect'))).toBe(false)
+    expect(errors()).toHaveLength(2)
+  })
+
+  it('Englisch', async () => {
+    const { setLocale } = await import('../../lib/i18n')
+    await setLocale('en')
+    try {
+      mountPanel()
+      await uploadSoundOnly('clip.mp4')
+      expect(vp.selectedVideoNoPictureHint.value).toContain('your browser cannot show the picture')
+    } finally {
+      await setLocale('de')
+    }
+  })
+})
+
+describe('useVideoPanel – platziertes Video ist ausgewählt (Rahmen sichtbar)', () => {
+  it('„Platzieren“ wählt das neue Video im Canvas aus, Beat-Marker (select: false) nicht', async () => {
+    const { cm, vm } = mountPanel()
+    await uploadVideo('dunkel.mp4')
+    const placed = { id: 'cv1', type: 'video' }
+    vm!.addVideo = () => placed
+
+    const pending = vp.placeVideoOnCanvas(vp.videoGallery.value[0])
+    created.at(-1)!.onloadeddata()
+    await expect(pending).resolves.toBe(placed)
+    expect(cm.activeObject).toStrictEqual(placed)
+
+    cm.activeObject = null
+    const marker = vp.placeVideoOnCanvas(vp.videoGallery.value[0], { select: false })
+    created.at(-1)!.onloadeddata()
+    await expect(marker).resolves.toBe(placed)
+    expect(cm.activeObject).toBeNull()
+
+    // Über den Knopf (asynchron)
+    vp.addVideoDirectly()
+    created.at(-1)!.onloadeddata()
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(cm.activeObject).toStrictEqual(placed)
   })
 })

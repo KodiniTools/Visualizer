@@ -1,6 +1,6 @@
 <template>
   <div :class="['ui-field', { 'ui-field--error': Boolean(error), 'ui-field--disabled': disabled }]">
-    <label :for="inputId" class="ui-field__label">
+    <label :for="inputId" :class="['ui-field__label', { 'ui-field__label--hidden': labelHidden }]">
       {{ label }}<span v-if="required" class="ui-field__required" aria-hidden="true"> *</span>
     </label>
     <input
@@ -25,6 +25,7 @@ import { computed, useId } from 'vue'
 
 /**
  * Einzeiliges Textfeld mit sichtbarem Label, optionalem Hinweis und Fehlertext.
+ * `labelHidden` versteckt das Label nur visuell (bleibt für Screenreader).
  * Weitere Attribute (autocomplete, maxlength, …) landen auf dem <input>.
  */
 defineOptions({ inheritAttrs: false })
@@ -39,6 +40,7 @@ const props = withDefaults(
     error?: string
     disabled?: boolean
     required?: boolean
+    labelHidden?: boolean
   }>(),
   {
     id: undefined,
@@ -48,6 +50,7 @@ const props = withDefaults(
     error: undefined,
     disabled: false,
     required: false,
+    labelHidden: false,
   },
 )
 
@@ -75,6 +78,15 @@ const describedBy = computed(() => {
   font-size: var(--ds-text-sm);
   font-weight: var(--ds-weight-medium);
   color: var(--ds-text-2);
+}
+
+.ui-field__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .ui-field__required {

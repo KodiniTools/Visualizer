@@ -4,7 +4,9 @@ import {
   SILENT_TRACK_DURATIONS,
   clampSilentSeconds,
   createSilentWav,
+  SILENT_TRACK_MAX_SECONDS,
   formatSilentDuration,
+  parseSilentDuration,
   suggestSilentDuration,
 } from '../../../lib/audio/silentTrack'
 
@@ -43,9 +45,11 @@ describe('createSilentWav', () => {
 })
 
 describe('clampSilentSeconds', () => {
-  it('rundet und begrenzt auf 1–3600 s', () => {
+  it('rundet und begrenzt auf 1–10800 s (3 Stunden)', () => {
+    expect(SILENT_TRACK_MAX_SECONDS).toBe(10800)
     expect(clampSilentSeconds(2.4)).toBe(2)
-    expect(clampSilentSeconds(99999)).toBe(3600)
+    expect(clampSilentSeconds(5400)).toBe(5400)
+    expect(clampSilentSeconds(99999)).toBe(10800)
     expect(clampSilentSeconds(0.2)).toBeNull()
     expect(clampSilentSeconds(-5)).toBeNull()
     expect(clampSilentSeconds('60')).toBeNull()
@@ -70,12 +74,64 @@ describe('suggestSilentDuration', () => {
     expect(suggestSilentDuration([5, 15])).toBe(30)
     expect(suggestSilentDuration([25])).toBe(60)
     expect(suggestSilentDuration([170])).toBe(180)
-    expect(suggestSilentDuration([4000])).toBe(3600)
   })
 
-  it('alle Vorschläge sind wählbare Längen', () => {
+  it('bis 1 Stunde runde Längen, darüber volle Minuten, höchstens 3 Stunden', () => {
     for (const t of [0, 1, 50, 299, 1000, 3000]) {
       expect(SILENT_TRACK_DURATIONS).toContain(suggestSilentDuration([t]))
     }
+    expect(suggestSilentDuration([4000])).toBe(4020)
+    expect(suggestSilentDuration([20000])).toBe(10800)
+  })
+})
+
+describe('parseSilentDuration', () => {
+  it('liest m:ss und h:mm:ss', () => {
+    expect(parseSilentDuration('0:30')).toBe(30)
+    expect(parseSilentDuration('4:37')).toBe(277)
+    expect(parseSilentDuration(' 12:05 ')).toBe(725)
+    expect(parseSilentDuration('90:00')).toBe(5400)
+    expect(parseSilentDuration('1:15:00')).toBe(4500)
+    expect(parseSilentDuration('0:00')).toBe(0)
+  })
+
+  it('nur Zahl = Minuten, auch mit Komma oder Punkt', () => {
+    expect(parseSilentDuration('5')).toBe(300)
+    expect(parseSilentDuration('1,5')).toBe(90)
+    expect(parseSilentDuration('0.25')).toBe(15)
+  })
+
+  it('unlesbare Eingaben → null', () => {
+    for (const bad of [
+      '',
+      '  ',
+      'abc',
+      '1:60',
+      '1:2:60',
+      '1::2',
+      ':30',
+      '1:30:',
+      '1:2:3:4',
+      '-1',
+      '5m',
+      '1:3a',
+    ]) {
+      expect(parseSilentDuration(bad)).toBeNull()
+    }
+    expect(parseSilentDuration(30)).toBeNull()
+    expect(parseSilentDuration(undefined)).toBeNull()
+  })
+})
+
+describe('createSilentWav (lang)', () => {
+  it('setzt längere Stille aus Blöcken zusammen (Länge und Inhalt stimmen)', async () => {
+    const blob = createSilentWav(125)
+    expect(blob.size).toBe(44 + 125 * 8000)
+    const h = await readHeader(blob)
+    expect(h.getUint32(40, true)).toBe(125 * 8000)
+    expect(h.getUint32(4, true)).toBe(36 + 125 * 8000)
+    const tail = new Uint8Array(await blob.slice(44 + 119 * 8000).arrayBuffer())
+    expect(tail.length).toBe(6 * 8000)
+    expect(tail.every((b) => b === 128)).toBe(true)
   })
 })

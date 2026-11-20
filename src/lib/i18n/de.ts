@@ -996,6 +996,7 @@ export default {
     analysisPlayer: 'Player',
     analysisVideo: 'Video',
     analysisMix: 'Beides',
+    analysisPlayerHint: 'Läuft kein Track, reagiert der Visualizer auf hörbare Videos.',
     analysisVideoHint:
       'Ausgewertet wird der Ton aller Videos, die gerade hörbar laufen (nicht stumm).',
     // Player controls

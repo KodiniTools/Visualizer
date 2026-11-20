@@ -1002,3 +1002,30 @@ describe('useVideoPanel – Video ohne darstellbare Bildspur (Codec nicht unters
     }
   })
 })
+
+describe('useVideoPanel – platziertes Video ist ausgewählt (Rahmen sichtbar)', () => {
+  it('„Platzieren“ wählt das neue Video im Canvas aus, Beat-Marker (select: false) nicht', async () => {
+    const { cm, vm } = mountPanel()
+    await uploadVideo('dunkel.mp4')
+    const placed = { id: 'cv1', type: 'video' }
+    vm!.addVideo = () => placed
+
+    const pending = vp.placeVideoOnCanvas(vp.videoGallery.value[0])
+    created.at(-1)!.onloadeddata()
+    await expect(pending).resolves.toBe(placed)
+    expect(cm.activeObject).toStrictEqual(placed)
+
+    cm.activeObject = null
+    const marker = vp.placeVideoOnCanvas(vp.videoGallery.value[0], { select: false })
+    created.at(-1)!.onloadeddata()
+    await expect(marker).resolves.toBe(placed)
+    expect(cm.activeObject).toBeNull()
+
+    // Über den Knopf (asynchron)
+    vp.addVideoDirectly()
+    created.at(-1)!.onloadeddata()
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(cm.activeObject).toStrictEqual(placed)
+  })
+})

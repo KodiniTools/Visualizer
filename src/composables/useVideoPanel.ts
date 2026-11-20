@@ -178,7 +178,19 @@ export function useVideoPanel() {
             name: videoData.name,
             select,
           }),
-        ).then(resolve, () => resolve(null))
+        ).then(
+          (video) => {
+            // Wie bei Bildern: das neue Video ausgewählt zeigen (Rahmen und
+            // Griffe). Ohne Auswahl blieb ein pausiertes Video, dessen erstes
+            // Bild dunkel ist, auf dunklem Canvas unsichtbar – die Knöpfe
+            // wirkten tot, bis man „Play“ drückte.
+            if (select && video && typeof video === 'object') {
+              canvasManager.value?.setActiveObject(video)
+            }
+            resolve(video)
+          },
+          () => resolve(null),
+        )
         console.log('✅ Video auf Canvas platziert')
       }
 

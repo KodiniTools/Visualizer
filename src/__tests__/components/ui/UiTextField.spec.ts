@@ -54,4 +54,14 @@ describe('UiTextField', () => {
     expect(input.attributes('disabled')).toBeDefined()
     expect(wrapper.get('.ui-field__required').attributes('aria-hidden')).toBe('true')
   })
+
+  it('versteckt das Label mit labelHidden nur visuell', async () => {
+    const wrapper = mount(UiTextField, { props: { label: 'Länge der Stille' } })
+    expect(wrapper.get('label').classes()).not.toContain('ui-field__label--hidden')
+    await wrapper.setProps({ labelHidden: true })
+    const label = wrapper.get('label')
+    expect(label.classes()).toContain('ui-field__label--hidden')
+    expect(label.text()).toBe('Länge der Stille')
+    expect(label.attributes('for')).toBe(wrapper.get('input').attributes('id'))
+  })
 })

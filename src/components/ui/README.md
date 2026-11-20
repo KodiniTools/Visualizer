@@ -27,7 +27,7 @@ import { UiButton, UiPanel, UiTextField } from '@/components/ui'
 | `UiEmptyState`       | Leerzustand                                | `title`, `text`, Slots `icon` · `action`                                                                                                                      |
 | `UiSegmentedControl` | Eine Option aus wenigen, Radiogroup-Muster | `v-model` (string), `options` `{ value, label, disabled? }`, `label`, `size`; Pfeiltasten wechseln                                                            |
 | `UiSelect`           | Natives Select im System-Look              | `v-model` (string · number), `options` (Eintrag mit `options` → `<optgroup>`), `label` (Pflicht), `inline`, `labelHidden`, `size`, `disabled`; Attrs → select |
-| `UiTextField`        | Einzeiliges Textfeld mit Label             | `v-model`, `label`, `hint`, `error` (aria-invalid, role=alert), `required`, `disabled`, Attrs → input                                                         |
+| `UiTextField`        | Einzeiliges Textfeld mit Label             | `v-model`, `label`, `labelHidden`, `hint`, `error` (aria-invalid, role=alert), `required`, `disabled`, Attrs → input                                          |
 | `UiDialog`           | Modaler Dialog (Teleport nach `body`)      | `open`, `title`, `description`, `closeLabel`, `size` md · lg, `teleportTo`, `id`, Slots default · `footer`; Event `close`                                     |
 | `UiToast`            | Benachrichtigung                           | `message`, `type` success · error · warning · info, `actionLabel`, `dismissLabel`, `dismissOnClick`; Events `action`, `dismiss`                               |
 | `UiKbd`              | Tastenkombination                          | `keys: string[]`                                                                                                                                              |
@@ -48,6 +48,9 @@ Gleiche Regeln wie oben: nur `--ds-*` Tokens, native Elemente, Fokus-Ring, je ei
 | `UiSwitch`        | Schiebeschalter An/Aus (32 × 18), `role="switch"`    | `v-model` (boolean), `label` (Pflicht; sichtbar rechts oder `labelHidden`), `disabled`                                |
 | `UiTextArea`      | Mehrzeiliges Textfeld, Anatomie wie `UiTextField`    | `v-model`, `label`, `rows`, `placeholder`, `hint`, `disabled`, Attrs → textarea                                       |
 | `UiColorSwatches` | Reihe kleiner Farbfelder (z. B. „Zuletzt verwendet“) | `colors` (Hex), `label` (Pflicht), `modelValue` (markiert); Event `pick`                                              |
+
+Erweiterung: `UiTextField` kennt `labelHidden` wie `UiSelect` (Label nur visuell versteckt),
+z. B. für die Längeneingabe bei „Ohne Track abspielen“.
 
 Erweiterung: `UiSegmentedControl` hat zusätzlich `wrap` (volle Breite, Optionen brechen in
 weitere Zeilen um), z. B. für die sieben Kategorien der Formen-Galerie.

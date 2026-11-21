@@ -110,3 +110,21 @@ describe('renderStaticLocaleHtml (en)', () => {
     expect(template).not.toMatch(/rel="canonical"/)
   })
 })
+
+describe('renderStaticLocaleHtml (de, Unterseite /blog)', () => {
+  it('schreibt blog.de.html mit eigenem Titel und Canonical auf /visualizer/blog', () => {
+    expect(staticLocaleFileName(blogSeo.canonical!, SITE_BASE, 'de')).toBe('blog.de.html')
+    const doc = parse(renderStaticLocaleHtml(template, blogSeo, 'de'))
+    expect(doc.documentElement.getAttribute('lang')).toBe('de')
+    expect(doc.title).toBe(blogSeo.title)
+    expect(doc.title).not.toBe(landingSeo.title)
+    expect(metaContent(doc, 'meta[name="description"]')).toBe(blogSeo.description)
+    expect(metaContent(doc, 'meta[property="og:locale"]')).toBe('de_DE')
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      `${SITE_BASE}/blog`,
+    )
+    expect(doc.querySelector('link[rel="alternate"][hreflang="en"]')?.getAttribute('href')).toBe(
+      `${SITE_BASE}/blog?lang=en`,
+    )
+  })
+})

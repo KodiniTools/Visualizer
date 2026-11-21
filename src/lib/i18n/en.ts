@@ -830,12 +830,12 @@ export default {
       button: 'Start Visualizer',
     },
     meta: {
-      title: 'Features – Audio Visualizer Pro | Complete Feature Overview',
+      title: 'Blog – Audio Visualizer Pro: All Features at a Glance',
       description:
         '169 visualizers, multi-layer, image slideshow, text and ticker effects, audio-reactive images, social media formats and MP4/GIF export – every feature of Audio Visualizer Pro at a glance.',
       keywords:
         'Audio Visualizer, features, visualizer, slideshow, MP4 export, GIF export, beat reactive, music visualization, browser tool',
-      ogTitle: 'Features – Audio Visualizer Pro',
+      ogTitle: 'Blog – Audio Visualizer Pro',
       ogDescription:
         '169 visualizers, image slideshow, audio-reactive effects and video export – free in your browser.',
     },

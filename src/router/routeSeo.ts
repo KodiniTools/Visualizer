@@ -27,13 +27,13 @@ export const internalSeo: RouteHeadMeta = {
 }
 
 export const blogSeo: RouteHeadMeta = {
-  title: 'Funktionen – Audio Visualizer Pro',
+  title: 'Blog – Audio Visualizer Pro: alle Funktionen im Überblick',
   description:
     'Alle Funktionen des Audio Visualizer Pro im Überblick: 169 Visualizer, Multi-Layer, Bild-Slideshow, Text- und Lauftext-Effekte, audio-reaktive Bilder und MP4-/GIF-Export.',
   canonical: `${SITE_BASE}/blog`,
   robots: 'index, follow',
   en: {
-    title: 'Features – Audio Visualizer Pro',
+    title: 'Blog – Audio Visualizer Pro: All Features at a Glance',
     description:
       'All Audio Visualizer Pro features at a glance: 169 visualizers, multi-layer, image slideshow, text and ticker effects, audio-reactive images and MP4/GIF export.',
   },

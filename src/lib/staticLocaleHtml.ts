@@ -26,7 +26,17 @@ export const STATIC_TEXTS_EN: StaticLocaleTexts = {
   noscript: 'Please enable JavaScript to use Audio Visualizer Pro.',
 }
 
-/** Dateiname der Sprachvariante: '/' → index.en.html, '/app' → app.en.html */
+export const STATIC_TEXTS_DE: StaticLocaleTexts = {
+  ogLocale: 'de_DE',
+  ogLocaleAlternate: 'en_US',
+  imageAlt: 'Audio Visualizer Pro – Browser-basierter Musik-Visualizer',
+  noscript: 'Bitte JavaScript aktivieren, um den Audio Visualizer Pro zu verwenden.',
+}
+
+/**
+ * Dateiname der Sprachvariante: '/' → index.en.html, '/app' → app.en.html,
+ * deutsche Unterseite '/blog' → blog.de.html (nginx-map für den Pfad ohne ?lang).
+ */
 export function staticLocaleFileName(canonical: string, baseUrl: string, locale: Locale): string {
   if (!canonical.startsWith(baseUrl)) {
     throw new Error(`Canonical ${canonical} liegt nicht unter ${baseUrl}`)
@@ -77,17 +87,18 @@ function removeFaqScript(html: string): string {
 /**
  * Baut die statische Sprachvariante einer Seite.
  * @param html gebaute index.html (deutsch)
- * @param meta Route-Meta der Seite (mit `en`-Texten)
- * @param locale Zielsprache (derzeit nur 'en')
+ * @param meta Route-Meta der Seite (mit `en`-Texten; Deutsch nutzt title/description)
+ * @param locale Zielsprache ('en', oder 'de' für Unterseiten mit eigenem deutschen Kopf)
  * @param texts seitenunabhängige Texte der Zielsprache
  */
 export function renderStaticLocaleHtml(
   html: string,
   meta: RouteHeadMeta,
-  locale: Exclude<Locale, 'de'>,
-  texts: StaticLocaleTexts = STATIC_TEXTS_EN,
+  locale: Locale,
+  texts: StaticLocaleTexts = locale === 'de' ? STATIC_TEXTS_DE : STATIC_TEXTS_EN,
 ): string {
-  const localized = meta[locale]
+  const localized =
+    locale === 'de' ? { title: meta.title, description: meta.description } : meta[locale]
   if (!meta.canonical || !localized?.title || !localized.description) {
     throw new Error(`Seite ohne Canonical oder ohne ${locale}-Titel/-Description`)
   }

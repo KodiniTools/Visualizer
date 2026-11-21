@@ -11,6 +11,7 @@ import { SITE_BASE, appSeo, blogSeo, internalSeo, landingSeo } from './src/route
  * Schreibt nach dem Build für jede indexierbare Seite mit englischen Texten eine
  * englische HTML-Variante neben index.html (index.en.html, blog.en.html,
  * app.en.html). nginx liefert sie bei ?lang=en aus (siehe docs/SEO-LANG-EN.md).
+ * Dazu blog.de.html für die deutsche Unterseite /blog (eigener Kopf).
  * index.html selbst bleibt unverändert (Deutsch, Fallback für alle Routen).
  */
 function staticLocalePages(): Plugin {
@@ -24,6 +25,12 @@ function staticLocalePages(): Plugin {
         if (!meta.en || !meta.canonical || /\bnoindex\b/i.test(meta.robots ?? '')) continue
         const file = staticLocaleFileName(meta.canonical, SITE_BASE, 'en')
         await writeFile(join(outDir, file), renderStaticLocaleHtml(html, meta, 'en'))
+      }
+      // Deutsche Unterseite /blog: eigener Kopf (Titel, Canonical auf /visualizer/blog)
+      // statt der index.html der Startseite. /app bleibt bewusst bei index.html.
+      for (const meta of [blogSeo]) {
+        const file = staticLocaleFileName(meta.canonical!, SITE_BASE, 'de')
+        await writeFile(join(outDir, file), renderStaticLocaleHtml(html, meta, 'de'))
       }
     },
   }

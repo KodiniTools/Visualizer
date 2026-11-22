@@ -1,0 +1,97 @@
+/* KodiniTools Visualizer · Etappe 4
+   Rein optische Ergänzungen. Nach phase1 und phase3 importieren.
+   Keine Canvas-Pixel, Popover-Positionen, Events oder Player-Zustände ändern. */
+
+/* Canvas-Bühne: Der Rahmen wird gestaltet, nicht das Canvas selbst. */
+#app-container .center-column .canvas-wrapper {
+  position: relative;
+  background: #030811;
+  border: 1px solid color-mix(in srgb, var(--ds-link) 28%, var(--ds-border));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 5%),
+    0 16px 42px rgb(0 0 0 / 24%);
+  border-radius: 18px;
+}
+#app-container .center-column .canvas-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 3%);
+  pointer-events: none;
+}
+
+/* Player: ruhige Glasfläche mit einem dünnen Cyan-Gold-Abschluss. */
+#app-container .sticky-player-bar .spb-bar {
+  background: linear-gradient(
+    112deg,
+    color-mix(in srgb, var(--ds-link) 8%, var(--ds-surface-1)),
+    var(--ds-surface-1) 45%,
+    color-mix(in srgb, var(--ds-accent) 5%, var(--ds-surface-1))
+  );
+  border-top: 1px solid color-mix(in srgb, var(--ds-link) 28%, var(--ds-border));
+  box-shadow:
+    0 -8px 30px rgb(0 0 0 / 16%),
+    inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+#app-container .sticky-player-bar .spb-track {
+  min-width: 0;
+}
+#app-container .sticky-player-bar .spb-track-name {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+#app-container .sticky-player-bar .spb-track-name.muted {
+  font-weight: 400;
+}
+#app-container .sticky-player-bar .spb-transport .spb-ctrl-main {
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--ds-accent) 23%, transparent);
+}
+#app-container .sticky-player-bar .progress-bar-background {
+  background: color-mix(in srgb, var(--ds-link) 14%, var(--ds-border-strong));
+}
+#app-container .sticky-player-bar .progress-bar-fill {
+  background: linear-gradient(90deg, var(--ds-link), var(--ds-accent));
+}
+#app-container .sticky-player-bar .progress-bar-handle {
+  background: var(--ds-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent) 15%, transparent);
+}
+#app-container .sticky-player-bar .progress-bar-container:hover .progress-bar-fill {
+  background: linear-gradient(90deg, var(--ds-link), var(--ds-accent-hover));
+}
+#app-container .sticky-player-bar .spb-divider {
+  background: color-mix(in srgb, var(--ds-link) 22%, var(--ds-border-strong));
+}
+
+/* Helles Design: bewusst weniger Leuchteffekte, mehr Kontur. */
+:root[data-theme='light'] #app-container .center-column .canvas-wrapper,
+[data-theme='light'] #app-container .center-column .canvas-wrapper,
+.light-theme #app-container .center-column .canvas-wrapper {
+  border-color: color-mix(in srgb, var(--ds-link) 24%, var(--ds-border));
+  box-shadow: 0 12px 28px rgb(20 33 58 / 11%);
+}
+:root[data-theme='light'] #app-container .sticky-player-bar .spb-bar,
+[data-theme='light'] #app-container .sticky-player-bar .spb-bar,
+.light-theme #app-container .sticky-player-bar .spb-bar {
+  box-shadow: 0 -5px 20px rgb(20 33 58 / 9%);
+}
+
+/* Das mobile Canvas bleibt vollflächig wie im Original. */
+@media (max-width: 768px) {
+  #app-container .center-column .canvas-wrapper {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
+  #app-container .center-column .canvas-wrapper::after {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #app-container .sticky-player-bar .progress-bar-fill,
+  #app-container .sticky-player-bar .progress-bar-handle {
+    transition: none;
+  }
+}

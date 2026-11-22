@@ -953,7 +953,6 @@ export default {
   // ========== PLAY WITHOUT A TRACK (SILENCE) ==========
   silentTrack: {
     title: 'Play without a track',
-    hint: 'Adds silence as a timeline. Visualizers and beat drop markers run, sound comes in through markers with a track or video.',
     duration: 'Length of silence',
     durationHint: 'Any length, e.g. 4:30 or 1:15:00 (max. {max})',
     durationInvalid: 'Please enter m:ss or h:mm:ss, e.g. 4:30',

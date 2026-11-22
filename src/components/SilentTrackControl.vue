@@ -1,9 +1,7 @@
 <template>
   <div :class="['silent-track', { 'silent-track--compact': compact }]">
-    <div class="silent-track__head">
-      <span class="silent-track__title">{{ t('silentTrack.title') }}</span>
-      <span v-if="!compact" class="silent-track__hint">{{ t('silentTrack.hint') }}</span>
-    </div>
+    <!-- Titel nur im Playlist-Popover; im Audio-Panel steht das Feld ohne Überschrift -->
+    <span v-if="compact" class="silent-track__title">{{ t('silentTrack.title') }}</span>
     <div class="silent-track__row">
       <UiTextField
         v-model="durationText"
@@ -144,22 +142,10 @@ function addSilence() {
   padding: var(--ds-space-1) var(--ds-space-2);
 }
 
-.silent-track__head {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .silent-track__title {
   font-size: var(--ds-text-xs);
   font-weight: var(--ds-weight-semibold);
   color: var(--ds-text);
-}
-
-.silent-track__hint {
-  font-size: var(--ds-text-xs);
-  color: var(--ds-text-2);
-  line-height: 1.4;
 }
 
 .silent-track__row {

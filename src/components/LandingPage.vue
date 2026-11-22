@@ -1930,4 +1930,22 @@ function toggleFaq(index: number) {
     scroll-behavior: auto;
   }
 }
+
+/* Kodini 22.11.2026: Gefüllte Knöpfe im hellen Modus mit weisser Schrift,
+   Muster aus dem Playlist Generator (#8f6320, Kontrast zu Weiss 5,1:1). */
+.landing-page.light-theme {
+  --landing-btn-bg: #8f6320;
+  --landing-btn-bg-hover: #7a531a;
+}
+.landing-page.light-theme .landing-header-cta,
+.landing-page.light-theme .btn-primary {
+  background: var(--landing-btn-bg);
+  border-color: var(--landing-btn-bg);
+  color: #ffffff;
+}
+.landing-page.light-theme .landing-header-cta:hover,
+.landing-page.light-theme .btn-primary:hover {
+  background: var(--landing-btn-bg-hover);
+  border-color: var(--landing-btn-bg-hover);
+}
 </style>

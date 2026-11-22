@@ -1508,4 +1508,285 @@ function toggleFaq(index: number) {
     transition: none;
   }
 }
+
+/* ================================================================
+   KODINITOOLS LANDINGPAGE · ETAPPE 3
+   Funktionskarten, Video-Demo, FAQ, Blog und Inhaltsbereiche
+   Nur CSS. Vorhandene Templates, Scripts, Stores und URLs bleiben erhalten.
+   ================================================================ */
+.landing-page .features,
+.landing-page .video-section,
+.landing-page .faq-section,
+.landing-page .blog-section {
+  position: relative;
+}
+.landing-page .features,
+.landing-page .blog-section {
+  max-width: 1240px;
+  padding: clamp(64px, 7vw, 104px) 24px;
+}
+.landing-page .video-section {
+  max-width: 1100px;
+  padding: clamp(64px, 7vw, 104px) 24px;
+}
+.landing-page .faq-section {
+  max-width: 880px;
+  padding: clamp(64px, 7vw, 104px) 24px;
+}
+.landing-page .section-header {
+  margin-bottom: clamp(30px, 4vw, 50px);
+}
+.landing-page .section-title {
+  color: var(--ds-text, #f2eee2);
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+}
+.landing-page .section-subtitle {
+  max-width: 660px;
+  color: var(--ds-text-2, #a7b3c4);
+  line-height: 1.65;
+}
+
+/* Cards: einheitliches Raster und ruhige, hochwertige Flächen */
+.landing-page .features-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.landing-page .feature-card {
+  min-width: 0;
+  padding: clamp(24px, 2.5vw, 34px);
+  background: var(--ds-surface-1, #111d33);
+  border: 1px solid var(--ds-border, #223553);
+  border-radius: var(--ds-radius-lg, 16px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.landing-page .feature-card:hover {
+  border-color: var(--ds-accent, #d4a257);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+}
+.landing-page .feature-icon {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 24px;
+  background: var(--ds-surface-2, #182741) !important;
+  border: 1px solid var(--ds-border-strong, #2f4668);
+  border-radius: var(--ds-radius-md, 10px);
+  color: var(--ds-accent, #d4a257);
+}
+.landing-page .feature-icon svg {
+  width: 26px;
+  height: 26px;
+}
+.landing-page .feature-title {
+  color: var(--ds-text, #f2eee2);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+.landing-page .feature-description,
+.landing-page.light-theme .feature-description {
+  color: var(--ds-text-2, #a7b3c4);
+  line-height: 1.7;
+}
+
+/* Vorhandene GIF-Demo bleibt unverändert eingebunden. */
+.landing-page .video-container {
+  background: var(--ds-surface-1, #111d33);
+  border: 1px solid var(--ds-border-strong, #2f4668);
+  border-radius: 20px;
+  padding: clamp(6px, 1vw, 12px);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  aspect-ratio: auto;
+}
+.landing-page .demo-gif {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* FAQ: Klickverhalten und Öffnungszustand bleiben Vue-gesteuert. */
+.landing-page .faq-list {
+  gap: 12px;
+}
+.landing-page .faq-item,
+.landing-page.light-theme .faq-item {
+  background: var(--ds-surface-1, #111d33);
+  border: 1px solid var(--ds-border, #223553);
+  border-radius: 12px;
+}
+.landing-page .faq-item:hover {
+  border-color: var(--ds-border-strong, #2f4668);
+}
+.landing-page .faq-item.active {
+  border-color: var(--ds-accent, #d4a257);
+}
+.landing-page .faq-question {
+  padding: 22px 24px;
+  color: var(--ds-text, #f2eee2);
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.45;
+  gap: 12px;
+}
+.landing-page .faq-icon {
+  color: var(--ds-accent, #d4a257);
+}
+.landing-page .faq-answer p,
+.landing-page.light-theme .faq-answer p {
+  padding: 0 24px 22px;
+  color: var(--ds-text-2, #a7b3c4);
+  font-size: 15px;
+}
+
+/* Blog: bestehende dynamische Artikel, Bilder und Links. */
+.landing-page .blog-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.landing-page .blog-card {
+  min-width: 0;
+  background: var(--ds-surface-1, #111d33);
+  border: 1px solid var(--ds-border, #223553);
+  border-radius: 16px;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.landing-page .blog-card:hover {
+  border-color: var(--ds-accent, #d4a257);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.15);
+}
+.landing-page .blog-card:focus-visible {
+  outline: 2px solid var(--ds-accent, #d4a257);
+  outline-offset: 3px;
+}
+.landing-page .blog-card-media {
+  background: var(--ds-surface-2, #182741);
+}
+.landing-page .blog-card-media img {
+  transition: transform 0.25s ease;
+}
+.landing-page .blog-card:hover .blog-card-media img {
+  transform: scale(1.035);
+}
+.landing-page .blog-card-body {
+  padding: 24px;
+  gap: 13px;
+}
+.landing-page .blog-card-tag {
+  background: var(--ds-accent-soft, rgba(212, 162, 87, 0.14));
+  color: var(--ds-accent, #d4a257);
+  border-radius: 6px;
+  padding: 5px 9px;
+}
+.landing-page .blog-card-meta {
+  color: var(--ds-text-3, #8593a8);
+}
+.landing-page .blog-card-title {
+  color: var(--ds-text, #f2eee2);
+  line-height: 1.35;
+}
+.landing-page .blog-card-description,
+.landing-page.light-theme .blog-card-description {
+  color: var(--ds-text-2, #a7b3c4);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.landing-page .blog-card-link,
+.landing-page.light-theme .blog-card-link {
+  color: var(--ds-accent, #d4a257);
+  margin-top: auto;
+}
+
+/* Abschließender CTA */
+.landing-page .cta-section {
+  padding: clamp(70px, 8vw, 112px) 24px;
+}
+.landing-page .cta-content {
+  max-width: 760px;
+  padding: clamp(32px, 5vw, 62px);
+  border-radius: 22px;
+  background: var(--ds-surface-1, #111d33);
+  border: 1px solid var(--ds-border, #223553);
+}
+.landing-page .cta-title {
+  color: var(--ds-text, #f2eee2);
+  letter-spacing: -0.035em;
+}
+.landing-page .cta-subtitle {
+  color: var(--ds-text-2, #a7b3c4);
+}
+
+/* Die Light-Theme-Tokens stammen aus dem bestehenden Designsystem. */
+.landing-page.light-theme .feature-card,
+.landing-page.light-theme .blog-card,
+.landing-page.light-theme .video-container,
+.landing-page.light-theme .cta-content {
+  box-shadow: 0 12px 30px rgba(20, 33, 58, 0.07);
+}
+@media (max-width: 960px) {
+  .landing-page .features-grid,
+  .landing-page .blog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .landing-page .features,
+  .landing-page .video-section,
+  .landing-page .faq-section,
+  .landing-page .blog-section {
+    padding-inline: 18px;
+  }
+  .landing-page .features-grid,
+  .landing-page .blog-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .landing-page .feature-card {
+    padding: 24px;
+  }
+  .landing-page .video-container {
+    padding: 5px;
+    border-radius: 14px;
+  }
+  .landing-page .demo-gif {
+    border-radius: 9px;
+  }
+  .landing-page .faq-question {
+    padding: 19px 18px;
+  }
+  .landing-page .faq-answer p {
+    padding: 0 18px 20px;
+  }
+  .landing-page .cta-content {
+    padding: 28px 20px;
+  }
+}
+/* Ergänzung: Bei nur 1–2 Blogartikeln füllen die Karten die Breite, statt eine leere dritte Spalte zu lassen. */
+@media (min-width: 961px) {
+  .landing-page .blog-grid:not(:has(> :nth-child(3))) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .feature-card,
+  .landing-page .blog-card,
+  .landing-page .blog-card-media img {
+    transition: none;
+  }
+  .landing-page .feature-card:hover,
+  .landing-page .blog-card:hover,
+  .landing-page .blog-card:hover .blog-card-media img {
+    transform: none;
+  }
+}
 </style>

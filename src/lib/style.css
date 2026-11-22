@@ -2,19 +2,10 @@
 style.css - Haupt-Stylesheet für den Audio Visualizer Pro
 */
 
-/* --- CUSTOM FONT --- */
-@font-face {
-  font-family: 'Supreme';
-  src: url('/fonts/Supreme-Regular.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* --- DESIGN SYSTEM TOKENS --- */
 
 :root {
-  --font-sans: 'Supreme', sans-serif;
+  --font-sans: Arial, sans-serif;
 
   /* Semantic status colors */
   --green: #c5deb0;

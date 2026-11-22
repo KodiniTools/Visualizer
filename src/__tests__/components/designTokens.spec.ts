@@ -198,10 +198,13 @@ describe('Grundschrift und Schriftdatei', () => {
     expect(shell).toMatch(/#app \{[^}]*font-size: var\(--ds-text-md\)/)
   })
 
-  it.each([400, 500, 700])('deklariert @font-face für Supreme %i', (weight) => {
-    const faces = appVue.match(/@font-face\s*\{[^}]*\}/g) ?? []
-    const match = faces.find((face) => new RegExp(`font-weight:\\s*${weight}\\b`).test(face))
-    expect(match, `Kein @font-face für Supreme ${weight}`).toBeDefined()
-    expect(match).toMatch(/\/fonts\/Supreme-(Regular|Medium|Bold)\.woff2/)
+  // Kodini 22.11.2026: Arial ist die einzige Oberflächenschrift, keine Webfonts für die UI.
+  it('Oberfläche nutzt nur Arial und lädt keine Webfont', () => {
+    const tokens = readFileSync(join(SRC, 'design-system/tokens-v2.css'), 'utf8')
+    expect(tokens).toMatch(/--ds-font-sans:\s*Arial, sans-serif;/)
+    expect(tokens).toMatch(/--ds-font-mono:\s*Arial, sans-serif;/)
+    expect(appVue).not.toMatch(/@font-face/)
+    const indexHtml = readFileSync(join(SRC, '../index.html'), 'utf8')
+    expect(indexHtml).not.toMatch(/rel="preload"[^>]*\/fonts\//)
   })
 })

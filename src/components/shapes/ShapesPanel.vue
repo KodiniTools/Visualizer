@@ -476,7 +476,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from '../../lib/i18n'
-import { CUSTOM_FONTS } from '../../lib/fonts'
+import { APP_FONT } from '../../lib/fonts'
 import { useShapeStore } from '../../stores/shapeStore'
 import type { DrawStyle, DrawTool, Shape } from '../../stores/shapeStore'
 import { useHistoryStore } from '../../stores/historyStore'
@@ -545,10 +545,8 @@ function optionsFor(values: readonly string[], prefix: string) {
 }
 
 const fontOptions = computed(() => {
-  const names = CUSTOM_FONTS.map((f) => f.name)
-  const current = shapeStore.selectedShape?.fontFamily
-  if (current && !names.includes(current)) names.unshift(current)
-  return names.map((name) => ({ value: name, label: name }))
+  // Kodini 22.11.2026: nur noch Arial (gespeicherte Schriften werden als Arial gezeichnet).
+  return [{ value: APP_FONT, label: APP_FONT }]
 })
 
 const galleryItems = computed(() =>

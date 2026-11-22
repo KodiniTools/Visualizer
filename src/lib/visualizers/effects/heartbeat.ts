@@ -154,7 +154,7 @@ export const heartbeat: VisualizerDefinition = {
       ctx.stroke()
 
       const bpm = Math.min(180, Math.max(40, Math.round(60000 / Math.max(500, timeSinceLastPulse))))
-      ctx.font = `${size * 0.15}px monospace`
+      ctx.font = `${size * 0.15}px Arial, sans-serif`
       ctx.fillStyle = `hsla(${baseHsl.h}, ${baseHsl.s}%, ${baseHsl.l}%, 0.6)`
       ctx.textAlign = 'center'
       ctx.fillText(`${bpm} BPM`, 0, size * 1.2)

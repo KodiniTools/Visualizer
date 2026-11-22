@@ -1,6 +1,7 @@
 import { computed, ref, type Ref } from 'vue'
 import { useI18n } from '../lib/i18n'
 import type { FontManager } from '../lib/fontManager'
+import { APP_FONT } from '../lib/fonts'
 import type { CanvasManagerRef, SelectedTextRef } from './types'
 
 /** Eintrag einer Schrift-Auswahl (UiSelect) */
@@ -16,90 +17,50 @@ export interface FontOptionGroup {
   options: FontOption[]
 }
 
-const SYSTEM_FONTS = [
-  'Arial',
-  'Helvetica',
-  'Times New Roman',
-  'Georgia',
-  'Courier New',
-  'Verdana',
-  'Impact',
-  'Comic Sans MS',
-  'Trebuchet MS',
-]
+// Kodini 22.11.2026: nur noch Arial.
+const SYSTEM_FONTS = [APP_FONT]
 
 export function useTextFonts(
-  canvasManager: CanvasManagerRef | null | undefined,
-  fontManager: Ref<FontManager | null | undefined> | null | undefined,
+  _canvasManager: CanvasManagerRef | null | undefined,
+  _fontManager: Ref<FontManager | null | undefined> | null | undefined, // ungenutzt: nur Arial
   _fontSelectRef?: unknown, // ungenutzt: Bearbeiten-Modus nutzt fontOptions
   _newTextFontSelectRef?: unknown, // ungenutzt: Formular nutzt newTextFontOptions
-  selectedText?: Pick<SelectedTextRef, 'value'> | null,
+  _selectedText?: Pick<SelectedTextRef, 'value'> | null, // ungenutzt: nur Arial
   _newTextStyle?: unknown, // ungenutzt (frühere DOM-Befüllung)
 ) {
   const { t } = useI18n()
 
-  // Schriftwahl im Bearbeiten-Modus als Daten für UiSelect. Die Schrift des
-  // markierten Textes steht oben; sie wird beim Auffrischen festgehalten, damit
-  // die Liste beim Wechseln der Schrift nicht umspringt. fontManager.loadedFonts
-  // ist ein nicht-reaktives Set, daher stößt populateFontDropdown() die
-  // Neuberechnung an (nach Textwechsel oder geladenen Fonts).
-  const pinnedFont = ref<string | null>(null)
   const fontRevision = ref(0)
 
+  // Bleibt für die Aufrufer erhalten (frischt die Liste auf).
   function populateFontDropdown() {
-    pinnedFont.value = (selectedText?.value?.fontFamily as string | undefined) || 'Arial'
     fontRevision.value++
   }
 
+  // Kodini 22.11.2026: Arial ist die einzige Schrift. Beide Listen bieten nur
+  // Arial an; der FontManager lädt keine eigenen Schriften mehr.
+  const toOption = (name: string): FontOption => ({
+    value: name,
+    label: name,
+    style: { fontFamily: name },
+  })
+  const onlyArial = (): FontOptionGroup[] => [
+    { label: t('textManager.fontGroups.system'), options: SYSTEM_FONTS.map(toOption) },
+  ]
+
   const fontOptions = computed(() => {
     void fontRevision.value
-    const customFonts = loadedCustomFonts()
-    const current = pinnedFont.value
-    const pinned = current && [...SYSTEM_FONTS, ...customFonts].includes(current)
-    const toOption = (name: string): FontOption => ({
-      value: name,
-      label: name,
-      style: { fontFamily: name },
-    })
-    const rest = (list: string[]) =>
-      list.filter((name) => !pinned || name !== current).map(toOption)
-    const groups: FontOptionGroup[] = []
-    if (pinned && current)
-      groups.push({ label: t('textManager.fontGroups.current'), options: [toOption(current)] })
-    groups.push({ label: t('textManager.fontGroups.system'), options: rest(SYSTEM_FONTS) })
-    const custom = rest(customFonts)
-    if (custom.length > 0)
-      groups.push({ label: t('textManager.fontGroups.custom'), options: custom })
-    return groups
+    return onlyArial()
   })
 
-  function loadedCustomFonts(): string[] {
-    return fontManager?.value && fontManager.value.isInitialized
-      ? Array.from(fontManager.value.loadedFonts).sort()
-      : []
-  }
-
-  // Schriftwahl im Formular für neue Texte: Systemschriften, dann eigene.
-  // populateNewTextFontDropdown() frischt nach geladenen Fonts auf.
+  // populateNewTextFontDropdown() bleibt für die Aufrufer erhalten.
   function populateNewTextFontDropdown() {
     fontRevision.value++
   }
 
   const newTextFontOptions = computed(() => {
     void fontRevision.value
-    const toOption = (name: string): FontOption => ({
-      value: name,
-      label: name,
-      style: { fontFamily: name },
-    })
-    const groups: FontOptionGroup[] = [
-      { label: t('textManager.fontGroups.system'), options: SYSTEM_FONTS.map(toOption) },
-    ]
-    const custom = loadedCustomFonts()
-    if (custom.length > 0) {
-      groups.push({ label: t('textManager.fontGroups.custom'), options: custom.map(toOption) })
-    }
-    return groups
+    return onlyArial()
   })
 
   return {

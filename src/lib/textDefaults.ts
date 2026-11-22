@@ -6,6 +6,7 @@
 // (useNewTextSettings) als auch beim Schnell-Erstellen (Tastatureingabe) genutzt
 // wird.
 
+import { normalizeFontFamilies } from './fonts'
 import type { TextObjectOptions } from './textManager/createTextObject'
 import type {
   ScaleAnimation,
@@ -179,7 +180,7 @@ export function serializeTextToDefaults(
 export function loadTextDefaults(): TextDefaults | null {
   try {
     const saved = localStorage.getItem(SETTINGS_KEY)
-    return saved ? JSON.parse(saved) : null
+    return saved ? normalizeFontFamilies(JSON.parse(saved)) : null
   } catch {
     return null
   }

@@ -8,6 +8,7 @@
  * @module textManager/style/textStyle
  */
 import type { TextAudioReactiveValues, TextEffectMap, TextEffectValues, TextObject } from '../types'
+import { normalizeFontFamily } from '../../fonts'
 
 /**
  * ✅ Wendet Text-Stil für MESSUNG an (OHNE Schatten)
@@ -18,7 +19,7 @@ export function applyTextStyleForMeasurement(
   ctx: CanvasRenderingContext2D,
   textObj: TextObject,
 ): void {
-  ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`
+  ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${normalizeFontFamily(textObj.fontFamily)}`
   ctx.textAlign = textObj.textAlign
   ctx.textBaseline = textObj.textBaseline
 
@@ -42,7 +43,7 @@ export function applyTextStyleForMeasurement(
  * @param {object} textObj
  */
 export function applyTextStyle(ctx: CanvasRenderingContext2D, textObj: TextObject): void {
-  ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`
+  ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${normalizeFontFamily(textObj.fontFamily)}`
   ctx.fillStyle = textObj.color
   ctx.textAlign = textObj.textAlign
   ctx.textBaseline = textObj.textBaseline
@@ -113,7 +114,7 @@ export function applyTextStyleWithAudio(
   audioReactive: TextAudioReactiveValues | null,
   useAudioGlow: boolean,
 ): void {
-  ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${textObj.fontFamily}`
+  ctx.font = `${textObj.fontStyle} ${textObj.fontWeight} ${textObj.fontSize}px ${normalizeFontFamily(textObj.fontFamily)}`
   ctx.fillStyle = textObj.color
   ctx.textAlign = textObj.textAlign
   ctx.textBaseline = textObj.textBaseline

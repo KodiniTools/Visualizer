@@ -82,6 +82,8 @@ const EXCEPTIONS: Record<string, Rule[]> = {
   [join('styles', 'kodini-visualizer-phase4.css')]: ['color', 'gradient', 'shadow', 'radius'],
   [join('styles', 'kodini-visualizer-phase5.css')]: ['color'],
   [join('styles', 'kodini-visualizer-overlays.css')]: ['color'],
+  // Landingpage Etappe 1: Farbwerte nur als var()-Fallback, Schatten, Hover-Anhebung der Karten.
+  [join('components', 'LandingPage.vue')]: ['color', 'shadow', 'radius', 'hover', 'duration'],
   [join('components', 'AppHeader.vue')]: [
     'color',
     'gradient',

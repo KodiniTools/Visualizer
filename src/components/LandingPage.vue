@@ -1157,4 +1157,176 @@ function toggleFaq(index: number) {
     animation: none;
   }
 }
+
+/* =============================================================
+   KODINITOOLS LANDINGPAGE · ETAPPE 1
+   Layout + original DS-v2 palette; no template/script changes.
+   Scoped to .landing-page to avoid affecting the Visualizer app.
+   ============================================================= */
+.landing-page {
+  background: var(--ds-surface-0, #0a1324);
+  color: var(--ds-text, #f2eee2);
+}
+.landing-header,
+.landing-header.scrolled {
+  background: var(--ds-surface-0, #0a1324);
+  border-bottom: 1px solid var(--ds-border, #223553);
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.12);
+}
+.header-content {
+  max-width: 1220px;
+  min-height: 44px;
+  gap: 24px;
+}
+.header-logo {
+  color: var(--ds-text, #f2eee2);
+  letter-spacing: -0.025em;
+}
+.nav-link {
+  color: var(--ds-text-2, #a7b3c4);
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--ds-accent, #d4a257);
+}
+.hero {
+  /* .landing-page ist eine Flex-Spalte und .hero hat overflow: hidden:
+     ohne flex-shrink: 0 schrumpft der Hero unter seinen Inhalt und schneidet den Titel ab. */
+  flex-shrink: 0;
+  min-height: min(850px, 100svh);
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  gap: clamp(32px, 4vw, 64px);
+  padding-inline: clamp(24px, 4vw, 56px);
+}
+.hero-content {
+  max-width: 620px;
+}
+.hero-title {
+  font-size: clamp(2.6rem, 5.1vw, 4.45rem);
+  letter-spacing: -0.045em;
+  line-height: 1.08;
+  color: var(--ds-text, #f2eee2);
+}
+.gradient-text {
+  color: var(--ds-accent, #d4a257);
+}
+.hero-subtitle {
+  color: var(--ds-text-2, #a7b3c4);
+  line-height: 1.75;
+}
+.btn-primary {
+  background: var(--ds-accent, #d4a257);
+  color: var(--ds-on-accent, #0a1324);
+  border: 1px solid var(--ds-accent, #d4a257);
+  border-radius: var(--ds-radius-md, 10px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
+}
+.btn-primary:hover {
+  background: var(--ds-accent-hover, #e0b06a);
+  border-color: var(--ds-accent-hover, #e0b06a);
+}
+.btn-secondary {
+  background: var(--ds-surface-1, #111d33);
+  color: var(--ds-text, #f2eee2);
+  border-color: var(--ds-border, #223553);
+}
+.btn-secondary:hover {
+  background: var(--ds-surface-2, #182741);
+  border-color: var(--ds-accent, #d4a257);
+}
+.hero-visual {
+  min-width: 0;
+}
+.section-title {
+  color: var(--ds-text, #f2eee2);
+  letter-spacing: -0.025em;
+}
+.section-subtitle {
+  color: var(--ds-text-2, #a7b3c4);
+}
+.features {
+  width: 100%;
+  max-width: 1220px;
+  padding-block: 84px;
+}
+.features-grid {
+  gap: 18px;
+}
+.feature-card {
+  background: var(--ds-surface-1, #111d33);
+  border-color: var(--ds-border, #223553);
+  padding: 30px 26px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.feature-card:hover {
+  border-color: var(--ds-accent, #d4a257);
+  transform: translateY(-3px);
+}
+.feature-icon {
+  background: var(--ds-surface-2, #182741) !important;
+  color: var(--ds-accent, #d4a257);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--ds-radius-md, 10px);
+}
+.feature-title {
+  color: var(--ds-text, #f2eee2);
+}
+.feature-description,
+.light-theme .feature-description {
+  color: var(--ds-text-2, #a7b3c4);
+}
+/* Local light class is set by the existing Vue theme logic. */
+.landing-page.light-theme {
+  --ds-surface-0: #f6f5f1;
+  --ds-surface-1: #ffffff;
+  --ds-surface-2: #f0eee8;
+  --ds-border: #e2dfd7;
+  --ds-text: #14213a;
+  --ds-text-2: #3f4a60;
+  --ds-accent: #c9984d;
+  --ds-accent-hover: #b8842f;
+  --ds-on-accent: #14213a;
+}
+@media (min-width: 768px) {
+  .hero {
+    padding-top: 170px;
+    padding-bottom: 90px;
+  }
+  .hero-content {
+    flex: 1 1 48%;
+  }
+  .hero-visual {
+    flex: 1 1 52%;
+    max-width: 580px;
+  }
+}
+@media (max-width: 767px) {
+  .hero {
+    min-height: auto;
+    padding: 150px 22px 76px;
+  }
+  .hero-title {
+    font-size: clamp(2.2rem, 9vw, 3.3rem);
+  }
+  .hero-content {
+    max-width: 620px;
+  }
+  .features {
+    padding-block: 65px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-card {
+    transition: none;
+  }
+  .feature-card:hover {
+    transform: none;
+  }
+}
 </style>

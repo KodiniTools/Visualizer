@@ -1,6 +1,13 @@
 <template>
   <header class="app-header">
     <router-link to="/" class="app-logo" :title="t('common.backToHome')">
+      <img
+        class="brand-logo"
+        src="/kodini-logo.png"
+        alt="KodiniTools Logo"
+        width="42"
+        height="42"
+      />
       <span class="logo-text">Visualizer</span>
     </router-link>
 
@@ -69,6 +76,14 @@ const { t } = useI18n()
   box-shadow: var(--ds-focus-ring);
 }
 
+.brand-logo {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .app-logo svg {
   flex-shrink: 0;
 }
@@ -115,6 +130,10 @@ const { t } = useI18n()
     padding: 0 var(--ds-space-3);
   }
 
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
   .logo-text {
     display: none;
   }

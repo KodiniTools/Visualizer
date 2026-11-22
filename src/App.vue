@@ -20,29 +20,7 @@
 </script>
 
 <style>
-/* --- SCHRIFT: Supreme in den drei genutzten Gewichten (400/500/700),
-   wie im Collage Maker. font-semibold (600) fällt auf Supreme Bold. --- */
-@font-face {
-  font-family: 'Supreme';
-  src: url('/fonts/Supreme-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Supreme';
-  src: url('/fonts/Supreme-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Supreme';
-  src: url('/fonts/Supreme-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* --- SCHRIFT: Arial (Systemschrift, keine Webfont-Datei); siehe --ds-font-sans. --- */
 
 /* --- DESIGN-TOKENS ---
    Die Werte kommen aus src/design-system/tokens-v2.css (--ds-*): der mit dem
@@ -113,7 +91,7 @@
   box-sizing: border-box;
 }
 
-/* Supreme Font auf alle UI-Elemente anwenden (Browser-Defaults überschreiben) */
+/* Grundschrift (Arial) auf alle UI-Elemente anwenden (Browser-Defaults überschreiben) */
 h1,
 h2,
 h3,

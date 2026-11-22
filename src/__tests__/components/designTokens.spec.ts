@@ -60,6 +60,14 @@ function rules() {
   return out
 }
 
+/**
+ * Phase 1 des Kodini-Farbdesigns (Dunkelblau/Cyan/Gold): bewusst freigegeben
+ * für Farbliterale, Hintergrundverläufe und Schatten. Nur diese Datei; alle
+ * anderen Regeln (Schriften, Radien, Hover, Dauern, Ebenen) gelten weiter.
+ */
+const THEME_EXCEPTION = join('styles', 'kodini-visualizer-phase1.css')
+const notThemeException = (hit: string) => !hit.startsWith(THEME_EXCEPTION + ':')
+
 const NEUTRAL =
   /^(#fff|#ffffff|#000|#000000)$|^rgba?\(\s*(0\s*,\s*0\s*,\s*0|255\s*,\s*255\s*,\s*255|0 0 0|255 255 255)\b/
 
@@ -68,7 +76,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
     const hits = find(
       /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/gi,
       (m) => !NEUTRAL.test(m[0].toLowerCase()),
-    )
+    ).filter(notThemeException)
     expect(hits).toEqual([])
   })
 
@@ -96,7 +104,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
       if (['none', 'var(--ds-focus-ring)', 'var(--ds-shadow-overlay)'].includes(v)) return false
       return !/^inset 0 0 0 1px .+$/.test(v)
     })
-    expect(shadows).toEqual([])
+    expect(shadows.filter(notThemeException)).toEqual([])
     expect(find(/text-shadow:|backdrop-filter:|drop-shadow\(/g)).toEqual([])
   })
 
@@ -104,7 +112,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
     const hits = find(
       /[a-z-]*gradient\([^;]*/g,
       (m) => !/transparent|rgba?\(\s*(0\s*,\s*0\s*,\s*0|255\s*,\s*255\s*,\s*255)/.test(m[0]),
-    )
+    ).filter(notThemeException)
     expect(hits).toEqual([])
   })
 

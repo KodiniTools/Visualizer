@@ -180,6 +180,7 @@ import type { VideoManager } from './lib/videoManager'
 import type { KeyboardShortcuts } from './lib/keyboardShortcuts'
 
 import './styles/visualizer-app.css'
+import './styles/kodini-visualizer-phase1.css'
 
 type ShortcutsDeps = Parameters<typeof setupKeyboardShortcuts>[0]
 

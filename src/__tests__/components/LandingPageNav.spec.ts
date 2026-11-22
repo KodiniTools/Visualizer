@@ -62,11 +62,12 @@ describe('LandingPage – Kopf-Navigation', () => {
     expect(wrapper.findAll('.header-nav .nav-link')[1]!.attributes('href')).toBe('#features')
   })
 
-  it('Logo verlinkt zur Startseite und lädt base-relativ', () => {
-    const logo = wrapper.find('a.header-logo')
-    expect(logo.attributes('href')).toBe('/')
-    expect(logo.find('img').attributes('src')).toBe(`${import.meta.env.BASE_URL}kodini-logo.png`)
-    expect(logo.text()).toContain('KodiniTools')
+  // Kodini 22.11.2026: Logo und Schriftzug kommen aus der globalen SSI-Navigation.
+  it('Kopfzeile zeigt kein eigenes Logo und keinen Schriftzug', () => {
+    const header = wrapper.find('.landing-header')
+    expect(header.find('img').exists()).toBe(false)
+    expect(header.find('.header-logo').exists()).toBe(false)
+    expect(header.text()).not.toContain('KodiniTools')
   })
 
   it('Start-Knopf im Kopf führt zur App', () => {

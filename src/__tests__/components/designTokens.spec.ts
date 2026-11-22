@@ -60,7 +60,7 @@ function rules() {
   return out
 }
 
-type Rule = 'color' | 'gradient' | 'shadow' | 'fontSize' | 'radius' | 'hover' | 'duration'
+type Rule = 'color' | 'gradient' | 'shadow' | 'blur' | 'fontSize' | 'radius' | 'hover' | 'duration'
 
 /**
  * Kodini-Farbdesign, bewusst freigegebene Ausnahmen (Entscheidung Kodini,
@@ -90,6 +90,13 @@ const EXCEPTIONS: Record<string, Rule[]> = {
     'radius',
     'hover',
     'duration',
+  ],
+  // Landingpage Etappe 4: Bedienleiste über dem laufenden Canvas (Glas-Pillen mit Blur).
+  [join('components', 'landing', 'HeroVisualizerShowcase.vue')]: [
+    'color',
+    'blur',
+    'fontSize',
+    'radius',
   ],
   [join('components', 'AppHeader.vue')]: [
     'color',
@@ -144,7 +151,8 @@ describe('Design-Tokens in Komponenten-Styles', () => {
     })
     expect(shadows.filter(notExcepted('shadow'))).toEqual([])
     // `backdrop-filter: none` hebt einen Blur auf und ist deshalb erlaubt.
-    expect(find(/text-shadow:|backdrop-filter:(?!\s*none\s*;)|drop-shadow\(/g)).toEqual([])
+    expect(find(/text-shadow:|drop-shadow\(/g)).toEqual([])
+    expect(find(/backdrop-filter:(?!\s*none\s*;)/g).filter(notExcepted('blur'))).toEqual([])
   })
 
   it('keine Farbverläufe (Scrims aus Transparent/Schwarz/Weiß ausgenommen)', () => {

@@ -1789,4 +1789,153 @@ function toggleFaq(index: number) {
     transform: none;
   }
 }
+
+/* =====================================================================
+   KODINITOOLS LANDINGPAGE · ETAPPE 4
+   Hero-Visualizer und finaler Startbereich. Nur Darstellung.
+   Original-Token-Palette, ohne Cyan- oder Neon-Verläufe.
+   ===================================================================== */
+.landing-page .hero {
+  isolation: isolate;
+}
+.landing-page .hero-visual {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(8px, 1.2vw, 14px);
+  border: 1px solid var(--ds-border-strong, #2f4668);
+  border-radius: calc(var(--ds-radius-lg, 16px) + 8px);
+  background: var(--ds-surface-1, #111d33);
+  box-shadow:
+    0 26px 68px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(212, 162, 87, 0.04) inset;
+}
+.landing-page .hero-visual::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 18%;
+  right: 18%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--ds-accent, #d4a257), transparent);
+  pointer-events: none;
+}
+.landing-page .hero-visual :deep(.hero-showcase) {
+  border: 1px solid var(--ds-border, #223553);
+  border-radius: var(--ds-radius-lg, 16px);
+}
+.landing-page .hero-title {
+  text-wrap: balance;
+}
+.landing-page .hero-subtitle {
+  max-width: 55ch;
+}
+.landing-page .hero-actions {
+  align-items: center;
+  gap: 14px;
+}
+.landing-page .hero-actions .btn-primary,
+.landing-page .cta-section .btn-primary {
+  min-height: 50px;
+  border: 1px solid var(--ds-accent, #d4a257);
+  border-radius: var(--ds-radius-md, 10px);
+  background: var(--ds-accent, #d4a257);
+  color: var(--ds-on-accent, #0a1324);
+  box-shadow: 0 10px 28px rgba(212, 162, 87, 0.13);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.landing-page .hero-actions .btn-primary:hover,
+.landing-page .cta-section .btn-primary:hover {
+  background: var(--ds-accent-hover, #e0b06a);
+  border-color: var(--ds-accent-hover, #e0b06a);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(212, 162, 87, 0.19);
+}
+.landing-page .hero-actions .btn-secondary {
+  min-height: 50px;
+  border: 1px solid var(--ds-border-strong, #2f4668);
+  border-radius: var(--ds-radius-md, 10px);
+  background: var(--ds-surface-1, #111d33);
+  color: var(--ds-text, #f2eee2);
+}
+.landing-page .hero-actions .btn-secondary:hover {
+  border-color: var(--ds-accent, #d4a257);
+  background: var(--ds-surface-2, #182741);
+}
+.landing-page .hero-actions a:focus-visible,
+.landing-page .cta-section a:focus-visible {
+  outline: 2px solid var(--ds-accent, #d4a257);
+  outline-offset: 4px;
+}
+.landing-page .cta-section {
+  position: relative;
+  isolation: isolate;
+}
+.landing-page .cta-content {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ds-border-strong, #2f4668);
+  background: var(--ds-surface-1, #111d33);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.16);
+}
+.landing-page .cta-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 22%;
+  right: 22%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--ds-accent, #d4a257), transparent);
+  pointer-events: none;
+}
+.landing-page .cta-title {
+  text-wrap: balance;
+}
+.landing-page .cta-subtitle {
+  line-height: 1.7;
+}
+.landing-page.light-theme .hero-visual,
+.landing-page.light-theme .cta-content {
+  box-shadow: 0 16px 42px rgba(20, 33, 58, 0.1);
+}
+@media (max-width: 960px) {
+  .landing-page .hero-visual {
+    max-width: 720px;
+    margin-inline: auto;
+  }
+}
+@media (max-width: 620px) {
+  .landing-page .hero-visual {
+    padding: 6px;
+    border-radius: 16px;
+  }
+  .landing-page .hero-visual :deep(.hero-showcase) {
+    border-radius: 10px;
+  }
+  .landing-page .hero-actions {
+    gap: 10px;
+  }
+  .landing-page .hero-actions .btn-primary,
+  .landing-page .hero-actions .btn-secondary {
+    min-height: 46px;
+  }
+  .landing-page .cta-content {
+    border-radius: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .hero-actions .btn-primary,
+  .landing-page .cta-section .btn-primary {
+    transition: none;
+  }
+  .landing-page .hero-actions .btn-primary:hover,
+  .landing-page .cta-section .btn-primary:hover {
+    transform: none;
+  }
+}
 </style>

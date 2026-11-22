@@ -424,4 +424,56 @@ defineExpose({ showNext, togglePlaying })
     transition: none;
   }
 }
+
+/* Etappe 4: reine Optik; Canvas, Timer, Events und Preset-Logik unverändert. */
+.hero-showcase {
+  border: 1px solid var(--ds-border, #223553);
+  border-radius: var(--ds-radius-lg, 16px);
+  background: var(--ds-surface-0, #0a1324);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+.hero-showcase-bar {
+  left: clamp(8px, 1.5vw, 16px);
+  right: clamp(8px, 1.5vw, 16px);
+  bottom: clamp(8px, 1.5vw, 16px);
+}
+.hero-showcase-name {
+  max-width: min(68%, 380px);
+  padding: 7px 13px;
+  border: 1px solid rgba(242, 238, 226, 0.14);
+  background: rgba(10, 19, 36, 0.84);
+  color: #f2eee2;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+.hero-showcase-actions {
+  gap: 8px;
+}
+.hero-showcase-btn {
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid rgba(242, 238, 226, 0.18);
+  background: rgba(10, 19, 36, 0.84);
+  color: #f2eee2;
+  backdrop-filter: blur(10px);
+}
+.hero-showcase-btn:hover {
+  border-color: var(--ds-accent, #d4a257);
+  color: var(--ds-accent, #d4a257);
+}
+.hero-showcase-btn:focus-visible {
+  outline: 2px solid var(--ds-accent, #d4a257);
+  outline-offset: 2px;
+}
+@media (max-width: 620px) {
+  .hero-showcase-name {
+    max-width: 58%;
+    font-size: 12px;
+    padding: 6px 9px;
+  }
+  .hero-showcase-btn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
 </style>

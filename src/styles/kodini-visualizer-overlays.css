@@ -1,0 +1,121 @@
+/* KodiniTools Visualizer · Overlays und Fokus (Nachtrag zu Etappe 1–5).
+   Nach phase5 importieren. Nur Design-Tokens, keine Layout-, Positions- oder
+   Logikänderungen.
+
+   1. Per <Teleport to="body"> gerenderte Fenster liegen außerhalb von
+      #app-container und erben sonst die alte :root-Palette. Sie bekommen hier
+      dieselben Werte wie in kodini-visualizer-phase1.css, aber nur solange die
+      Visualizer-Route im DOM ist (body:has(#app-container)); Landingpage und
+      globale Navigation bleiben unberührt. Die Werte müssen mit Phase 1
+      übereinstimmen (geprüft in kodiniOverlayTokens.spec.ts).
+      Fenster: UiDialog, ColorField-Panel, QuickStartGuide, HelpTooltip,
+      RecorderResultsModal, ToastContainer, ScreenshotFullscreenModal,
+      RecorderConversionOverlay, Slideshow-Panel (ohne Popover-Ziel).
+      Neue Teleports hier ergänzen.
+
+   2. Fokus: --ds-focus-ring und --ds-accent-soft werden in :root aus der alten
+      Palette aufgelöst. Hier neu deklariert, damit der Ring überall auf der
+      Visualizer-Route in ds-link erscheint (wie die Outline aus Etappe 2, 3
+      und 5) und weiche Akzentflächen zum neuen Akzent passen. */
+
+body:has(#app-container)
+  > :is(
+    .ui-dialog__backdrop,
+    .color-field__panel,
+    .quick-start-panel,
+    .tooltip-content,
+    .results-modal,
+    .toast-container,
+    .fullscreen-modal-overlay,
+    .conversion-overlay,
+    .slideshow-panel
+  ) {
+  --ds-surface-0: #071321;
+  --ds-surface-1: #0d1d32;
+  --ds-surface-2: #142943;
+  --ds-surface-3: #1b3553;
+  --ds-border: #294462;
+  --ds-border-strong: #3b5d80;
+  --ds-text: #edf5ff;
+  --ds-text-2: #b7c9df;
+  --ds-text-3: #93abc5;
+  --ds-accent: #e8a945;
+  --ds-accent-hover: #f3bf67;
+  --ds-on-accent: #08172a;
+  --ds-link: #5ec7f7;
+  --primary-bg: var(--ds-surface-0);
+  --secondary-bg: var(--ds-surface-2);
+  --card-bg: var(--ds-surface-1);
+  --btn-hover: var(--ds-surface-3);
+  --accent-primary: var(--ds-accent);
+  --accent-secondary: var(--ds-link);
+  --accent-text: var(--ds-on-accent);
+  --text-primary: var(--ds-text);
+  --text-secondary: var(--ds-text-2);
+  --text-muted: var(--ds-text-3);
+  --border-color: var(--ds-border);
+  --progress-bg: var(--ds-border-strong);
+}
+
+:root[data-theme='light']
+  body:has(#app-container)
+  > :is(
+    .ui-dialog__backdrop,
+    .color-field__panel,
+    .quick-start-panel,
+    .tooltip-content,
+    .results-modal,
+    .toast-container,
+    .fullscreen-modal-overlay,
+    .conversion-overlay,
+    .slideshow-panel
+  ) {
+  --ds-surface-0: #f3f7fd;
+  --ds-surface-1: #ffffff;
+  --ds-surface-2: #eaf2fc;
+  --ds-surface-3: #dceafb;
+  --ds-border: #c5d7ec;
+  --ds-border-strong: #9fbad9;
+  --ds-text: #142b47;
+  --ds-text-2: #385675;
+  --ds-text-3: #526d8b;
+  --ds-accent: #075cba;
+  --ds-accent-hover: #064d9c;
+  --ds-on-accent: #ffffff;
+  --ds-link: #075cba;
+}
+
+/* Fokus-Ring und weiche Akzentfläche: auf der Route und in ihren Overlays. */
+#app-container,
+body:has(#app-container)
+  > :is(
+    .ui-dialog__backdrop,
+    .color-field__panel,
+    .quick-start-panel,
+    .tooltip-content,
+    .results-modal,
+    .toast-container,
+    .fullscreen-modal-overlay,
+    .conversion-overlay,
+    .slideshow-panel
+  ) {
+  --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-link);
+  --ds-accent-soft: rgba(232, 169, 69, 0.14);
+}
+
+:root[data-theme='light'] #app-container,
+:root[data-theme='light']
+  body:has(#app-container)
+  > :is(
+    .ui-dialog__backdrop,
+    .color-field__panel,
+    .quick-start-panel,
+    .tooltip-content,
+    .results-modal,
+    .toast-container,
+    .fullscreen-modal-overlay,
+    .conversion-overlay,
+    .slideshow-panel
+  ) {
+  --ds-accent-soft: rgba(7, 92, 186, 0.12);
+}

@@ -65,7 +65,8 @@ type Rule = 'color' | 'gradient' | 'shadow' | 'fontSize' | 'radius' | 'hover' | 
 /**
  * Kodini-Farbdesign, bewusst freigegebene Ausnahmen (Entscheidung Kodini,
  * 22.11.2026): Etappe 1 (Farben, Verläufe, Schatten der Visualizer-Route),
- * Etappe 2 (Kopfzeile) und Etappe 3 (linke und rechte Bedienfelder). Nur diese Dateien und nur die genannten Regeln; alle
+ * Etappe 2 (Kopfzeile), Etappe 3 (linke und rechte Bedienfelder) und
+ * Etappe 4 (Player-Leiste und Visualizer-Rahmen). Nur diese Dateien und nur die genannten Regeln; alle
  * anderen Dateien und Regeln gelten unverändert.
  */
 const EXCEPTIONS: Record<string, Rule[]> = {
@@ -77,6 +78,7 @@ const EXCEPTIONS: Record<string, Rule[]> = {
     'radius',
     'duration',
   ],
+  [join('styles', 'kodini-visualizer-phase4.css')]: ['color', 'gradient', 'shadow', 'radius'],
   [join('components', 'AppHeader.vue')]: [
     'color',
     'gradient',

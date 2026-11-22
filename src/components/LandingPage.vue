@@ -3,19 +3,7 @@
     <!-- Header with Controls -->
     <header class="landing-header" :class="{ scrolled: isScrolled }">
       <div class="header-content">
-        <router-link to="/" class="header-logo" :title="t('blog.nav.home')" @click="scrollToTop">
-          <img
-            :src="logoSrc"
-            alt="KodiniTools Logo"
-            class="landing-brand-image"
-            width="44"
-            height="44"
-          />
-          <span class="landing-brand-copy">
-            <strong>KodiniTools</strong>
-            <small>Audio Visualizer</small>
-          </span>
-        </router-link>
+        <!-- Logo und Schriftzug „KodiniTools“ liefert die globale Navigation (SSI); hier bewusst nicht doppelt. -->
         <nav class="header-nav" :aria-label="t('blog.nav.home')">
           <router-link to="/" class="nav-link" @click="scrollToTop">{{
             t('blog.nav.home')
@@ -255,7 +243,6 @@ import { getBlogArticlesNewestFirst } from '../data/blogArticles'
 
 const { t, locale } = useI18n()
 // Base-aware (Produktion: /visualizer/), sonst 404 auf /kodini-logo.png.
-const logoSrc = `${import.meta.env.BASE_URL}kodini-logo.png`
 const { isDark } = useTheme()
 
 // Adminbereich: Login-Status + editierbare Landing-Texte (Overrides mit
@@ -523,15 +510,6 @@ function toggleFaq(index: number) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.header-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: var(--ds-weight-bold);
-  font-size: var(--ds-text-xl);
-  color: var(--text-primary);
 }
 
 .header-nav {
@@ -1071,10 +1049,6 @@ function toggleFaq(index: number) {
     top: 0;
   }
 
-  .header-logo span {
-    display: none;
-  }
-
   .hero {
     padding-top: 140px; /* Extra padding for global + local navigation */
   }
@@ -1204,10 +1178,6 @@ function toggleFaq(index: number) {
   max-width: 1220px;
   min-height: 44px;
   gap: 24px;
-}
-.header-logo {
-  color: var(--ds-text, #f2eee2);
-  letter-spacing: -0.025em;
 }
 .nav-link {
   color: var(--ds-text-2, #a7b3c4);
@@ -1376,40 +1346,6 @@ function toggleFaq(index: number) {
   align-items: center;
   gap: clamp(14px, 2.3vw, 32px);
 }
-.header-logo {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 0;
-  text-decoration: none;
-  color: var(--ds-text, #f2eee2);
-}
-.landing-brand-image {
-  display: block;
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.landing-brand-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 1.12;
-}
-.landing-brand-copy strong {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-}
-.landing-brand-copy small {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--ds-text-2, #a7b3c4);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
 .header-nav {
   margin-left: auto;
   gap: clamp(12px, 2vw, 26px);
@@ -1447,7 +1383,6 @@ function toggleFaq(index: number) {
   background: var(--ds-accent-hover, #e0b06a);
   border-color: var(--ds-accent-hover, #e0b06a);
 }
-.header-logo:focus-visible,
 .header-nav .nav-link:focus-visible,
 .landing-header-cta:focus-visible {
   outline: 2px solid var(--ds-accent, #d4a257);
@@ -1456,9 +1391,6 @@ function toggleFaq(index: number) {
 @media (max-width: 900px) {
   .header-nav {
     gap: 12px;
-  }
-  .landing-brand-copy strong {
-    font-size: 15px;
   }
   .landing-header-cta {
     padding-inline: 12px;
@@ -1473,16 +1405,6 @@ function toggleFaq(index: number) {
     min-height: 46px;
     gap: 12px;
   }
-  .landing-brand-image {
-    width: 36px;
-    height: 36px;
-  }
-  .landing-brand-copy strong {
-    font-size: 14px;
-  }
-  .landing-brand-copy small {
-    font-size: 9px;
-  }
   .header-nav {
     display: none;
   }
@@ -1493,9 +1415,6 @@ function toggleFaq(index: number) {
   }
 }
 @media (max-width: 380px) {
-  .landing-brand-copy strong {
-    font-size: 13px;
-  }
   .landing-header-cta {
     padding-inline: 9px;
   }

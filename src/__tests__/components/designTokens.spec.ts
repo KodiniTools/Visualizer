@@ -60,13 +60,28 @@ function rules() {
   return out
 }
 
+type Rule = 'color' | 'gradient' | 'shadow' | 'fontSize' | 'radius' | 'hover' | 'duration'
+
 /**
- * Phase 1 des Kodini-Farbdesigns (Dunkelblau/Cyan/Gold): bewusst freigegeben
- * für Farbliterale, Hintergrundverläufe und Schatten. Nur diese Datei; alle
- * anderen Regeln (Schriften, Radien, Hover, Dauern, Ebenen) gelten weiter.
+ * Kodini-Farbdesign, bewusst freigegebene Ausnahmen (Entscheidung Kodini,
+ * 22.11.2026): Etappe 1 (Farben, Verläufe, Schatten der Visualizer-Route) und
+ * Etappe 2 (Kopfzeile). Nur diese Dateien und nur die genannten Regeln; alle
+ * anderen Dateien und Regeln gelten unverändert.
  */
-const THEME_EXCEPTION = join('styles', 'kodini-visualizer-phase1.css')
-const notThemeException = (hit: string) => !hit.startsWith(THEME_EXCEPTION + ':')
+const EXCEPTIONS: Record<string, Rule[]> = {
+  [join('styles', 'kodini-visualizer-phase1.css')]: ['color', 'gradient', 'shadow'],
+  [join('components', 'AppHeader.vue')]: [
+    'color',
+    'gradient',
+    'shadow',
+    'fontSize',
+    'radius',
+    'hover',
+    'duration',
+  ],
+}
+const notExcepted = (rule: Rule) => (hit: string) =>
+  !Object.entries(EXCEPTIONS).some(([file, r]) => hit.startsWith(file + ':') && r.includes(rule))
 
 const NEUTRAL =
   /^(#fff|#ffffff|#000|#000000)$|^rgba?\(\s*(0\s*,\s*0\s*,\s*0|255\s*,\s*255\s*,\s*255|0 0 0|255 255 255)\b/
@@ -76,12 +91,14 @@ describe('Design-Tokens in Komponenten-Styles', () => {
     const hits = find(
       /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/gi,
       (m) => !NEUTRAL.test(m[0].toLowerCase()),
-    ).filter(notThemeException)
+    ).filter(notExcepted('color'))
     expect(hits).toEqual([])
   })
 
   it('Schriftgrößen nur aus der Token-Skala (keine px/rem/em-Literale)', () => {
-    expect(find(/font-size:\s*[0-9.]*[1-9][0-9.]*(px|rem|em)\b/g)).toEqual([])
+    expect(
+      find(/font-size:\s*[0-9.]*[1-9][0-9.]*(px|rem|em)\b/g).filter(notExcepted('fontSize')),
+    ).toEqual([])
     expect(find(/font-size:\s*var\(--text-/g)).toEqual([])
   })
 
@@ -94,7 +111,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
     const hits = find(
       /border(-[a-z]+)*-radius:\s*([^;]+)/g,
       (m) => !/^calc\(/.test(m[2]!.trim()) && /\b[1-9][0-9]*(px|%|rem)/.test(m[2]!),
-    )
+    ).filter(notExcepted('radius'))
     expect(hits).toEqual([])
   })
 
@@ -104,7 +121,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
       if (['none', 'var(--ds-focus-ring)', 'var(--ds-shadow-overlay)'].includes(v)) return false
       return !/^inset 0 0 0 1px .+$/.test(v)
     })
-    expect(shadows.filter(notThemeException)).toEqual([])
+    expect(shadows.filter(notExcepted('shadow'))).toEqual([])
     expect(find(/text-shadow:|backdrop-filter:|drop-shadow\(/g)).toEqual([])
   })
 
@@ -112,7 +129,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
     const hits = find(
       /[a-z-]*gradient\([^;]*/g,
       (m) => !/transparent|rgba?\(\s*(0\s*,\s*0\s*,\s*0|255\s*,\s*255\s*,\s*255)/.test(m[0]),
-    ).filter(notThemeException)
+    ).filter(notExcepted('gradient'))
     expect(hits).toEqual([])
   })
 
@@ -124,6 +141,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
           /transform:\s*[^;]*(scale\(|translate[XY]?\(-?[1-9]|rotate\()/.test(r.body),
       )
       .map((r) => `${r.file}: ${r.sel}`)
+      .filter(notExcepted('hover'))
     expect(hits).toEqual([])
   })
 
@@ -132,7 +150,7 @@ describe('Design-Tokens in Komponenten-Styles', () => {
       [...m[1]!.matchAll(/([0-9.]+)(ms|s)\b/g)].some(
         ([, n, unit]) => Number(n) * (unit === 'ms' ? 0.001 : 1) >= 0.12,
       ),
-    )
+    ).filter(notExcepted('duration'))
     expect(hits).toEqual([])
   })
 

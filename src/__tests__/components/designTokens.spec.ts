@@ -64,12 +64,19 @@ type Rule = 'color' | 'gradient' | 'shadow' | 'fontSize' | 'radius' | 'hover' | 
 
 /**
  * Kodini-Farbdesign, bewusst freigegebene Ausnahmen (Entscheidung Kodini,
- * 22.11.2026): Etappe 1 (Farben, Verläufe, Schatten der Visualizer-Route) und
- * Etappe 2 (Kopfzeile). Nur diese Dateien und nur die genannten Regeln; alle
+ * 22.11.2026): Etappe 1 (Farben, Verläufe, Schatten der Visualizer-Route),
+ * Etappe 2 (Kopfzeile) und Etappe 3 (linke und rechte Bedienfelder). Nur diese Dateien und nur die genannten Regeln; alle
  * anderen Dateien und Regeln gelten unverändert.
  */
 const EXCEPTIONS: Record<string, Rule[]> = {
   [join('styles', 'kodini-visualizer-phase1.css')]: ['color', 'gradient', 'shadow'],
+  [join('styles', 'kodini-visualizer-phase3.css')]: [
+    'color',
+    'gradient',
+    'shadow',
+    'radius',
+    'duration',
+  ],
   [join('components', 'AppHeader.vue')]: [
     'color',
     'gradient',

@@ -269,7 +269,7 @@ function fakeCtx() {
   const ctx = {
     font: '10px x',
     measureText(text: string) {
-      const size = parseFloat(/([\d.]+)px/.exec(this.font)?.[1] ?? '') || 10
+      const size = parseFloat(this.font) || 10
       return { width: String(text).length * size * 0.5 }
     },
   }

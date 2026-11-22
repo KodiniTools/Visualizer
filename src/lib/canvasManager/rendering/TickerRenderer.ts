@@ -102,8 +102,8 @@ export class TickerRenderer {
 
     // Text-Stil zuerst setzen, damit measureText die echte Breite liefert
     const weight = settings.bold ? 'bold ' : ''
-    // Kodini 22.11.2026: Laufschrift immer in Arial (gespeicherte Schrift wird ignoriert)
-    ctx.font = `${weight}${fontSize}px Arial, sans-serif`
+    const family = settings.fontFamily || 'Arial'
+    ctx.font = `${weight}${fontSize}px "${family}", Arial, sans-serif`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
     // Buchstabenabstand (moderne Browser; measureText berücksichtigt ihn)

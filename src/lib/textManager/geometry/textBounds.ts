@@ -8,7 +8,6 @@
  * @module textManager/geometry/textBounds
  */
 import { applyTextStyleForMeasurement } from '../style/textStyle'
-import { normalizeFontFamily } from '../../fonts'
 import { isPointInRect, type Rect } from '../../canvasObjects/geometry'
 import type { TextObject } from '../types'
 
@@ -62,7 +61,7 @@ export function measureTextBlock(
   const letterSpacing = textObj.letterSpacing || 0
 
   ctx.save()
-  ctx.font = `${textObj.fontStyle || 'normal'} ${textObj.fontWeight || 400} ${fontSizePx}px ${normalizeFontFamily(textObj.fontFamily)}`
+  ctx.font = `${textObj.fontStyle || 'normal'} ${textObj.fontWeight || 400} ${fontSizePx}px ${textObj.fontFamily || 'Arial'}`
   // letterSpacing wird unten pro Zeichenabstand addiert, nicht vom Kontext
   ctx.letterSpacing = '0px'
 

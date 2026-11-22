@@ -65,8 +65,7 @@ describe('Neuer Text – automatisch speichern', () => {
     f.newTextFade.value.enabled = true
     await settle()
     const saved = loadTextDefaults()
-    // Gespeicherte Vorlagen laden immer mit Arial (Kodini 22.11.2026).
-    expect(saved!.style.fontFamily).toBe('Arial')
+    expect(saved!.style.fontFamily).toBe('Satoshi')
     expect(saved!.style.color).toBe('#00aaff')
     expect(saved!.shadow.blur).toBe(12)
     expect(saved!.stroke.enabled).toBe(true)

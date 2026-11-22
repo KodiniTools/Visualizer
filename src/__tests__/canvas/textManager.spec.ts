@@ -231,8 +231,7 @@ describe('TextManager', () => {
       const ctx = makeCanvas()._ctx
       tm.applyTextStyle(ctx, t)
 
-      // Kodini 22.11.2026: gezeichnet wird immer Arial, auch wenn der Text eine andere Schrift speichert.
-      expect(ctx.font).toBe('italic bold 30px Arial')
+      expect(ctx.font).toBe('italic bold 30px Courier')
       expect(ctx.fillStyle).toBe('#00ff00')
       expect(ctx.letterSpacing).toBe('4px')
       expect(ctx.shadowColor).toBe('#112233')

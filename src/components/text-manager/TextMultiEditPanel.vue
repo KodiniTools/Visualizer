@@ -161,8 +161,17 @@ const bulkFontSize = ref(48)
 const bulkOpacity = ref(100)
 const bulkFont = ref('')
 
-// Kodini 22.11.2026: nur noch Arial.
-const commonFonts = ['Arial']
+const commonFonts = [
+  'Arial',
+  'Verdana',
+  'Georgia',
+  'Times New Roman',
+  'Courier New',
+  'Impact',
+  'Comic Sans MS',
+  'Trebuchet MS',
+  'Arial Black',
+]
 
 const fontOptions = computed(() => [
   { value: '', label: t('textManager.multi.fontPlaceholder') },

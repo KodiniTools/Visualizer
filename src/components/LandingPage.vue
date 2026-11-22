@@ -3,17 +3,42 @@
     <!-- Header with Controls -->
     <header class="landing-header" :class="{ scrolled: isScrolled }">
       <div class="header-content">
-        <div class="header-logo">
-          <span>Visualizer</span>
-        </div>
-        <nav class="header-nav">
-          <router-link to="/" class="nav-link active" @click="scrollToTop">{{
+        <router-link to="/" class="header-logo" :title="t('blog.nav.home')" @click="scrollToTop">
+          <img
+            :src="logoSrc"
+            alt="KodiniTools Logo"
+            class="landing-brand-image"
+            width="44"
+            height="44"
+          />
+          <span class="landing-brand-copy">
+            <strong>KodiniTools</strong>
+            <small>Audio Visualizer</small>
+          </span>
+        </router-link>
+        <nav class="header-nav" :aria-label="t('blog.nav.home')">
+          <router-link to="/" class="nav-link" @click="scrollToTop">{{
             t('blog.nav.home')
           }}</router-link>
-          <router-link to="/blog" class="nav-link">{{ t('blog.nav.features') }}</router-link>
+          <a href="#features" class="nav-link">{{ t('blog.nav.features') }}</a>
           <a href="#faq" class="nav-link">{{ t('blog.nav.faq') }}</a>
           <a href="#blog" class="nav-link">{{ t('blog.nav.blog') }}</a>
         </nav>
+        <router-link to="/app" class="landing-header-cta">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          <span>{{ content.hero.cta }}</span>
+        </router-link>
       </div>
     </header>
 
@@ -229,6 +254,8 @@ import HeroVisualizerShowcase from './landing/HeroVisualizerShowcase.vue'
 import { getBlogArticlesNewestFirst } from '../data/blogArticles'
 
 const { t, locale } = useI18n()
+// Base-aware (Produktion: /visualizer/), sonst 404 auf /kodini-logo.png.
+const logoSrc = `${import.meta.env.BASE_URL}kodini-logo.png`
 const { isDark } = useTheme()
 
 // Adminbereich: Login-Status + editierbare Landing-Texte (Overrides mit
@@ -1327,6 +1354,158 @@ function toggleFaq(index: number) {
   }
   .feature-card:hover {
     transform: none;
+  }
+}
+
+/* =============================================================
+   KODINITOOLS LANDINGPAGE · ETAPPE 2 · Header & Navigation
+   Header is deliberately below the global SSI navigation.
+   Existing theme, router, admin and scroll logic remain untouched.
+   ============================================================= */
+.landing-header,
+.landing-header.scrolled {
+  padding: 11px clamp(16px, 3vw, 32px);
+  background: var(--ds-surface-0, #0a1324);
+  border-bottom: 1px solid var(--ds-border, #223553);
+  backdrop-filter: none;
+}
+.header-content {
+  max-width: 1220px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.3vw, 32px);
+}
+.header-logo {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  text-decoration: none;
+  color: var(--ds-text, #f2eee2);
+}
+.landing-brand-image {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.landing-brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.12;
+}
+.landing-brand-copy strong {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.landing-brand-copy small {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ds-text-2, #a7b3c4);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.header-nav {
+  margin-left: auto;
+  gap: clamp(12px, 2vw, 26px);
+}
+.header-nav .nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ds-text-2, #a7b3c4);
+  white-space: nowrap;
+}
+.header-nav .nav-link:hover,
+.header-nav .nav-link.router-link-exact-active {
+  color: var(--ds-accent, #d4a257);
+}
+.landing-header-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--ds-accent, #d4a257);
+  border-radius: var(--ds-radius-md, 10px);
+  background: var(--ds-accent, #d4a257);
+  color: var(--ds-on-accent, #0a1324);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+.landing-header-cta:hover {
+  background: var(--ds-accent-hover, #e0b06a);
+  border-color: var(--ds-accent-hover, #e0b06a);
+}
+.header-logo:focus-visible,
+.header-nav .nav-link:focus-visible,
+.landing-header-cta:focus-visible {
+  outline: 2px solid var(--ds-accent, #d4a257);
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .header-nav {
+    gap: 12px;
+  }
+  .landing-brand-copy strong {
+    font-size: 15px;
+  }
+  .landing-header-cta {
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .landing-header,
+  .landing-header.scrolled {
+    padding: 9px 16px;
+  }
+  .header-content {
+    min-height: 46px;
+    gap: 12px;
+  }
+  .landing-brand-image {
+    width: 36px;
+    height: 36px;
+  }
+  .landing-brand-copy strong {
+    font-size: 14px;
+  }
+  .landing-brand-copy small {
+    font-size: 9px;
+  }
+  .header-nav {
+    display: none;
+  }
+  .landing-header-cta {
+    margin-left: auto;
+    min-height: 38px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 380px) {
+  .landing-brand-copy strong {
+    font-size: 13px;
+  }
+  .landing-header-cta {
+    padding-inline: 9px;
+  }
+  .landing-header-cta svg {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-header-cta {
+    transition: none;
   }
 }
 </style>

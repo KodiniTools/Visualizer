@@ -82,8 +82,15 @@ const EXCEPTIONS: Record<string, Rule[]> = {
   [join('styles', 'kodini-visualizer-phase4.css')]: ['color', 'gradient', 'shadow', 'radius'],
   [join('styles', 'kodini-visualizer-phase5.css')]: ['color'],
   [join('styles', 'kodini-visualizer-overlays.css')]: ['color'],
-  // Landingpage Etappe 1: Farbwerte nur als var()-Fallback, Schatten, Hover-Anhebung der Karten.
-  [join('components', 'LandingPage.vue')]: ['color', 'shadow', 'radius', 'hover', 'duration'],
+  // Landingpage Etappe 1+2: Farbwerte nur als var()-Fallback, Schatten, Hover-Anhebung, px-Schriftgrößen im Header.
+  [join('components', 'LandingPage.vue')]: [
+    'color',
+    'shadow',
+    'fontSize',
+    'radius',
+    'hover',
+    'duration',
+  ],
   [join('components', 'AppHeader.vue')]: [
     'color',
     'gradient',
@@ -136,7 +143,8 @@ describe('Design-Tokens in Komponenten-Styles', () => {
       return !/^inset 0 0 0 1px .+$/.test(v)
     })
     expect(shadows.filter(notExcepted('shadow'))).toEqual([])
-    expect(find(/text-shadow:|backdrop-filter:|drop-shadow\(/g)).toEqual([])
+    // `backdrop-filter: none` hebt einen Blur auf und ist deshalb erlaubt.
+    expect(find(/text-shadow:|backdrop-filter:(?!\s*none\s*;)|drop-shadow\(/g)).toEqual([])
   })
 
   it('keine Farbverläufe (Scrims aus Transparent/Schwarz/Weiß ausgenommen)', () => {

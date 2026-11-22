@@ -72,7 +72,7 @@ const buttonByText = (name: string) => buttons().find((b) => b.textContent.trim(
 const buttonByTitle = (title: string) => buttons().find((b) => b.title === title)
 const fontSelect = () =>
   [...root().querySelectorAll('select')].find((s) =>
-    [...s.options].some((o) => o.value === 'Roboto'),
+    [...s.options].some((o) => o.value === 'Arial'),
   )
 const fontValues = () => [...fontSelect().options].filter((o) => !o.disabled).map((o) => o.value)
 const textarea = () => root().querySelector('textarea')
@@ -102,22 +102,19 @@ describe('Text-Editor – Inhalt', () => {
 })
 
 describe('Text-Editor – Schrift', () => {
-  it('aktuelle Schrift zuerst, dann System- und eigene Schriften', async () => {
+  // Kodini 22.11.2026: Arial ist die einzige Schrift, auch wenn der Text eine andere speichert
+  // oder der FontManager eigene Schriften meldet.
+  it('bietet nur Arial an', async () => {
     await mountPanel()
-    const values = fontValues()
-    expect(values[0]).toBe('Georgia')
-    expect(values.filter((v) => v === 'Georgia')).toHaveLength(1)
-    expect(values).toContain('Arial')
-    expect(values.indexOf('Roboto')).toBeGreaterThan(values.indexOf('Trebuchet MS'))
-    expect(fontSelect().value).toBe('Georgia')
+    expect(fontValues()).toEqual(['Arial'])
   })
 
   it('Auswahl setzt die Schrift des Textes', async () => {
     await mountPanel()
-    fontSelect().value = 'Roboto'
+    fontSelect().value = 'Arial'
     fontSelect().dispatchEvent(new Event('change'))
     await nextTick()
-    expect(text.fontFamily).toBe('Roboto')
+    expect(text.fontFamily).toBe('Arial')
   })
 })
 

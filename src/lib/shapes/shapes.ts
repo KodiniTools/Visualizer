@@ -208,7 +208,7 @@ export const DASH_STYLES: readonly string[] = Object.freeze(['solid', 'dashed', 
 /** Text in Formen */
 export const TEXT_ALIGNS: readonly string[] = Object.freeze(['left', 'center', 'right'])
 export const SHAPE_TEXT_DEFAULTS = Object.freeze({
-  fontFamily: 'Satoshi Bold',
+  fontFamily: 'Arial',
   textColor: '#1f2937',
   textScale: 0.22,
   textAlign: 'center',
@@ -1383,8 +1383,9 @@ export function wrapShapeText(
   return lines
 }
 
-function shapeFont(size: number, family: string | undefined): string {
-  return `${size}px "${family || SHAPE_TEXT_DEFAULTS.fontFamily}", "Helvetica Neue", Arial, sans-serif`
+// Arial Bold (früher Satoshi Bold); gespeicherte Schriften werden ignoriert.
+function shapeFont(size: number, _family: string | undefined): string {
+  return `bold ${size}px Arial, sans-serif`
 }
 
 /**
@@ -1519,7 +1520,7 @@ function drawMarkerNumber(
   ctx.shadowBlur = 0
   ctx.setLineDash([])
   ctx.fillStyle = shape.textColor || '#ffffff'
-  ctx.font = `${fontSize}px "Satoshi Bold", "Helvetica Neue", Arial, sans-serif`
+  ctx.font = `bold ${fontSize}px Arial, sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   // Ziffern sitzen optisch etwas hoch → leicht nach unten versetzen

@@ -145,19 +145,16 @@ describe('Lauftext – Text & Schrift', () => {
     expect(store.text).toBe('Hallo')
   })
 
-  it('Schriftart: System-Schriften, unbekannte Schrift wird ergänzt', async () => {
-    store.fontFamily = 'Exotisch'
+  // Kodini 22.11.2026: Arial ist die einzige Schrift.
+  it('Schriftart: nur Arial', async () => {
     await mountPanel()
     const sel = selectFor(T.fontFamily)
     const values = [...sel.querySelectorAll('option')].map((o) => o.value)
-    expect(values[0]).toBe('Exotisch')
-    expect(values).toContain('Arial')
-    expect(values).toContain('Impact')
-    expect(sel.value).toBe('Exotisch')
-    sel.value = 'Georgia'
+    expect(values).toEqual(['Arial'])
+    sel.value = 'Arial'
     sel.dispatchEvent(new Event('change'))
     await nextTick()
-    expect(store.fontFamily).toBe('Georgia')
+    expect(store.fontFamily).toBe('Arial')
   })
 
   it('Fett schaltet um, Regler für Abstand und Größe mit px', async () => {
@@ -257,14 +254,14 @@ describe('Lauftext – Ui-Bausteine', () => {
     expect(center.getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('Laufrichtung übersetzt, eigene Schriften als übersetzte Gruppe', async () => {
+  it('Laufrichtung übersetzt, Schrift-Option mit Vorschau in Arial', async () => {
     await mountPanel()
     const dir = [...selectFor(T.direction).querySelectorAll('option')].map((o) =>
       o.textContent.trim(),
     )
     expect(dir).toEqual([T.left, T.right, T.up, T.down])
-    const font = selectFor(T.fontFamily).querySelector('option[value="Impact"]')
-    expect(font.style.fontFamily).toBe('Impact')
+    const font = selectFor(T.fontFamily).querySelector('option[value="Arial"]')
+    expect(font.style.fontFamily).toBe('Arial')
   })
 
   it('Status im Kopf lesbar (eigene Schriftfarbe auf Erfolgsfläche)', async () => {

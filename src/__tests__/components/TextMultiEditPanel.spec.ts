@@ -78,9 +78,16 @@ describe('TextMultiEditPanel', () => {
       .filter((b) => b.text() === 'Anwenden')
       .at(-1)
     expect(applyFont!.attributes('disabled')).toBeDefined()
-    await select.setValue('Georgia')
+    // Kodini 22.11.2026: nur noch Arial wählbar
+    expect(
+      select
+        .findAll('option')
+        .map((o) => o.element.value)
+        .filter(Boolean),
+    ).toEqual(['Arial'])
+    await select.setValue('Arial')
     await applyFont!.trigger('click')
-    expect(texts.every((t) => t.fontFamily === 'Georgia')).toBe(true)
+    expect(texts.every((t) => t.fontFamily === 'Arial')).toBe(true)
   })
 
   it('Audio kopieren ist ohne aktives Audio-Reaktiv gesperrt und kopiert sonst tief', async () => {

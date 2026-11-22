@@ -173,7 +173,7 @@ export class FontManager {
     selectElement.innerHTML = ''
 
     // Add system fonts
-    ;['Arial', 'Helvetica', 'Times New Roman', 'Georgia'].forEach((font) => {
+    ;['Arial'].forEach((font) => {
       const option = document.createElement('option')
       option.value = font
       option.textContent = font
@@ -228,18 +228,5 @@ export class FontManager {
 
     // Fallback: assume font is available after timeout
     return new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 100))
-  }
-
-  /**
-   * Quick test with essential fonts
-   */
-  async quickTest() {
-    const testFonts = [
-      { name: 'Satoshi Regular', file: 'Satoshi-Regular.woff2' },
-      { name: 'GeneralSans Medium', file: 'GeneralSans-Medium.woff2' },
-      { name: 'ClashDisplay Regular', file: 'ClashDisplay-Regular.woff2' },
-    ]
-
-    return await this.initialize(testFonts)
   }
 }

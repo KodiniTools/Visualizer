@@ -1,4 +1,5 @@
 import { ref, watch, onBeforeUnmount, getCurrentInstance, type Ref } from 'vue'
+import { normalizeFontFamily } from '../lib/fonts'
 import {
   defaultTextSettings,
   loadTextDefaults,
@@ -369,7 +370,7 @@ export function useNewTextSettings(canvasManager: CanvasManagerRef) {
     const lineHeightMultiplier = 1.2
 
     while (fontSize > minFontSize) {
-      ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
+      ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${normalizeFontFamily(fontFamily)}`
 
       const totalHeight = fontSize * lineHeightMultiplier * lineCount
 

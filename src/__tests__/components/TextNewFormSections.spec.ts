@@ -64,7 +64,7 @@ async function mountStyle() {
 
 const fontSelect = () =>
   [...root().querySelectorAll('select')].find((s) =>
-    [...s.options].some((o) => o.value === 'Roboto'),
+    [...s.options].some((o) => o.value === 'Arial'),
   )
 const fontValues = () => [...fontSelect().options].filter((o) => !o.disabled).map((o) => o.value)
 /** Auto-Fit-Schalter: Checkbox im Label oder Switch mit Label. */
@@ -78,16 +78,15 @@ function autoFitToggle() {
 }
 
 describe('Neuer Text – Text-Stil', () => {
-  it('Schriftwahl: Systemschriften, dann eigene; Auswahl setzt die Schrift', async () => {
+  // Kodini 22.11.2026: Arial ist die einzige Schrift, auch wenn der FontManager eigene meldet.
+  it('Schriftwahl: nur Arial; Auswahl setzt die Schrift', async () => {
     await mountStyle()
-    const values = fontValues()
-    expect(values[0]).toBe('Arial')
-    expect(values.indexOf('Roboto')).toBeGreaterThan(values.indexOf('Trebuchet MS'))
+    expect(fontValues()).toEqual(['Arial'])
     expect(fontSelect().value).toBe('Arial')
-    fontSelect().value = 'Roboto'
+    fontSelect().value = 'Arial'
     fontSelect().dispatchEvent(new Event('change'))
     await nextTick()
-    expect(settings.fontFamily).toBe('Roboto')
+    expect(settings.fontFamily).toBe('Arial')
   })
 
   it('Auto-Fit blendet den Rand-Regler ein', async () => {

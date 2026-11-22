@@ -51,7 +51,7 @@ export const matrixRain: VisualizerDefinition = {
     const charHeight = 20
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*'
 
-    ctx.font = `${charHeight}px monospace`
+    ctx.font = `${charHeight}px Arial, sans-serif`
 
     state.drops.forEach((drop, col) => {
       const freqIndex = Math.floor((col / state.columns) * maxFreqIndex)

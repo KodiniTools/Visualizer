@@ -2,43 +2,178 @@
 
 import { FONT_BASE_URL, fontUrl } from './fontUrl'
 
-export interface CustomFontDefinition {
-  name: string
-  file: string
-}
+export const CUSTOM_FONTS = [
+  // Alpino Familie
+  { name: 'Alpino Black', file: 'Alpino-Black.woff2' },
+  { name: 'Alpino Bold', file: 'Alpino-Bold.woff2' },
+  { name: 'Alpino Light', file: 'Alpino-Light.woff2' },
+  { name: 'Alpino Medium', file: 'Alpino-Medium.woff2' },
+  { name: 'Alpino Regular', file: 'Alpino-Regular.woff2' },
+  { name: 'Alpino Thin', file: 'Alpino-Thin.woff2' },
+  { name: 'Alpino Variable', file: 'Alpino-Variable.woff2' },
 
-/**
- * Kodini 22.11.2026: Arial ist die einzige Schrift, auch für Texte auf dem
- * Canvas (Textmanager, Laufschrift, Formen). Eigene Schriftdateien gibt es nicht mehr.
- */
-export const APP_FONT = 'Arial'
+  // Author Familie
+  { name: 'Author Bold', file: 'Author-Bold.woff2' },
+  { name: 'Author Bold Italic', file: 'Author-BoldItalic.woff2' },
+  { name: 'Author Extralight', file: 'Author-Extralight.woff2' },
+  { name: 'Author Extralight Italic', file: 'Author-ExtralightItalic.woff2' },
+  { name: 'Author Italic', file: 'Author-Italic.woff2' },
+  { name: 'Author Light', file: 'Author-Light.woff2' },
+  { name: 'Author Light Italic', file: 'Author-LightItalic.woff2' },
+  { name: 'Author Medium', file: 'Author-Medium.woff2' },
+  { name: 'Author Medium Italic', file: 'Author-MediumItalic.woff2' },
+  { name: 'Author Regular', file: 'Author-Regular.woff2' },
+  { name: 'Author Semibold', file: 'Author-Semibold.woff2' },
+  { name: 'Author Semibold Italic', file: 'Author-SemiboldItalic.woff2' },
+  { name: 'Author Variable', file: 'Author-Variable.woff2' },
+  { name: 'Author Variable Italic', file: 'Author-VariableItalic.woff2' },
 
-export const CUSTOM_FONTS: CustomFontDefinition[] = []
+  // ClashDisplay Familie
+  { name: 'ClashDisplay Extralight', file: 'ClashDisplay-Extralight.woff2' },
+  { name: 'ClashDisplay Light', file: 'ClashDisplay-Light.woff2' },
+  { name: 'ClashDisplay Medium', file: 'ClashDisplay-Medium.woff2' },
+  { name: 'ClashDisplay Regular', file: 'ClashDisplay-Regular.woff2' },
+  { name: 'ClashDisplay Bold', file: 'ClashDisplay-Bold.woff2' },
+  { name: 'ClashDisplay Semibold', file: 'ClashDisplay-Semibold.woff2' },
+  { name: 'ClashDisplay Variable', file: 'ClashDisplay-Variable.woff2' },
 
-/** Jede gespeicherte Schrift (auch aus alten Projekten) wird als Arial gezeichnet. */
-export function normalizeFontFamily(_stored?: unknown): string {
-  return APP_FONT
-}
+  // GeneralSans Familie
+  { name: 'GeneralSans Bold', file: 'GeneralSans-Bold.woff2' },
+  { name: 'GeneralSans Bold Italic', file: 'GeneralSans-BoldItalic.woff2' },
+  { name: 'GeneralSans Extralight', file: 'GeneralSans-Extralight.woff2' },
+  { name: 'GeneralSans Extralight Italic', file: 'GeneralSans-ExtralightItalic.woff2' },
+  { name: 'GeneralSans Italic', file: 'GeneralSans-Italic.woff2' },
+  { name: 'GeneralSans Light', file: 'GeneralSans-Light.woff2' },
+  { name: 'GeneralSans Light Italic', file: 'GeneralSans-LightItalic.woff2' },
+  { name: 'GeneralSans Medium', file: 'GeneralSans-Medium.woff2' },
+  { name: 'GeneralSans Medium Italic', file: 'GeneralSans-MediumItalic.woff2' },
+  { name: 'GeneralSans Regular', file: 'GeneralSans-Regular.woff2' },
+  { name: 'GeneralSans Semibold', file: 'GeneralSans-Semibold.woff2' },
+  { name: 'GeneralSans Semibold Italic', file: 'GeneralSans-SemiboldItalic.woff2' },
+  { name: 'GeneralSans Variable', file: 'GeneralSans-Variable.woff2' },
+  { name: 'GeneralSans Variable Italic', file: 'GeneralSans-VariableItalic.woff2' },
 
-/**
- * Ersetzt rekursiv jede `fontFamily`-Angabe durch Arial (alte Projekte,
- * gespeicherte Vorlagen). Gibt eine Kopie zurück; Nicht-Objekte bleiben gleich.
- */
-export function normalizeFontFamilies<T>(value: T): T {
-  if (Array.isArray(value)) return value.map((item) => normalizeFontFamilies(item)) as T
-  if (!value || typeof value !== 'object') return value
-  const out: Record<string, unknown> = {}
-  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-    out[key] =
-      key === 'fontFamily' && typeof item === 'string' ? APP_FONT : normalizeFontFamilies(item)
-  }
-  return out as T
-}
+  // Hind Familie
+  { name: 'Hind Bold', file: 'Hind-Bold.woff2' },
+  { name: 'Hind Light', file: 'Hind-Light.woff2' },
+  { name: 'Hind Medium', file: 'Hind-Medium.woff2' },
+  { name: 'Hind Regular', file: 'Hind-Regular.woff2' },
+  { name: 'Hind SemiBold', file: 'Hind-SemiBold.woff2' },
+  { name: 'Hind Variable', file: 'Hind-Variable.woff2' },
+
+  // Satoshi Familie
+  { name: 'Satoshi Light', file: 'Satoshi-Light.woff2' },
+  { name: 'Satoshi LightItalic', file: 'Satoshi-LightItalic.woff2' },
+  { name: 'Satoshi Bold', file: 'Satoshi-Bold.woff2' },
+  { name: 'Satoshi BoldItalic', file: 'Satoshi-BoldItalic.woff2' },
+  { name: 'Satoshi Italic', file: 'Satoshi-Italic.woff2' },
+  { name: 'Satoshi Medium', file: 'Satoshi-Medium.woff2' },
+  { name: 'Satoshi MediumItalic', file: 'Satoshi-MediumItalic.woff2' },
+  { name: 'Satoshi Regular', file: 'Satoshi-Regular.woff2' },
+  { name: 'Satoshi Black', file: 'Satoshi-Black.woff2' },
+  { name: 'Satoshi BlackItalic', file: 'Satoshi-BlackItalic.woff2' },
+  { name: 'Satoshi Variable', file: 'Satoshi-Variable.woff2' },
+  { name: 'Satoshi Variable Italic', file: 'Satoshi-VariableItalic.woff2' },
+
+  // Supreme Familie
+  { name: 'Supreme Extralight', file: 'Supreme-Extralight.woff2' },
+  { name: 'Supreme Thin', file: 'Supreme-Thin.woff2' },
+  { name: 'Supreme ThinItalic', file: 'Supreme-ThinItalic.woff2' },
+  { name: 'Supreme ExtralightItalic', file: 'Supreme-ExtralightItalic.woff2' },
+  { name: 'Supreme Italic', file: 'Supreme-Italic.woff2' },
+  { name: 'Supreme Light', file: 'Supreme-Light.woff2' },
+  { name: 'Supreme LightItalic', file: 'Supreme-LightItalic.woff2' },
+  { name: 'Supreme Regular', file: 'Supreme-Regular.woff2' },
+  { name: 'Supreme Bold', file: 'Supreme-Bold.woff2' },
+  { name: 'Supreme BoldItalic', file: 'Supreme-BoldItalic.woff2' },
+  { name: 'Supreme Extrabold', file: 'Supreme-Extrabold.woff2' },
+  { name: 'Supreme ExtraboldItalic', file: 'Supreme-ExtraboldItalic.woff2' },
+  { name: 'Supreme Medium', file: 'Supreme-Medium.woff2' },
+  { name: 'Supreme MediumItalic', file: 'Supreme-MediumItalic.woff2' },
+  { name: 'Supreme Variable', file: 'Supreme-Variable.woff2' },
+  { name: 'Supreme VariableItalic', file: 'Supreme-VariableItalic.woff2' },
+
+  // Tanker Familie
+  { name: 'Tanker Regular', file: 'Tanker-Regular.woff2' },
+
+  // Zodiak Familie
+  { name: 'Zodiak Black', file: 'Zodiak-Black.woff2' },
+  { name: 'Zodiak Black Italic', file: 'Zodiak-BlackItalic.woff2' },
+  { name: 'Zodiak Bold', file: 'Zodiak-Bold.woff2' },
+  { name: 'Zodiak Bold Italic', file: 'Zodiak-BoldItalic.woff2' },
+  { name: 'Zodiak Extrabold', file: 'Zodiak-Extrabold.woff2' },
+  { name: 'Zodiak Extrabold Italic', file: 'Zodiak-ExtraboldItalic.woff2' },
+  { name: 'Zodiak Italic', file: 'Zodiak-Italic.woff2' },
+  { name: 'Zodiak Light', file: 'Zodiak-Light.woff2' },
+  { name: 'Zodiak Light Italic', file: 'Zodiak-LightItalic.woff2' },
+  { name: 'Zodiak Regular', file: 'Zodiak-Regular.woff2' },
+  { name: 'Zodiak Thin', file: 'Zodiak-Thin.woff2' },
+  { name: 'Zodiak Thin Italic', file: 'Zodiak-ThinItalic.woff2' },
+  { name: 'Zodiak Variable', file: 'Zodiak-Variable.woff2' },
+  { name: 'Zodiak Variable Italic', file: 'Zodiak-VariableItalic.woff2' },
+
+  // Ranade Familie
+  { name: 'Ranade Thin Italic', file: 'Ranade-ThinItalic.woff2' },
+  { name: 'Ranade Bold', file: 'Ranade-Bold.woff2' },
+  { name: 'Ranade Bold Italic', file: 'Ranade-BoldItalic.woff2' },
+  { name: 'Ranade Italic', file: 'Ranade-Italic.woff2' },
+  { name: 'Ranade Medium', file: 'Ranade-Medium.woff2' },
+  { name: 'Ranade Medium Italic', file: 'Ranade-MediumItalic.woff2' },
+  { name: 'Ranade Variable', file: 'Ranade-Variable.woff2' },
+  { name: 'Ranade Variable Italic', file: 'Ranade-VariableItalic.woff2' },
+
+  // Switzer Familie
+  { name: 'Switzer Thin', file: 'Switzer-Thin.woff2' },
+  { name: 'Switzer Thin Italic', file: 'Switzer-ThinItalic.woff2' },
+  { name: 'Switzer Extralight', file: 'Switzer-Extralight.woff2' },
+  { name: 'Switzer Extralight Italic', file: 'Switzer-ExtralightItalic.woff2' },
+  { name: 'Switzer Light', file: 'Switzer-Light.woff2' },
+  { name: 'Switzer Light Italic', file: 'Switzer-LightItalic.woff2' },
+  { name: 'Switzer Regular', file: 'Switzer-Regular.woff2' },
+  { name: 'Switzer Italic', file: 'Switzer-Italic.woff2' },
+  { name: 'Switzer Medium', file: 'Switzer-Medium.woff2' },
+  { name: 'Switzer Medium Italic', file: 'Switzer-MediumItalic.woff2' },
+  { name: 'Switzer Semibold', file: 'Switzer-Semibold.woff2' },
+  { name: 'Switzer Semibold Italic', file: 'Switzer-SemiboldItalic.woff2' },
+  { name: 'Switzer Bold', file: 'Switzer-Bold.woff2' },
+  { name: 'Switzer Bold Italic', file: 'Switzer-BoldItalic.woff2' },
+  { name: 'Switzer Extrabold', file: 'Switzer-Extrabold.woff2' },
+  { name: 'Switzer Extrabold Italic', file: 'Switzer-ExtraboldItalic.woff2' },
+  { name: 'Switzer Black', file: 'Switzer-Black.woff2' },
+  { name: 'Switzer Variable', file: 'Switzer-Variable.woff2' },
+  { name: 'Switzer Variable Italic', file: 'Switzer-VariableItalic.woff2' },
+
+  // Telma Familie
+  { name: 'Telma Light', file: 'Telma-Light.woff2' },
+  { name: 'Telma Regular', file: 'Telma-Regular.woff2' },
+  { name: 'Telma Medium', file: 'Telma-Medium.woff2' },
+  { name: 'Telma Bold', file: 'Telma-Bold.woff2' },
+  { name: 'Telma Black', file: 'Telma-Black.woff2' },
+  { name: 'Telma Variable', file: 'Telma-Variable.woff2' },
+
+  // Chillax Familie
+  { name: 'Chillax Extralight', file: 'Chillax-Extralight.woff2' },
+  { name: 'Chillax Light', file: 'Chillax-Light.woff2' },
+  { name: 'Chillax Regular', file: 'Chillax-Regular.woff2' },
+  { name: 'Chillax Medium', file: 'Chillax-Medium.woff2' },
+  { name: 'Chillax Semibold', file: 'Chillax-Semibold.woff2' },
+  { name: 'Chillax Bold', file: 'Chillax-Bold.woff2' },
+  { name: 'Chillax Variable', file: 'Chillax-Variable.woff2' },
+]
 
 /**
  * System Fonts (immer verfügbar)
  */
-export const SYSTEM_FONTS = [{ name: APP_FONT }]
+export const SYSTEM_FONTS = [
+  { name: 'Arial' },
+  { name: 'Verdana' },
+  { name: 'Georgia' },
+  { name: 'Courier New' },
+  { name: 'Times New Roman' },
+  { name: 'Comic Sans MS' },
+  { name: 'Impact' },
+  { name: 'Trebuchet MS' },
+]
 
 // Cache für geladene Fonts
 const loadedFontsCache = new Set<string>()

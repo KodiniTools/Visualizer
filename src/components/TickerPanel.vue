@@ -215,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue'
+import { computed, h, inject, type Ref } from 'vue'
 import TickerAudioReactive from './ticker/TickerAudioReactive.vue'
 import ColorField from './ui/ColorField.vue'
 import SliderControl from './ui/SliderControl.vue'
@@ -226,10 +226,36 @@ import UiSwitch from './ui/UiSwitch.vue'
 import UiTextField from './ui/UiTextField.vue'
 import { useI18n } from '../lib/i18n'
 import { useTickerStore } from '../stores/tickerStore'
-import { APP_FONT } from '../lib/fonts'
+import type { FontManager } from '../lib/fontManager'
 
 const { t } = useI18n()
 const ticker = useTickerStore()
+
+// Gleiche Font-Quelle wie der normale Text: der per provide/inject
+// bereitgestellte FontManager (siehe useTextFonts.js).
+const fontManager = inject<Ref<FontManager | null> | null>('fontManager', null)
+
+// Identische System-Font-Liste wie im Text-Manager
+const SYSTEM_FONT_NAMES = [
+  'Arial',
+  'Helvetica',
+  'Times New Roman',
+  'Georgia',
+  'Courier New',
+  'Verdana',
+  'Impact',
+  'Comic Sans MS',
+  'Trebuchet MS',
+]
+
+// Benutzerdefinierte Schriftarten (werden asynchron geladen → reaktiv)
+const customFonts = computed(() => {
+  const fm = fontManager?.value
+  if (!fm || !fm.isInitialized) return []
+  return Array.from(fm.loadedFonts).sort()
+})
+
+const systemFonts = computed(() => SYSTEM_FONT_NAMES)
 
 // Bei vertikalem Lauf verschiebt der Slider die Spalte nach links/rechts
 const isVertical = computed(() => ticker.direction === 'up' || ticker.direction === 'down')
@@ -240,9 +266,22 @@ const positionHint = computed(() =>
   isVertical.value ? t('ticker.positionXHint') : t('ticker.positionYHint'),
 )
 
-// Kodini 22.11.2026: Arial ist die einzige Schrift.
+// Falls die gewählte Schriftart (noch) nicht in den Listen steht, trotzdem anbieten
+const missingFont = computed(() => {
+  const f = ticker.fontFamily
+  if (!f) return null
+  return systemFonts.value.includes(f) || customFonts.value.includes(f) ? null : f
+})
+
+/** Optionen mit Vorschau in der jeweiligen Schrift */
+const fontOption = (font: string) => ({ value: font, label: font, style: { fontFamily: font } })
+
 const fontOptions = computed(() => [
-  { value: APP_FONT, label: APP_FONT, style: { fontFamily: APP_FONT } },
+  ...(missingFont.value ? [{ value: missingFont.value, label: missingFont.value }] : []),
+  ...systemFonts.value.map(fontOption),
+  ...(customFonts.value.length > 0
+    ? [{ label: t('ticker.customFonts'), options: customFonts.value.map(fontOption) }]
+    : []),
 ])
 
 const directionOptions = computed(() =>

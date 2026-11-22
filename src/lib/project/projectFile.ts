@@ -9,7 +9,6 @@
  * Alle Medien-URLs darin werden als Dateien in die Projektdatei gepackt
  * (siehe projectAssets, projectArchive).
  */
-import { normalizeFontFamilies } from '../fonts'
 import { packProject, unpackProject, ProjectArchiveError } from './projectArchive'
 import {
   extractAssets,
@@ -174,10 +173,8 @@ export async function loadProjectFile(
     MEDIA_KEY.test(s) ? (keyMap.get(s) ?? UNKNOWN_MEDIA_KEY) : s,
   ) as Record<string, unknown>
 
-  // Kodini 22.11.2026: Arial ist die einzige Schrift – alte Projekte mit
-  // anderen Schriften laden mit Arial.
-  const parts = await deps.parts.applyAll(normalizeFontFamilies(state.parts))
-  const applied = await deps.recorder.applyAll(normalizeFontFamilies(segments))
+  const parts = await deps.parts.applyAll(state.parts)
+  const applied = await deps.recorder.applyAll(segments)
   deps.clearHistory?.()
   deps.recorder.rebase()
   return { name: manifest.name, segments: applied, parts }

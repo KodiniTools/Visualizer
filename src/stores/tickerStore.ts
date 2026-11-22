@@ -1,4 +1,3 @@
-import { normalizeFontFamilies } from '../lib/fonts'
 import { defineStore } from 'pinia'
 import { ref, watch, type Ref } from 'vue'
 import {
@@ -104,7 +103,7 @@ const SECTION_KEYS: Record<TickerSection, TickerSettingKey[]> = {
 function loadSaved(): SavedTickerSettings | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? normalizeFontFamilies(JSON.parse(raw)) : null
+    return raw ? JSON.parse(raw) : null
   } catch {
     return null
   }

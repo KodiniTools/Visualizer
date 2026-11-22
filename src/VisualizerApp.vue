@@ -184,6 +184,7 @@ import './styles/kodini-visualizer-phase1.css'
 import './styles/kodini-visualizer-phase3.css'
 import './styles/kodini-visualizer-phase4.css'
 import './styles/kodini-visualizer-phase5.css'
+import './styles/kodini-visualizer-overlays.css'
 
 type ShortcutsDeps = Parameters<typeof setupKeyboardShortcuts>[0]
 

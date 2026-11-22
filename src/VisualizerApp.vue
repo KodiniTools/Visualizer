@@ -181,6 +181,7 @@ import type { KeyboardShortcuts } from './lib/keyboardShortcuts'
 
 import './styles/visualizer-app.css'
 import './styles/kodini-visualizer-phase1.css'
+import './styles/kodini-visualizer-phase3.css'
 
 type ShortcutsDeps = Parameters<typeof setupKeyboardShortcuts>[0]
 

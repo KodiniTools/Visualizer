@@ -57,8 +57,22 @@ describe('LandingPage – Kopf-Navigation', () => {
     expect(pageScroll).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
   })
 
-  it('„Funktionen“ führt zur Funktionsseite', () => {
-    expect(wrapper.findAll('.header-nav .nav-link')[1]!.attributes('href')).toBe('/blog')
+  // Seit Landingpage Etappe 2 springt „Funktionen“ zum Abschnitt auf der Seite statt nach /blog.
+  it('„Funktionen“ springt zum Abschnitt #features', () => {
+    expect(wrapper.findAll('.header-nav .nav-link')[1]!.attributes('href')).toBe('#features')
+  })
+
+  it('Logo verlinkt zur Startseite und lädt base-relativ', () => {
+    const logo = wrapper.find('a.header-logo')
+    expect(logo.attributes('href')).toBe('/')
+    expect(logo.find('img').attributes('src')).toBe(`${import.meta.env.BASE_URL}kodini-logo.png`)
+    expect(logo.text()).toContain('KodiniTools')
+  })
+
+  it('Start-Knopf im Kopf führt zur App', () => {
+    const cta = wrapper.find('.landing-header .landing-header-cta')
+    expect(cta.attributes('href')).toBe('/app')
+    expect(cta.text()).toBe(wrapper.find('.hero-actions .btn-primary').text())
   })
 
   it('„FAQ“ springt zum FAQ-Abschnitt, der die Fragen enthält', () => {

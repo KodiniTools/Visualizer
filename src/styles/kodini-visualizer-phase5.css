@@ -1,0 +1,45 @@
+/* KodiniTools Visualizer · Etappe 5: responsive und Accessibility-Feinschliff.
+   Absichtlich keine Änderungen an Player-Logik, Canvas, Popover-Geometrie
+   oder der globalen Navigation. Nach phase4 importieren. */
+
+/* Auch bei langen Dateinamen darf die mittlere Bühne nicht überlaufen. */
+#app-container .layout-grid > .center-column,
+#app-container .layout-grid > .left-toolbar,
+#app-container .layout-grid > .right-panel {
+  min-width: 0;
+}
+
+/* Lange Texte und Formulare in den beiden Seitenleisten bleiben lesbar. */
+#app-container .left-toolbar :is(input, select, textarea),
+#app-container .right-panel :is(input, select, textarea) {
+  max-width: 100%;
+}
+
+/* Tastaturfokus auf den Bedienflächen deutlich anzeigen, ohne die
+   Play-/Pause- oder Upload-Events zu beeinflussen. */
+#app-container
+  :is(.left-toolbar, .right-panel, .mobile-panel-bar, .sticky-player-bar)
+  :is(button, a, select, input, textarea):focus-visible {
+  outline: 2px solid var(--ds-link, #6aaef5);
+  outline-offset: 2px;
+}
+
+/* Touch-Bedienung auf dem Smartphone; keine erzwungenen Größen der
+   Player-Steuerung, damit bestehende Umbruchlogik erhalten bleibt. */
+@media (max-width: 768px) {
+  #app-container .mobile-panel-bar .mobile-panel-btn {
+    touch-action: manipulation;
+  }
+  #app-container .left-toolbar,
+  #app-container .right-panel {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Bei reduzierter Bewegung ausschließlich dekorative Animationen dämpfen. */
+@media (prefers-reduced-motion: reduce) {
+  #app-container .left-toolbar .panel,
+  #app-container .right-panel .panel {
+    transition-duration: 0.01ms;
+  }
+}

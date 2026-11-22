@@ -50,9 +50,8 @@
   --ds-overlay-dim: 0.78;
 
   /* === Typografie === */
-  /* Kodini 22.11.2026: Arial ist die einzige Schrift der Oberfläche (auch für Zahlen). */
-  --ds-font-sans: Arial, sans-serif;
-  --ds-font-mono: Arial, sans-serif;
+  --ds-font-sans: 'Supreme', sans-serif;
+  --ds-font-mono: 'Supreme', sans-serif;
   --ds-text-xs: 12px;
   --ds-text-sm: 13px;
   --ds-text-md: 14px;

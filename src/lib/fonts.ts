@@ -140,6 +140,7 @@ export const CUSTOM_FONTS = [
   { name: 'Switzer Extrabold', file: 'Switzer-Extrabold.woff2' },
   { name: 'Switzer Extrabold Italic', file: 'Switzer-ExtraboldItalic.woff2' },
   { name: 'Switzer Black', file: 'Switzer-Black.woff2' },
+  { name: 'Switzer Black Italic', file: 'Switzer-BlackItalic.woff2' },
   { name: 'Switzer Variable', file: 'Switzer-Variable.woff2' },
   { name: 'Switzer Variable Italic', file: 'Switzer-VariableItalic.woff2' },
 

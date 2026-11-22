@@ -476,4 +476,32 @@ defineExpose({ showNext, togglePlaying })
     min-height: 32px;
   }
 }
+
+/* Etappe 5: Controls bleiben auch auf schmalen Displays bedienbar. */
+.hero-showcase-bar {
+  min-width: 0;
+}
+.hero-showcase-name {
+  min-width: 0;
+}
+.hero-showcase-actions {
+  flex-shrink: 0;
+}
+@media (max-width: 420px) {
+  .hero-showcase-bar {
+    gap: 5px;
+  }
+  .hero-showcase-name {
+    max-width: 48%;
+  }
+  .hero-showcase-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-showcase-btn {
+    transition: none;
+  }
+}
 </style>

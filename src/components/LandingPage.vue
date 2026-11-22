@@ -1938,4 +1938,77 @@ function toggleFaq(index: number) {
     transform: none;
   }
 }
+
+/* =====================================================================
+   KODINITOOLS LANDINGPAGE · ETAPPE 5
+   Responsive Feinschliff, Fokus und Lesbarkeit; ausschließlich CSS.
+   ===================================================================== */
+.landing-page {
+  min-width: 0;
+}
+.landing-page .hero-content,
+.landing-page .hero-visual,
+.landing-page .feature-card,
+.landing-page .blog-card,
+.landing-page .cta-content {
+  min-width: 0;
+}
+.landing-page .hero-title,
+.landing-page .section-title,
+.landing-page .feature-title,
+.landing-page .blog-card-title {
+  overflow-wrap: break-word;
+}
+.landing-page .feature-description,
+.landing-page .section-subtitle,
+.landing-page .hero-subtitle,
+.landing-page .cta-subtitle {
+  overflow-wrap: anywhere;
+}
+.landing-page .features-grid,
+.landing-page .blog-grid {
+  min-width: 0;
+}
+.landing-page .demo-gif {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.landing-page a:focus-visible,
+.landing-page button:focus-visible,
+.landing-page [tabindex]:focus-visible {
+  outline: 2px solid var(--ds-accent, #d4a257);
+  outline-offset: 3px;
+}
+@media (max-width: 620px) {
+  .landing-page .hero-content,
+  .landing-page .section-header {
+    min-width: 0;
+  }
+  .landing-page .hero-actions {
+    flex-wrap: wrap;
+  }
+  .landing-page .hero-actions > a {
+    max-width: 100%;
+  }
+  .landing-page .hero-visual {
+    max-width: 100%;
+  }
+}
+@media (max-width: 380px) {
+  .landing-page .hero-visual {
+    padding: 5px;
+  }
+  .landing-page .hero-actions > a {
+    width: 100%;
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    scroll-behavior: auto;
+  }
+}
 </style>

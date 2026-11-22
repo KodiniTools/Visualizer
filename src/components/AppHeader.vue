@@ -1,17 +1,11 @@
 <template>
   <header class="app-header">
     <router-link to="/" class="app-logo" :title="t('common.backToHome')">
-      <img
-        class="brand-logo"
-        src="/kodini-logo.png"
-        alt="KodiniTools Logo"
-        width="42"
-        height="42"
-      />
+      <img class="brand-logo" :src="logoSrc" alt="" width="40" height="40" />
       <span class="logo-text">Visualizer</span>
     </router-link>
 
-    <nav class="app-header-nav" aria-label="App navigation">
+    <nav class="app-header-nav" aria-label="Visualizer-Navigation">
       <router-link to="/" class="back-link">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -37,105 +31,139 @@
 import { useI18n } from '../lib/i18n'
 
 const { t } = useI18n()
+
+// Base-aware (Produktion: /visualizer/), sonst 404 auf /kodini-logo.png.
+const logoSrc = `${import.meta.env.BASE_URL}kodini-logo.png`
 </script>
 
 <style scoped>
-/* Topbar nach Design-System v2: ds-topbar-height, ds-surface-1, 1 px Rand unten.
-   Der Name steht in Textfarbe (ds-title), nicht in Gold; „Zur Startseite“ ist
-   ein Ghost-Button in Größe sm. */
+/* Etappe 2: ausschliesslich Darstellung. Router und i18n bleiben unveraendert. */
 .app-header {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ds-space-3);
-  height: var(--ds-topbar-height);
-  padding: 0 var(--ds-space-4);
-  background-color: var(--ds-surface-1);
-  border-bottom: var(--ds-border-width) solid var(--ds-border);
+  gap: 16px;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px clamp(14px, 2.4vw, 34px);
+  background: linear-gradient(105deg, var(--ds-surface-1), var(--ds-surface-0));
+  border-bottom: 1px solid var(--ds-border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
-
+.app-header::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #3aa8ef55 35%, #d4a25770 70%, transparent);
+  pointer-events: none;
+}
 .app-logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--ds-space-2);
-  text-decoration: none;
+  gap: 12px;
+  min-width: 0;
   color: var(--ds-text);
-  font-size: var(--ds-text-lg);
-  font-weight: var(--ds-weight-semibold);
-  border-radius: var(--ds-radius-sm);
-  transition: color var(--ds-duration) var(--ds-ease);
+  text-decoration: none;
+  border-radius: 12px;
 }
-
-.app-logo:hover {
-  color: var(--ds-text-2);
-}
-
-.app-logo:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-ring);
-}
-
 .brand-logo {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   object-fit: contain;
-  flex-shrink: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 75, 165, 0.16);
 }
-
-.app-logo svg {
-  flex-shrink: 0;
-}
-
 .logo-text {
-  line-height: 1;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(16px, 1.45vw, 21px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
-
 .app-header-nav {
   display: flex;
   align-items: center;
+  min-width: 0;
 }
-
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: var(--ds-space-1);
-  height: var(--ds-control-sm);
-  padding: 0 var(--ds-space-3);
-  text-decoration: none;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 14px;
   color: var(--ds-text-2);
-  font-size: var(--ds-text-sm);
-  font-weight: var(--ds-weight-medium);
-  border: var(--ds-border-width) solid transparent;
-  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-2);
+  border: 1px solid var(--ds-border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
   transition:
-    background-color var(--ds-duration) var(--ds-ease),
-    color var(--ds-duration) var(--ds-ease);
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
-
+.back-link svg {
+  flex-shrink: 0;
+}
 .back-link:hover {
   color: var(--ds-text);
-  background-color: var(--ds-surface-2);
+  border-color: var(--ds-link);
+  background: var(--ds-surface-3);
+  transform: translateY(-1px);
 }
-
+.app-logo:focus-visible,
 .back-link:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-ring);
+  outline: 2px solid var(--ds-link);
+  outline-offset: 3px;
 }
-
-/* Mobile: Logo-Text verstecken */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .app-header {
-    padding: 0 var(--ds-space-3);
+    min-height: 62px;
+    padding: 8px 12px;
+    gap: 8px;
   }
-
   .brand-logo {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+  .app-logo {
+    gap: 8px;
   }
   .logo-text {
-    display: none;
+    font-size: 16px;
+  }
+  .back-link {
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 370px) {
+  .logo-text {
+    font-size: 14px;
+  }
+  .back-link {
+    gap: 4px;
+    padding: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-link {
+    transition: none;
   }
 }
 </style>

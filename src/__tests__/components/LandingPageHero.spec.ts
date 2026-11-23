@@ -44,10 +44,10 @@ afterEach(() => {
 })
 
 describe('LandingPage – Hero-Visual', () => {
-  it('zeigt die Live-Vorschau statt des statischen Bilds', () => {
-    expect(wrapper.find('.hero-visual .hero-showcase').exists()).toBe(true)
-    expect(wrapper.find('.hero-visual canvas').exists()).toBe(true)
-    expect(wrapper.find('.hero-visual img').exists()).toBe(false)
+  it('zeigt die Live-Vorschau im Bildrahmen statt eines statischen Bilds', () => {
+    expect(wrapper.find('.lp-hero-media .hero-showcase').exists()).toBe(true)
+    expect(wrapper.find('.lp-hero-media canvas').exists()).toBe(true)
+    expect(wrapper.find('.lp-hero-media img').exists()).toBe(false)
   })
 
   it('beschriftet die Vorschau passend zur Sprache', async () => {
@@ -57,6 +57,29 @@ describe('LandingPage – Hero-Visual', () => {
     await setLocale('en')
     await flushPromises()
     expect(fig().attributes('aria-label')).toBe(en.hero.showcase.label)
+  })
+})
+
+describe('LandingPage – Hero und Vorteile nach Muster Audio Normalizer', () => {
+  it('Hero: Titel, Cyan-Unterzeile, Beschreibung (DE/EN)', async () => {
+    expect(wrapper.find('h1.lp-hero-title').text()).toBe(de.hero.badge)
+    expect(wrapper.find('.lp-hero-subtitle').text()).toBe(de.hero.tagline)
+    expect(wrapper.find('.lp-hero-description').text()).toBe(de.hero.subtitle)
+    await setLocale('en')
+    await flushPromises()
+    expect(wrapper.find('.lp-hero-subtitle').text()).toBe(en.hero.tagline)
+    expect(wrapper.find('.lp-hero-description').text()).toBe(en.hero.subtitle)
+  })
+
+  it('Vorteile: sechs Karten in DE und EN', async () => {
+    const titles = () => wrapper.findAll('.lp-benefit-card h3').map((h) => h.text())
+    expect(wrapper.find('.lp-benefits .lp-section-title').text()).toBe(de.benefits.title)
+    expect(titles()).toEqual(de.benefits.items.map((i) => i.title))
+    expect(titles()).toHaveLength(6)
+    await setLocale('en')
+    await flushPromises()
+    expect(wrapper.find('.lp-benefits .lp-section-title').text()).toBe(en.benefits.title)
+    expect(titles()).toEqual(en.benefits.items.map((i) => i.title))
   })
 })
 

@@ -2,6 +2,7 @@ export default {
   // ========== LANDING PAGE ==========
   hero: {
     badge: 'Audio Visualizer',
+    tagline: 'Kostenloser Audio-Visualizer für den Browser',
     title: 'Verwandle deine Musik in visuelle Kunst:',
     titleHighlight: 'Kostenloser Audio-Visualizer für den Browser',
     subtitle:
@@ -50,6 +51,39 @@ export default {
         title: 'Text & Bilder',
         description:
           'Füge Texte, Logos und Bilder hinzu. Mit vollständiger Kontrolle über Position, Größe, Filter und audio-reaktive Effekte.',
+      },
+    ],
+  },
+  benefits: {
+    title: 'Warum Audio Visualizer?',
+    items: [
+      {
+        title: 'Keine Installation nötig',
+        description: 'Arbeite direkt im Browser, ohne Download und ohne Anmeldung.',
+      },
+      {
+        title: 'Datenschutz garantiert',
+        description:
+          'Deine Audiodateien werden lokal in deinem Browser verarbeitet und nicht auf unsere Server hochgeladen.',
+      },
+      {
+        title: 'Komplett kostenlos',
+        description: 'Alle Visualizer, Formate und Export-Funktionen ohne Einschränkungen.',
+      },
+      {
+        title: 'Auch kommerziell nutzbar',
+        description:
+          'Deine Videos darfst du privat und kommerziell nutzen, auf YouTube, TikTok, Instagram und anderen Plattformen.',
+      },
+      {
+        title: 'Export als MP4',
+        description:
+          'Aufnahme starten, Musik abspielen, stoppen: Das Video wird als MP4-Datei heruntergeladen.',
+      },
+      {
+        title: 'Läuft in jedem aktuellen Browser',
+        description:
+          'Chrome, Firefox, Edge und Safari werden unterstützt, am schnellsten läuft der Visualizer in Chrome und Edge.',
       },
     ],
   },

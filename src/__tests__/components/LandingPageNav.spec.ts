@@ -73,19 +73,36 @@ describe('LandingPage – Kopf-Navigation', () => {
   it('Start-Knopf im Kopf führt zur App', () => {
     const cta = wrapper.find('.landing-header .landing-header-cta')
     expect(cta.attributes('href')).toBe('/app')
-    expect(cta.text()).toBe(wrapper.find('.hero-actions .btn-primary').text())
+    expect(wrapper.find('.lp-hero .lp-btn-hero').text()).toContain(cta.text())
   })
 
   it('„FAQ“ springt zum FAQ-Abschnitt, der die Fragen enthält', () => {
     expect(wrapper.find('a.nav-link[href="#faq"]').exists()).toBe(true)
     const section = wrapper.find('section#faq')
     expect(section.exists()).toBe(true)
-    expect(section.findAll('.faq-item').length).toBeGreaterThan(0)
+    expect(section.findAll('.lp-faq-item').length).toBeGreaterThan(0)
   })
 
-  it('Hero-Knöpfe: Start führt zur App, „Mehr erfahren“ zum Abschnitt #features', () => {
-    expect(wrapper.find('.hero-actions .btn-primary').attributes('href')).toBe('/app')
-    expect(wrapper.find('.hero-actions .btn-secondary').attributes('href')).toBe('#features')
+  it('FAQ: Frage ist ein Knopf, klappt die Antwort auf und wieder zu', async () => {
+    const q = () => wrapper.find('.lp-faq-item .lp-faq-question')
+    const answer = () => wrapper.find('.lp-faq-item .lp-faq-answer')
+    expect(q().element.tagName).toBe('BUTTON')
+    expect(q().attributes('aria-expanded')).toBe('false')
+    const hidden = () => (answer().attributes('style') ?? '').includes('display: none')
+    expect(hidden()).toBe(true)
+    await q().trigger('click')
+    expect(q().attributes('aria-expanded')).toBe('true')
+    expect(hidden()).toBe(false)
+    expect(q().find('.lp-faq-icon').text()).toBe('−')
+    await q().trigger('click')
+    expect(hidden()).toBe(true)
+  })
+
+  // Kodini 23.11.2026 (Muster Audio Normalizer): ein einziger Knopf im Hero.
+  it('Hero hat genau einen Knopf, er führt zur App; #features existiert', () => {
+    const buttons = wrapper.findAll('.lp-hero a, .lp-hero button:not(.hero-showcase-btn)')
+    expect(buttons).toHaveLength(1)
+    expect(buttons[0]!.attributes('href')).toBe('/app')
     expect(wrapper.find('section#features').exists()).toBe(true)
   })
 

@@ -45,6 +45,11 @@
   /* Effekte (theme-abhängig) */
   --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-accent);
   --ds-shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  /* Landingpage-Verläufe und Hero-Akzent (aus Audio Normalizer, 23.11.2026) */
+  --ds-glow-blue: rgba(55, 114, 202, 0.2);
+  --ds-glow-cyan: rgba(38, 167, 187, 0.16);
+  --ds-heading-accent: #69d7e9;
   /* Helligkeit verdeckter Overlays (filter: brightness) – das vorderste
      Fenster wirkt dadurch heller als die Fenster dahinter. */
   --ds-overlay-dim: 0.78;
@@ -142,6 +147,11 @@
 
   --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-accent);
   --ds-shadow-overlay: 0 8px 24px rgba(20, 33, 58, 0.12);
+
+  /* Landingpage-Verläufe und Hero-Akzent (aus Audio Normalizer, 23.11.2026) */
+  --ds-glow-blue: rgba(86, 147, 216, 0.15);
+  --ds-glow-cyan: rgba(35, 162, 195, 0.16);
+  --ds-heading-accent: #086a80;
   --ds-overlay-dim: 0.93;
 }
 
@@ -172,5 +182,10 @@
 
   --ds-focus-ring: 0 0 0 2px var(--ds-surface-0), 0 0 0 4px var(--ds-accent);
   --ds-shadow-overlay: 0 8px 24px rgba(20, 33, 58, 0.12);
+
+  /* Landingpage-Verläufe und Hero-Akzent (aus Audio Normalizer, 23.11.2026) */
+  --ds-glow-blue: rgba(86, 147, 216, 0.15);
+  --ds-glow-cyan: rgba(35, 162, 195, 0.16);
+  --ds-heading-accent: #086a80;
   --ds-overlay-dim: 0.93;
 }

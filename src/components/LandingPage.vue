@@ -30,56 +30,52 @@
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          {{ content.hero.title }}
-          <span class="gradient-text">{{ content.hero.titleHighlight }}</span>
-        </h1>
-        <p class="hero-subtitle">{{ content.hero.subtitle }}</p>
-        <div class="hero-actions">
-          <router-link to="/app" class="btn-primary">
-            <span class="btn-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            </span>
-            {{ content.hero.cta }}
-          </router-link>
-          <a href="#features" class="btn-secondary">
-            {{ content.hero.learnMore }}
-          </a>
+    <!-- Hero, Funktionen, Vorteile: Aufbau und Maße nach dem Audio Normalizer (Kodini 23.11.2026) -->
+    <section class="lp-hero">
+      <div class="lp-container">
+        <div class="lp-hero-content">
+          <h1 class="lp-hero-title">{{ t('hero.badge') }}</h1>
+          <p class="lp-hero-subtitle">{{ t('hero.tagline') }}</p>
+          <p class="lp-hero-description">{{ content.hero.subtitle }}</p>
+          <router-link to="/app" class="lp-btn-hero"
+            >{{ content.hero.cta }}<span aria-hidden="true">&nbsp;→</span></router-link
+          >
         </div>
-      </div>
-      <div class="hero-visual">
-        <HeroVisualizerShowcase />
+        <div class="lp-hero-media">
+          <HeroVisualizerShowcase />
+        </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features">
-      <div class="section-header">
-        <h2 class="section-title">{{ content.features.title }}</h2>
-        <p class="section-subtitle">{{ content.features.subtitle }}</p>
-      </div>
-      <div class="features-grid">
-        <div v-for="(card, index) in featureCards" :key="index" class="feature-card">
-          <div class="feature-icon" :style="{ background: card.gradient }">
-            <component :is="card.icon" />
+    <section id="features" class="lp-features">
+      <div class="lp-container">
+        <h2 class="lp-section-title">{{ content.features.title }}</h2>
+        <div class="lp-grid">
+          <div v-for="(card, index) in featureCards" :key="index" class="lp-card lp-feature-card">
+            <div class="lp-feature-icon">
+              <component :is="card.icon" />
+            </div>
+            <h3>{{ card.title }}</h3>
+            <p>{{ card.description }}</p>
           </div>
-          <h3 class="feature-title">{{ card.title }}</h3>
-          <p class="feature-description">{{ card.description }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="lp-benefits">
+      <div class="lp-container">
+        <h2 class="lp-section-title">{{ t('benefits.title') }}</h2>
+        <div class="lp-grid">
+          <div
+            v-for="(benefit, index) in benefitItems"
+            :key="index"
+            class="lp-card lp-benefit-card"
+          >
+            <h3>{{ benefit.title }}</h3>
+            <p>{{ benefit.description }}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -101,38 +97,30 @@
     </section>
 
     <!-- FAQ Section -->
-    <section id="faq" class="faq-section">
-      <div class="section-header">
-        <h2 class="section-title">{{ content.faq.title }}</h2>
-        <p class="section-subtitle">{{ content.faq.subtitle }}</p>
-      </div>
-      <div class="faq-list">
-        <div
-          v-for="(faq, index) in faqItems"
-          :key="index"
-          class="faq-item"
-          :class="{ active: activeFaq === index }"
-          @click="toggleFaq(index)"
-        >
-          <div class="faq-question">
-            <span>{{ faq.question }}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="faq-icon"
+    <section id="faq" class="lp-faq">
+      <div class="lp-container">
+        <h2 class="lp-section-title">{{ content.faq.title }}</h2>
+        <div class="lp-faq-list">
+          <div
+            v-for="(faq, index) in faqItems"
+            :key="index"
+            class="lp-faq-item"
+            :class="{ 'lp-faq-open': activeFaq === index }"
+          >
+            <button
+              type="button"
+              class="lp-faq-question"
+              :aria-expanded="activeFaq === index"
+              @click="toggleFaq(index)"
             >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <div class="faq-answer">
-            <p>{{ faq.answer }}</p>
+              <span>{{ faq.question }}</span>
+              <span class="lp-faq-icon" aria-hidden="true">{{
+                activeFaq === index ? '−' : '+'
+              }}</span>
+            </button>
+            <div v-show="activeFaq === index" class="lp-faq-answer">
+              <p>{{ faq.answer }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -419,23 +407,28 @@ const EditIcon = () =>
 const featureCards = computed(() => {
   const cards = content.value.features.cards
   const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon]
-  const gradients = [
-    'linear-gradient(135deg, #f8e1a9, #f8e1a9)',
-    'linear-gradient(135deg, #C5DEB0, #f8e1a9)',
-    'linear-gradient(135deg, #c9984d, #f8e1a9)',
-    'linear-gradient(135deg, #7A8DA0, #C5DEB0)',
-  ]
 
   return cards.map((card, index) => ({
     ...card,
     icon: icons[index],
-    gradient: gradients[index],
   }))
 })
 
 // Computed FAQ items - Texte aus dem Landing-Content-Store (Admin-Overrides
 // mit i18n-Fallback).
 const faqItems = computed(() => content.value.faq.items)
+
+interface BenefitItem {
+  title: string
+  description: string
+}
+
+/** Vorteile-Karten (Kodini 23.11.2026, Muster Audio Normalizer); Texte aus i18n. */
+const benefitItems = computed<BenefitItem[]>(() => {
+  void locale.value
+  const items = t('benefits.items') as unknown
+  return Array.isArray(items) ? (items as BenefitItem[]) : []
+})
 
 // Blog-Karten: Beiträge aus src/data/blogArticles.js in der aktiven Sprache,
 // neuester zuerst. Datum wird sprachabhängig formatiert (de: 21. September 2026,
@@ -530,66 +523,7 @@ function toggleFaq(index: number) {
 .nav-link.active {
   color: var(--text-primary);
 }
-
 /* Hero Section */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 160px 24px 60px; /* Extra padding for global + local navigation */
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-content {
-  max-width: 700px;
-  text-align: center;
-  z-index: 1;
-}
-
-.hero-badge {
-  display: inline-block;
-  padding: 8px 20px;
-  background: var(--ds-accent-soft);
-  border: 1px solid var(--accent-primary);
-  border-radius: var(--ds-radius-full);
-  font-size: var(--ds-text-sm);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 28px;
-}
-
-.hero-title {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  font-weight: var(--ds-weight-bold);
-  line-height: 1.15;
-  margin: 0 0 24px 0;
-  color: var(--text-primary);
-}
-
-.gradient-text {
-  color: var(--accent-ink);
-}
-
-.hero-subtitle {
-  font-size: var(--ds-text-xl);
-  line-height: 1.7;
-  color: var(--text-muted);
-  margin: 0 0 40px 0;
-  max-width: 550px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
 
 .btn-primary {
   display: inline-flex;
@@ -609,26 +543,6 @@ function toggleFaq(index: number) {
   background: var(--accent-tertiary);
 }
 
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 32px;
-  background: var(--secondary-bg);
-  color: var(--text-primary);
-  font-size: var(--ds-text-lg);
-  font-weight: var(--ds-weight-semibold);
-  border: 1px solid var(--ds-border-strong);
-  border-radius: var(--ds-radius-md);
-  text-decoration: none;
-  transition: background-color var(--ds-duration) var(--ds-ease);
-}
-
-.btn-secondary:hover {
-  border-color: var(--ds-border-strong);
-  background: var(--btn-hover);
-}
-
 .btn-large {
   padding: 20px 44px;
   font-size: var(--ds-text-xl);
@@ -638,10 +552,6 @@ function toggleFaq(index: number) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.hero-visual {
-  display: none;
 }
 
 /* Section Styling */
@@ -665,60 +575,7 @@ function toggleFaq(index: number) {
   margin-left: auto;
   margin-right: auto;
 }
-
 /* Features Section */
-.features {
-  padding: 100px 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 28px;
-}
-
-.feature-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-lg);
-  padding: 36px 28px;
-  transition: border-color var(--ds-duration) var(--ds-ease);
-}
-
-.feature-card:hover {
-  border-color: var(--ds-border-strong);
-}
-
-.feature-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--ds-radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  color: var(--accent-text);
-}
-
-.feature-title {
-  font-size: var(--ds-text-xl);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-  margin: 0 0 12px 0;
-}
-
-.feature-description {
-  font-size: var(--ds-text-lg);
-  line-height: 1.7;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.light-theme .feature-description {
-  color: var(--text-muted);
-}
 
 /* Video Section */
 .demo-gif {
@@ -740,130 +597,7 @@ function toggleFaq(index: number) {
   border-radius: var(--ds-radius-lg);
   overflow: hidden;
 }
-
-.video-placeholder {
-  width: 100%;
-  height: 100%;
-  background: var(--card-bg);
-  border: 1px dashed var(--ds-border-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--ds-radius-lg);
-}
-
-.video-placeholder-content {
-  text-align: center;
-}
-
-.play-button {
-  width: 90px;
-  height: 90px;
-  background: var(--accent-primary);
-  border-radius: var(--ds-radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  color: var(--accent-text);
-  transition: background-color var(--ds-duration) var(--ds-ease);
-  cursor: pointer;
-}
-
-.play-button:hover {
-  background: var(--accent-tertiary);
-}
-
-.play-button svg {
-  margin-left: 6px;
-}
-
-.video-placeholder-text {
-  color: var(--text-muted);
-  font-size: var(--ds-text-lg);
-  margin: 0;
-}
-
 /* FAQ Section */
-.faq-section {
-  padding: 100px 24px;
-  max-width: 800px;
-  margin: 0 auto;
-  scroll-margin-top: 60px; /* Anker #faq: Titel knapp unter der Navigation */
-}
-
-.faq-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.faq-item {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--ds-radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all var(--ds-duration-slow) var(--ds-ease);
-}
-
-.light-theme .faq-item {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: var(--border-color);
-}
-
-.faq-item:hover {
-  border-color: var(--border-color);
-}
-
-.faq-item.active {
-  border-color: var(--accent-primary);
-}
-
-.faq-question {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24px 28px;
-  font-size: var(--ds-text-xl);
-  font-weight: var(--ds-weight-semibold);
-  color: var(--text-primary);
-}
-
-.faq-icon {
-  color: var(--accent-ink);
-  transition: transform var(--ds-duration-slow) var(--ds-ease);
-  flex-shrink: 0;
-  margin-left: 16px;
-}
-
-.faq-item.active .faq-icon {
-  transform: rotate(180deg);
-}
-
-.faq-answer {
-  max-height: 0;
-  overflow: hidden;
-  transition:
-    max-height var(--ds-duration-slow) var(--ds-ease),
-    padding var(--ds-duration-slow) var(--ds-ease);
-}
-
-.faq-item.active .faq-answer {
-  max-height: 300px;
-}
-
-.faq-answer p {
-  padding: 0 28px 24px;
-  margin: 0;
-  font-size: var(--ds-text-lg);
-  line-height: 1.7;
-  color: var(--text-secondary);
-}
-
-.light-theme .faq-answer p {
-  color: var(--text-muted);
-}
 
 /* Blog Section */
 .blog-section {
@@ -1005,34 +739,6 @@ function toggleFaq(index: number) {
   line-height: 1.7;
 }
 
-/* Responsive */
-@media (min-width: 768px) {
-  .hero {
-    flex-direction: row;
-    gap: 60px;
-    padding: 180px 48px 80px; /* Extra padding for global + local navigation */
-  }
-
-  .hero-content {
-    text-align: left;
-    flex: 1;
-  }
-
-  .hero-subtitle {
-    margin-left: 0;
-  }
-
-  .hero-actions {
-    justify-content: flex-start;
-  }
-
-  .hero-visual {
-    display: block;
-    flex: 1;
-    max-width: 520px;
-  }
-}
-
 @media (max-width: 768px) {
   .header-nav {
     display: none;
@@ -1049,27 +755,12 @@ function toggleFaq(index: number) {
     top: 0;
   }
 
-  .hero {
-    padding-top: 140px; /* Extra padding for global + local navigation */
-  }
-
-  .hero-title {
-    font-size: var(--ds-text-3xl);
-  }
-
-  .hero-subtitle {
-    font-size: var(--ds-text-lg);
-  }
-
-  .btn-primary,
-  .btn-secondary {
+  .btn-primary {
     width: 100%;
     justify-content: center;
   }
 
-  .features,
   .video-section,
-  .faq-section,
   .blog-section {
     padding: 60px 20px;
   }
@@ -1077,39 +768,8 @@ function toggleFaq(index: number) {
   .blog-card-body {
     padding: 20px 22px 24px;
   }
-
-  .feature-card {
-    padding: 28px 24px;
-  }
-
-  .faq-question {
-    padding: 20px 22px;
-    font-size: var(--ds-text-lg);
-  }
-
-  .faq-answer p {
-    padding: 0 22px 20px;
-    font-size: var(--ds-text-md);
-  }
 }
-
 /* ═══ Light Theme Overrides ═══ */
-
-[data-theme='light'] .feature-icon {
-  color: var(--text-primary);
-}
-
-[data-theme='light'] .feature-description {
-  color: var(--text-muted);
-}
-
-[data-theme='light'] .faq-item {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-[data-theme='light'] .faq-answer p {
-  color: var(--text-muted);
-}
 
 [data-theme='light'] .blog-card-meta,
 [data-theme='light'] .blog-card-description {
@@ -1186,33 +846,6 @@ function toggleFaq(index: number) {
 .nav-link.active {
   color: var(--ds-accent, #d4a257);
 }
-.hero {
-  /* .landing-page ist eine Flex-Spalte und .hero hat overflow: hidden:
-     ohne flex-shrink: 0 schrumpft der Hero unter seinen Inhalt und schneidet den Titel ab. */
-  flex-shrink: 0;
-  min-height: min(850px, 100svh);
-  width: 100%;
-  max-width: 1280px;
-  margin-inline: auto;
-  gap: clamp(32px, 4vw, 64px);
-  padding-inline: clamp(24px, 4vw, 56px);
-}
-.hero-content {
-  max-width: 620px;
-}
-.hero-title {
-  font-size: clamp(2.6rem, 5.1vw, 4.45rem);
-  letter-spacing: -0.045em;
-  line-height: 1.08;
-  color: var(--ds-text, #f2eee2);
-}
-.gradient-text {
-  color: var(--ds-accent, #d4a257);
-}
-.hero-subtitle {
-  color: var(--ds-text-2, #a7b3c4);
-  line-height: 1.75;
-}
 .btn-primary {
   background: var(--ds-accent, #d4a257);
   color: var(--ds-on-accent, #0a1324);
@@ -1224,58 +857,11 @@ function toggleFaq(index: number) {
   background: var(--ds-accent-hover, #e0b06a);
   border-color: var(--ds-accent-hover, #e0b06a);
 }
-.btn-secondary {
-  background: var(--ds-surface-1, #111d33);
-  color: var(--ds-text, #f2eee2);
-  border-color: var(--ds-border, #223553);
-}
-.btn-secondary:hover {
-  background: var(--ds-surface-2, #182741);
-  border-color: var(--ds-accent, #d4a257);
-}
-.hero-visual {
-  min-width: 0;
-}
 .section-title {
   color: var(--ds-text, #f2eee2);
   letter-spacing: -0.025em;
 }
 .section-subtitle {
-  color: var(--ds-text-2, #a7b3c4);
-}
-.features {
-  width: 100%;
-  max-width: 1220px;
-  padding-block: 84px;
-}
-.features-grid {
-  gap: 18px;
-}
-.feature-card {
-  background: var(--ds-surface-1, #111d33);
-  border-color: var(--ds-border, #223553);
-  padding: 30px 26px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-.feature-card:hover {
-  border-color: var(--ds-accent, #d4a257);
-  transform: translateY(-3px);
-}
-.feature-icon {
-  background: var(--ds-surface-2, #182741) !important;
-  color: var(--ds-accent, #d4a257);
-  width: 52px;
-  height: 52px;
-  border-radius: var(--ds-radius-md, 10px);
-}
-.feature-title {
-  color: var(--ds-text, #f2eee2);
-}
-.feature-description,
-.light-theme .feature-description {
   color: var(--ds-text-2, #a7b3c4);
 }
 /* Local light class is set by the existing Vue theme logic. */
@@ -1289,42 +875,6 @@ function toggleFaq(index: number) {
   --ds-accent: #c9984d;
   --ds-accent-hover: #b8842f;
   --ds-on-accent: #14213a;
-}
-@media (min-width: 768px) {
-  .hero {
-    padding-top: 170px;
-    padding-bottom: 90px;
-  }
-  .hero-content {
-    flex: 1 1 48%;
-  }
-  .hero-visual {
-    flex: 1 1 52%;
-    max-width: 580px;
-  }
-}
-@media (max-width: 767px) {
-  .hero {
-    min-height: auto;
-    padding: 150px 22px 76px;
-  }
-  .hero-title {
-    font-size: clamp(2.2rem, 9vw, 3.3rem);
-  }
-  .hero-content {
-    max-width: 620px;
-  }
-  .features {
-    padding-block: 65px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .feature-card {
-    transition: none;
-  }
-  .feature-card:hover {
-    transform: none;
-  }
 }
 
 /* =============================================================
@@ -1352,7 +902,7 @@ function toggleFaq(index: number) {
 }
 .header-nav .nav-link {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--ds-weight-medium);
   color: var(--ds-text-2, #a7b3c4);
   white-space: nowrap;
 }
@@ -1373,7 +923,7 @@ function toggleFaq(index: number) {
   background: var(--ds-accent, #d4a257);
   color: var(--ds-on-accent, #0a1324);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--ds-weight-bold);
   text-decoration: none;
   transition:
     background 0.18s ease,
@@ -1433,23 +983,16 @@ function toggleFaq(index: number) {
    Funktionskarten, Video-Demo, FAQ, Blog und Inhaltsbereiche
    Nur CSS. Vorhandene Templates, Scripts, Stores und URLs bleiben erhalten.
    ================================================================ */
-.landing-page .features,
 .landing-page .video-section,
-.landing-page .faq-section,
 .landing-page .blog-section {
   position: relative;
 }
-.landing-page .features,
 .landing-page .blog-section {
   max-width: 1240px;
   padding: clamp(64px, 7vw, 104px) 24px;
 }
 .landing-page .video-section {
   max-width: 1100px;
-  padding: clamp(64px, 7vw, 104px) 24px;
-}
-.landing-page .faq-section {
-  max-width: 880px;
   padding: clamp(64px, 7vw, 104px) 24px;
 }
 .landing-page .section-header {
@@ -1465,52 +1008,7 @@ function toggleFaq(index: number) {
   color: var(--ds-text-2, #a7b3c4);
   line-height: 1.65;
 }
-
 /* Cards: einheitliches Raster und ruhige, hochwertige Flächen */
-.landing-page .features-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-.landing-page .feature-card {
-  min-width: 0;
-  padding: clamp(24px, 2.5vw, 34px);
-  background: var(--ds-surface-1, #111d33);
-  border: 1px solid var(--ds-border, #223553);
-  border-radius: var(--ds-radius-lg, 16px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-.landing-page .feature-card:hover {
-  border-color: var(--ds-accent, #d4a257);
-  transform: translateY(-3px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
-}
-.landing-page .feature-icon {
-  width: 54px;
-  height: 54px;
-  margin-bottom: 24px;
-  background: var(--ds-surface-2, #182741) !important;
-  border: 1px solid var(--ds-border-strong, #2f4668);
-  border-radius: var(--ds-radius-md, 10px);
-  color: var(--ds-accent, #d4a257);
-}
-.landing-page .feature-icon svg {
-  width: 26px;
-  height: 26px;
-}
-.landing-page .feature-title {
-  color: var(--ds-text, #f2eee2);
-  letter-spacing: -0.02em;
-  line-height: 1.35;
-}
-.landing-page .feature-description,
-.landing-page.light-theme .feature-description {
-  color: var(--ds-text-2, #a7b3c4);
-  line-height: 1.7;
-}
 
 /* Vorhandene GIF-Demo bleibt unverändert eingebunden. */
 .landing-page .video-container {
@@ -1530,39 +1028,7 @@ function toggleFaq(index: number) {
   object-fit: cover;
   border-radius: 12px;
 }
-
 /* FAQ: Klickverhalten und Öffnungszustand bleiben Vue-gesteuert. */
-.landing-page .faq-list {
-  gap: 12px;
-}
-.landing-page .faq-item,
-.landing-page.light-theme .faq-item {
-  background: var(--ds-surface-1, #111d33);
-  border: 1px solid var(--ds-border, #223553);
-  border-radius: 12px;
-}
-.landing-page .faq-item:hover {
-  border-color: var(--ds-border-strong, #2f4668);
-}
-.landing-page .faq-item.active {
-  border-color: var(--ds-accent, #d4a257);
-}
-.landing-page .faq-question {
-  padding: 22px 24px;
-  color: var(--ds-text, #f2eee2);
-  font-size: clamp(15px, 1.6vw, 18px);
-  line-height: 1.45;
-  gap: 12px;
-}
-.landing-page .faq-icon {
-  color: var(--ds-accent, #d4a257);
-}
-.landing-page .faq-answer p,
-.landing-page.light-theme .faq-answer p {
-  padding: 0 24px 22px;
-  color: var(--ds-text-2, #a7b3c4);
-  font-size: 15px;
-}
 
 /* Blog: bestehende dynamische Artikel, Bilder und Links. */
 .landing-page .blog-grid {
@@ -1646,32 +1112,24 @@ function toggleFaq(index: number) {
 }
 
 /* Die Light-Theme-Tokens stammen aus dem bestehenden Designsystem. */
-.landing-page.light-theme .feature-card,
 .landing-page.light-theme .blog-card,
 .landing-page.light-theme .video-container,
 .landing-page.light-theme .cta-content {
   box-shadow: 0 12px 30px rgba(20, 33, 58, 0.07);
 }
 @media (max-width: 960px) {
-  .landing-page .features-grid,
   .landing-page .blog-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 620px) {
-  .landing-page .features,
   .landing-page .video-section,
-  .landing-page .faq-section,
   .landing-page .blog-section {
     padding-inline: 18px;
   }
-  .landing-page .features-grid,
   .landing-page .blog-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
-  }
-  .landing-page .feature-card {
-    padding: 24px;
   }
   .landing-page .video-container {
     padding: 5px;
@@ -1679,12 +1137,6 @@ function toggleFaq(index: number) {
   }
   .landing-page .demo-gif {
     border-radius: 9px;
-  }
-  .landing-page .faq-question {
-    padding: 19px 18px;
-  }
-  .landing-page .faq-answer p {
-    padding: 0 18px 20px;
   }
   .landing-page .cta-content {
     padding: 28px 20px;
@@ -1697,64 +1149,21 @@ function toggleFaq(index: number) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .landing-page .feature-card,
   .landing-page .blog-card,
   .landing-page .blog-card-media img {
     transition: none;
   }
-  .landing-page .feature-card:hover,
   .landing-page .blog-card:hover,
   .landing-page .blog-card:hover .blog-card-media img {
     transform: none;
   }
 }
-
 /* =====================================================================
    KODINITOOLS LANDINGPAGE · ETAPPE 4
    Hero-Visualizer und finaler Startbereich. Nur Darstellung.
    Original-Token-Palette, ohne Cyan- oder Neon-Verläufe.
    ===================================================================== */
-.landing-page .hero {
-  isolation: isolate;
-}
-.landing-page .hero-visual {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  padding: clamp(8px, 1.2vw, 14px);
-  border: 1px solid var(--ds-border-strong, #2f4668);
-  border-radius: calc(var(--ds-radius-lg, 16px) + 8px);
-  background: var(--ds-surface-1, #111d33);
-  box-shadow:
-    0 26px 68px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(212, 162, 87, 0.04) inset;
-}
-.landing-page .hero-visual::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 18%;
-  right: 18%;
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--ds-accent, #d4a257), transparent);
-  pointer-events: none;
-}
-.landing-page .hero-visual :deep(.hero-showcase) {
-  border: 1px solid var(--ds-border, #223553);
-  border-radius: var(--ds-radius-lg, 16px);
-}
-.landing-page .hero-title {
-  text-wrap: balance;
-}
-.landing-page .hero-subtitle {
-  max-width: 55ch;
-}
-.landing-page .hero-actions {
-  align-items: center;
-  gap: 14px;
-}
-.landing-page .hero-actions .btn-primary,
+
 .landing-page .cta-section .btn-primary {
   min-height: 50px;
   border: 1px solid var(--ds-accent, #d4a257);
@@ -1768,25 +1177,12 @@ function toggleFaq(index: number) {
     transform 0.18s ease,
     box-shadow 0.18s ease;
 }
-.landing-page .hero-actions .btn-primary:hover,
 .landing-page .cta-section .btn-primary:hover {
   background: var(--ds-accent-hover, #e0b06a);
   border-color: var(--ds-accent-hover, #e0b06a);
   transform: translateY(-2px);
   box-shadow: 0 14px 34px rgba(212, 162, 87, 0.19);
 }
-.landing-page .hero-actions .btn-secondary {
-  min-height: 50px;
-  border: 1px solid var(--ds-border-strong, #2f4668);
-  border-radius: var(--ds-radius-md, 10px);
-  background: var(--ds-surface-1, #111d33);
-  color: var(--ds-text, #f2eee2);
-}
-.landing-page .hero-actions .btn-secondary:hover {
-  border-color: var(--ds-accent, #d4a257);
-  background: var(--ds-surface-2, #182741);
-}
-.landing-page .hero-actions a:focus-visible,
 .landing-page .cta-section a:focus-visible {
   outline: 2px solid var(--ds-accent, #d4a257);
   outline-offset: 4px;
@@ -1818,41 +1214,18 @@ function toggleFaq(index: number) {
 .landing-page .cta-subtitle {
   line-height: 1.7;
 }
-.landing-page.light-theme .hero-visual,
 .landing-page.light-theme .cta-content {
   box-shadow: 0 16px 42px rgba(20, 33, 58, 0.1);
 }
-@media (max-width: 960px) {
-  .landing-page .hero-visual {
-    max-width: 720px;
-    margin-inline: auto;
-  }
-}
 @media (max-width: 620px) {
-  .landing-page .hero-visual {
-    padding: 6px;
-    border-radius: 16px;
-  }
-  .landing-page .hero-visual :deep(.hero-showcase) {
-    border-radius: 10px;
-  }
-  .landing-page .hero-actions {
-    gap: 10px;
-  }
-  .landing-page .hero-actions .btn-primary,
-  .landing-page .hero-actions .btn-secondary {
-    min-height: 46px;
-  }
   .landing-page .cta-content {
     border-radius: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .landing-page .hero-actions .btn-primary,
   .landing-page .cta-section .btn-primary {
     transition: none;
   }
-  .landing-page .hero-actions .btn-primary:hover,
   .landing-page .cta-section .btn-primary:hover {
     transform: none;
   }
@@ -1865,26 +1238,18 @@ function toggleFaq(index: number) {
 .landing-page {
   min-width: 0;
 }
-.landing-page .hero-content,
-.landing-page .hero-visual,
-.landing-page .feature-card,
 .landing-page .blog-card,
 .landing-page .cta-content {
   min-width: 0;
 }
-.landing-page .hero-title,
 .landing-page .section-title,
-.landing-page .feature-title,
 .landing-page .blog-card-title {
   overflow-wrap: break-word;
 }
-.landing-page .feature-description,
 .landing-page .section-subtitle,
-.landing-page .hero-subtitle,
 .landing-page .cta-subtitle {
   overflow-wrap: anywhere;
 }
-.landing-page .features-grid,
 .landing-page .blog-grid {
   min-width: 0;
 }
@@ -1900,27 +1265,8 @@ function toggleFaq(index: number) {
   outline-offset: 3px;
 }
 @media (max-width: 620px) {
-  .landing-page .hero-content,
   .landing-page .section-header {
     min-width: 0;
-  }
-  .landing-page .hero-actions {
-    flex-wrap: wrap;
-  }
-  .landing-page .hero-actions > a {
-    max-width: 100%;
-  }
-  .landing-page .hero-visual {
-    max-width: 100%;
-  }
-}
-@media (max-width: 380px) {
-  .landing-page .hero-visual {
-    padding: 5px;
-  }
-  .landing-page .hero-actions > a {
-    width: 100%;
-    justify-content: center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1947,5 +1293,309 @@ function toggleFaq(index: number) {
 .landing-page.light-theme .btn-primary:hover {
   background: var(--landing-btn-bg-hover);
   border-color: var(--landing-btn-bg-hover);
+}
+
+/* =====================================================================
+   Landingpage nach Muster Audio Normalizer (Kodini 23.11.2026).
+   Werte 1:1 aus dem Normalizer (LandingPage.vue + kodini-layout-stage1.css),
+   gemessen bei 1440 / 900 / 390 px. Schrift durchgehend Supreme Regular.
+   ===================================================================== */
+.landing-page {
+  --lp-layout-width: 1160px;
+  --lp-gutter: clamp(var(--ds-space-3), 3vw, var(--ds-space-6));
+  /* Unterkante der fixierten Kopfzeile (unter der globalen Navigation). */
+  --lp-header-offset: 137px;
+  --ds-weight-medium: 400;
+  --ds-weight-semibold: 400;
+  --ds-weight-bold: 400;
+
+  font-weight: var(--ds-weight-regular);
+  font-synthesis: none;
+  font-size: var(--ds-text-md);
+  line-height: var(--ds-leading);
+  background-color: var(--ds-surface-0);
+  background-image:
+    radial-gradient(ellipse at 85% 0%, var(--ds-glow-cyan), transparent 68%),
+    radial-gradient(ellipse at 12% 0%, var(--ds-glow-blue), transparent 62%);
+  background-repeat: no-repeat;
+  background-size: 100% 42rem;
+}
+.landing-page :is(h1, h2, h3, h4, strong, b, th, button) {
+  font-weight: var(--ds-weight-regular);
+}
+
+.lp-container {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--lp-layout-width);
+  margin: 0 auto;
+  padding-inline: var(--lp-gutter);
+}
+
+/* Hero */
+.lp-hero {
+  flex-shrink: 0;
+  padding-block: calc(var(--lp-header-offset) + clamp(var(--ds-space-8), 7vw, 6rem))
+    clamp(var(--ds-space-8), 5vw, 4rem);
+}
+.lp-hero > .lp-container {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(var(--ds-space-6), 5vw, var(--ds-space-16));
+}
+.lp-hero-content {
+  margin: 0;
+  max-width: 680px;
+  text-align: start;
+}
+.lp-hero-title {
+  margin: 0 0 var(--ds-space-3);
+  font-size: clamp(2.25rem, 5.25vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  color: var(--ds-text);
+  overflow-wrap: anywhere;
+}
+.lp-hero-subtitle {
+  margin: 0 0 var(--ds-space-3);
+  font-size: var(--ds-text-lg);
+  line-height: var(--ds-leading);
+  color: var(--ds-heading-accent);
+}
+.lp-hero-description {
+  margin: 0 0 var(--ds-space-6);
+  font-size: var(--ds-text-md);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
+}
+.lp-btn-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--ds-control-lg);
+  padding: 0 var(--ds-space-5);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+  font-size: var(--ds-text-lg);
+  line-height: var(--ds-leading);
+  text-decoration: none;
+  transition: background-color var(--ds-duration) var(--ds-ease);
+}
+.lp-btn-hero:hover {
+  background: var(--ds-accent-hover);
+  color: var(--ds-on-accent);
+}
+.lp-btn-hero:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+.lp-hero-media {
+  max-width: 800px;
+  margin: 0;
+  border: var(--ds-border-width) solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-lg);
+  overflow: hidden;
+  background: var(--ds-surface-2);
+  box-shadow: var(--ds-shadow-overlay);
+}
+/* Live-Vorschau füllt den Bildrahmen wie das 1120 × 630-Bild des Normalizers. */
+.lp-hero-media :deep(.hero-showcase) {
+  aspect-ratio: 1120 / 630;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Funktionen, Vorteile, FAQ */
+.lp-features,
+.lp-benefits,
+.lp-faq {
+  flex-shrink: 0;
+  padding-block: clamp(var(--ds-space-8), 5vw, var(--ds-space-16));
+}
+.lp-features,
+.lp-faq {
+  background: var(--ds-surface-1);
+  border-top: var(--ds-border-width) solid var(--ds-border);
+  border-bottom: var(--ds-border-width) solid var(--ds-border);
+  scroll-margin-top: var(--lp-header-offset);
+}
+.lp-section-title {
+  margin: 0 0 var(--ds-space-8);
+  text-align: center;
+  font-size: var(--ds-text-2xl);
+  line-height: var(--ds-leading-tight);
+  letter-spacing: var(--ds-tracking-tight);
+  color: var(--ds-text);
+}
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: var(--ds-gap);
+}
+.lp-card {
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-5);
+  background: linear-gradient(150deg, var(--ds-surface-1), var(--ds-surface-0));
+  transition: border-color var(--ds-duration) var(--ds-ease);
+}
+.lp-card:hover {
+  border-color: var(--ds-border-strong);
+}
+.lp-feature-icon {
+  font-size: var(--ds-text-xl);
+  line-height: var(--ds-leading);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-control-lg);
+  height: var(--ds-control-lg);
+  margin-bottom: var(--ds-space-3);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-2);
+  color: var(--ds-text);
+}
+.lp-feature-icon :deep(svg) {
+  width: 20px;
+  height: 20px;
+}
+.lp-card h3 {
+  margin: 0 0 var(--ds-space-2);
+  font-size: var(--ds-text-lg);
+  line-height: var(--ds-leading-tight);
+  color: var(--ds-text);
+}
+.lp-card p {
+  margin: 0;
+  font-size: var(--ds-text-md);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
+}
+.lp-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.lp-faq-item {
+  overflow: hidden;
+  border: var(--ds-border-width) solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: linear-gradient(150deg, var(--ds-surface-1), var(--ds-surface-0));
+  transition: border-color var(--ds-duration) var(--ds-ease);
+}
+.lp-faq-item:hover,
+.lp-faq-open {
+  border-color: var(--ds-border-strong);
+}
+.lp-faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--ds-row-height);
+  padding: var(--ds-space-3) var(--ds-space-5);
+  border: none;
+  background: none;
+  color: var(--ds-text);
+  font: inherit;
+  font-size: var(--ds-text-lg);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ds-duration) var(--ds-ease);
+}
+.lp-faq-question:hover {
+  background: var(--ds-surface-2);
+}
+.lp-faq-question:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ds-accent);
+}
+.lp-faq-icon {
+  flex-shrink: 0;
+  font-size: var(--ds-text-xl);
+  line-height: var(--ds-leading);
+  color: var(--ds-text-2);
+}
+.lp-faq-answer {
+  padding: 0 var(--ds-space-5) var(--ds-space-4);
+  font-size: var(--ds-text-md);
+  color: var(--ds-text-2);
+}
+.lp-faq-answer p {
+  margin: 0;
+}
+
+/* Heller Modus: Knopf wie die übrigen gefüllten Knöpfe (PR #929). */
+.landing-page.light-theme .lp-btn-hero {
+  background: var(--landing-btn-bg);
+  color: #ffffff;
+}
+.landing-page.light-theme .lp-btn-hero:hover {
+  background: var(--landing-btn-bg-hover);
+}
+
+@media (max-width: 768px) {
+  .lp-section-title {
+    margin-bottom: var(--ds-space-6);
+    font-size: var(--ds-text-xl);
+  }
+  .lp-grid {
+    grid-template-columns: 1fr;
+  }
+  .lp-faq-question {
+    padding: var(--ds-space-3) var(--ds-space-4);
+    font-size: var(--ds-text-md);
+  }
+  .lp-faq-answer {
+    padding: 0 var(--ds-space-4) var(--ds-space-3);
+  }
+}
+@media (max-width: 760px) {
+  .landing-page {
+    --lp-header-offset: 125px;
+  }
+  .lp-hero > .lp-container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lp-hero-media :deep(.hero-showcase-name) {
+    font-size: var(--ds-text-xs);
+  }
+}
+@media (max-width: 600px) {
+  .landing-page {
+    --lp-header-offset: 115px;
+  }
+}
+@media (max-width: 480px) {
+  .lp-hero-subtitle {
+    font-size: var(--ds-text-md);
+  }
+  .lp-hero-media {
+    border-radius: var(--ds-radius-md);
+  }
+  .lp-btn-hero {
+    width: 100%;
+    max-width: 320px;
+    height: var(--ds-row-height);
+  }
+  .lp-card {
+    padding: var(--ds-space-4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-btn-hero,
+  .lp-card,
+  .lp-faq-item,
+  .lp-faq-question {
+    transition: none;
+  }
 }
 </style>

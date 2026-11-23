@@ -83,8 +83,10 @@ const EXCEPTIONS: Record<string, Rule[]> = {
   [join('styles', 'kodini-visualizer-phase5.css')]: ['color'],
   [join('styles', 'kodini-visualizer-overlays.css')]: ['color'],
   // Landingpage Etappe 1+2: Farbwerte nur als var()-Fallback, Schatten, Hover-Anhebung, px-Schriftgrößen im Header.
+  // Seit 23.11.2026 (Muster Audio Normalizer): Seiten-Glows und Kartenverläufe aus Tokens.
   [join('components', 'LandingPage.vue')]: [
     'color',
+    'gradient',
     'shadow',
     'fontSize',
     'radius',

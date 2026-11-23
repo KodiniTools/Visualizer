@@ -443,7 +443,7 @@ defineExpose({ showNext, togglePlaying })
   border: 1px solid rgba(242, 238, 226, 0.14);
   background: rgba(10, 19, 36, 0.84);
   color: #f2eee2;
-  font-weight: 600;
+  font-weight: var(--ds-weight-semibold);
   backdrop-filter: blur(10px);
 }
 .hero-showcase-actions {

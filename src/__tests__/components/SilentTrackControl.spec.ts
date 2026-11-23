@@ -38,19 +38,18 @@ const addButton = () => wrapper.get('[data-testid="silent-track-add"]')
 const feedback = () => wrapper.find('[data-testid="silent-track-feedback"]')
 
 describe('SilentTrackControl', () => {
-  it('zeigt Titel, Hinweis, freies Eingabefeld statt fester Auswahl', () => {
+  it('Audio-Panel: ohne Titel und Beschreibung, freies Eingabefeld statt fester Auswahl', () => {
     mountControl()
-    expect(wrapper.text()).toContain(de.silentTrack.title)
-    expect(wrapper.text()).toContain(de.silentTrack.hint)
+    expect(wrapper.text()).not.toContain(de.silentTrack.title)
+    expect(wrapper.find('.silent-track__title').exists()).toBe(false)
     expect(wrapper.find('select').exists()).toBe(false)
     expect(input().element.value).toBe('2:00')
     expect(feedback().text()).toBe(de.silentTrack.durationHint.replace('{max}', '3:00:00'))
   })
 
-  it('kompakt (Playlist-Popover): ohne Hinweistexte', () => {
+  it('kompakt (Playlist-Popover): Titel, aber ohne Hinweistexte', () => {
     mountControl({ compact: true })
     expect(wrapper.text()).toContain(de.silentTrack.title)
-    expect(wrapper.text()).not.toContain(de.silentTrack.hint)
     expect(feedback().exists()).toBe(false)
     expect(input().attributes('aria-describedby')).toBeUndefined()
   })

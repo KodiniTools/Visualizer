@@ -953,7 +953,6 @@ export default {
   // ========== OHNE TRACK ABSPIELEN (STILLE) ==========
   silentTrack: {
     title: 'Ohne Track abspielen',
-    hint: 'Fügt Stille als Zeitachse hinzu. Visualizer und Beat-Drop-Marker laufen ab, Ton kommt über Marker mit Track oder Video.',
     duration: 'Länge der Stille',
     durationHint: 'Beliebige Länge, z. B. 4:30 oder 1:15:00 (max. {max})',
     durationInvalid: 'Bitte als m:ss oder h:mm:ss eingeben, z. B. 4:30',

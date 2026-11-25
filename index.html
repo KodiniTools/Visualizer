@@ -129,7 +129,8 @@
         .global-nav a:hover, .site-nav a:hover, body > nav:first-of-type a:hover, body > header:first-of-type a:hover { color: var(--accent-tertiary, #f8e1a9) !important; }
         .global-nav *:not(.global-nav-theme-toggle):not(.global-nav-theme-icon):not(.global-nav-lang-btn):not(.global-nav-lang-switcher), .site-nav *, nav.global *, header.global *, body > nav:first-of-type *, body > header:first-of-type * { color: inherit !important; }
         /* Aktive Sprache: gefülltes Gold mit weisser Schrift wie in den anderen Tools (statt --accent-color der Navigation, blau). */
-        html body .global-nav .global-nav-lang-btn.active { background: #8f6320 !important; color: #ffffff !important; }
+        html body .global-nav .global-nav-lang-btn.active { background: #8f6320 linear-gradient(180deg, #9c6c26 0%, #7a5218 45%, #4a2f0a 100%) !important; color: #ffffff !important; }
+        html body .global-nav .global-nav-lang-btn.active:hover { background: #7d561c linear-gradient(180deg, #8c5f1f 0%, #6a4614 45%, #402908 100%) !important; }
         .global-nav span, .global-nav label, .site-nav span, .site-nav label, body > nav:first-of-type span, body > header:first-of-type span { color: var(--text-primary, #E9E9EB) !important; }
     </style>
 

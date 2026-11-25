@@ -1,0 +1,51 @@
+/* ==========================================================================
+   Gefüllte Gold-Buttons · dunkelgold mit weisser Schrift und Verlauf
+   --------------------------------------------------------------------------
+   Einheitlich mit den übrigen KodiniTools (Equalizer-19-Muster): Fläche
+   #8f6320 als Rückfall, darüber der dreistufige Verlauf. Jeder Stopp erreicht
+   mit Weiss mindestens 4,5:1. Gilt in Hell und Dunkel, auch dort, wo die App
+   im hellen Theme bisher einen blauen Akzent hatte.
+
+   #app hebt die Spezifität über die scoped Styles der Seiten und Komponenten.
+   Flach bleiben bewusst: Schalter, Slider, Fortschritt, Abzeichen, Checkboxen.
+   ========================================================================== */
+:root {
+  --kt-gold-fill: #8f6320;
+  --kt-gold-fill-hover: #7d561c;
+  --kt-on-gold-fill: #ffffff;
+  --kt-gold-grad: linear-gradient(180deg, #9c6c26 0%, #7a5218 45%, #4a2f0a 100%);
+  --kt-gold-grad-hover: linear-gradient(180deg, #8c5f1f 0%, #6a4614 45%, #402908 100%);
+}
+
+#app
+  :is(
+    .ui-button--primary,
+    .ui-icon-button--primary,
+    .landing-page .landing-header-cta,
+    .landing-page .lp-btn-hero,
+    .landing-page .btn-primary,
+    .blog-page .nav-cta,
+    .blog-page .toc-cta,
+    .blog-page .btn-primary,
+    .internal-landing .btn-primary
+  ) {
+  border-color: transparent;
+  background: var(--kt-gold-fill) var(--kt-gold-grad);
+  color: var(--kt-on-gold-fill);
+}
+
+#app
+  :is(
+    .ui-button--primary,
+    .ui-icon-button--primary,
+    .landing-page .landing-header-cta,
+    .landing-page .lp-btn-hero,
+    .landing-page .btn-primary,
+    .blog-page .nav-cta,
+    .blog-page .toc-cta,
+    .blog-page .btn-primary,
+    .internal-landing .btn-primary
+  ):hover:not(:disabled) {
+  background: var(--kt-gold-fill-hover) var(--kt-gold-grad-hover);
+  color: var(--kt-on-gold-fill);
+}

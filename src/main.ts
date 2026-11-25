@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './router'
 import './design-system/tokens-v2.css'
+import './design-system/kodini-gold-buttons.css'
 // Theme früh initialisieren (data-theme aus localStorage) – unabhängig davon,
 // ob die Start-Route Landing (lazy) oder App ist.
 import './lib/theme'

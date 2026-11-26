@@ -34,7 +34,12 @@
     <section class="lp-hero">
       <div class="lp-container">
         <div class="lp-hero-content">
-          <h1 class="lp-hero-title">{{ t('hero.badge') }}</h1>
+          <h1 class="lp-hero-title">
+            <span class="lp-hero-title-gold">{{ heroTitle.first }}</span
+            ><template v-if="heroTitle.rest"
+              >{{ ' ' }}<span class="lp-hero-title-blue">{{ heroTitle.rest }}</span></template
+            >
+          </h1>
           <p class="lp-hero-subtitle">{{ t('hero.tagline') }}</p>
           <p class="lp-hero-description">{{ content.hero.subtitle }}</p>
           <router-link to="/app" class="lp-btn-hero"
@@ -404,6 +409,12 @@ const EditIcon = () =>
 
 // Computed feature cards - Texte aus dem Landing-Content-Store (Admin-Overrides
 // mit i18n-Fallback), Icons/Gradients bleiben fest.
+/** Hero-Titel zweifarbig (Kodini 26.11.2026): erstes Wort Gold, der Rest Logo-Blau. */
+const heroTitle = computed(() => {
+  const [first = '', ...rest] = String(t('hero.badge')).trim().split(/\s+/)
+  return { first, rest: rest.join(' ') }
+})
+
 const featureCards = computed(() => {
   const cards = content.value.features.cards
   const icons = [MusicIcon, GridIcon, VideoIcon, EditIcon]
@@ -1356,6 +1367,21 @@ function toggleFaq(index: number) {
   letter-spacing: -0.045em;
   color: var(--ds-text);
   overflow-wrap: anywhere;
+}
+/* Titelfarben (Kodini 26.11.2026): Gold und Logo-Blau, im Dunkelmodus jeweils die hellere Stufe. */
+.landing-page {
+  --lp-title-gold: #e6bc76;
+  --lp-title-blue: #48a0d8;
+}
+.landing-page.light-theme {
+  --lp-title-gold: #775115;
+  --lp-title-blue: #0058a0;
+}
+.lp-hero-title-gold {
+  color: var(--lp-title-gold);
+}
+.lp-hero-title-blue {
+  color: var(--lp-title-blue);
 }
 .lp-hero-subtitle {
   margin: 0 0 var(--ds-space-3);

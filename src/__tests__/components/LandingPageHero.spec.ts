@@ -71,6 +71,16 @@ describe('LandingPage – Hero und Vorteile nach Muster Audio Normalizer', () =>
     expect(wrapper.find('.lp-hero-description').text()).toBe(en.hero.subtitle)
   })
 
+  it('Hero-Titel zweifarbig: erstes Wort Gold, Rest Blau, Text unverändert', async () => {
+    const h1 = wrapper.find('h1.lp-hero-title')
+    expect(h1.text()).toBe(de.hero.badge)
+    expect(h1.find('.lp-hero-title-gold').text()).toBe('Audio')
+    expect(h1.find('.lp-hero-title-blue').text()).toBe('Visualizer')
+    await setLocale('en')
+    await flushPromises()
+    expect(wrapper.find('h1.lp-hero-title').text()).toBe(en.hero.badge)
+  })
+
   it('Vorteile: sechs Karten in DE und EN', async () => {
     const titles = () => wrapper.findAll('.lp-benefit-card h3').map((h) => h.text())
     expect(wrapper.find('.lp-benefits .lp-section-title').text()).toBe(de.benefits.title)

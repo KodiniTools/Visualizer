@@ -21,6 +21,7 @@ const ENGINE_KEYS = [
   'connectVideoToRecording',
   'disconnectVideoFromRecording',
   'getAudioStreamForRecorder',
+  'getToneGains',
   'setBassGain',
   'setPlayerDuck',
   'setTrackOverlayVolume',

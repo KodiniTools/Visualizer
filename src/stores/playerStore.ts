@@ -45,6 +45,12 @@ export const usePlayerStore = defineStore('player', () => {
   // und Aufnahme laufen weiter, die eingestellte Lautstärke bleibt erhalten
   const isMuted = ref(false)
 
+  // Offline-Export: Die Zeitachse läuft ohne Ton (Audio-Element pausiert),
+  // die Position setzt der Export pro Frame. Events des Audio-Elements
+  // (play/pause/timeupdate/ended) werden solange ignoriert.
+  const offlinePlayback = ref(false)
+  let offlinePosition = 0
+
   // === GETTERS (Abgeleitete Daten, wie computed) ===
   const hasTracks = computed(() => playlist.value.length > 0)
   const currentTrack = computed(() =>
@@ -112,16 +118,19 @@ export const usePlayerStore = defineStore('player', () => {
   // === EVENT HANDLERS ===
 
   function handlePlay() {
+    if (offlinePlayback.value) return
     isPlaying.value = true
     console.log('[PlayerStore] Playing')
   }
 
   function handlePause() {
+    if (offlinePlayback.value) return
     isPlaying.value = false
     console.log('[PlayerStore] Paused')
   }
 
   function handleEnded() {
+    if (offlinePlayback.value) return
     isPlaying.value = false
     console.log('[PlayerStore] Track ended, playMode:', playMode.value)
 
@@ -173,6 +182,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   function handleTimeUpdate() {
+    if (offlinePlayback.value) return
     if (audioRef.value) {
       currentTime.value = audioRef.value.currentTime
     }
@@ -300,6 +310,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   function togglePlayPause() {
+    if (offlinePlayback.value) return // Offline-Export steuert die Zeitachse
     if (!audioRef.value || !hasTracks.value) {
       console.warn('[PlayerStore] Cannot toggle play/pause: no audio or tracks')
       return
@@ -335,6 +346,7 @@ export const usePlayerStore = defineStore('player', () => {
   // ✨ WICHTIG: Next/Prev Tracks spielen NICHT automatisch ab
   // Sie laden nur den Track, außer der Player war bereits am Abspielen
   function nextTrack() {
+    if (offlinePlayback.value) return // Offline-Export steuert die Zeitachse
     if (!hasTracks.value) return
     const wasPlaying = isPlaying.value
     const newIndex = (currentTrackIndex.value + 1) % playlist.value.length
@@ -351,6 +363,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   function prevTrack() {
+    if (offlinePlayback.value) return // Offline-Export steuert die Zeitachse
     if (!hasTracks.value) return
     const wasPlaying = isPlaying.value
     const newIndex = (currentTrackIndex.value - 1 + playlist.value.length) % playlist.value.length
@@ -367,6 +380,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   function seekTo(time: number) {
+    if (offlinePlayback.value) return // Offline-Export steuert die Zeitachse
     if (!audioRef.value) return
     audioRef.value.currentTime = time
     currentTime.value = time
@@ -381,6 +395,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   /** Präzise Wiedergabeposition direkt vom Audio-Element (Sekunden). */
   function getPreciseTime() {
+    if (offlinePlayback.value) return offlinePosition
     const t = audioRef.value?.currentTime
     return typeof t === 'number' && !isNaN(t) ? t : currentTime.value
   }
@@ -406,6 +421,48 @@ export const usePlayerStore = defineStore('player', () => {
         console.error('⚠️ [Player] Frame-Listener fehlgeschlagen:', e)
       }
     }
+  }
+
+  // ══════════════════ Offline-Export ══════════════════
+
+  /**
+   * Startet die stumme Wiedergabe des Offline-Exports bei 0 s: Das
+   * Audio-Element wird angehalten, `isPlaying` ist trotzdem true, damit
+   * Beat-Marker und Render-Schleife wie beim Abspielen reagieren.
+   */
+  function beginOfflinePlayback() {
+    const audio = audioRef.value
+    offlinePlayback.value = true
+    if (audio && !audio.paused) audio.pause()
+    setOfflinePosition(0)
+    isPlaying.value = true
+  }
+
+  /** Position der Offline-Wiedergabe setzen (s); wirkt nur während des Exports. */
+  function setOfflinePosition(time: number) {
+    if (!offlinePlayback.value) return
+    const t = Number.isFinite(time) && time > 0 ? time : 0
+    offlinePosition = t
+    currentTime.value = t
+    const audio = audioRef.value
+    // Videos richten sich nach der Position des Audio-Elements (videoManager)
+    if (audio) {
+      try {
+        audio.currentTime = t
+      } catch {
+        // ohne geladene Quelle nicht setzbar – die Store-Position genügt
+      }
+    }
+  }
+
+  /** Offline-Wiedergabe beenden: angehalten an `restoreTime` (s). */
+  function endOfflinePlayback(restoreTime = 0) {
+    if (!offlinePlayback.value) return
+    offlinePlayback.value = false
+    isPlaying.value = false
+    const t = Number.isFinite(restoreTime) && restoreTime > 0 ? restoreTime : 0
+    seekTo(t)
+    currentTime.value = t
   }
 
   function clearPlaylist() {
@@ -493,5 +550,9 @@ export const usePlayerStore = defineStore('player', () => {
     getPreciseTime,
     onFrame,
     notifyFrame,
+    offlinePlayback,
+    beginOfflinePlayback,
+    setOfflinePosition,
+    endOfflinePlayback,
   }
 })

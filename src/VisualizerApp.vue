@@ -171,6 +171,8 @@ import {
 } from './composables/visualizerApp/canvasSync'
 import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup'
 import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents'
+import { createOfflineScene } from './composables/visualizerApp/offlineScene'
+import { registerOfflineScene } from './lib/offlineExport/offlineSceneBridge'
 
 import type { CanvasManager } from './lib/canvasManager'
 import type { FotoManager } from './lib/fotoManager'
@@ -423,6 +425,8 @@ watch(
 // Die Seitenleisten werden einen Task nach dem Grundgerüst gerendert, damit
 // der erste Mount nicht als ein einziger langer Task den Main-Thread blockiert.
 const sidePanelsReady = ref(false)
+// Offline-Export (RecorderPanel) rendert über diese Szene
+let unregisterOfflineScene: (() => void) | null = null
 
 onMounted(async () => {
   void yieldToMain().then(() => {
@@ -458,6 +462,9 @@ onMounted(async () => {
   // Recording redraw listener
   renderLoop.setupRecordingRedrawListener()
   renderLoop.registerScreenshot(canvasManagerInstance)
+  unregisterOfflineScene = registerOfflineScene(
+    createOfflineScene({ renderLoop, canvasRef, canvasManagerInstance }),
+  )
 
   // HQ Frame Capture
   bindHqCaptureEvents({ getRecordingCanvas, startCapture, stopCapture })
@@ -521,6 +528,8 @@ onActivated(() => {
 })
 
 onUnmounted(() => {
+  unregisterOfflineScene?.()
+  unregisterOfflineScene = null
   stopVisualizerLoop()
   audioEngine.cleanup()
   renderLoop.cleanup()

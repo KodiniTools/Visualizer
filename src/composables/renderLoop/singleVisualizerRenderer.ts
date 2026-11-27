@@ -50,6 +50,11 @@ export function createSingleVisualizerRenderer({
   // Main-Thread-Fallback
   let cache: SizedCanvas | null = null
 
+  // Offline-Export: synchron auf dem Main-Thread rendern (der Worker liefert
+  // sein Bild erst einen Frame später)
+  let forceMainThread = false
+  const useWorker = () => workerActive && !forceMainThread
+
   // Reaktionsquelle: Hüllkurve + Scratch-Puffer (Main-Thread, damit Worker-
   // und Fallback-Pfad identische Daten sehen)
   const react: ReactGateState = { env: 0, buf: null }
@@ -124,14 +129,14 @@ export function createSingleVisualizerRenderer({
 
     workerManager.cleanupVisualizerState()
     const previous = lastVisualizerId ? Visualizers[lastVisualizerId] : undefined
-    if (!workerActive && previous) {
+    if (!useWorker() && previous) {
       try {
         previous.cleanup?.()
       } catch {
         // Aufräumen ist best effort
       }
     }
-    if (!workerActive) visualizer.init?.(width, height)
+    if (!useWorker()) visualizer.init?.(width, height)
     if (canvasResized) workerManager.resizeVisualizerCanvas(width, height)
     // Trail-Verlauf zurücksetzen, damit ein neuer Visualizer / eine neue Größe nicht nachzieht
     const proc = getMainPostProcessor()
@@ -285,7 +290,7 @@ export function createSingleVisualizerRenderer({
       : audioData
     const vizAudio = gateAudioData(rawAudio, visualizerStore, react, !!visualizer.needsTimeData)
 
-    return workerActive
+    return useWorker()
       ? renderInWorker(visualizerId, visualizer, vizAudio, bufferLength, width, height)
       : renderOnMainThread(visualizerId, visualizer, vizAudio, bufferLength, width, height)
   }
@@ -299,7 +304,7 @@ export function createSingleVisualizerRenderer({
     const currentOptions = () => scaledDrawOptions(Visualizers[visualizerStore.selectedVisualizer])
     // Off-thread: das letzte Frame liegt im Worker-Bitmap, nicht im Cache –
     // Aufnahme/Screenshot müssen es ebenfalls zeichnen.
-    if (workerActive && workerBitmap) {
+    if (useWorker() && workerBitmap) {
       const bitmap = workerBitmap
       return (targetCtx, width, height) => {
         drawScaledVisualizer(
@@ -330,6 +335,27 @@ export function createSingleVisualizerRenderer({
     return null
   }
 
+  /**
+   * Main-Thread-Rendern erzwingen (Offline-Export) bzw. wieder freigeben.
+   * Der Visualizer wird beim nächsten Frame im jeweiligen Pfad neu
+   * initialisiert; die Main-Thread-Instanz wird beim Verlassen aufgeräumt.
+   */
+  function setForceMainThread(enabled: boolean) {
+    if (forceMainThread === enabled) return
+    forceMainThread = enabled
+    // Ohne Worker läuft ohnehin alles auf dem Main-Thread: kein Pfadwechsel
+    if (!workerActive) return
+    const mainInstance = !enabled && lastVisualizerId ? Visualizers[lastVisualizerId] : undefined
+    if (mainInstance) {
+      try {
+        mainInstance.cleanup?.()
+      } catch {
+        // Aufräumen ist best effort
+      }
+    }
+    lastVisualizerId = null
+  }
+
   function dispose() {
     if (workerBitmap) {
       workerBitmap.close()
@@ -337,5 +363,5 @@ export function createSingleVisualizerRenderer({
     }
   }
 
-  return { render, lastFrameCallback, dispose }
+  return { render, lastFrameCallback, setForceMainThread, dispose }
 }

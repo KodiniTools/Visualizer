@@ -166,6 +166,10 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
     if (trebleFilter) trebleFilter.gain.value = gain
   }
 
+  function getToneGains() {
+    return { bass: bassFilter?.gain.value ?? 0, treble: trebleFilter?.gain.value ?? 0 }
+  }
+
   function enableRecorderAudio() {
     if (recordingGain) recordingGain.gain.value = ACTIVE_GAIN
   }
@@ -529,6 +533,7 @@ export function useAudioEngine({ audioRef, audioSourceStore, playerStore }: Audi
       getAudioStreamForRecorder: createCombinedAudioStream,
       setBassGain,
       setTrebleGain,
+      getToneGains,
     }
     unregisterEngine?.()
     unregisterEngine = registerAudioEngine(api)

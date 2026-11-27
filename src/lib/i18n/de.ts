@@ -1259,6 +1259,32 @@ export default {
       saved: 'Datei gespeichert',
       saveFailed: 'Speichern fehlgeschlagen: {message}',
     },
+    // Offline-Export (Bild für Bild, ohne Live-Aufnahme)
+    offline: {
+      title: 'Offline-Export',
+      info: 'Rendert den aktuellen Track Bild für Bild als MP4, ohne Live-Aufnahme. Bildrate und Qualität wie oben eingestellt.',
+      start: 'Offline exportieren',
+      dialogTitle: 'Offline-Export',
+      dialogDescription: 'Bitte die Seite offen lassen. Der Ton bleibt während des Exports stumm.',
+      preparing: 'Audio wird vorbereitet …',
+      rendering: 'Bild {frame} von {total}',
+      position: '{done} von {total}',
+      speed: '{speed}× Echtzeit',
+      finalizing: 'Datei wird abgeschlossen …',
+      cancel: 'Abbrechen',
+      completed: 'Offline-Export fertig',
+      download: 'MP4 speichern',
+      errorTitle: 'Offline-Export fehlgeschlagen',
+      errorUnsupported:
+        'Dein Browser kann Videos nicht selbst kodieren (WebCodecs). Bitte Chrome, Edge oder die Desktop-App verwenden.',
+      errorNoTrack: 'Lade zuerst einen Track oder nutze „Ohne Track abspielen“.',
+      errorTooLong: 'Der Track ist länger als {max} Minuten.',
+      errorMicrophone:
+        'Das Mikrofon lässt sich nicht offline exportieren. Bitte die Quelle auf Player stellen.',
+      errorDecode: 'Eine Audiodatei konnte nicht gelesen werden.',
+      errorRender: 'Beim Rendern ist ein Fehler aufgetreten.',
+      errorBusy: 'Während einer Aufnahme nicht möglich.',
+    },
     // HQ Frame Export
     hqExport: 'HQ Frame Export',
     hqAutoCreate: 'HQ Export nach Aufnahme',

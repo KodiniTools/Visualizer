@@ -21,6 +21,8 @@ export interface AudioEngineApi {
   getAudioStreamForRecorder: (options?: { withMic?: boolean }) => Promise<MediaStream | null>
   setBassGain: (gain: number) => void
   setTrebleGain: (gain: number) => void
+  /** Aktuelle Bass-/Höhen-Verstärkung in dB (Offline-Export) */
+  getToneGains: () => { bass: number; treble: number }
 }
 
 let current: AudioEngineApi | null = null

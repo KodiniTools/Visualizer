@@ -5,14 +5,14 @@ import { test, expect } from '@playwright/test'
 
 test('Landing-Page rendert die Hero-Überschrift', async ({ page }) => {
   await page.goto('/')
-  const title = page.locator('h1.hero-title')
+  const title = page.locator('h1.lp-hero-title')
   await expect(title).toBeVisible()
   await expect(title).not.toHaveText('')
 })
 
 test('Hero-Button öffnet den Visualizer unter /app', async ({ page }) => {
   await page.goto('/')
-  await page.locator('.hero-actions a[href="/app"]').click()
+  await page.locator('.lp-hero a.lp-btn-hero[href="/app"]').click()
   await expect(page).toHaveURL(/\/app$/)
   await expect(page.locator('#app-container')).toBeVisible()
 })
@@ -28,10 +28,11 @@ test('Landing mit source=audiokonverter leitet zum Visualizer weiter', async ({ 
   await expect(page.locator('#app-container')).toBeVisible()
 })
 
-test('Hero-Navigation führt zur Blog-Seite', async ({ page }) => {
+test('Hero-Navigation springt zum Blog-Abschnitt', async ({ page }) => {
   await page.goto('/')
-  const blogLink = page.locator('.header-nav a[href="/blog"]')
+  const blogLink = page.locator('.header-nav a[href="#blog"]')
   await expect(blogLink).toBeVisible()
   await blogLink.click()
-  await expect(page).toHaveURL(/\/blog$/)
+  await expect(page).toHaveURL(/#blog$/)
+  await expect(page.locator('section#blog')).toBeInViewport()
 })

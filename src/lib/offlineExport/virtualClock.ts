@@ -33,6 +33,15 @@ const defaultTargets = (): ClockTargets => ({
 
 let active: VirtualClock | null = null
 
+// Beim Laden des Moduls gemerkt – also vor jeder virtuellen Uhr
+const nativePerformanceNow =
+  typeof globalThis.performance?.now === 'function'
+    ? globalThis.performance.now.bind(globalThis.performance)
+    : () => Date.now()
+
+/** Echte Zeit (ms, wie performance.now), auch während eine virtuelle Uhr läuft. */
+export const realNow = (): number => nativePerformanceNow()
+
 /** Läuft gerade eine virtuelle Uhr? */
 export const isVirtualClockActive = () => active !== null
 

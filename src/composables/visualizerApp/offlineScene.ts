@@ -15,6 +15,34 @@ export interface OfflineSceneDeps {
   renderLoop: OfflineSceneRenderLoop
   canvasRef: Ref<HTMLCanvasElement | null | undefined>
   canvasManagerInstance: CanvasManagerRef
+  /** Videos der Szene (siehe collectSceneVideos) */
+  videos?: () => HTMLVideoElement[]
+}
+
+interface SceneVideoSources {
+  canvasManager?: {
+    videoBackground?: { videoElement?: HTMLVideoElement | null } | null
+    workspaceVideoBackground?: { videoElement?: HTMLVideoElement | null } | null
+  } | null
+  videoManager?: { videos: { videoElement?: HTMLVideoElement | null }[] } | null
+  tiles?: readonly { video?: HTMLVideoElement | null }[] | null
+}
+
+/** Alle gezeichneten Videos: Canvas-Videos, Video-Hintergründe, Kachel-Videos (ohne Doppelte) */
+export function collectSceneVideos({
+  canvasManager,
+  videoManager,
+  tiles,
+}: SceneVideoSources): HTMLVideoElement[] {
+  const found = new Set<HTMLVideoElement>()
+  const add = (v: HTMLVideoElement | null | undefined) => {
+    if (v) found.add(v)
+  }
+  add(canvasManager?.videoBackground?.videoElement)
+  add(canvasManager?.workspaceVideoBackground?.videoElement)
+  for (const video of videoManager?.videos ?? []) add(video.videoElement)
+  for (const tile of tiles ?? []) add(tile.video)
+  return [...found]
 }
 
 /**
@@ -26,8 +54,10 @@ export function createOfflineScene({
   renderLoop,
   canvasRef,
   canvasManagerInstance,
+  videos,
 }: OfflineSceneDeps): OfflineScene {
   return {
+    videos: () => videos?.() ?? [],
     outputSize() {
       const preset = canvasManagerInstance.value?.workspacePreset
       const canvas = canvasRef.value

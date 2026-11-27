@@ -28,12 +28,12 @@ describe('playerStore Offline-Wiedergabe (Export)', () => {
     expect(store.offlinePlayback).toBe(true)
     expect(store.isPlaying).toBe(true)
     expect(store.currentTime).toBe(0)
-    expect(audio.currentTime).toBe(0)
 
     store.setOfflinePosition(1.25)
     expect(store.currentTime).toBe(1.25)
     expect(store.getPreciseTime()).toBe(1.25)
-    expect(audio.currentTime).toBe(1.25)
+    // Kein Seek des Audio-Elements pro Frame (Tempo); gespult wird erst am Ende
+    expect(audio.currentTime).toBe(42)
 
     const listener = vi.fn()
     store.onFrame(listener)

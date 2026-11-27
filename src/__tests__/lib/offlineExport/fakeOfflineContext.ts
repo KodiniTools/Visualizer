@@ -25,6 +25,8 @@ function param(log: string[], name: string) {
   return {
     value: 0,
     setTargetAtTime: (v: number, t: number, c: number) => log.push(`${name}.target ${v}@${t}/${c}`),
+    setValueAtTime: (v: number, t: number) => log.push(`${name}.set ${v}@${t}`),
+    cancelScheduledValues: (t: number) => log.push(`${name}.cancel @${t}`),
   }
 }
 
@@ -62,7 +64,9 @@ export function createFakeContextFactory(log: string[] = []) {
       createBufferSource: () =>
         node('source', {
           buffer: null,
+          playbackRate: { value: 1 },
           start: (when = 0, offset = 0) => log.push(`start ${when} ${offset}`),
+          stop: (when = 0) => log.push(`stop ${when}`),
         }),
       createGain: () => node('gain', { gain: param(log, 'gain') }),
       createBiquadFilter: () =>

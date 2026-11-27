@@ -120,3 +120,54 @@ describe('buildOfflineMix', () => {
     expect((find(ctx.nodes, 'biquad')[0]!.gain as { value: number }).value).toBe(0)
   })
 })
+
+describe('buildOfflineMix: Video-Ton und Ducking durch Marker-Videos', () => {
+  const options = (overlays: ReturnType<typeof clip>[], analyseVideo?: boolean) => ({
+    main: fakeBuffer(10, 'main'),
+    overlays,
+    bassDb: 0,
+    trebleDb: 0,
+    analysePlayer: true,
+    analyseVideo,
+    duration: 10,
+    sampleRate: 48000,
+  })
+
+  it('Video-Bus geht ohne Klangregelung an die Ausgabe, Analyse nur bei „Video“/„Mix“', () => {
+    for (const analyseVideo of [true, false, undefined]) {
+      const { factory, contexts } = createFakeContextFactory()
+      const mix = buildOfflineMix(options([], analyseVideo), factory)
+      const ctx = contexts[0]!
+      const bus = mix.videoInput as unknown as FakeNode
+      const [destination] = ctx.nodes
+      expect(bus.connections[0]).toBe(destination)
+      const analysis = bus.connections[1] as FakeNode
+      expect(analysis.connections).toEqual([mix.analyser])
+      expect((analysis.gain as { value: number }).value).toBe(analyseVideo ? 1 : 0)
+    }
+  })
+
+  it('setVideoDuck: niedrigster Wert aus Marker-Tracks und -Videos, ab der Frame-Zeit neu geplant', () => {
+    const log: string[] = []
+    const { factory } = createFakeContextFactory(log)
+    // Marker-Track 2–5 s mit 50 %
+    const mix = buildOfflineMix(options([clip(2, 3, 0.5)]), factory)
+    log.length = 0
+    const tc = DUCK_TIME_CONSTANT
+
+    mix.setVideoDuck(0.3, 1)
+    expect(log).toEqual([
+      'gain.cancel @1',
+      `gain.target 0.3@1/${tc}`,
+      `gain.target 0.3@2/${tc}`, // min(0.5, 0.3)
+      `gain.target 0.3@5/${tc}`, // min(1, 0.3)
+    ])
+
+    log.length = 0
+    mix.setVideoDuck(0.3, 1.5) // unverändert → nichts neu planen
+    expect(log).toEqual([])
+
+    mix.setVideoDuck(1, 3)
+    expect(log).toEqual(['gain.cancel @3', `gain.target 0.5@3/${tc}`, `gain.target 1@5/${tc}`])
+  })
+})

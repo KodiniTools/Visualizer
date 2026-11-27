@@ -171,7 +171,7 @@ import {
 } from './composables/visualizerApp/canvasSync'
 import { setupKeyboardShortcuts } from './composables/visualizerApp/keyboardShortcutsSetup'
 import { bindHqCaptureEvents } from './composables/visualizerApp/hqCaptureEvents'
-import { createOfflineScene } from './composables/visualizerApp/offlineScene'
+import { collectSceneVideos, createOfflineScene } from './composables/visualizerApp/offlineScene'
 import { registerOfflineScene } from './lib/offlineExport/offlineSceneBridge'
 
 import type { CanvasManager } from './lib/canvasManager'
@@ -463,7 +463,17 @@ onMounted(async () => {
   renderLoop.setupRecordingRedrawListener()
   renderLoop.registerScreenshot(canvasManagerInstance)
   unregisterOfflineScene = registerOfflineScene(
-    createOfflineScene({ renderLoop, canvasRef, canvasManagerInstance }),
+    createOfflineScene({
+      renderLoop,
+      canvasRef,
+      canvasManagerInstance,
+      videos: () =>
+        collectSceneVideos({
+          canvasManager: canvasManagerInstance.value,
+          videoManager: videoManagerInstance.value,
+          tiles: backgroundTilesStore.tiles,
+        }),
+    }),
   )
 
   // HQ Frame Capture

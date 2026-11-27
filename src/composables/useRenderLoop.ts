@@ -105,6 +105,10 @@ export function useRenderLoop({
   let liveSnapshot: SizedCanvas | null = null
   let liveSnapshotReady = false
 
+  // Offline-Export: Analyser des OfflineAudioContext für den laufenden Frame
+  // (sonst null = Live-Analyser der Engine)
+  let offlineAnalyser: AnalyserNode | null = null
+
   const imageGallery = useImageGallery()
 
   // Bild für ein Portrait-Preset: das gewählte, sonst ein Canvas-Bild, sonst die
@@ -264,6 +268,12 @@ export function useRenderLoop({
 
   /** Aktiven Analyser bestimmen und (falls Audio läuft) Frequenzdaten lesen. */
   function analyzeAudio(): FrameAudio {
+    if (offlineAnalyser) {
+      const bufferLength = offlineAnalyser.frequencyBinCount
+      offlineAnalyser.getByteFrequencyData(ensureAudioBuffer(bufferLength))
+      updateGlobalAudioData(audioDataArray, bufferLength)
+      return { analyser: offlineAnalyser, audioRunning: true }
+    }
     const isMicActive = audioSourceStore.isMicrophoneActive
     const analyser = isMicActive ? getMicrophoneAnalyser() : getAnalyser()
     // Video-Ton: auch zeichnen, wenn nur ein Video läuft. Bei „Player“ hängt
@@ -342,17 +352,24 @@ export function useRenderLoop({
   }
 
   function draw() {
-    timeDomainFresh = false
     scheduleNextFrame()
+    renderFrame(performance.now())
+  }
 
-    const now = performance.now()
+  /**
+   * Einen Frame rendern. `afterContent` bekommt das Canvas, nachdem der Inhalt
+   * fertig ist und bevor die Editor-Elemente darüber gezeichnet werden.
+   */
+  function renderFrame(now: number, afterContent?: (canvas: HTMLCanvasElement) => void) {
+    timeDomainFresh = false
 
     // Frame-Takt an den Player melden (präzise Position für Beat-Drop-Marker).
     // Bewusst vor allen frühen Returns, damit Marker auch ohne Canvas laufen.
     playerStore.notifyFrame?.()
 
     // Messung für adaptive Qualität (günstig; wirkt nur mit aktivem Schalter)
-    frameMonitor.tick(now)
+    // (Offline-Export: virtuelle Zeit, sonst sänke die Messung die Qualität)
+    if (!offlineAnalyser) frameMonitor.tick(now)
     updateFrameDelta(now)
 
     const canvas = resolveCanvas()
@@ -380,23 +397,25 @@ export function useRenderLoop({
     markerTransitionRenderer?.render(ctx, canvas.width, canvas.height, 'live')
 
     captureLiveSnapshot(canvas)
+    afterContent?.(canvas)
     drawEditorOverlay(ctx)
   }
 
   // ─── Aufnahme ───────────────────────────────────────────────────────────
 
-  /** Live-Snapshot (ggf. Workspace-Ausschnitt) auf das Aufnahme-Canvas skalieren. */
-  function drawSnapshotToRecording(
-    recordingCtx: CanvasRenderingContext2D,
-    recordingCanvas: HTMLCanvasElement,
+  /** Inhalt eines Canvas (ggf. Workspace-Ausschnitt) auf ein Ziel skalieren. */
+  function drawContentScaled(
+    targetCtx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    source: HTMLCanvasElement,
   ) {
     const workspaceBounds = canvasManagerInstance.value?.getWorkspaceBounds()
     const hasWorkspace = workspaceBounds && canvasManagerInstance.value?.workspacePreset
-    const source = (liveSnapshot as SizedCanvas).canvas
 
-    recordingCtx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height)
+    targetCtx.clearRect(0, 0, width, height)
     if (hasWorkspace && workspaceBounds) {
-      recordingCtx.drawImage(
+      targetCtx.drawImage(
         source,
         workspaceBounds.x,
         workspaceBounds.y,
@@ -404,12 +423,67 @@ export function useRenderLoop({
         workspaceBounds.height,
         0,
         0,
-        recordingCanvas.width,
-        recordingCanvas.height,
+        width,
+        height,
       )
     } else {
-      recordingCtx.drawImage(source, 0, 0, recordingCanvas.width, recordingCanvas.height)
+      targetCtx.drawImage(source, 0, 0, width, height)
     }
+  }
+
+  /** Live-Snapshot (ggf. Workspace-Ausschnitt) auf das Aufnahme-Canvas skalieren. */
+  function drawSnapshotToRecording(
+    recordingCtx: CanvasRenderingContext2D,
+    recordingCanvas: HTMLCanvasElement,
+  ) {
+    drawContentScaled(
+      recordingCtx,
+      recordingCanvas.width,
+      recordingCanvas.height,
+      (liveSnapshot as SizedCanvas).canvas,
+    )
+  }
+
+  // ─── Offline-Export ─────────────────────────────────────────────────────
+
+  let offlineActive = false
+  let loopWasRunning = false
+
+  /** Offline-Modus: Live-Schleife anhalten, Visualizer synchron rendern. */
+  function beginOffline() {
+    if (offlineActive) return
+    offlineActive = true
+    loopWasRunning = animationFrameId !== null || drawTimeoutId !== null
+    stop()
+    single.setForceMainThread(true)
+    lastDrawTimestamp = null
+  }
+
+  /**
+   * Einen Export-Frame rendern: Szene mit dem Offline-Analyser (Zeit kommt
+   * von der virtuellen Uhr), Inhalt ohne Editor-Elemente nach `target`.
+   */
+  function renderOfflineFrame(
+    analyser: AnalyserNode,
+    target: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+  ) {
+    offlineAnalyser = analyser
+    try {
+      renderFrame(performance.now(), (canvas) => drawContentScaled(target, width, height, canvas))
+    } finally {
+      offlineAnalyser = null
+    }
+  }
+
+  /** Offline-Modus beenden und die Live-Schleife wieder starten. */
+  function endOffline() {
+    if (!offlineActive) return
+    offlineActive = false
+    single.setForceMainThread(false)
+    lastDrawTimestamp = null
+    if (loopWasRunning && animationFrameId === null && drawTimeoutId === null) draw()
   }
 
   function setupRecordingRedrawListener() {
@@ -508,6 +582,9 @@ export function useRenderLoop({
     buildVisualizerCallback,
     setupRecordingRedrawListener,
     registerScreenshot,
+    beginOffline,
+    renderOfflineFrame,
+    endOffline,
     cleanup,
   }
 }

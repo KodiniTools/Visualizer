@@ -709,3 +709,59 @@ describe('useRenderLoop – Multi-Layer-Caches', () => {
     expect(continuous).not.toBe(fresh)
   })
 })
+
+describe('useRenderLoop – Offline-Export', () => {
+  function offlineAnalyser() {
+    return {
+      frequencyBinCount: 8,
+      getByteFrequencyData: (arr: Uint8Array) => {
+        L('offline.freq')
+        arr.fill(200)
+      },
+      getByteTimeDomainData: (arr: Uint8Array) => arr.fill(128),
+    }
+  }
+
+  it('rendert synchron im Main-Thread mit dem Offline-Analyser, ohne Editor-Elemente im Ziel', async () => {
+    workerState.available = true
+    const { loop } = setup({ workspace: true })
+    runFrames(loop, 1)
+    await flushPromises()
+    runFrames(loop, 1)
+    expect(log.some((l) => l.startsWith('worker.renderFrame'))).toBe(true)
+
+    loop.beginOffline()
+    log.length = 0
+    const target = makeCanvas('target', 300, 150)
+    const targetCtx = target.getContext('2d') as CanvasRenderingContext2D
+    loop.renderOfflineFrame(stub(offlineAnalyser()), targetCtx, 300, 150)
+
+    // kein neuer Frame geplant, kein Worker, Offline-Analyser gelesen
+    expect(log).not.toContain('raf')
+    expect(log.some((l) => l.startsWith('worker.renderFrame'))).toBe(false)
+    expect(log).toContain('offline.freq')
+    expect(log).toContain('updateGlobalAudioData u8[8:1600] 8')
+    expect(log.some((l) => l.startsWith('viz.bars.init'))).toBe(true)
+    expect(log.some((l) => l.startsWith('viz.bars.draw'))).toBe(true)
+    // Workspace-Ausschnitt ins Ziel, bevor die Editor-Elemente gezeichnet werden
+    const copy = log.indexOf('target.drawImage <main> 100 50 200 100 0 0 300 150')
+    const overlay = log.indexOf('cm.drawInteractiveElements <main.ctx>')
+    expect(copy).toBeGreaterThan(-1)
+    expect(overlay).toBeGreaterThan(copy)
+
+    // Ende: Live-Schleife läuft wieder, Visualizer zurück in den Worker
+    loop.endOffline()
+    expect(log).toContain('viz.bars.cleanup')
+    expect(log).toContain('raf')
+    log.length = 0
+    runFrames(loop, 1)
+    expect(log.some((l) => l.startsWith('worker.renderFrame'))).toBe(true)
+  })
+
+  it('startet die Schleife nach dem Export nur, wenn sie vorher lief', () => {
+    const { loop } = setup()
+    loop.beginOffline()
+    loop.endOffline()
+    expect(log).not.toContain('raf')
+  })
+})

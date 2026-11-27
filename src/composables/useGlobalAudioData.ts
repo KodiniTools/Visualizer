@@ -57,6 +57,15 @@ const fallbackBeatDetector = new BeatDetector()
 // regardless of whether the worker is active.
 const onsetDetector = new OnsetDetector()
 
+// Offline-Export: Analyse synchron im Main-Thread statt im Worker, damit die
+// Werte zu genau dem Frame gehören, der gerade gerendert wird.
+let mainThreadOnly = false
+
+/** Audio-Analyse für den Offline-Export auf den Main-Thread zwingen (true) bzw. freigeben. */
+export function setMainThreadAudioAnalysis(enabled: boolean) {
+  mainThreadOnly = enabled
+}
+
 export function useGlobalAudioData() {
   let useAudioWorker = false
 
@@ -147,7 +156,7 @@ export function useGlobalAudioData() {
     bufferLength: number,
   ) {
     if (!audioDataArray || bufferLength === 0) return
-    if (useAudioWorker) {
+    if (useAudioWorker && !mainThreadOnly) {
       workerManager.analyzeAudio(audioDataArray, bufferLength)
       return
     }

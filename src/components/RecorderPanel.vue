@@ -148,6 +148,26 @@
       </svg>
       {{ t('recorder.convertToMp4') }}
     </button>
+
+    <!-- Offline-Export (Bild für Bild, ohne Live-Aufnahme) -->
+    <RecorderOfflineExport
+      v-if="!recorderStore.isRecording"
+      :status="offline.status.value"
+      :can-start="offline.canStart.value && !isProcessing"
+      :is-supported="offline.isSupported.value"
+      :has-track="!!playerStore.currentTrack"
+      :progress="offline.progress.value"
+      :frame="offline.frame.value"
+      :total-frames="offline.totalFrames.value"
+      :rendered-seconds="offline.renderedSeconds.value"
+      :total-seconds="offline.totalSeconds.value"
+      :speed="offline.speed.value"
+      :error-code="offline.errorCode.value"
+      @start="offline.start"
+      @cancel="offline.cancel"
+      @download="saveExport('offline')"
+      @dismiss="offline.dismiss"
+    />
   </div>
 
   <RecorderConversionOverlay
@@ -172,6 +192,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useI18n } from '../lib/i18n'
 import { useRecorderStore } from '../stores/recorderStore'
+import { usePlayerStore } from '../stores/playerStore'
 import HelpTooltip from './HelpTooltip.vue'
 import RecorderStatusIndicator from './recorder/RecorderStatusIndicator.vue'
 import RecorderTransportControls from './recorder/RecorderTransportControls.vue'
@@ -182,6 +203,7 @@ import RecorderConversionProgress from './recorder/RecorderConversionProgress.vu
 import RecorderConversionOverlay from './recorder/RecorderConversionOverlay.vue'
 import RecorderResultsModal from './recorder/RecorderResultsModal.vue'
 import RecorderSaveDialog from './recorder/RecorderSaveDialog.vue'
+import RecorderOfflineExport from './recorder/RecorderOfflineExport.vue'
 import { useRecordingTimer } from '../composables/useRecordingTimer'
 import { useWebmExport } from '../composables/useWebmExport'
 import { useServerConversion } from '../composables/useServerConversion'
@@ -192,9 +214,11 @@ import { useRecorderSettings } from '../composables/recorder/useRecorderSettings
 import { useRecorderActions } from '../composables/recorder/useRecorderActions'
 import { useRecorderExportSave } from '../composables/recorder/useRecorderExportSave'
 import { useRecordingPreview } from '../composables/recorder/useRecordingPreview'
+import { useOfflineExport } from '../composables/recorder/useOfflineExport'
 
 const { t } = useI18n()
 const recorderStore = useRecorderStore()
+const playerStore = usePlayerStore()
 
 // ── Export-Pipelines ─────────────────────────────────────────────────
 const timer = useRecordingTimer()
@@ -243,6 +267,8 @@ const settings = useRecorderSettings({
   hqFps: hq.hqFps,
 })
 const { serverAvailable, enableServerConversion } = settings
+// Offline-Export nutzt Bildrate und Qualität der Aufnahme-Einstellungen
+const offline = useOfflineExport({ fps: settings.recordingFps, bitrate: settings.selectedQuality })
 const { showResults, closeResults } = useRecordingPreview()
 const {
   isProcessing,
@@ -287,6 +313,13 @@ const { saveExport } = useRecorderExportSave(
       extension: 'mp4',
       suffix: '_hq',
       done: hq.handleHqDownloadClick,
+    }),
+    // Ergebnis bleibt bis „Schließen“, damit es erneut gespeichert werden kann
+    offline: () => ({
+      url: offline.resultUrl.value,
+      extension: 'mp4',
+      suffix: '_offline',
+      done: () => {},
     }),
   },
   requestSave,

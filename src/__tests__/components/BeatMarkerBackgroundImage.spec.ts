@@ -180,7 +180,7 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     expect(cm.background!.imageObject).toBe(imgA)
   })
 
-  it('ein Marker ohne Hintergrund-Bild stellt den Hintergrund von vorher wieder her', () => {
+  it('ein Marker ohne Hintergrund-Bild lässt das Bild des vorherigen Markers stehen', async () => {
     const before = { imageObject: { src: 'vorher.png' }, fotoSettings: { audioReactive: AR } }
     cm.background = before
     markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
@@ -194,19 +194,63 @@ describe('Beat-Marker mit Hintergrund-Bild aus der Galerie', () => {
     expect(cm.background.imageObject).toBe(imgB)
     frame(11.99)
     frame(12.01)
+    expect(cm.background.imageObject).toBe(imgB)
+    // Zurück an den Anfang: Hintergrund von vor den Markern
+    playerStore.currentTime = 0
+    await nextTick()
     expect(cm.background).toBe(before)
   })
 
-  it('ohne vorheriges Bild wird der Hintergrund wieder geleert', () => {
+  it('Sprung hinter einen Marker ohne Bild zeigt das Bild des letzten Bild-Markers', async () => {
+    cm.background = '#123456'
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(8, { backgroundImage: { galleryId: 22, name: 'stadt.jpg' } })
+    markerStore.addMarker(12, { visualizer: null })
+    // Sprung während der Wiedergabe hinter den Marker ohne Bild
+    playerStore.currentTime = 20
+    await nextTick()
+    expect(cm.background.imageObject).toBe(imgB)
+    // Zurück zwischen die Bild-Marker
+    playerStore.currentTime = 6
+    await nextTick()
+    expect(cm.background.imageObject).toBe(imgA)
+    // Vor den ersten Bild-Marker: Hintergrund von vorher
+    playerStore.currentTime = 3.5
+    await nextTick()
+    expect(cm.background).toBe('#123456')
+  })
+
+  it('Workspace-Hintergrund: Bild bleibt bis zum nächsten Marker mit eigenem Bild', () => {
+    cm.workspacePreset = { id: 'ws' }
+    cm.workspaceBackground = { imageObject: { src: 'ws.png' }, fotoSettings: {} }
+    markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(8, { visualizer: null })
+    markerStore.addMarker(10, { backgroundImage: { galleryId: 22, name: 'stadt.jpg' } })
+    frame(4.99)
+    frame(5.01)
+    expect(cm.workspaceBackground.imageObject).toBe(imgA)
+    frame(7.99)
+    frame(8.01)
+    expect(cm.workspaceBackground.imageObject).toBe(imgA)
+    frame(9.99)
+    frame(10.01)
+    expect(cm.workspaceBackground.imageObject).toBe(imgB)
+  })
+
+  it('das Bild bleibt über mehrere Marker ohne eigenes Bild stehen', () => {
     cm.background = '#123456'
     markerStore.addMarker(5, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
     markerStore.addMarker(8, { visualizer: null })
+    markerStore.addMarker(10, { textId: null })
     frame(4.99)
     frame(5.01)
     expect(cm.background.imageObject).toBe(imgA)
     frame(7.99)
     frame(8.01)
-    expect(cm.background).toBe('#123456')
+    expect(cm.background.imageObject).toBe(imgA)
+    frame(9.99)
+    frame(10.01)
+    expect(cm.background.imageObject).toBe(imgA)
   })
 
   it('ein Marker mit Hintergrund-Preset ersetzt das Bild ohne Zurücksetzen', () => {

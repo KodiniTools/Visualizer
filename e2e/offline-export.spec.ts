@@ -1,7 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { test, expect, centerPixel, loadAudio, placeImage, RED, WHITE } from './helpers/app'
+import {
+  test,
+  expect,
+  centerPixel,
+  loadAudio,
+  placeImage,
+  RED,
+  RED_IMAGE,
+  WHITE,
+} from './helpers/app'
 import type { Page } from '@playwright/test'
 
 /** Testvideo 320×180, 30 fps: 0–1 s rot, 1–2 s grün, 2–3 s blau; Ton 2 kHz */
@@ -235,4 +244,35 @@ test('Marker-Video erscheint frame-genau und senkt den Song (Ducking)', async ({
   const ratio = (songAfter as number) / (songBefore as number)
   expect(ratio, `Song nach dem Marker: ${ratio.toFixed(2)}`).toBeGreaterThan(0.2)
   expect(ratio).toBeLessThan(0.4)
+})
+
+test('Hintergrund-Bild eines Markers bleibt im Export bei späteren Markern ohne eigenes Bild', async ({
+  app,
+}) => {
+  test.setTimeout(120_000)
+  // Bild nur in die Galerie laden (nicht platzieren)
+  await app.setInputFiles('input[type=file][accept="image/*"]', RED_IMAGE)
+  await expect(app.locator('.upload-section .thumbnail-item')).toHaveCount(1)
+  await loadAudio(app, 4)
+  const form = app.locator('.spb-popover-markers .marker-add-form')
+  const addMarker = async (time: string, withImage: boolean) => {
+    await app.keyboard.press('m')
+    await form.locator('.marker-time-input').fill(time)
+    await form.locator('.marker-time-input').press('Tab')
+    if (withImage) await form.getByLabel('Hintergrund-Bild').selectOption({ index: 1 })
+    await form.locator('.form-buttons .ui-button--primary').click()
+  }
+  // 0:01 setzt das Bild als Hintergrund, 0:02 und 0:03 setzen keins
+  await addMarker('0:01.00', true)
+  await addMarker('0:02.00', false)
+  await addMarker('0:03.00', false)
+  await expect(app.locator('.spb-popover-markers .marker-item')).toHaveCount(3)
+
+  const mp4 = await exportOffline(app)
+
+  const [before, after, later, end] = await videoCenterPixels(app, mp4, [0.5, 1.5, 2.5, 3.5])
+  expect(near(before as string, WHITE), before).toBe(true)
+  expect(near(after as string, RED), after).toBe(true)
+  expect(near(later as string, RED), later).toBe(true)
+  expect(near(end as string, RED), end).toBe(true)
 })

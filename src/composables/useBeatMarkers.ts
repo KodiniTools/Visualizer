@@ -138,6 +138,11 @@ export interface UseBeatMarkersOptions {
  * @param options.videoGallery - hochgeladene Videos (Video-Panel), wählbar als Marker-Video.
  * @param options.canvasVideoPlacement - legt hochgeladene Videos auf den Canvas (Video-Panel).
  */
+/** Abspielkopf so nah an einem Marker gilt als „auf dem Marker“ (s) */
+const SAME_POSITION_TOLERANCE = 0.05
+/** Zwei Marker mit diesem Abstand liegen auf derselben Stelle (s) */
+const SAME_TIME_TOLERANCE = 0.005
+
 export function useBeatMarkers(
   openMarkersPopover: () => void,
   {
@@ -1311,7 +1316,32 @@ export function useBeatMarkers(
     return (time / playerStore.duration) * 100
   }
 
+  /**
+   * Marker, der (fast) an derselben Stelle liegt – ausgenommen `exceptId`.
+   * Zwei Marker an einer Stelle lösen im selben Frame aus; auf der Zeitleiste
+   * sehen sie wie einer aus (Kodini: „Phantom-Marker“).
+   */
+  const findMarkerAt = (time: number, tolerance: number, exceptId: number | null = null) =>
+    beatMarkerStore.sortedMarkers.find(
+      (m) => m.id !== exceptId && Math.abs(m.time - time) <= tolerance,
+    ) ?? null
+
+  /** Anderer Marker auf der Zeit im Formular (für den Hinweis im Formular) */
+  const getPendingTimeConflict = () =>
+    findMarkerAt(pendingMarkerTime.value, SAME_TIME_TOLERANCE, editingMarkerId.value)
+
   const addMarkerAtCurrentTime = () => {
+    // Steht der Abspielkopf auf einem Marker (z. B. nach Klick auf den Marker
+    // in der Zeitleiste), diesen bearbeiten statt einen zweiten anzulegen.
+    const existing = findMarkerAt(
+      roundToHundredths(playerStore.currentTime),
+      SAME_POSITION_TOLERANCE,
+    )
+    if (existing) {
+      startEditMarker(existing as Parameters<typeof startEditMarker>[0])
+      openMarkersPopover()
+      return
+    }
     editingMarkerId.value = null
     setPendingMarkerTime(playerStore.currentTime)
     newMarkerLabel.value = nextMarkerLabel(beatMarkerStore.markers)
@@ -1862,6 +1892,7 @@ export function useBeatMarkers(
     getMarkerTrackDuration: audioTracks.trackDuration,
     getMarkerDuration,
     getPendingMarkerDuration,
+    getPendingTimeConflict,
     updateMarkerTimeFromInput,
     stepMarkerTime,
     getMarkerPosition,

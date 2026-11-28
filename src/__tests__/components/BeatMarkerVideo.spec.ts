@@ -180,7 +180,10 @@ describe('Beat-Marker mit Video – Formular', () => {
 
     api.startEditMarker(markerStore.markers.at(-1)!)
     expect(api.newMarkerVideoId.value).toBe(202)
+    // „+“ an anderer Stelle: leeres Formular für einen neuen Marker
+    playerStore.currentTime = markerStore.markers.at(-1)!.time + 1
     api.addMarkerAtCurrentTime()
+    expect(api.editingMarkerId.value).toBeNull()
     expect(api.newMarkerVideoId.value).toBe('')
   })
 

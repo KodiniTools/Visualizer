@@ -1154,6 +1154,8 @@ export default {
     markersActive: 'Marker aktiv',
     timePlaceholder: 'z.B. 1:30.25',
     labelPlaceholder: 'z.B. Bass Drop',
+    markerSameTime:
+      'An dieser Stelle liegt schon „{label}“. Beide lösen gleichzeitig aus – Zeit ändern oder den vorhandenen Marker bearbeiten.',
     editMarkerTitle: 'Marker bearbeiten',
     addMarkerTitle: 'Neuer Marker',
     // Sticky player bar

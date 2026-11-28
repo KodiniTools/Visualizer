@@ -6,6 +6,7 @@ import {
   loadAudio,
   placeImage,
   playButton,
+  RED_IMAGE,
   RED,
   WHITE,
 } from './helpers/app'
@@ -79,4 +80,32 @@ test('Zurückspulen vor den Marker blendet das Bild wieder aus', async ({ app })
   await expect.poll(() => centerPixel(app)).toBe(WHITE)
   await expect(marker).toHaveClass(/triggered/)
   await expect.poll(() => centerPixel(app)).toBe(RED)
+})
+
+test('Hintergrundbild eines Markers bleibt bei einem späteren Marker ohne Bild stehen', async ({
+  app,
+}) => {
+  // Bild nur in die Galerie laden (nicht platzieren)
+  await app.setInputFiles('input[type=file][accept="image/*"]', RED_IMAGE)
+  await expect(app.locator('.upload-section .thumbnail-item')).toHaveCount(1)
+  await loadAudio(app)
+  const form = app.locator('.spb-popover-markers .marker-add-form')
+  const markers = app.locator('.spb-popover-markers .marker-item')
+
+  async function addMarker(time: string, withImage: boolean) {
+    await app.keyboard.press('m')
+    await form.locator('.marker-time-input').fill(time)
+    await form.locator('.marker-time-input').press('Tab')
+    await form.getByRole('switch', { name: 'Visualizer anzeigen' }).click()
+    if (withImage) await form.getByLabel('Hintergrund-Bild').selectOption({ index: 1 })
+    await form.locator('.form-buttons .ui-button--primary').click()
+  }
+  await addMarker('0:00.50', true)
+  await addMarker('0:01.00', false)
+  await expect(markers).toHaveCount(2)
+
+  await playButton(app).click()
+  await expect(markers.nth(1)).toHaveClass(/triggered/)
+  await app.waitForTimeout(300)
+  expect(await centerPixel(app)).toBe(RED)
 })

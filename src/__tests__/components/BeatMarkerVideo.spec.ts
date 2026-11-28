@@ -254,7 +254,7 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     expect(applied[0]!.backgroundColor).toBe('#000000')
   })
 
-  it('ein Marker ohne Bild/Video stellt den Hintergrund von vorher wieder her', async () => {
+  it('ein Marker ohne Bild/Video lässt das Video stehen; Zurückspulen stellt den Hintergrund von vorher wieder her', async () => {
     await mountHost()
     const userVideo = fakeVideoEl()
     userVideo.src = 'blob:user'
@@ -277,6 +277,11 @@ describe('Beat-Marker mit Video – Auslösen', () => {
 
     frame(11.99)
     frame(12.01)
+    expect(cm.videoBackground.videoElement).toBe(second)
+    expect(second.src).not.toBe('')
+
+    playerStore.currentTime = 0
+    await nextTick()
     expect(cm.videoBackground).toBe(userEntry)
     expect(cm.background).toBe('#123456')
     expect(second.src).toBe('')
@@ -296,11 +301,24 @@ describe('Beat-Marker mit Video – Auslösen', () => {
     expect(cm.background!.imageObject).toBe(imgA)
   })
 
-  it('verwirft ein Marker-Video, das erst nach dem nächsten Wechsel fertig lädt', async () => {
+  it('setzt ein noch ladendes Marker-Video, wenn der nächste Marker keinen Hintergrund hat', async () => {
+    await mountHost()
+    markerStore.addMarker(5, { video: { galleryId: 101, name: 'intro' } })
+    markerStore.addMarker(6, { visualizer: null })
+    frame(4.99)
+    frame(5.01)
+    const late = created.at(-1)
+    frame(5.99)
+    frame(6.01)
+    late!.onloadeddata!()
+    expect(cm.videoBackground!.videoElement).toBe(late)
+  })
+
+  it('verwirft ein Marker-Video, das erst nach dem nächsten Hintergrund-Wechsel fertig lädt', async () => {
     await mountHost()
     cm.background = '#222222'
     markerStore.addMarker(5, { video: { galleryId: 101, name: 'intro' } })
-    markerStore.addMarker(6, { visualizer: null })
+    markerStore.addMarker(6, { background: { backgroundColor: '#222222' } })
     frame(4.99)
     frame(5.01)
     const late = created.at(-1)
@@ -483,9 +501,14 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     cm.videoBackground = userEntry
     markerStore.addMarker(5, { video: { galleryId: 202, name: 'drop', loop: false } })
     markerStore.addMarker(7, { visualizer: null })
-    crossAndLoad(5)
+    const once = crossAndLoad(5)
     frame(6.99)
     frame(7.01)
+    // Marker ohne Hintergrund: das einmalige Video läuft weiter
+    expect(cm.videoBackground.videoElement).toBe(once)
+    expect(userVideo.src).toBe('blob:user')
+    // Ende des Videos: Hintergrund von vorher (Basis-Video des Nutzers)
+    once.onended?.()
     expect(cm.videoBackground).toBe(userEntry)
     expect(userVideo.src).toBe('blob:user')
   })

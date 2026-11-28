@@ -924,17 +924,15 @@ export function useBeatMarkers(
     const videoRef = action?.video || null
     const ref = videoRef ? null : action?.backgroundImage
     if (!ref && !videoRef) {
+      // Ohne eigenes Bild/Video und ohne Preset bleibt der Hintergrund eines
+      // früheren Markers stehen (normaler und Workspace-Hintergrund). Erst ein
+      // Marker mit eigenem Hintergrund löst ihn ab. Ein noch ladendes Video
+      // eines früheren Markers darf weiterladen.
+      if (!presetApplied) return
       mediaToken++
-      if (presetApplied) {
-        dropOnceVideoBefore()
-        // Das Preset dieses Markers bestimmt den Hintergrund.
-        setMediaBase(null)
-      } else if (bgImageBase) {
-        restoreBaseBackground(canvasManager.value, bgImageBase)
-        bgImageBase = null
-        console.log('🖼️ Hintergrund-Bild/Video via Beat-Marker zurückgesetzt')
-      }
       dropOnceVideoBefore()
+      // Das Preset dieses Markers bestimmt den Hintergrund.
+      setMediaBase(null)
       return
     }
     if (videoRef) {
@@ -1043,6 +1041,11 @@ export function useBeatMarkers(
   /**
    * Wendet die Hintergrund-Aktion eines ausgelösten Markers an (falls vorhanden).
    */
+  /** Setzt der Marker selbst einen Hintergrund (Preset, Galerie-Bild, Video)? */
+  const hasOwnBackground = (action: MarkerAction | null | undefined) =>
+    !!action &&
+    !!(action.background || action.backgroundKey || action.backgroundImage || action.video)
+
   const applyMarkerBackground = (action: MarkerAction | null | undefined) => {
     if (!action) return false
     // Preset bevorzugt frisch anhand des Keys auflösen (spiegelt aktuelle
@@ -1090,7 +1093,11 @@ export function useBeatMarkers(
    * Galerie-Bild, Video). Texte, Formen und Bilder steuern die
    * Element-Aktionen.
    */
-  const applyMarkerSceneNow = (action: MarkerAction) => {
+  /**
+   * Hintergrund-Teil eines Markers: Preset, Galerie-Bild bzw. Video. Ohne
+   * eigenen Hintergrund bleibt der bisherige stehen.
+   */
+  const applyMarkerBackgroundNow = (action: MarkerAction) => {
     // Vorgaben des vorherigen Hintergrund-Bildes erfassen, bevor ein
     // Hintergrund-Preset dieses Markers den Hintergrund ändert.
     const previousBgImage = action.video
@@ -1098,7 +1105,11 @@ export function useBeatMarkers(
       : action.backgroundImage
         ? resolveBackgroundImageDefaults(canvasManager.value, action.backgroundImage.defaults)
         : null
+    const presetApplied = applyMarkerBackground(action)
+    applyBackgroundImageAction(action, previousBgImage, presetApplied)
+  }
 
+  const applyMarkerSceneNow = (action: MarkerAction) => {
     // Jeder Marker erzwingt den Visualizer-Zustand explizit.
     // Rückwärtskompatibel zum alten Feld `hideVisualizer`.
     const showVisualizer =
@@ -1133,8 +1144,7 @@ export function useBeatMarkers(
       visualizerStore.setColor(action.color)
       console.log('🎨 Farbe gewechselt zu:', action.color)
     }
-    const presetApplied = applyMarkerBackground(action)
-    applyBackgroundImageAction(action, previousBgImage, presetApplied)
+    applyMarkerBackgroundNow(action)
   }
 
   /**
@@ -1167,14 +1177,24 @@ export function useBeatMarkers(
       .filter((m) => m.time <= time)
       .sort((a, b) => a.time - b.time)
 
-    if (scene && passed.length === 0) {
-      // Vor dem ersten Marker: Hintergrund von vor den Marker-Bildern
+    // Hintergrund gilt vom letzten Marker mit eigenem Hintergrund (Bild,
+    // Video, Preset); Marker ohne eigenen lassen ihn stehen.
+    const backgroundSource = scene
+      ? ([...passed].reverse().find((m) => hasOwnBackground(m.action as MarkerAction)) ?? null)
+      : null
+    if (scene && !backgroundSource) {
+      // Vor dem ersten Marker mit Hintergrund: Hintergrund von vor den Marker-Bildern
       mediaToken++
       if (bgImageBase) restoreBaseBackground(canvasManager.value, bgImageBase)
       bgImageBase = null
       dropOnceVideoBefore()
-    } else if (scene) {
-      const last = passed[passed.length - 1]?.action as MarkerAction | undefined
+    }
+    if (scene && passed.length > 0) {
+      const lastMarker = passed[passed.length - 1]
+      const last = lastMarker?.action as MarkerAction | undefined
+      if (backgroundSource && backgroundSource !== lastMarker) {
+        applyMarkerBackgroundNow(backgroundSource.action as MarkerAction)
+      }
       if (last) applyMarkerSceneNow(last)
       // Farbe setzt nur ein Marker mit Farbe; die letzte gilt weiter.
       const lastColor = [...passed]

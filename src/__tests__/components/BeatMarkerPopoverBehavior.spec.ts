@@ -357,3 +357,53 @@ describe('Beat-Marker-Popover – Animation des Hintergrund-Bildes und Layout', 
     expect(src).toMatch(/\.spb-popover-markers > \* \{\s*flex-shrink: 0;/)
   })
 })
+
+describe('Beat-Marker-Popover – kein zweiter Marker an derselben Stelle', () => {
+  it('„+“ auf einem vorhandenen Marker öffnet ihn zum Bearbeiten statt einen zweiten anzulegen', async () => {
+    const existing = markerStore.addMarker(12.5, {}, 'Drop 1')
+    mountPopover()
+    await click(P.beatMarker)
+    expect(api.editingMarkerId.value).toBe(existing.id)
+    expect(body().textContent).toContain(P.editMarkerTitle)
+    // Zeit um 0,2 s verschieben und speichern: der Marker wandert, kein zweiter entsteht
+    api.pendingMarkerTimeInput.value = '0:12.70'
+    api.updateMarkerTimeFromInput()
+    api.confirmAddMarker()
+    expect(markerStore.markers).toHaveLength(1)
+    expect(markerStore.markers[0]!.time).toBe(12.7)
+  })
+
+  it('„+“ knapp neben dem Marker (unter 0,05 s) bearbeitet ihn ebenfalls', async () => {
+    const existing = markerStore.addMarker(12.47, {}, 'Drop 1')
+    mountPopover()
+    api.addMarkerAtCurrentTime()
+    expect(api.editingMarkerId.value).toBe(existing.id)
+  })
+
+  it('„+“ an freier Stelle legt einen neuen Marker an', async () => {
+    markerStore.addMarker(12.4, {}, 'Drop 1')
+    mountPopover()
+    api.addMarkerAtCurrentTime()
+    expect(api.editingMarkerId.value).toBeNull()
+    api.confirmAddMarker()
+    expect(markerStore.markers).toHaveLength(2)
+  })
+
+  it('warnt, wenn die Zeit im Formular auf einem anderen Marker liegt', async () => {
+    const a = markerStore.addMarker(3, {}, 'Drop 1')
+    markerStore.addMarker(8, {}, 'Drop 2')
+    mountPopover()
+    api.startEditMarker(a)
+    await flushPromises()
+    const hint = () => body().querySelector('.marker-time-conflict')
+    expect(hint()).toBeNull()
+    api.pendingMarkerTimeInput.value = '0:08.00'
+    api.updateMarkerTimeFromInput()
+    await flushPromises()
+    expect(hint()!.textContent).toContain('„Drop 2“')
+    api.pendingMarkerTimeInput.value = '0:08.20'
+    api.updateMarkerTimeFromInput()
+    await flushPromises()
+    expect(hint()).toBeNull()
+  })
+})

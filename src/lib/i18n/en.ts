@@ -1152,6 +1152,8 @@ export default {
     markersActive: 'Markers active',
     timePlaceholder: 'e.g. 1:30.25',
     labelPlaceholder: 'e.g. Bass Drop',
+    markerSameTime:
+      '“{label}” is already at this position. Both fire at the same time – change the time or edit the existing marker.',
     editMarkerTitle: 'Edit Marker',
     addMarkerTitle: 'New Marker',
     // Sticky player bar

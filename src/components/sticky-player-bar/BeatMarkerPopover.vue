@@ -119,6 +119,15 @@
           </div>
           <span class="time-max">/ {{ formatTimePrecise(playerStore.duration) }}</span>
         </div>
+        <p v-if="timeConflict" class="form-hint marker-time-conflict" role="status">
+          ⚠️
+          {{
+            t('player.markerSameTime').replace(
+              '{label}',
+              timeConflict.label || formatTimePrecise(timeConflict.time),
+            )
+          }}
+        </p>
         <p
           v-if="pendingDuration.count > 0"
           class="marker-duration"
@@ -614,6 +623,7 @@ const {
   getMarkerTrackDuration,
   getMarkerDuration,
   getPendingMarkerDuration,
+  getPendingTimeConflict,
   pendingMarkerTime,
   updateMarkerTimeFromInput,
   stepMarkerTime,
@@ -637,6 +647,9 @@ const sortedMarkers = computed(
 
 // Gesamtdauer der Formular-Auswahl (längste Anzeigedauer der Elemente)
 const pendingDuration = computed(() => getPendingMarkerDuration())
+
+// Anderer Marker auf derselben Zeit: würde im selben Frame auslösen
+const timeConflict = computed(() => getPendingTimeConflict())
 
 /** Dauer in Sekunden: unter 1 min als „8.50 s“, sonst „M:SS.hh“ */
 const formatDuration = (seconds: number) =>
@@ -1027,6 +1040,13 @@ const shapeSelectOptions = computed(() => [
   font-family: var(--ds-font-mono);
   color: var(--ds-text-3);
 }
+.marker-time-conflict {
+  margin: var(--ds-space-1) 0 0;
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
+  line-height: 1.4;
+}
+
 .marker-duration {
   display: flex;
   flex-wrap: wrap;

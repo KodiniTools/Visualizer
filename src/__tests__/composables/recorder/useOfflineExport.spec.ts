@@ -113,6 +113,7 @@ describe('useOfflineExport', () => {
       bassDb: 4,
       trebleDb: -2,
       analysePlayer: true,
+      analyseVideo: false,
       duration: 4,
       sampleRate: 48000,
     })
@@ -154,6 +155,29 @@ describe('useOfflineExport', () => {
     const options = run.mock.calls[0]![0]
     expect(options.mix.overlays).toEqual([])
     expect(options.mix.analysePlayer).toBe(false)
+    expect(options.mix.analyseVideo).toBe(true)
+  })
+
+  it('Video-Ton wird mit derselben Dekodierung geladen; Fortschritt gedrosselt', async () => {
+    const decode = vi.fn(async (url: string) => buffer(4, url))
+    let options: RunOfflineExportOptions | null = null
+    const run = vi.fn(async (o: RunOfflineExportOptions) => {
+      options = o
+      o.onProgress?.({ frame: 1, total: 240 })
+      o.onProgress?.({ frame: 2, total: 240 }) // gleich danach: nicht angezeigt
+      expect(api.frame.value).toBe(1)
+      o.onProgress?.({ frame: 240, total: 240 }) // letzter Frame immer
+      expect(api.frame.value).toBe(240)
+      return { blob: new Blob(['x']), frames: 240, videoCodec: 'avc' as const, audioCodec: null }
+    })
+    const { api } = withSetup({ run, decode })
+    await api.start()
+    const buf = await (options as unknown as RunOfflineExportOptions).decodeVideoAudio?.(
+      'blob:clip',
+    )
+    expect(decode).toHaveBeenLastCalledWith('blob:clip')
+    expect((buf as unknown as { tag: string }).tag).toBe('blob:clip')
+    expect(api.status.value).toBe('completed')
   })
 
   it.each([

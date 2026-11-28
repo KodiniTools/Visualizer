@@ -17,6 +17,7 @@ import {
   normalizeFps,
 } from '../../lib/offlineExport/frameTiming'
 import { runOfflineExport } from '../../lib/offlineExport/runOfflineExport'
+import { realNow } from '../../lib/offlineExport/virtualClock'
 import type { RunOfflineExportOptions } from '../../lib/offlineExport/runOfflineExport'
 import type { OverlayClip } from '../../lib/offlineExport/offlineAudioMix'
 import {
@@ -59,6 +60,9 @@ export async function decodeAudioUrl(url: string): Promise<AudioBuffer> {
     throw new OfflineExportError('decode', error)
   }
 }
+
+/** Fortschrittsanzeige höchstens so oft aktualisieren (ms) – jedes Frame neu zu zeichnen kostet Tempo */
+export const PROGRESS_INTERVAL_MS = 100
 
 export function useOfflineExport({
   fps,
@@ -160,7 +164,8 @@ export function useOfflineExport({
       const exportFps = normalizeFps(fps.value)
       const { width, height } = scene.outputSize()
       const tone = getAudioEngine()?.getToneGains() ?? { bass: 0, treble: 0 }
-      const startedAt = performance.now()
+      const startedAt = realNow()
+      let lastProgressAt = -Infinity
 
       const options: RunOfflineExportOptions = {
         mix: {
@@ -169,6 +174,7 @@ export function useOfflineExport({
           bassDb: tone.bass,
           trebleDb: tone.treble,
           analysePlayer: audioSourceStore.analysisInput !== 'video',
+          analyseVideo: audioSourceStore.analysisInput !== 'player',
           duration: main.duration,
           sampleRate: OFFLINE_SAMPLE_RATE,
         },
@@ -194,11 +200,16 @@ export function useOfflineExport({
           },
         },
         signal: abort.signal,
+        decodeVideoAudio: (url) => decode(url),
         onProgress: (p) => {
+          // Anzeige höchstens alle PROGRESS_INTERVAL_MS (die Uhr ist hier virtuell → realNow)
+          const now = realNow()
+          if (p.frame < p.total && now - lastProgressAt < PROGRESS_INTERVAL_MS) return
+          lastProgressAt = now
           status.value = 'rendering'
           frame.value = p.frame
           totalFrames.value = p.total
-          const realSeconds = (performance.now() - startedAt) / 1000
+          const realSeconds = (now - startedAt) / 1000
           if (realSeconds > 0) speed.value = p.frame / exportFps / realSeconds
         },
       }

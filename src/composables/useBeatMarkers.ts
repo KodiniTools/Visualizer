@@ -79,6 +79,7 @@ import {
   type MarkerAudioTrackAction,
 } from './beatMarkers/useMarkerAudioTracks'
 import { createPlayerDuck } from './beatMarkers/playerDuck'
+import { reportVideoDuck } from '../lib/offlineExport/offlineDuckBridge'
 import { getAudioEngine } from '../lib/audioEngineBridge'
 import type { CanvasManagerRef } from './types'
 
@@ -169,7 +170,10 @@ export function useBeatMarkers(
   // ab (der niedrigste Wert gilt)
   const playerDuck = createPlayerDuck((level) => getAudioEngine()?.setPlayerDuck(level))
   const canvasVideos = useMarkerCanvasVideos({
-    setDuck: (level) => playerDuck.set('videos', level),
+    setDuck: (level) => {
+      playerDuck.set('videos', level)
+      reportVideoDuck(level)
+    },
     videoManager,
     videoGallery,
     markerActions: () => beatMarkerStore.markers.map((m) => m.action as MarkerAction),

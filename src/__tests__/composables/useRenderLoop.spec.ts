@@ -743,11 +743,9 @@ describe('useRenderLoop – Offline-Export', () => {
     expect(log).toContain('updateGlobalAudioData u8[8:1600] 8')
     expect(log.some((l) => l.startsWith('viz.bars.init'))).toBe(true)
     expect(log.some((l) => l.startsWith('viz.bars.draw'))).toBe(true)
-    // Workspace-Ausschnitt ins Ziel, bevor die Editor-Elemente gezeichnet werden
-    const copy = log.indexOf('target.drawImage <main> 100 50 200 100 0 0 300 150')
-    const overlay = log.indexOf('cm.drawInteractiveElements <main.ctx>')
-    expect(copy).toBeGreaterThan(-1)
-    expect(overlay).toBeGreaterThan(copy)
+    // Workspace-Ausschnitt ins Ziel; Editor-Elemente werden offline gar nicht gezeichnet (Tempo)
+    expect(log).toContain('target.drawImage <main> 100 50 200 100 0 0 300 150')
+    expect(log).not.toContain('cm.drawInteractiveElements <main.ctx>')
 
     // Ende: Live-Schleife läuft wieder, Visualizer zurück in den Worker
     loop.endOffline()
@@ -756,6 +754,7 @@ describe('useRenderLoop – Offline-Export', () => {
     log.length = 0
     runFrames(loop, 1)
     expect(log.some((l) => l.startsWith('worker.renderFrame'))).toBe(true)
+    expect(log).toContain('cm.drawInteractiveElements <main.ctx>')
   })
 
   it('startet die Schleife nach dem Export nur, wenn sie vorher lief', () => {

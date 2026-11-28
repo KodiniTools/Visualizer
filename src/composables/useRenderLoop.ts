@@ -398,7 +398,8 @@ export function useRenderLoop({
 
     captureLiveSnapshot(canvas)
     afterContent?.(canvas)
-    drawEditorOverlay(ctx)
+    // Offline-Export: Editor-Elemente landen nie in der Datei – nicht zeichnen (Tempo)
+    if (!offlineAnalyser) drawEditorOverlay(ctx)
   }
 
   // ─── Aufnahme ───────────────────────────────────────────────────────────

@@ -24,6 +24,20 @@ export interface BeatMarker {
 }
 
 /**
+ * Standard-Name für einen neuen Marker: „Drop N“ mit N = höchste vorhandene
+ * „Drop“-Nummer + 1 (mindestens Anzahl + 1). Nach dem Löschen eines Markers
+ * entstehen so keine doppelten Namen, die wie Kopien wirken.
+ */
+export function nextMarkerLabel(markers: readonly Pick<BeatMarker, 'label'>[]): string {
+  let highest = markers.length
+  for (const marker of markers) {
+    const match = /^Drop (\d+)$/.exec(String(marker.label ?? '').trim())
+    if (match) highest = Math.max(highest, Number(match[1]))
+  }
+  return `Drop ${highest + 1}`
+}
+
+/**
  * Beat-Drop Marker Store
  * Verwaltet Zeitmarker für automatische Effektwechsel während der Wiedergabe
  */
@@ -68,7 +82,7 @@ export const useBeatMarkerStore = defineStore('beatMarker', () => {
         opacity: action.opacity !== undefined ? action.opacity : null,
         ...action,
       },
-      label: label || `Drop ${markers.value.length + 1}`,
+      label: label || nextMarkerLabel(markers.value),
       triggered: false,
     }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useBeatMarkerStore } from '../../stores/beatMarkerStore'
+import { useBeatMarkerStore, nextMarkerLabel } from '../../stores/beatMarkerStore'
 
 let store: ReturnType<typeof useBeatMarkerStore>
 
@@ -66,5 +66,36 @@ describe('beatMarkerStore.checkTrigger (Toleranz-Fallback)', () => {
     expect(store.checkCrossing(9.99, 10.06)).toHaveLength(2)
     // Ohne den triggered-Guard würde A hier (innerhalb der Toleranz) erneut feuern
     expect(store.checkTrigger(10.1)).toBeNull()
+  })
+})
+
+describe('Standard-Name neuer Marker (keine doppelten „Drop N“)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('zählt ohne Lücken fortlaufend', () => {
+    const store = useBeatMarkerStore()
+    expect(store.addMarker(1).label).toBe('Drop 1')
+    expect(store.addMarker(2).label).toBe('Drop 2')
+    expect(store.addMarker(3).label).toBe('Drop 3')
+  })
+
+  it('vergibt nach dem Löschen keinen schon vorhandenen Namen', () => {
+    const store = useBeatMarkerStore()
+    const first = store.addMarker(1)
+    store.addMarker(2)
+    store.addMarker(3)
+    store.removeMarker(first.id)
+    // Vorher: „Drop 3“ ein zweites Mal (Anzahl 2 + 1)
+    expect(store.addMarker(4).label).toBe('Drop 4')
+    expect(store.markers.map((m) => m.label)).toEqual(['Drop 2', 'Drop 3', 'Drop 4'])
+  })
+
+  it('ignoriert eigene Namen und zählt mindestens Anzahl + 1', () => {
+    expect(nextMarkerLabel([])).toBe('Drop 1')
+    expect(nextMarkerLabel([{ label: 'Refrain' }, { label: 'Intro' }])).toBe('Drop 3')
+    expect(nextMarkerLabel([{ label: 'Drop 7' }, { label: 'Refrain' }])).toBe('Drop 8')
+    expect(nextMarkerLabel([{ label: 'Drop 3a' }])).toBe('Drop 2')
   })
 })

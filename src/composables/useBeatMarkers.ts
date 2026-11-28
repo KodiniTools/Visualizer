@@ -3,6 +3,7 @@ import { useI18n } from '../lib/i18n'
 import { usePlayerStore } from '../stores/playerStore'
 import {
   useBeatMarkerStore,
+  nextMarkerLabel,
   type BeatMarker,
   type BeatMarkerAction,
 } from '../stores/beatMarkerStore'
@@ -1289,7 +1290,7 @@ export function useBeatMarkers(
   const addMarkerAtCurrentTime = () => {
     editingMarkerId.value = null
     setPendingMarkerTime(playerStore.currentTime)
-    newMarkerLabel.value = `Drop ${beatMarkerStore.markerCount + 1}`
+    newMarkerLabel.value = nextMarkerLabel(beatMarkerStore.markers)
     newMarkerVisualizer.value = ''
     newMarkerChangeColor.value = false
     newMarkerShowVisualizer.value = true

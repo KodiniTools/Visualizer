@@ -512,6 +512,25 @@ describe('Beat-Marker mit Video – einmal oder in Schleife', () => {
     expect(cm.videoBackground).toBe(userEntry)
     expect(userVideo.src).toBe('blob:user')
   })
+
+  it('einmal: ein Marker ohne Bild/Video lässt das Video zu Ende laufen, danach kommt das Bild davor', async () => {
+    await mountHost()
+    cm.background = '#111111'
+    markerStore.addMarker(3, { backgroundImage: { galleryId: 11, name: 'wald.jpg' } })
+    markerStore.addMarker(5, { video: { galleryId: 202, name: 'drop', loop: false } })
+    markerStore.addMarker(7, { visualizer: null })
+    frame(2.99)
+    frame(3.01)
+    const imageBg = cm.background
+    const once = crossAndLoad(5)
+    frame(6.99)
+    frame(7.01)
+    expect(cm.videoBackground!.videoElement).toBe(once)
+    once.onended!()
+    expect(cm.videoBackground).toBeNull()
+    expect(cm.background).toBe(imageBg)
+    expect(cm.background!.imageObject).toBe(imgA)
+  })
 })
 
 describe('Beat-Marker-Popover – Schleife', () => {

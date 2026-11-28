@@ -444,15 +444,9 @@ export const usePlayerStore = defineStore('player', () => {
     const t = Number.isFinite(time) && time > 0 ? time : 0
     offlinePosition = t
     currentTime.value = t
-    const audio = audioRef.value
-    // Videos richten sich nach der Position des Audio-Elements (videoManager)
-    if (audio) {
-      try {
-        audio.currentTime = t
-      } catch {
-        // ohne geladene Quelle nicht setzbar – die Store-Position genügt
-      }
-    }
+    // Das Audio-Element wird nicht mitgespult (kostet pro Frame einen Seek):
+    // Videos laufen über die virtuelle Video-Uhr, alles andere liest die
+    // Position aus dem Store bzw. getPreciseTime().
   }
 
   /** Offline-Wiedergabe beenden: angehalten an `restoreTime` (s). */

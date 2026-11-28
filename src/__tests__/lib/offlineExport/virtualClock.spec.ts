@@ -1,5 +1,9 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { installVirtualClock, isVirtualClockActive } from '../../../lib/offlineExport/virtualClock'
+import {
+  installVirtualClock,
+  isVirtualClockActive,
+  realNow,
+} from '../../../lib/offlineExport/virtualClock'
 
 afterEach(() => {
   // Sicherheitsnetz: nie eine virtuelle Uhr in andere Tests durchreichen
@@ -61,5 +65,15 @@ describe('virtualClock', () => {
     expect(Object.prototype.hasOwnProperty.call(perf, 'now')).toBe(false)
     expect(perf.now()).toBe(1)
     expect(date.now).toBe(own)
+  })
+
+  it('realNow läuft weiter, während die virtuelle Uhr steht', async () => {
+    const clock = installVirtualClock()
+    const virtual = performance.now()
+    const real = realNow()
+    await new Promise((r) => setTimeout(r, 15))
+    expect(performance.now()).toBe(virtual)
+    expect(realNow() - real).toBeGreaterThanOrEqual(10)
+    clock.restore()
   })
 })

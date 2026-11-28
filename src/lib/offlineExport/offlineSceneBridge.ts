@@ -24,6 +24,8 @@ export interface OfflineScene {
     width: number,
     height: number,
   ) => void
+  /** Videos der Szene (Canvas, Hintergrund, Kacheln) für die virtuelle Video-Uhr */
+  videos?: () => HTMLVideoElement[]
   /** Offline-Modus aus, Live-Schleife wieder starten */
   end: () => void
 }

@@ -6,8 +6,12 @@
  *   Haupt-Track ─► Ducking ─► Bass (lowshelf 200 Hz) ─► Höhen (highshelf 3 kHz) ─► Ausgabe
  *        └────────► Analyse-Gain ─► Analyser (fftSize 2048)
  *   Marker-Track ─► Lautstärke ─► Bass …  und  ─► Analyse-Gain
+ *   Video-Ton ─► Lautstärke ─► Video-Bus ─► Ausgabe (ohne Klangregelung, wie live)
+ *                                   └────► Video-Analyse-Gain ─► Analyser
  *
  * Wie live hört der Analyser das Signal vor Ducking und Klangregelung.
+ * Der Video-Ton wird erst während des Renderns eingeplant (offlineVideoAudio),
+ * ebenso das Ducking durch Marker-Videos (setVideoDuck).
  */
 
 /** Ein von einem Beat-Marker eingefügter Track */
@@ -31,6 +35,8 @@ export interface OfflineMixOptions {
   trebleDb: number
   /** false bei Analyse-Quelle „Video“: Player und Marker-Tracks nicht analysieren */
   analysePlayer: boolean
+  /** Video-Ton analysieren (Analyse-Quelle „Video“ oder „Mix“); fehlt = nein */
+  analyseVideo?: boolean
   /** Länge der Ausgabe (s) */
   duration: number
   sampleRate: number
@@ -108,6 +114,23 @@ export interface OfflineMix {
   analyser: AnalyserNode
   /** Anzahl Samples der Ausgabe */
   length: number
+  /** Eingang für Video-Ton (nach der Lautstärke je Video) */
+  videoInput: AudioNode
+  /**
+   * Ducking durch Marker-Videos ab `time` (s): Es gilt der niedrigere Wert aus
+   * Marker-Tracks und Marker-Videos (wie playerDuck live).
+   */
+  setVideoDuck: (level: number, time: number) => void
+}
+
+/** Song-Lautstärke der Marker-Tracks zum Zeitpunkt `time` */
+export function duckLevelAt(changes: readonly DuckChange[], time: number): number {
+  let level = 1
+  for (const change of changes) {
+    if (change.time > time) break
+    level = change.level
+  }
+  return level
 }
 
 /** Baut den Offline-Graph auf; gerendert wird erst mit `context.startRendering()`. */
@@ -144,10 +167,34 @@ export function buildOfflineMix(
 
   const duck = ctx.createGain()
   duck.gain.value = 1
-  for (const change of duckChanges(options.overlays)) {
+  const trackDucks = duckChanges(options.overlays)
+  for (const change of trackDucks) {
     duck.gain.setTargetAtTime(change.level, change.time, DUCK_TIME_CONSTANT)
   }
   duck.connect(bass)
+
+  const videoBus = ctx.createGain()
+  videoBus.gain.value = 1
+  videoBus.connect(ctx.destination)
+  const videoAnalysis = ctx.createGain()
+  videoAnalysis.gain.value = options.analyseVideo ? 1 : 0
+  videoBus.connect(videoAnalysis)
+  videoAnalysis.connect(analyser)
+
+  let videoDuck = 1
+  const setVideoDuck = (level: number, time: number) => {
+    const next = Number.isFinite(level) ? Math.min(1, Math.max(0, level)) : 1
+    if (next === videoDuck) return
+    videoDuck = next
+    const t = Math.max(0, time)
+    // Ab `t` neu planen: aktueller Stand, dann die späteren Marker-Track-Wechsel
+    duck.gain.cancelScheduledValues(t)
+    duck.gain.setTargetAtTime(Math.min(duckLevelAt(trackDucks, t), next), t, DUCK_TIME_CONSTANT)
+    for (const change of trackDucks) {
+      if (change.time <= t) continue
+      duck.gain.setTargetAtTime(Math.min(change.level, next), change.time, DUCK_TIME_CONSTANT)
+    }
+  }
 
   const main = ctx.createBufferSource()
   main.buffer = options.main
@@ -167,5 +214,5 @@ export function buildOfflineMix(
     source.start(Math.max(0, clip.start), clip.offset)
   }
 
-  return { context: ctx, analyser, length }
+  return { context: ctx, analyser, length, videoInput: videoBus, setVideoDuck }
 }
